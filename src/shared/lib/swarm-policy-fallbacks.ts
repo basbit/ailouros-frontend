@@ -21,57 +21,57 @@ export const FALLBACK_MODEL_DEFAULTS: Record<RoleId, Record<string, string>> = {
   },
   ba: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   architect: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   reviewer: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   stack_reviewer: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   dev: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   qa: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   problem_spotter: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   refactor_plan: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   code_diagram: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   doc_generate: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   devops: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   dev_lead: {
