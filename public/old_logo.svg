@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <!-- Ambient glow for eyes -->
+    <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#d97706" stop-opacity="0.3"/>
+    </radialGradient>
+    <!-- Body sheen -->
+    <linearGradient id="bodyGrad" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#1c1c2e"/>
+      <stop offset="100%" stop-color="#0a0a12"/>
+    </linearGradient>
+    <!-- Subtle purple accent -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+    <!-- Tail glow -->
+    <filter id="tailGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Eye glow filter -->
+    <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle — premium dark -->
+  <circle cx="120" cy="120" r="115" fill="#0a0a12" stroke="#1e1b4b" stroke-width="1.5"/>
+  <circle cx="120" cy="120" r="113" fill="none" stroke="#312e81" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Subtle grid lines (AI aesthetic) -->
+  <g opacity="0.05" stroke="#7c3aed" stroke-width="0.5">
+    <line x1="10" y1="60" x2="230" y2="60"/>
+    <line x1="10" y1="90" x2="230" y2="90"/>
+    <line x1="10" y1="150" x2="230" y2="150"/>
+    <line x1="60" y1="10" x2="60" y2="230"/>
+    <line x1="120" y1="10" x2="120" y2="230"/>
+    <line x1="180" y1="10" x2="180" y2="230"/>
+  </g>
+
+  <!-- ── CAT BODY ─────────────────────────────── -->
+
+  <!-- Tail — curling/waving to the right (the "ailouros" waving tail) -->
+  <path d="M 148 165 C 175 168, 200 150, 205 130 C 210 110, 195 95, 210 80 C 220 68, 225 72, 218 82"
+        fill="none" stroke="#1c1c2e" stroke-width="14" stroke-linecap="round" filter="url(#tailGlow)"/>
+  <path d="M 148 165 C 175 168, 200 150, 205 130 C 210 110, 195 95, 210 80 C 220 68, 225 72, 218 82"
+        fill="none" stroke="#2d2d48" stroke-width="10" stroke-linecap="round"/>
+  <!-- Tail tip highlight -->
+  <circle cx="218" cy="82" r="5" fill="#3d3d60"/>
+
+  <!-- Body (main silhouette) -->
+  <ellipse cx="118" cy="158" rx="44" ry="38" fill="url(#bodyGrad)" stroke="#1e1b4b" stroke-width="1"/>
+
+  <!-- Head -->
+  <ellipse cx="118" cy="110" rx="38" ry="35" fill="url(#bodyGrad)" stroke="#1e1b4b" stroke-width="1"/>
+
+  <!-- LEFT EAR -->
+  <polygon points="88,85 80,60 105,78" fill="#0f0f1a" stroke="#1e1b4b" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Left ear inner -->
+  <polygon points="89,82 83,65 103,79" fill="#2d1b69" opacity="0.6"/>
+
+  <!-- RIGHT EAR -->
+  <polygon points="148,85 156,60 131,78" fill="#0f0f1a" stroke="#1e1b4b" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Right ear inner -->
+  <polygon points="147,82 153,65 133,79" fill="#2d1b69" opacity="0.6"/>
+
+  <!-- FACE ── -->
+
+  <!-- Nose -->
+  <path d="M 113 112 L 118 107 L 123 112 L 118 116 Z" fill="#4c1d95" opacity="0.9"/>
+
+  <!-- Muzzle area subtle highlight -->
+  <ellipse cx="118" cy="116" rx="12" ry="7" fill="#111128" opacity="0.5"/>
+
+  <!-- Mouth — slightly smirking (mischievous) -->
+  <path d="M 113 118 Q 116 121 118 119 Q 120 121 123 118"
+        fill="none" stroke="#312e81" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- LEFT EYE -->
+  <ellipse cx="104" cy="104" rx="8" ry="9" fill="#0a0a12"/>
+  <ellipse cx="104" cy="104" rx="6" ry="7" fill="url(#eyeGlow)" filter="url(#glowFilter)"/>
+  <!-- Slit pupil -->
+  <ellipse cx="104" cy="104" rx="1.5" ry="5.5" fill="#0a0a12"/>
+  <!-- Glint -->
+  <ellipse cx="101.5" cy="101" rx="1.5" ry="1" fill="white" opacity="0.8"/>
+
+  <!-- RIGHT EYE -->
+  <ellipse cx="132" cy="104" rx="8" ry="9" fill="#0a0a12"/>
+  <ellipse cx="132" cy="104" rx="6" ry="7" fill="url(#eyeGlow)" filter="url(#glowFilter)"/>
+  <!-- Slit pupil -->
+  <ellipse cx="132" cy="104" rx="1.5" ry="5.5" fill="#0a0a12"/>
+  <!-- Glint -->
+  <ellipse cx="129.5" cy="101" rx="1.5" ry="1" fill="white" opacity="0.8"/>
+
+  <!-- WHISKERS (3 per side, subtle) -->
+  <g stroke="#2d2d50" stroke-width="0.8" opacity="0.7" stroke-linecap="round">
+    <!-- Left whiskers -->
+    <line x1="108" y1="113" x2="82" y2="108"/>
+    <line x1="108" y1="116" x2="82" y2="116"/>
+    <line x1="108" y1="119" x2="83" y2="123"/>
+    <!-- Right whiskers -->
+    <line x1="128" y1="113" x2="154" y2="108"/>
+    <line x1="128" y1="116" x2="154" y2="116"/>
+    <line x1="128" y1="119" x2="153" y2="123"/>
+  </g>
+
+  <!-- Small purple accent dot (circuit node) on forehead -->
+  <circle cx="118" cy="90" r="2" fill="#7c3aed" opacity="0.8"/>
+  <circle cx="118" cy="90" r="4" fill="none" stroke="#7c3aed" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Front paws peeking below body -->
+  <ellipse cx="100" cy="192" rx="14" ry="9" fill="#111128" stroke="#1e1b4b" stroke-width="1"/>
+  <ellipse cx="136" cy="192" rx="14" ry="9" fill="#111128" stroke="#1e1b4b" stroke-width="1"/>
+  <!-- Paw toe lines -->
+  <g stroke="#1e1b4b" stroke-width="0.8" opacity="0.6">
+    <line x1="95" y1="194" x2="93" y2="199"/>
+    <line x1="100" y1="195" x2="100" y2="200"/>
+    <line x1="105" y1="194" x2="107" y2="199"/>
+    <line x1="131" y1="194" x2="129" y2="199"/>
+    <line x1="136" y1="195" x2="136" y2="200"/>
+    <line x1="141" y1="194" x2="143" y2="199"/>
+  </g>
+
+  <!-- ── LOGOTYPE ─────────────────────────────── -->
+  <text x="120" y="224"
+        font-family="'SF Mono', 'Fira Code', monospace"
+        font-size="13"
+        font-weight="600"
+        letter-spacing="3"
+        fill="#e2e8f0"
+        text-anchor="middle">AIlourOS</text>
+
+  <!-- Accent underline -->
+  <line x1="75" y1="228" x2="165" y2="228" stroke="url(#accentGrad)" stroke-width="1" opacity="0.7"/>
+
+</svg>
