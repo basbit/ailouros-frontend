@@ -2,6 +2,16 @@
   <div v-if="visible" class="human-gate">
     <div class="human-gate-title">&#9646; {{ title }}</div>
 
+    <!-- Diff viewer -->
+    <DiffViewer
+      v-if="diffData"
+      :diff-text="diffData.diffText"
+      :files="diffData.files"
+      :stats="diffData.stats"
+      :source="diffData.source"
+      :task-id="props.taskId"
+    />
+
     <!-- Fetch error -->
     <div v-if="fetchError" class="clarify-error">{{ fetchError }}</div>
 
@@ -80,6 +90,7 @@
 import { ref, watch, computed } from "vue";
 import { apiUrl } from "@/shared/api/base";
 import { useI18n } from "@/shared/lib/i18n";
+import DiffViewer from "@/features/diff-viewer/DiffViewer.vue";
 
 interface ClarifyQuestion {
   index: number;
@@ -106,6 +117,39 @@ const customMode = ref<Record<number, boolean>>({});
 const customAnswers = ref<Record<number, string>>({});
 const comments = ref<Record<number, string>>({});
 const fetchError = ref<string | null>(null);
+
+// diff viewer state
+const diffData = ref<{
+  diffText: string;
+  files: string[];
+  stats: { added: number; removed: number; files: number };
+  source: "git" | "file_list" | "none";
+} | null>(null);
+
+async function fetchWorkspaceDiff(): Promise<void> {
+  if (!props.taskId) return;
+  try {
+    const r = await fetch(apiUrl(`/v1/tasks/${props.taskId}/workspace-diff`));
+    if (!r.ok) return;
+    const data = await r.json();
+    // Only show diff if there are actually changed files
+    if (Array.isArray(data.files_changed) && data.files_changed.length > 0) {
+      diffData.value = {
+        diffText: data.diff_text ?? "",
+        files: data.files_changed,
+        stats: data.stats ?? {
+          added: 0,
+          removed: 0,
+          files: (data.files_changed as string[]).length,
+        },
+        source: data.source ?? "file_list",
+      };
+    }
+  } catch (e) {
+    // Diff viewer is a display enhancement; log but do not block the gate UI
+    console.warn("[HumanGate] workspace-diff fetch failed:", e);
+  }
+}
 
 async function fetchClarifyQuestions(): Promise<void> {
   if (!props.taskId) return;
@@ -137,6 +181,9 @@ watch(
       clarifyQuestions.value = [];
       fetchError.value = null;
       void fetchClarifyQuestions();
+      void fetchWorkspaceDiff();
+    } else {
+      diffData.value = null;
     }
   },
   { immediate: true },

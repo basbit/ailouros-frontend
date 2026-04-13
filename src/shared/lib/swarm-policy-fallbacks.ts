@@ -21,62 +21,92 @@ export const FALLBACK_MODEL_DEFAULTS: Record<RoleId, Record<string, string>> = {
   },
   ba: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   architect: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   reviewer: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   stack_reviewer: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   dev: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   qa: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   problem_spotter: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   refactor_plan: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   code_diagram: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   doc_generate: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   devops: {
     ollama: "qwen2.5-coder:14b",
-    lmstudio: "freehuntx/qwen3-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
   dev_lead: {
     ollama: "qwen3-coder:30b",
     lmstudio: "qwen3-coder:30b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  ux_researcher: {
+    ollama: "qwen2.5:14b",
+    lmstudio: "qwen2.5:14b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  ux_architect: {
+    ollama: "qwen2.5-coder:14b",
+    lmstudio: "qwen2.5-coder:14b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  ui_designer: {
+    ollama: "qwen2.5:14b",
+    lmstudio: "qwen2.5:14b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  seo_specialist: {
+    ollama: "qwen2.5:14b",
+    lmstudio: "qwen2.5:14b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  ai_citation_strategist: {
+    ollama: "qwen2.5:14b",
+    lmstudio: "qwen2.5:14b",
+    cloud: "claude-3-5-sonnet-latest",
+  },
+  app_store_optimizer: {
+    ollama: "qwen2.5:14b",
+    lmstudio: "qwen2.5:14b",
     cloud: "claude-3-5-sonnet-latest",
   },
 };
@@ -95,6 +125,12 @@ export const FALLBACK_PROMPT_DEFAULTS: Record<RoleId, string> = {
   doc_generate: "specialized/code-doc-generator.md",
   devops: "engineering/devops-setup.md",
   dev_lead: "project-management/dev-lead.md",
+  ux_researcher: "design/design-ux-researcher.md",
+  ux_architect: "design/design-ux-architect.md",
+  ui_designer: "design/design-ui-designer.md",
+  seo_specialist: "marketing/marketing-seo-specialist.md",
+  ai_citation_strategist: "marketing/marketing-ai-citation-strategist.md",
+  app_store_optimizer: "marketing/marketing-app-store-optimizer.md",
 };
 
 export const FALLBACK_PROMPT_CHOICES: Record<RoleId, [string, string][]> = {
@@ -154,6 +190,30 @@ export const FALLBACK_PROMPT_CHOICES: Record<RoleId, [string, string][]> = {
   ],
   dev_lead: [
     ["project-management/dev-lead.md", "Dev lead"],
+    ["__custom__", "Custom…"],
+  ],
+  ux_researcher: [
+    ["design/design-ux-researcher.md", "UX Researcher"],
+    ["__custom__", "Custom…"],
+  ],
+  ux_architect: [
+    ["design/design-ux-architect.md", "UX Architect"],
+    ["__custom__", "Custom…"],
+  ],
+  ui_designer: [
+    ["design/design-ui-designer.md", "UI Designer"],
+    ["__custom__", "Custom…"],
+  ],
+  seo_specialist: [
+    ["marketing/marketing-seo-specialist.md", "SEO Specialist"],
+    ["__custom__", "Custom…"],
+  ],
+  ai_citation_strategist: [
+    ["marketing/marketing-ai-citation-strategist.md", "AI Citation Strategist"],
+    ["__custom__", "Custom…"],
+  ],
+  app_store_optimizer: [
+    ["marketing/marketing-app-store-optimizer.md", "App Store Optimizer"],
     ["__custom__", "Custom…"],
   ],
 };

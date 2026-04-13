@@ -34,11 +34,47 @@
           <option value="lmstudio">lmstudio</option>
           <option value="cloud">cloud</option>
         </select>
+        <!-- Model select dropdown (like other agent roles) -->
+        <span
+          v-if="uiState(idx).modelFetchError"
+          class="model-fetch-error"
+          :title="uiState(idx).modelFetchError!"
+          style="font-size: 10px; color: var(--error, #f03e3e)"
+        >
+          ⚠ {{ uiState(idx).modelFetchError }}
+        </span>
+        <select
+          v-else-if="uiState(idx).modelChoices.length > 0"
+          class="dr-model"
+          :value="modelSelValue(idx)"
+          @change="onModelChange(idx, ($event.target as HTMLSelectElement).value)"
+        >
+          <option
+            v-for="[val, lbl] in uiState(idx).modelChoices"
+            :key="val"
+            :value="val"
+          >
+            {{ lbl }}
+          </option>
+        </select>
         <input
+          v-else
           type="text"
           class="dr-model"
           placeholder="model id"
           autocomplete="off"
+          :value="role.model ?? ''"
+          @input="update(idx, 'model', ($event.target as HTMLInputElement).value)"
+        />
+      </div>
+      <!-- Custom model input (when "Custom…" is selected) -->
+      <div v-if="modelSelValue(idx) === '__custom__'" style="margin-bottom: 2px">
+        <input
+          type="text"
+          class="dr-model-custom"
+          placeholder="model id"
+          autocomplete="off"
+          style="width: 100%; font-size: 12px"
           :value="role.model ?? ''"
           @input="update(idx, 'model', ($event.target as HTMLInputElement).value)"
         />
@@ -72,17 +108,43 @@
 </template>
 
 <script setup lang="ts">
-import type { DevRoleSnap } from "@/features/dev-roles/useDevRoles";
+import type { DevRoleSnap, DevRoleUiState } from "@/features/dev-roles/useDevRoles";
 import { useI18n } from "@/shared/lib/i18n";
 
 const { t } = useI18n();
 
-defineProps<{ devRoles: DevRoleSnap[] }>();
+const _fallbackUi: DevRoleUiState = { modelChoices: [], modelFetchError: null };
+
+const props = defineProps<{
+  devRoles: DevRoleSnap[];
+  uiStates: DevRoleUiState[];
+}>();
 const emit = defineEmits<{
   add: [];
   remove: [idx: number];
   update: [idx: number, field: keyof DevRoleSnap, value: string];
 }>();
+
+function uiState(idx: number): DevRoleUiState {
+  return props.uiStates[idx] ?? _fallbackUi;
+}
+
+function modelSelValue(idx: number): string {
+  const role = props.devRoles[idx];
+  if (!role) return "";
+  const choices = uiState(idx).modelChoices;
+  if (!choices.length) return role.model ?? "";
+  const hit = choices.find(([v]) => v === role.model);
+  return hit ? hit[0] : "__custom__";
+}
+
+function onModelChange(idx: number, value: string): void {
+  if (value === "__custom__") {
+    emit("update", idx, "model", "");
+  } else {
+    emit("update", idx, "model", value);
+  }
+}
 
 function add(): void {
   emit("add");

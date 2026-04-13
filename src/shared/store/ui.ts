@@ -227,6 +227,28 @@ export const useUiStore = defineStore("ui", () => {
     }
   }
 
+  function resetTaskView(): void {
+    taskId.value = null;
+    taskStatus.value = null;
+    taskError.value = null;
+    taskHistory.value = [];
+    taskAgents.value = [];
+    humanGateVisible.value = false;
+    humanGateTitle.value = "Awaiting operator input";
+    humanGateFeedback.value = "";
+    shellGateVisible.value = false;
+    shellGateCommands.value = [];
+    retryGateVisible.value = false;
+    retryFailedStep.value = "(unknown)";
+    artifactPath.value = null;
+    taskPipelinePlan.value = null;
+    activeStep.value = null;
+    contextMode.value = null;
+    toolsEnabled.value = true;
+    mcpPhase.value = null;
+    pendingApprovals.value = 0;
+  }
+
   return {
     taskId,
     taskStatus,
@@ -254,6 +276,7 @@ export const useUiStore = defineStore("ui", () => {
     restoreActiveTask,
     loadEventsView,
     saveEventsView,
+    resetTaskView,
     // Statusline (F-4)
     activeStep,
     contextMode,

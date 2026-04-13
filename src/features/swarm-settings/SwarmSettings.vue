@@ -194,7 +194,9 @@ interface FormSlice {
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
   mcp_servers_json: string;
-  swarm_brave_search_api_key: string;
+  swarm_tavily_api_key: string;
+  swarm_exa_api_key: string;
+  swarm_scrapingdog_api_key: string;
   // Automation & Quality
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
@@ -216,6 +218,9 @@ interface FormSlice {
   swarm_memory_namespace: string;
   swarm_pattern_memory_path: string;
   swarm_force_rerun: boolean;
+  remote_api_provider: string;
+  remote_api_key: string;
+  remote_api_base_url: string;
 }
 
 const props = defineProps<{ form: FormSlice }>();
@@ -229,7 +234,9 @@ const mcpSlice = computed(() => ({
   swarm_mcp_auto: props.form.swarm_mcp_auto,
   swarm_skip_mcp_tools: props.form.swarm_skip_mcp_tools,
   mcp_servers_json: props.form.mcp_servers_json,
-  swarm_brave_search_api_key: props.form.swarm_brave_search_api_key,
+  swarm_tavily_api_key: props.form.swarm_tavily_api_key,
+  swarm_exa_api_key: props.form.swarm_exa_api_key,
+  swarm_scrapingdog_api_key: props.form.swarm_scrapingdog_api_key,
 }));
 
 const dbSlice = computed(() => ({
@@ -262,5 +269,8 @@ const autonomousSlice = computed(() => ({
   swarm_planner_model: props.form.swarm_planner_model,
   swarm_planner_provider: props.form.swarm_planner_provider,
   swarm_force_rerun: props.form.swarm_force_rerun,
+  remote_api_provider: props.form.remote_api_provider,
+  remote_api_key: props.form.remote_api_key,
+  remote_api_base_url: props.form.remote_api_base_url,
 }));
 </script>

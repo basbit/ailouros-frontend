@@ -299,8 +299,12 @@ export function useAgentRoles(
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
-      const assignments: { role: string; model_id: string; provider: string }[] =
-        data.assignments ?? [];
+      const assignments: {
+        role: string;
+        model_id: string;
+        provider: string;
+        remote_profile?: string;
+      }[] = data.assignments ?? [];
       for (const a of assignments) {
         const rs = roleStates[a.role];
         if (!rs) continue;
@@ -316,6 +320,10 @@ export function useAgentRoles(
         rs.modelCustom = a.model_id;
         rs.showProfileSelect = env === "cloud";
         rs.modelFetchError = null;
+        // Apply remote_profile from backend (e.g. "claude", "chat-gpt")
+        if (a.remote_profile) {
+          rs.remoteProfile = a.remote_profile;
+        }
       }
       onChangeCb();
       return "";

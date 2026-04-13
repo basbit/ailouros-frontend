@@ -75,10 +75,16 @@ export function useSwarmRunController(settings: SettingsRef) {
     ui.taskStatus = h.status as typeof ui.taskStatus;
     ui.taskError = h.error ?? null;
     ui.taskAgents = h.agents;
+    ui.activeStep = h.agents.length ? h.agents[h.agents.length - 1] : null;
     ui.artifactPath = h.artifactPath;
     if (h.fromLogFallback) {
       ui.eventsViewMode = "raw";
       ui.saveEventsView(projectsStore.currentId);
+    }
+    if (!isTaskActive(h.status ?? "")) {
+      ui.contextMode = null;
+      ui.mcpPhase = null;
+      ui.pendingApprovals = 0;
     }
     taskStore.setTask({
       task_id: h.taskId,
@@ -169,10 +175,7 @@ export function useSwarmRunController(settings: SettingsRef) {
     }
 
     if (!ui.taskId) {
-      ui.taskHistory = [];
-      ui.taskAgents = [];
-      ui.artifactPath = null;
-      ui.taskPipelinePlan = null;
+      ui.resetTaskView();
       taskStore.resetTask();
       return;
     }
@@ -281,16 +284,10 @@ export function useSwarmRunController(settings: SettingsRef) {
   // ── Run actions ───────────────────────────────────────────────────────────
 
   async function onStartRun(): Promise<void> {
-    ui.humanGateVisible = false;
-    ui.humanGateFeedback = "";
-    ui.shellGateVisible = false;
-    ui.retryGateVisible = false;
+    currentPipelineSteps.value = [];
+    lastNotifiedError.value = null;
     ui.persistActiveTask(null, projectsStore.currentId);
-    ui.taskId = null;
-    ui.taskStatus = null;
-    ui.taskHistory = [];
-    ui.taskAgents = [];
-    ui.taskPipelinePlan = null;
+    ui.resetTaskView();
     lastPipelinePlanLoadKey.value = "";
     taskStore.resetTask();
     sendWsSubscribe();

@@ -3,6 +3,7 @@ import { computed } from "vue";
 const PARALLEL_GROUP_MAP: Record<string, string> = {
   ba: "ba-arch",
   arch: "ba-arch",
+  architect: "ba-arch",
   analyze_code: "analyze-docs",
   generate_documentation: "analyze-docs",
   problem_spotter: "spot-refactor",
@@ -19,35 +20,45 @@ interface LayoutProps {
   skippedSteps?: string[];
 }
 
+export interface GraphStepRef {
+  id: string;
+  index: number;
+}
+
 export type StepStatus = "pending" | "in_progress" | "completed" | "failed" | "skipped";
 
 export function usePipelineGraphLayout(props: LayoutProps) {
-  const parallelStages = computed((): string[][] => {
-    const result: string[][] = [];
-    const used = new Set<string>();
-    for (const step of props.steps) {
-      if (used.has(step)) continue;
-      const groupId = PARALLEL_GROUP_MAP[step];
+  const stepRefs = computed((): GraphStepRef[] =>
+    props.steps.map((id, index) => ({ id, index })),
+  );
+
+  const parallelStages = computed((): GraphStepRef[][] => {
+    const result: GraphStepRef[][] = [];
+    const used = new Set<number>();
+    for (const step of stepRefs.value) {
+      if (used.has(step.index)) continue;
+      const groupId = PARALLEL_GROUP_MAP[step.id];
       if (groupId) {
-        const siblings = props.steps.filter(
-          (x) => PARALLEL_GROUP_MAP[x] === groupId && !used.has(x),
+        const siblings = stepRefs.value.filter(
+          (candidate) =>
+            PARALLEL_GROUP_MAP[candidate.id] === groupId && !used.has(candidate.index),
         );
         if (siblings.length > 1) {
-          siblings.forEach((x) => used.add(x));
+          siblings.forEach((candidate) => used.add(candidate.index));
           result.push(siblings);
           continue;
         }
       }
-      used.add(step);
+      used.add(step.index);
       result.push([step]);
     }
     return result;
   });
 
-  const hierarchicalRows = computed((): string[][] => {
-    if (!props.steps.length) return [];
-    const rows: string[][] = [[props.steps[0]]];
-    const rest = props.steps.slice(1);
+  const hierarchicalRows = computed((): GraphStepRef[][] => {
+    const [first, ...rest] = stepRefs.value;
+    if (!first) return [];
+    const rows: GraphStepRef[][] = [[first]];
     for (let i = 0; i < rest.length; i += 3) {
       rows.push(rest.slice(i, i + 3));
     }
@@ -62,5 +73,5 @@ export function usePipelineGraphLayout(props: LayoutProps) {
     return "pending";
   }
 
-  return { parallelStages, hierarchicalRows, stepStatus };
+  return { stepRefs, parallelStages, hierarchicalRows, stepStatus };
 }
