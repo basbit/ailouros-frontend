@@ -38,7 +38,9 @@ export function useSettings() {
     swarm_database_readonly: true,
     swarm_disable_tree_sitter: false,
     mcp_servers_json: "",
-    swarm_brave_search_api_key: "",
+    swarm_tavily_api_key: "",
+    swarm_exa_api_key: "",
+    swarm_scrapingdog_api_key: "",
     // Automation & Quality
     swarm_self_verify: false,
     swarm_self_verify_model: "",
@@ -131,7 +133,9 @@ export function useSettings() {
       swarm_database_readonly: form.swarm_database_readonly,
       swarm_disable_tree_sitter: form.swarm_disable_tree_sitter,
       mcp_servers_json: form.mcp_servers_json,
-      swarm_brave_search_api_key: form.swarm_brave_search_api_key,
+      swarm_tavily_api_key: form.swarm_tavily_api_key,
+      swarm_exa_api_key: form.swarm_exa_api_key,
+      swarm_scrapingdog_api_key: form.swarm_scrapingdog_api_key,
       swarm_self_verify: form.swarm_self_verify,
       swarm_self_verify_model: form.swarm_self_verify_model,
       swarm_auto_approve: form.swarm_auto_approve,
@@ -183,7 +187,9 @@ export function useSettings() {
     form.swarm_database_readonly = snap.swarm_database_readonly ?? true;
     form.swarm_disable_tree_sitter = snap.swarm_disable_tree_sitter ?? false;
     form.mcp_servers_json = snap.mcp_servers_json ?? "";
-    form.swarm_brave_search_api_key = snap.swarm_brave_search_api_key ?? "";
+    form.swarm_tavily_api_key = snap.swarm_tavily_api_key ?? "";
+    form.swarm_exa_api_key = snap.swarm_exa_api_key ?? "";
+    form.swarm_scrapingdog_api_key = snap.swarm_scrapingdog_api_key ?? "";
     form.swarm_self_verify = snap.swarm_self_verify ?? false;
     form.swarm_self_verify_model = snap.swarm_self_verify_model ?? "";
     form.swarm_auto_approve = snap.swarm_auto_approve ?? "";

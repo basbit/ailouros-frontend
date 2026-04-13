@@ -6,6 +6,9 @@ export const ROLES = [
   "architect",
   "reviewer",
   "stack_reviewer",
+  "ux_researcher",
+  "ux_architect",
+  "ui_designer",
   "dev",
   "qa",
   "problem_spotter",
@@ -14,6 +17,9 @@ export const ROLES = [
   "doc_generate",
   "devops",
   "dev_lead",
+  "seo_specialist",
+  "ai_citation_strategist",
+  "app_store_optimizer",
 ] as const;
 
 export type RoleId = (typeof ROLES)[number];
@@ -35,6 +41,15 @@ export const PIPELINE_OPTIONS_BASE: [string, string][] = [
   ["spec_merge", "Spec merge"],
   ["review_spec", "Rev spec"],
   ["human_spec", "Human spec"],
+  ["ux_researcher", "UX Researcher"],
+  ["review_ux_researcher", "Rev UX Research"],
+  ["human_ux_researcher", "Human UX Research"],
+  ["ux_architect", "UX Architect"],
+  ["review_ux_architect", "Rev UX Arch"],
+  ["human_ux_architect", "Human UX Arch"],
+  ["ui_designer", "UI Designer"],
+  ["review_ui_designer", "Rev UI Design"],
+  ["human_ui_designer", "Human UI Design"],
   ["analyze_code", "Analyze code"],
   ["generate_documentation", "Docs + Mermaid"],
   ["problem_spotter", "Problem spotter"],
@@ -52,6 +67,15 @@ export const PIPELINE_OPTIONS_BASE: [string, string][] = [
   ["qa", "QA"],
   ["review_qa", "Rev QA"],
   ["human_qa", "Human QA"],
+  ["seo_specialist", "SEO Specialist"],
+  ["review_seo_specialist", "Rev SEO"],
+  ["human_seo_specialist", "Human SEO"],
+  ["ai_citation_strategist", "AI Citation"],
+  ["review_ai_citation_strategist", "Rev AI Citation"],
+  ["human_ai_citation_strategist", "Human AI Citation"],
+  ["app_store_optimizer", "App Store Opt"],
+  ["review_app_store_optimizer", "Rev ASO"],
+  ["human_app_store_optimizer", "Human ASO"],
 ];
 
 export const PIPELINE_DEFAULT_ORDER = PIPELINE_OPTIONS_BASE.map((x) => x[0]);
@@ -67,10 +91,16 @@ export const REVIEWER_PIPELINE_STEP_IDS: readonly string[] = [
   "review_ba",
   "review_arch",
   "review_spec",
+  "review_ux_researcher",
+  "review_ux_architect",
+  "review_ui_designer",
   "review_devops",
   "review_dev",
   "review_dev_lead",
   "review_qa",
+  "review_seo_specialist",
+  "review_ai_citation_strategist",
+  "review_app_store_optimizer",
   "ba_arch_debate",
 ];
 
@@ -81,58 +111,43 @@ export interface AgentModelRowMeta {
   docSubgroup?: "generate_documentation";
 }
 
-export const AGENT_MODEL_ROWS_PIPELINE_ORDER: readonly AgentModelRowMeta[] = [
-  {
-    configKey: "reviewer",
+/**
+ * Overrides for roles that need non-default labels, hints, or subgroups
+ * in the Agent Models UI. Roles not listed here use automatic defaults:
+ *   { configKey: role, label: PIPELINE_STEP_LABEL[role], pipelineStepsHint: role }
+ */
+const _AGENT_MODEL_ROW_OVERRIDES: Partial<
+  Record<RoleId, Partial<AgentModelRowMeta>>
+> = {
+  reviewer: {
     label: "Clarify + Reviews + BA↔Arch debate",
     pipelineStepsHint: REVIEWER_PIPELINE_STEP_IDS.join(", "),
   },
-  { configKey: "pm", label: PIPELINE_STEP_LABEL.pm, pipelineStepsHint: "pm" },
-  { configKey: "ba", label: PIPELINE_STEP_LABEL.ba, pipelineStepsHint: "ba" },
-  {
-    configKey: "stack_reviewer",
+  stack_reviewer: {
     label: PIPELINE_STEP_LABEL.review_stack,
     pipelineStepsHint: "review_stack",
   },
-  {
-    configKey: "architect",
-    label: PIPELINE_STEP_LABEL.architect,
-    pipelineStepsHint: "architect",
-  },
-  {
-    configKey: "code_diagram",
+  code_diagram: {
     label: `${PIPELINE_STEP_LABEL.generate_documentation} — Mermaid`,
     pipelineStepsHint: "generate_documentation → code_diagram",
     docSubgroup: "generate_documentation",
   },
-  {
-    configKey: "doc_generate",
+  doc_generate: {
     label: `${PIPELINE_STEP_LABEL.generate_documentation} — prose`,
     pipelineStepsHint: "generate_documentation → doc_generate",
   },
-  {
-    configKey: "problem_spotter",
-    label: PIPELINE_STEP_LABEL.problem_spotter,
-    pipelineStepsHint: "problem_spotter",
-  },
-  {
-    configKey: "refactor_plan",
-    label: PIPELINE_STEP_LABEL.refactor_plan,
-    pipelineStepsHint: "refactor_plan",
-  },
-  {
-    configKey: "devops",
-    label: PIPELINE_STEP_LABEL.devops,
-    pipelineStepsHint: "devops",
-  },
-  {
-    configKey: "dev_lead",
-    label: PIPELINE_STEP_LABEL.dev_lead,
-    pipelineStepsHint: "dev_lead",
-  },
-  { configKey: "dev", label: PIPELINE_STEP_LABEL.dev, pipelineStepsHint: "dev" },
-  { configKey: "qa", label: PIPELINE_STEP_LABEL.qa, pipelineStepsHint: "qa" },
-];
+};
+
+export const AGENT_MODEL_ROWS_PIPELINE_ORDER: readonly AgentModelRowMeta[] =
+  ROLES.map((role): AgentModelRowMeta => {
+    const overrides = _AGENT_MODEL_ROW_OVERRIDES[role];
+    return {
+      configKey: role,
+      label: overrides?.label ?? PIPELINE_STEP_LABEL[role] ?? role,
+      pipelineStepsHint: overrides?.pipelineStepsHint ?? role,
+      ...(overrides?.docSubgroup ? { docSubgroup: overrides.docSubgroup } : {}),
+    };
+  });
 
 export function splitAgentModelRowsAroundDevSlot(): {
   beforeDevSlot: readonly AgentModelRowMeta[];
@@ -166,4 +181,10 @@ export const ROLE_MODEL_HINT: Partial<Record<RoleId, string>> = {
   refactor_plan: "Requires tool calling support. Suggested: qwen2.5:14b+ / deepseek-r1",
   devops: "Requires tool calling support. CI/CD. Suggested: qwen2.5-coder / claude",
   dev_lead: "Task planning. Suggested: qwen3-coder:30b / claude-sonnet",
+  ux_researcher: "User research & personas. Suggested: qwen2.5:14b+ / claude",
+  ux_architect: "UX architecture & CSS systems. Suggested: qwen2.5-coder:14b+ / claude",
+  ui_designer: "Visual design & components. Suggested: qwen2.5:14b+ / claude",
+  seo_specialist: "SEO strategy & technical audit. Suggested: qwen2.5:14b+ / claude",
+  ai_citation_strategist: "AI citation & AEO/GEO. Suggested: qwen2.5:14b+ / claude",
+  app_store_optimizer: "ASO & conversion optimization. Suggested: qwen2.5:14b+ / claude",
 };

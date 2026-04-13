@@ -2,6 +2,7 @@ import { ref } from "vue";
 import { apiUrl } from "@/shared/api/base";
 import { useI18n } from "@/shared/lib/i18n";
 import { parseSkillIds } from "@/shared/lib/skill-utils";
+import { ROLES } from "@/shared/lib/pipeline-schema";
 import type { useSettings } from "@/features/project-settings/useSettings";
 
 /** Reactive error message for user-facing validation errors. */
@@ -117,25 +118,9 @@ function _buildRolesConfig(
   devRolesState: SettingsRef["devRolesState"],
   form: SettingsRef["form"],
 ): Record<string, unknown> {
-  function roleConfig(roleId: string): Record<string, unknown> {
-    return rolesState.collectRoleApiConfig(roleId);
-  }
-
-  const config: Record<string, unknown> = {
-    pm: roleConfig("pm"),
-    ba: roleConfig("ba"),
-    architect: roleConfig("architect"),
-    reviewer: roleConfig("reviewer"),
-    stack_reviewer: roleConfig("stack_reviewer"),
-    dev: roleConfig("dev"),
-    qa: roleConfig("qa"),
-    problem_spotter: roleConfig("problem_spotter"),
-    refactor_plan: roleConfig("refactor_plan"),
-    code_diagram: roleConfig("code_diagram"),
-    doc_generate: roleConfig("doc_generate"),
-    devops: roleConfig("devops"),
-    dev_lead: roleConfig("dev_lead"),
-  };
+  const config: Record<string, unknown> = Object.fromEntries(
+    ROLES.map((r) => [r, rolesState.collectRoleApiConfig(r)]),
+  );
 
   const devRolesArray = devRolesState.collectForApi();
   if (devRolesArray.length) config.dev_roles = devRolesArray;
@@ -196,8 +181,14 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (backgroundWatchPaths) swarm.background_watch_paths = backgroundWatchPaths;
   if (form.swarm_dream_enabled) swarm.dream_enabled = true;
   if (form.swarm_quality_gate) swarm.quality_gate_enabled = true;
-  if (form.swarm_brave_search_api_key?.trim()) {
-    swarm.brave_search_api_key = form.swarm_brave_search_api_key.trim();
+  if (form.swarm_tavily_api_key?.trim()) {
+    swarm.tavily_api_key = form.swarm_tavily_api_key.trim();
+  }
+  if (form.swarm_exa_api_key?.trim()) {
+    swarm.exa_api_key = form.swarm_exa_api_key.trim();
+  }
+  if (form.swarm_scrapingdog_api_key?.trim()) {
+    swarm.scrapingdog_api_key = form.swarm_scrapingdog_api_key.trim();
   }
   const memoryNamespace = form.swarm_memory_namespace?.trim();
   if (memoryNamespace && memoryNamespace !== "default") {

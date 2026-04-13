@@ -59,7 +59,9 @@ export interface SettingsSnap {
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
   mcp_servers_json: string;
-  swarm_brave_search_api_key: string;
+  swarm_tavily_api_key: string;
+  swarm_exa_api_key: string;
+  swarm_scrapingdog_api_key: string;
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
   swarm_auto_approve: string;

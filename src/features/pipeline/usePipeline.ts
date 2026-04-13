@@ -12,6 +12,8 @@ export interface PipeStep {
   uid: string;
 }
 
+type StageGroup = string[];
+
 function _uid(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
@@ -33,24 +35,78 @@ export function usePipeline(
   onChangeCb: () => void,
 ) {
   const steps = ref<PipeStep[]>([]);
+  const stageGroups = ref<StageGroup[]>([]);
+
+  function createStep(id: string): PipeStep {
+    return { id, uid: _uid() };
+  }
+
+  function defaultStageGroups(nextSteps: PipeStep[]): StageGroup[] {
+    return nextSteps.map((step) => [step.uid]);
+  }
+
+  function normalizeStageGroups(nextGroups: StageGroup[]): void {
+    if (!steps.value.length) {
+      stageGroups.value = [];
+      return;
+    }
+
+    const order = new Map(steps.value.map((step, index) => [step.uid, index]));
+    const used = new Set<string>();
+    const normalized: StageGroup[] = [];
+
+    for (const group of nextGroups) {
+      const kept: StageGroup = [];
+      for (const uid of group) {
+        if (!order.has(uid) || used.has(uid)) continue;
+        kept.push(uid);
+        used.add(uid);
+      }
+      if (kept.length) normalized.push(kept);
+    }
+
+    for (const step of steps.value) {
+      if (used.has(step.uid)) continue;
+      normalized.push([step.uid]);
+      used.add(step.uid);
+    }
+
+    for (const group of normalized) {
+      group.sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0));
+    }
+    normalized.sort(
+      (a, b) => (order.get(a[0]) ?? 0) - (order.get(b[0]) ?? 0),
+    );
+
+    stageGroups.value = normalized.length ? normalized : defaultStageGroups(steps.value);
+  }
 
   function getOptions(): [string, string][] {
     return pipelineOptionsAll(customRoles.value);
   }
 
   function reset(): void {
-    steps.value = defaultPipelineOrder().map((id) => ({ id, uid: _uid() }));
+    steps.value = defaultPipelineOrder().map((id) => createStep(id));
     _rebuildDefaultStages();
     onChangeCb();
   }
 
   function addStep(): void {
-    steps.value.push({ id: "pm", uid: _uid() });
+    const nextStep = createStep("pm");
+    steps.value = [...steps.value, nextStep];
+    normalizeStageGroups([...stageGroups.value, [nextStep.uid]]);
     onChangeCb();
   }
 
   function removeStep(idx: number): void {
+    const removed = steps.value[idx];
+    if (!removed) return;
     steps.value.splice(idx, 1);
+    normalizeStageGroups(
+      stageGroups.value
+        .map((group) => group.filter((uid) => uid !== removed.uid))
+        .filter((group) => group.length),
+    );
     onChangeCb();
   }
 
@@ -63,9 +119,13 @@ export function usePipeline(
 
   function applySnap(rows: { id: string }[]): void {
     steps.value = rows
-      .map((r) => ({ id: typeof r === "string" ? r : String(r.id ?? ""), uid: _uid() }))
+      .map((r) => createStep(typeof r === "string" ? r : String(r.id ?? "")))
       .filter((r) => r.id);
-    if (!steps.value.length) reset();
+    if (!steps.value.length) {
+      reset();
+      return;
+    }
+    _rebuildDefaultStages();
   }
 
   function collectSnap(): { id: string }[] {
@@ -79,29 +139,32 @@ export function usePipeline(
   function reorder(oldIdx: number, newIdx: number): void {
     const arr = steps.value.slice();
     const [item] = arr.splice(oldIdx, 1);
+    if (!item) return;
     arr.splice(newIdx, 0, item);
     steps.value = arr;
+    normalizeStageGroups(stageGroups.value);
     onChangeCb();
   }
 
   // ── Stages (parallel groups) ──────────────────────────────────────────────
-  // stages[i] = array of step indices that run in parallel.
+  // stages[i] = array of step UIDs that run in parallel.
   // Default: each step is its own sequential stage.
-  const stageGroups = ref<number[][]>([]);
-
   function _rebuildDefaultStages(): void {
-    stageGroups.value = steps.value.map((_, i) => [i]);
+    stageGroups.value = defaultStageGroups(steps.value);
   }
 
   /** Group two steps into a parallel stage. */
   function groupSteps(idxA: number, idxB: number): void {
     if (idxA === idxB) return;
-    // Find which stages contain these indices
+    const uidA = steps.value[idxA]?.uid;
+    const uidB = steps.value[idxB]?.uid;
+    if (!uidA || !uidB) return;
+    // Find which stages contain these steps.
     let stageA = -1;
     let stageB = -1;
     for (let si = 0; si < stageGroups.value.length; si++) {
-      if (stageGroups.value[si].includes(idxA)) stageA = si;
-      if (stageGroups.value[si].includes(idxB)) stageB = si;
+      if (stageGroups.value[si].includes(uidA)) stageA = si;
+      if (stageGroups.value[si].includes(uidB)) stageB = si;
     }
     if (stageA === -1 || stageB === -1 || stageA === stageB) return;
     // Merge stageB into stageA
@@ -110,23 +173,25 @@ export function usePipeline(
     // Insert merged group at the earlier position
     const insertAt = Math.min(stageA, stageB);
     newGroups.splice(insertAt, 0, merged);
-    stageGroups.value = newGroups;
+    normalizeStageGroups(newGroups);
     onChangeCb();
   }
 
   /** Ungroup a step from its parallel stage back to its own sequential stage. */
   function ungroupStep(stepIdx: number): void {
+    const uid = steps.value[stepIdx]?.uid;
+    if (!uid) return;
     for (let si = 0; si < stageGroups.value.length; si++) {
       const group = stageGroups.value[si];
-      const pos = group.indexOf(stepIdx);
+      const pos = group.indexOf(uid);
       if (pos === -1) continue;
       if (group.length <= 1) return; // already alone
       // Remove from current group and create a new single-step stage after it
       const newGroup = group.filter((_, i) => i !== pos);
       const newGroups = [...stageGroups.value];
       newGroups[si] = newGroup;
-      newGroups.splice(si + 1, 0, [stepIdx]);
-      stageGroups.value = newGroups;
+      newGroups.splice(si + 1, 0, [uid]);
+      normalizeStageGroups(newGroups);
       onChangeCb();
       return;
     }
@@ -136,36 +201,35 @@ export function usePipeline(
    *  Uses stageGroups if configured; otherwise wraps each step as a single-step stage.
    */
   function collectStages(): string[][] {
-    if (
-      stageGroups.value.length > 0 &&
-      stageGroups.value.length !== steps.value.length
-    ) {
-      // Real stage grouping exists
-      return stageGroups.value.map((group) =>
-        group.map((idx) => steps.value[idx]?.id).filter(Boolean),
-      );
-    }
-    return steps.value.map((s) => [s.id]);
+    if (!steps.value.length) return [];
+    const idsByUid = new Map(steps.value.map((step) => [step.uid, step.id]));
+    const stages = stageGroups.value
+      .map((group) =>
+        group.map((uid) => idsByUid.get(uid)).filter((id): id is string => !!id),
+      )
+      .filter((group) => group.length);
+    return stages.length ? stages : steps.value.map((step) => [step.id]);
   }
 
   /** Apply a stages snapshot from saved settings. */
   function applyStagesSnap(stages: string[][]): void {
     const flat = stages
       .flat()
-      .map((id) => ({ id, uid: _uid() }))
+      .map((id) => createStep(id))
       .filter((s) => s.id);
     steps.value = flat.length ? flat : [];
     if (!steps.value.length) {
       reset();
       return;
     }
-    // Rebuild stage groups from the stages structure
+    // Rebuild stage groups from the stages structure.
     let offset = 0;
     stageGroups.value = stages.map((stage) => {
-      const indices = stage.map((_, i) => offset + i);
+      const group = flat.slice(offset, offset + stage.length).map((step) => step.uid);
       offset += stage.length;
-      return indices;
+      return group;
     });
+    normalizeStageGroups(stageGroups.value);
   }
 
   return {

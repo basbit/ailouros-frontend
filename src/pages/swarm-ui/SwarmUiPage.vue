@@ -8,6 +8,8 @@
       :task-id="ui.taskId"
       :is-running="isRunning"
       :project-name="currentProjectName"
+      :wiki-graph-active="activeView === 'wiki-graph'"
+      @toggle-wiki-graph="toggleWikiGraph()"
     />
 
     <div class="app-body">
@@ -161,6 +163,7 @@
             <template #dev-roles>
               <DevRoles
                 :dev-roles="settings.devRolesState.devRoles.value"
+                :ui-states="settings.devRolesState.uiStates"
                 @add="settings.devRolesState.add()"
                 @remove="(idx) => settings.devRolesState.remove(idx)"
                 @update="
@@ -205,7 +208,7 @@
         <PipelineGraph
           :steps="effectivePipelineSteps"
           :topology="settings.form.swarm_topology"
-          :active-step="ui.activeStep"
+          :active-step="activeStepForGraph"
           :completed-steps="completedStepsFromHistory"
           :failed-step="failedStepForGraph"
           :skipped-steps="[]"
@@ -278,7 +281,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
+import type { Ref } from "vue";
 import { useProjectsStore } from "@/shared/store/projects";
 import type { RoleSnapshot } from "@/shared/store/projects";
 import type { ModelAssignment } from "@/features/onboarding/onboarding-types";
@@ -310,6 +314,12 @@ import BackgroundRecommendations from "@/widgets/background-agent/BackgroundReco
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
+
+// Wiki-graph navigation — injected from App.vue
+const _activeView = inject<Ref<"main" | "wiki-graph">>("activeView", ref("main"));
+const activeView = computed(() => _activeView.value);
+const toggleWikiGraph = inject<() => void>("toggleWikiGraph", () => {});
+const setWorkspaceRoot = inject<(value: string) => void>("setWorkspaceRoot", () => {});
 
 const projectsStore = useProjectsStore();
 const ui = useUiStore();
@@ -348,33 +358,124 @@ const profileOptions = computed(() =>
     .map((p) => ({ value: p.id, label: `${p.id} (${p.provider})` })),
 );
 
-const effectivePipelineSteps = computed(() => {
+const PIPELINE_STEP_ID_ALIASES: Record<string, string> = {
+  arch: "architect",
+  stack_review: "review_stack",
+  pm_tasks: "dev_lead",
+  review_pm_tasks: "review_dev_lead",
+  human_pm_tasks: "human_dev_lead",
+};
+
+function normalizePipelineStepId(value: unknown): string {
+  const raw = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+  return PIPELINE_STEP_ID_ALIASES[raw] ?? raw;
+}
+
+function isNonTerminalHistoryMessage(stepId: string, message: unknown): boolean {
+  const text = String(message ?? "").trim().toLowerCase();
+  if (!text) return true;
+  return text === `${stepId} started` || text === "continuing after shell-gate";
+}
+
+function sameStepSequence(left: string[], right: string[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every(
+      (stepId, index) =>
+        normalizePipelineStepId(stepId) === normalizePipelineStepId(right[index]),
+    )
+  );
+}
+
+function normalizedStepIndex(steps: string[], stepId: string | null | undefined): number {
+  const target = normalizePipelineStepId(stepId);
+  if (!target) return -1;
+  return steps.findIndex((candidate) => normalizePipelineStepId(candidate) === target);
+}
+
+const configuredPipelineSteps = computed(() => settings.pipelineState.collectStepIds());
+
+const runPipelineSteps = computed(() => {
   const fromPlan = ui.taskPipelinePlan?.pipeline_steps ?? [];
   if (fromPlan.length) return fromPlan;
-  return settings.pipelineState.collectStepIds();
+  const tid = (ui.taskId ?? "").trim();
+  if (!tid) return [];
+  const historyEntry = ui.historyList.find(
+    (entry) => (entry.taskId ?? "").trim() === tid,
+  );
+  return historyEntry?.pipeline_steps ?? [];
+});
+
+const effectivePipelineSteps = computed(() => {
+  if (isRunning.value && runPipelineSteps.value.length) return runPipelineSteps.value;
+  return configuredPipelineSteps.value;
+});
+
+const graphShowsLastRunState = computed(() => {
+  if (!runPipelineSteps.value.length) return false;
+  return sameStepSequence(runPipelineSteps.value, effectivePipelineSteps.value);
 });
 
 const failedStepForGraph = computed(() => {
-  const planFailed = String(ui.taskPipelinePlan?.failed_step || "").trim();
+  if (!graphShowsLastRunState.value) return undefined;
+  const planFailed = normalizePipelineStepId(ui.taskPipelinePlan?.failed_step);
   if (planFailed) return planFailed;
-  return ui.retryFailedStep !== "(unknown)" ? ui.retryFailedStep : undefined;
+  const retryFailed = normalizePipelineStepId(ui.retryFailedStep);
+  return retryFailed && retryFailed !== "(unknown)" ? retryFailed : undefined;
 });
 
-const completedStepsFromHistory = computed(() => {
+const activeStepForGraph = computed(() => normalizePipelineStepId(ui.activeStep));
+
+const completedStepsFromHistory = computed((): string[] => {
   const steps = effectivePipelineSteps.value;
-  const active = ui.activeStep ?? null;
+  const active = activeStepForGraph.value || null;
   const failed = failedStepForGraph.value ?? null;
   if (!steps.length) return [];
-  if (ui.taskStatus === "completed") return [...steps];
+  if (ui.taskStatus === "completed" && graphShowsLastRunState.value) return [...steps];
+
+  const completed = new Set<string>();
+  const visibleStepIds = new Set(steps.map((stepId) => normalizePipelineStepId(stepId)));
+
   if (failed) {
-    const idx = steps.indexOf(failed);
-    return idx > 0 ? steps.slice(0, idx) : [];
+    const idx = normalizedStepIndex(steps, failed);
+    if (idx > 0) {
+      steps.slice(0, idx).forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
+    }
   }
   if (active) {
-    const idx = steps.indexOf(active);
-    return idx > 0 ? steps.slice(0, idx) : [];
+    const idx = normalizedStepIndex(steps, active);
+    if (idx > 0) {
+      steps.slice(0, idx).forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
+    }
   }
-  return [];
+
+  for (const event of ui.taskHistory) {
+    const stepId = normalizePipelineStepId(event.agent);
+    if (!stepId || !visibleStepIds.has(stepId)) continue;
+    if (stepId === active || stepId === failed) continue;
+    if (isNonTerminalHistoryMessage(stepId, event.message)) continue;
+    completed.add(stepId);
+  }
+
+  const snapshotLike = [
+    ui.taskPipelinePlan as Record<string, unknown> | null,
+    (ui.taskPipelinePlan?.partial_state as Record<string, unknown> | undefined) ?? null,
+  ];
+  for (const snapshot of snapshotLike) {
+    if (!snapshot) continue;
+    for (const stepId of visibleStepIds) {
+      const outputKey = `${stepId}_output`;
+      const value = snapshot[outputKey];
+      if (typeof value === "string" && value.trim()) {
+        completed.add(stepId);
+      }
+    }
+  }
+
+  return steps.filter((stepId) => completed.has(normalizePipelineStepId(stepId)));
 });
 
 const clarifyCacheProvenance = computed(() => {
@@ -413,6 +514,14 @@ const workspaceIdentityResolved = computed(() => {
   }
   return "";
 });
+
+watch(
+  () => settings.form.workspace_root,
+  (workspaceRoot) => {
+    setWorkspaceRoot(workspaceRoot);
+  },
+  { immediate: true },
+);
 
 async function onProjectChange(id: string): Promise<void> {
   if (id === projectsStore.currentId) return;
@@ -474,18 +583,9 @@ async function onDeleteProject(): Promise<void> {
 function refreshProjectPanels(): void {
   ui.loadEventsView(projectsStore.currentId);
   ui.loadHistory(projectsStore.currentId);
-  ui.taskHistory = [];
-  ui.humanGateVisible = false;
-  ui.humanGateFeedback = "";
-  ui.shellGateVisible = false;
-  ui.retryGateVisible = false;
+  ui.resetTaskView();
   const tid = ui.restoreActiveTask(projectsStore.currentId);
   ui.taskId = tid;
-  ui.taskStatus = null;
-  ui.taskError = null;
-  ui.taskAgents = [];
-  ui.artifactPath = null;
-  ui.taskPipelinePlan = null;
   taskStore.resetTask();
   if (tid) {
     taskStore.setTaskId(tid);

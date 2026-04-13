@@ -32,7 +32,9 @@ export interface SettingsSnapshot {
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
   mcp_servers_json: string;
-  swarm_brave_search_api_key?: string;
+  swarm_tavily_api_key?: string;
+  swarm_exa_api_key?: string;
+  swarm_scrapingdog_api_key?: string;
   remote_api_provider: string;
   remote_api_key: string;
   remote_api_base_url: string;

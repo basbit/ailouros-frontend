@@ -19,6 +19,7 @@ const messages: Record<Locale, Messages> = {
     "header.theme.label.light": "Light",
     "header.theme.label.dark": "Dark",
     "header.locale": "Language",
+    "header.wikiGraph": "Knowledge Graph",
     "status.task": "task",
     "status.step": "step",
     "status.mode": "mode",
@@ -142,7 +143,9 @@ const messages: Record<Locale, Messages> = {
     "mcp.customLabel": "Custom MCP (optional JSON)",
     "mcp.customHint":
       "Supports servers[] or mcpServers{} format; this overrides auto MCP.",
-    "mcp.braveLabel": "Brave Search API key (for web search MCP)",
+    "mcp.tavilyLabel": "Tavily API key (web search, 1000 req/month free)",
+    "mcp.exaLabel": "Exa API key (web search, 1000 req/month free)",
+    "mcp.scrapingdogLabel": "ScrapingDog API key (web search, 1000 req/month free)",
     "database.urlLabel": "Database URL (optional)",
     "database.secretHint":
       "Saved in browser localStorage — avoid production secrets here.",
@@ -379,6 +382,42 @@ const messages: Record<Locale, Messages> = {
     "errors.profileMissingProvider": "Provider profile is missing a provider",
     "errors.noModelsForProvider": "No models returned from provider {provider}",
     "errors.noModelsForEnv": "No models returned from {provider}",
+    "diffViewer.title": "Changes",
+    "diffViewer.filesChanged": "file(s) changed",
+    "diffViewer.noGit": "git unavailable — showing changed files",
+    "diffViewer.loading": "Loading diff\u2026",
+    "diffViewer.noChanges": "No file changes detected.",
+    "diffViewer.editFile": "Edit",
+    "diffViewer.saveFile": "Save",
+    "diffViewer.cancelEdit": "Cancel",
+    "wikiGraph.title": "Knowledge Graph",
+    "wikiGraph.refresh": "Refresh",
+    "wikiGraph.loading": "Building graph\u2026",
+    "wikiGraph.empty":
+      "No wiki articles yet. They will be created automatically as agents complete tasks.",
+    "wikiGraph.searchPlaceholder": "Search nodes\u2026",
+    "agentEditor.title": "Agent Editor",
+    "agentEditor.save": "Save",
+    "agentEditor.saving": "Saving\u2026",
+    "agentEditor.pipelineNamePlaceholder": "Pipeline name\u2026",
+    "agentEditor.nodeTypes": "Node types",
+    "agentEditor.nodeConfig": "Node config",
+    "agentEditor.nodeType.trigger": "Trigger",
+    "agentEditor.nodeType.agent": "Agent",
+    "agentEditor.nodeType.tool": "Tool",
+    "agentEditor.nodeType.condition": "Condition",
+    "agentEditor.nodeType.aggregator": "Aggregator",
+    "agentEditor.nodeType.output": "Output",
+    "agentEditor.config.name": "Name",
+    "agentEditor.config.model": "Model",
+    "agentEditor.config.role": "System prompt",
+    "agentEditor.config.maxSteps": "Max steps",
+    "agentEditor.config.triggerType": "Trigger type",
+    "agentEditor.config.cronExpr": "Cron expression",
+    "agentEditor.config.fieldPath": "Field path",
+    "agentEditor.config.operator": "Operator",
+    "agentEditor.config.value": "Value",
+    "agentEditor.config.noConfig": "No configuration for this node type.",
   },
   ru: {
     "app.title": "AIlourOS",
@@ -394,6 +433,7 @@ const messages: Record<Locale, Messages> = {
     "header.theme.label.light": "Светлая",
     "header.theme.label.dark": "Тёмная",
     "header.locale": "Язык",
+    "header.wikiGraph": "Граф знаний",
     "status.task": "задача",
     "status.step": "шаг",
     "status.mode": "режим",
@@ -519,7 +559,9 @@ const messages: Record<Locale, Messages> = {
     "mcp.customLabel": "Пользовательский MCP (JSON, необязательно)",
     "mcp.customHint":
       "Поддерживается format с servers[] или mcpServers{}; этот блок переопределяет auto MCP.",
-    "mcp.braveLabel": "Brave Search API key (для web search MCP)",
+    "mcp.tavilyLabel": "Tavily API key (веб-поиск, 1000 запросов/месяц бесплатно)",
+    "mcp.exaLabel": "Exa API key (веб-поиск, 1000 запросов/месяц бесплатно)",
+    "mcp.scrapingdogLabel": "ScrapingDog API key (веб-поиск, 1000 запросов/месяц бесплатно)",
     "database.urlLabel": "URL базы данных (необязательно)",
     "database.secretHint":
       "Сохраняется в localStorage браузера — не храни здесь production secrets.",
@@ -757,6 +799,61 @@ const messages: Record<Locale, Messages> = {
     "errors.profileMissingProvider": "У профиля не задан провайдер",
     "errors.noModelsForProvider": "Провайдер {provider} не вернул список моделей",
     "errors.noModelsForEnv": "{provider} не вернул список моделей",
+    "diffViewer.title": "\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
+    "diffViewer.filesChanged":
+      "\u0444\u0430\u0439\u043b(\u043e\u0432) \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u043e",
+    "diffViewer.noGit":
+      "git \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u2014 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u043c \u0441\u043f\u0438\u0441\u043e\u043a \u0444\u0430\u0439\u043b\u043e\u0432",
+    "diffViewer.loading": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 diff\u2026",
+    "diffViewer.noChanges":
+      "\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439 \u0444\u0430\u0439\u043b\u043e\u0432 \u043d\u0435 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u043e.",
+    "diffViewer.editFile":
+      "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c",
+    "diffViewer.saveFile": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
+    "diffViewer.cancelEdit": "\u041e\u0442\u043c\u0435\u043d\u0430",
+    "wikiGraph.title": "\u0413\u0440\u0430\u0444 \u0437\u043d\u0430\u043d\u0438\u0439",
+    "wikiGraph.refresh": "\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c",
+    "wikiGraph.loading":
+      "\u0421\u0442\u0440\u043e\u0438\u043c \u0433\u0440\u0430\u0444\u2026",
+    "wikiGraph.empty":
+      "\u0421\u0442\u0430\u0442\u0435\u0439 \u0432\u0438\u043a\u0438 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u041e\u043d\u0438 \u0431\u0443\u0434\u0443\u0442 \u0441\u043e\u0437\u0434\u0430\u0432\u0430\u0442\u044c\u0441\u044f \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u043f\u043e \u043c\u0435\u0440\u0435 \u0440\u0430\u0431\u043e\u0442\u044b \u0430\u0433\u0435\u043d\u0442\u043e\u0432.",
+    "wikiGraph.searchPlaceholder":
+      "\u041f\u043e\u0438\u0441\u043a \u043f\u043e \u0443\u0437\u043b\u0430\u043c\u2026",
+    "agentEditor.title":
+      "\u0420\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
+    "agentEditor.save": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
+    "agentEditor.saving":
+      "\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u043c\u2026",
+    "agentEditor.pipelineNamePlaceholder":
+      "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d\u0430\u2026",
+    "agentEditor.nodeTypes": "\u0422\u0438\u043f\u044b \u0443\u0437\u043b\u043e\u0432",
+    "agentEditor.nodeConfig":
+      "\u041a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u044f \u0443\u0437\u043b\u0430",
+    "agentEditor.nodeType.trigger": "\u0422\u0440\u0438\u0433\u0433\u0435\u0440",
+    "agentEditor.nodeType.agent": "\u0410\u0433\u0435\u043d\u0442",
+    "agentEditor.nodeType.tool":
+      "\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442",
+    "agentEditor.nodeType.condition": "\u0423\u0441\u043b\u043e\u0432\u0438\u0435",
+    "agentEditor.nodeType.aggregator":
+      "\u0410\u0433\u0440\u0435\u0433\u0430\u0442\u043e\u0440",
+    "agentEditor.nodeType.output":
+      "\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442",
+    "agentEditor.config.name": "\u0418\u043c\u044f",
+    "agentEditor.config.model": "\u041c\u043e\u0434\u0435\u043b\u044c",
+    "agentEditor.config.role":
+      "\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0439 \u043f\u0440\u043e\u043c\u043f\u0442",
+    "agentEditor.config.maxSteps":
+      "\u041c\u0430\u043a\u0441. \u0448\u0430\u0433\u043e\u0432",
+    "agentEditor.config.triggerType":
+      "\u0422\u0438\u043f \u0442\u0440\u0438\u0433\u0433\u0435\u0440\u0430",
+    "agentEditor.config.cronExpr":
+      "Cron-\u0432\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435",
+    "agentEditor.config.fieldPath":
+      "\u041f\u0443\u0442\u044c \u043a \u043f\u043e\u043b\u044e",
+    "agentEditor.config.operator": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440",
+    "agentEditor.config.value": "\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435",
+    "agentEditor.config.noConfig":
+      "\u041d\u0435\u0442 \u043a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u0438 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0442\u0438\u043f\u0430 \u0443\u0437\u043b\u0430.",
   },
 };
 

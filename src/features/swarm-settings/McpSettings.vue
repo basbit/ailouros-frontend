@@ -60,17 +60,51 @@
       <div class="hint">{{ t("mcp.customHint") }}</div>
     </div>
     <div class="field">
-      <label for="swarm_brave_search_api_key">{{ t("mcp.braveLabel") }}</label>
+      <label for="swarm_tavily_api_key">{{ t("mcp.tavilyLabel") }}</label>
       <input
-        id="swarm_brave_search_api_key"
+        id="swarm_tavily_api_key"
         type="password"
-        :value="form.swarm_brave_search_api_key"
-        placeholder="BSA..."
+        :value="form.swarm_tavily_api_key"
+        placeholder="tvly-..."
         autocomplete="off"
         @input="
           emit(
             'update:form',
-            'swarm_brave_search_api_key',
+            'swarm_tavily_api_key',
+            ($event.target as HTMLInputElement).value,
+          )
+        "
+      />
+    </div>
+    <div class="field">
+      <label for="swarm_exa_api_key">{{ t("mcp.exaLabel") }}</label>
+      <input
+        id="swarm_exa_api_key"
+        type="password"
+        :value="form.swarm_exa_api_key"
+        placeholder="exa-..."
+        autocomplete="off"
+        @input="
+          emit(
+            'update:form',
+            'swarm_exa_api_key',
+            ($event.target as HTMLInputElement).value,
+          )
+        "
+      />
+    </div>
+    <div class="field">
+      <label for="swarm_scrapingdog_api_key">{{ t("mcp.scrapingdogLabel") }}</label>
+      <input
+        id="swarm_scrapingdog_api_key"
+        type="password"
+        :value="form.swarm_scrapingdog_api_key"
+        placeholder="..."
+        autocomplete="off"
+        @input="
+          emit(
+            'update:form',
+            'swarm_scrapingdog_api_key',
             ($event.target as HTMLInputElement).value,
           )
         "
@@ -86,7 +120,9 @@ interface McpFormSlice {
   swarm_mcp_auto: boolean;
   swarm_skip_mcp_tools: boolean;
   mcp_servers_json: string;
-  swarm_brave_search_api_key: string;
+  swarm_tavily_api_key: string;
+  swarm_exa_api_key: string;
+  swarm_scrapingdog_api_key: string;
 }
 
 defineProps<{ form: McpFormSlice }>();

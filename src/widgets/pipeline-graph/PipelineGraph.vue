@@ -36,14 +36,14 @@
           class="step-flow step-flow--linear"
         >
           <StepCard
-            v-for="(sid, idx) in steps"
-            :key="uid(idx)"
-            :step-id="sid"
-            :status="stepStatus(sid)"
+            v-for="step in stepRefs"
+            :key="stepKey(step)"
+            :step-id="step.id"
+            :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
-            @remove="$emit('editor:remove', idx)"
-            @change="(v) => $emit('editor:change', idx, v)"
+            @remove="$emit('editor:remove', step.index)"
+            @change="(v) => $emit('editor:change', step.index, v)"
           />
         </div>
 
@@ -55,15 +55,15 @@
         >
           <div v-for="(stage, si) in parallelStages" :key="si" class="step-stage">
             <StepCard
-              v-for="sid in stage"
-              :key="sid"
-              :step-id="sid"
-              :status="stepStatus(sid)"
+              v-for="step in stage"
+              :key="stepKey(step)"
+              :step-id="step.id"
+              :status="stepStatus(step.id)"
               :parallel="stage.length > 1"
               :editable="!!editorSteps"
               :options="editorOptions"
-              @remove="$emit('editor:remove', steps.indexOf(sid))"
-              @change="(v) => $emit('editor:change', steps.indexOf(sid), v)"
+              @remove="$emit('editor:remove', step.index)"
+              @change="(v) => $emit('editor:change', step.index, v)"
             />
           </div>
         </div>
@@ -76,15 +76,15 @@
         >
           <div v-for="(row, ri) in hierarchicalRows" :key="ri" class="hier-row">
             <StepCard
-              v-for="sid in row"
-              :key="sid"
-              :step-id="sid"
-              :status="stepStatus(sid)"
+              v-for="step in row"
+              :key="stepKey(step)"
+              :step-id="step.id"
+              :status="stepStatus(step.id)"
               :parallel="row.length > 1"
               :editable="!!editorSteps"
               :options="editorOptions"
-              @remove="$emit('editor:remove', steps.indexOf(sid))"
-              @change="(v) => $emit('editor:change', steps.indexOf(sid), v)"
+              @remove="$emit('editor:remove', step.index)"
+              @change="(v) => $emit('editor:change', step.index, v)"
             />
           </div>
         </div>
@@ -124,14 +124,14 @@
             />
           </svg>
           <StepCard
-            v-for="(sid, idx) in steps"
-            :key="uid(idx)"
-            :step-id="sid"
-            :status="stepStatus(sid)"
+            v-for="step in stepRefs"
+            :key="stepKey(step)"
+            :step-id="step.id"
+            :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
-            @remove="$emit('editor:remove', idx)"
-            @change="(v) => $emit('editor:change', idx, v)"
+            @remove="$emit('editor:remove', step.index)"
+            @change="(v) => $emit('editor:change', step.index, v)"
           />
         </div>
 
@@ -156,14 +156,14 @@
             />
           </svg>
           <StepCard
-            v-for="(sid, idx) in steps"
-            :key="uid(idx)"
-            :step-id="sid"
-            :status="stepStatus(sid)"
+            v-for="step in stepRefs"
+            :key="stepKey(step)"
+            :step-id="step.id"
+            :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
-            @remove="$emit('editor:remove', idx)"
-            @change="(v) => $emit('editor:change', idx, v)"
+            @remove="$emit('editor:remove', step.index)"
+            @change="(v) => $emit('editor:change', step.index, v)"
           />
         </div>
       </template>
@@ -215,7 +215,10 @@ import Sortable from "sortablejs";
 import HostMetrics from "@/widgets/task-panel/HostMetrics.vue";
 import StepCard from "@/widgets/pipeline-graph/StepCard.vue";
 import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConnections";
-import { usePipelineGraphLayout } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
+import {
+  usePipelineGraphLayout,
+  type GraphStepRef,
+} from "@/widgets/pipeline-graph/usePipelineGraphLayout";
 import type { PipeStep } from "@/features/pipeline/usePipeline";
 import type { HostMetrics as HostMetricsType } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
@@ -264,10 +267,11 @@ const topo = computed(() => {
     : "linear";
 });
 
-const { parallelStages, hierarchicalRows, stepStatus } = usePipelineGraphLayout(props);
+const { stepRefs, parallelStages, hierarchicalRows, stepStatus } =
+  usePipelineGraphLayout(props);
 
-function uid(idx: number): string {
-  return props.editorSteps?.[idx]?.uid ?? props.steps[idx] ?? String(idx);
+function stepKey(step: GraphStepRef): string {
+  return props.editorSteps?.[step.index]?.uid ?? `${step.id}:${step.index}`;
 }
 
 // ── SortableJS ────────────────────────────────────────────────────────────
@@ -300,6 +304,7 @@ function initSortable(): void {
     easing: "cubic-bezier(0.25, 1, 0.5, 1)",
     handle: ".step-drag-handle",
     draggable,
+    filter: ".step-remove-btn, .step-select",
     ghostClass: "step-sortable-ghost",
     chosenClass: "step-sortable-chosen",
     dragClass: "step-sortable-drag",
@@ -342,7 +347,7 @@ function initSortable(): void {
 onMounted(() => nextTick(initSortable));
 onUnmounted(destroySortable);
 watch(
-  () => props.steps.length,
+  () => props.steps.join("\u0000"),
   () => nextTick(initSortable),
 );
 watch(topo, () => nextTick(initSortable));

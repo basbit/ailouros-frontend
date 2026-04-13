@@ -236,7 +236,7 @@
       <div class="hint">Env: <code>SWARM_DEEP_PLANNING_MODEL</code></div>
     </div>
 
-    <!-- Background Agent (not wired yet) -->
+    <!-- Background Agent -->
     <div class="field">
       <label class="checkbox-row">
         <input
@@ -281,7 +281,7 @@
       </div>
     </div>
 
-    <!-- Memory Consolidation (not wired yet) -->
+    <!-- Memory Consolidation -->
     <div class="field">
       <label class="checkbox-row">
         <input
@@ -412,7 +412,10 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
+import {
+  ensureModelChoicesForEnv,
+  fetchCloudModelsFromConnection,
+} from "@/shared/lib/use-model-list";
 import { useI18n } from "@/shared/lib/i18n";
 
 interface AutonomousFormSlice {
@@ -435,6 +438,9 @@ interface AutonomousFormSlice {
   swarm_planner_model: string;
   swarm_planner_provider: string;
   swarm_force_rerun: boolean;
+  remote_api_provider: string;
+  remote_api_key: string;
+  remote_api_base_url: string;
 }
 
 const props = defineProps<{ form: AutonomousFormSlice }>();
@@ -467,14 +473,16 @@ async function loadModelChoices(
   choices: typeof svChoices,
   err: typeof svErr,
 ): Promise<void> {
-  // Cloud models are typed manually — no list to fetch
-  if (env === "cloud") {
-    choices.value = [["__custom__", "Custom…"]];
-    err.value = null;
-    return;
-  }
   err.value = null;
   try {
+    if (env === "cloud") {
+      choices.value = await fetchCloudModelsFromConnection({
+        provider: props.form.remote_api_provider,
+        api_key: props.form.remote_api_key,
+        base_url: props.form.remote_api_base_url,
+      });
+      return;
+    }
     choices.value = await ensureModelChoicesForEnv(env);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -507,35 +515,53 @@ let svLoadId = 0;
 let dpLoadId = 0;
 let apLoadId = 0;
 
+async function reloadSvChoices(): Promise<void> {
+  const id = ++svLoadId;
+  await loadModelChoices(svEnv.value, svChoices, svErr);
+  if (id !== svLoadId) return;
+  syncModelSel(props.form.swarm_self_verify_model, svChoices, svSel);
+}
+
+async function reloadDpChoices(): Promise<void> {
+  const id = ++dpLoadId;
+  await loadModelChoices(dpEnv.value, dpChoices, dpErr);
+  if (id !== dpLoadId) return;
+  syncModelSel(props.form.swarm_deep_planning_model, dpChoices, dpSel);
+}
+
+async function reloadApChoices(): Promise<void> {
+  const id = ++apLoadId;
+  await loadModelChoices(apEnv.value, apChoices, apErr);
+  if (id !== apLoadId) return;
+  syncModelSel(props.form.swarm_planner_model, apChoices, apSel);
+}
+
 watch(
   svEnv,
-  async (env) => {
-    const id = ++svLoadId;
-    await loadModelChoices(env, svChoices, svErr);
-    if (id !== svLoadId) return;
-    syncModelSel(props.form.swarm_self_verify_model, svChoices, svSel);
-  },
+  async () => reloadSvChoices(),
   { immediate: true },
 );
 watch(
   dpEnv,
-  async (env) => {
-    const id = ++dpLoadId;
-    await loadModelChoices(env, dpChoices, dpErr);
-    if (id !== dpLoadId) return;
-    syncModelSel(props.form.swarm_deep_planning_model, dpChoices, dpSel);
-  },
+  async () => reloadDpChoices(),
   { immediate: true },
 );
 watch(
   apEnv,
-  async (env) => {
-    const id = ++apLoadId;
-    await loadModelChoices(env, apChoices, apErr);
-    if (id !== apLoadId) return;
-    syncModelSel(props.form.swarm_planner_model, apChoices, apSel);
-  },
+  async () => reloadApChoices(),
   { immediate: true },
+);
+watch(
+  () => [
+    props.form.remote_api_provider,
+    props.form.remote_api_base_url,
+    props.form.remote_api_key,
+  ],
+  async () => {
+    if (svEnv.value === "cloud") await reloadSvChoices();
+    if (dpEnv.value === "cloud") await reloadDpChoices();
+    if (apEnv.value === "cloud") await reloadApChoices();
+  },
 );
 watch(
   () => props.form.swarm_self_verify_model,

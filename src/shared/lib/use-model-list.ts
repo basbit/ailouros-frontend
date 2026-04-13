@@ -9,6 +9,12 @@ import type { RemoteProfileRow } from "@/shared/store/projects";
 
 const modelListCache: Record<string, [string, string][]> = {};
 
+export interface CloudModelSource {
+  provider: string;
+  base_url?: string;
+  api_key?: string;
+}
+
 async function fetchModelsForProvider(provider: string): Promise<[string, string][]> {
   const { t } = useI18n();
   if (modelListCache[provider]) return modelListCache[provider];
@@ -38,14 +44,14 @@ export async function ensureModelChoicesForEnv(
 }
 
 /** Fetch models for a cloud profile from the backend. Throws on any error. */
-export async function fetchCloudModelsForProfile(
-  profile: RemoteProfileRow,
+export async function fetchCloudModelsFromConnection(
+  source: CloudModelSource,
 ): Promise<[string, string][]> {
   const { t } = useI18n();
-  const prov = (profile.provider || "").trim().toLowerCase();
+  const prov = (source.provider || "").trim().toLowerCase();
   if (!prov) throw new Error(t("errors.profileMissingProvider"));
-  const baseUrl = (profile.base_url || defaultRemoteApiBaseUrl(prov) || "").trim();
-  const apiKey = (profile.api_key || "").trim();
+  const baseUrl = (source.base_url || defaultRemoteApiBaseUrl(prov) || "").trim();
+  const apiKey = (source.api_key || "").trim();
 
   const r = await fetch(apiUrl("/ui/remote-models"), {
     method: "POST",
@@ -63,4 +69,11 @@ export async function fetchCloudModelsForProfile(
   const pairs: [string, string][] = j.models.map((m) => [m.id, m.label ?? m.id]);
   pairs.push(["__custom__", "Custom…"]);
   return pairs;
+}
+
+/** Fetch models for a cloud profile from the backend. Throws on any error. */
+export async function fetchCloudModelsForProfile(
+  profile: RemoteProfileRow,
+): Promise<[string, string][]> {
+  return fetchCloudModelsFromConnection(profile);
 }

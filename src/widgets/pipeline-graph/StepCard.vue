@@ -5,6 +5,7 @@
       v-if="editable"
       class="step-remove-btn"
       title="Remove step"
+      @pointerdown.stop
       @click.stop="$emit('remove')"
     >
       ×
