@@ -410,7 +410,8 @@ const runPipelineSteps = computed(() => {
 });
 
 const effectivePipelineSteps = computed(() => {
-  if (isRunning.value && runPipelineSteps.value.length) return runPipelineSteps.value;
+  // Show run steps when a task is loaded (running, failed, or completed)
+  if (runPipelineSteps.value.length) return runPipelineSteps.value;
   return configuredPipelineSteps.value;
 });
 
