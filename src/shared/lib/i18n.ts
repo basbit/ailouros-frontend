@@ -443,6 +443,12 @@ const messages: Record<Locale, Messages> = {
     "agentEditor.config.operator": "Operator",
     "agentEditor.config.value": "Value",
     "agentEditor.config.noConfig": "No configuration for this node type.",
+    "globalSettings.summary": "Internet Search & MCP",
+    "globalSettings.allProjects": "all projects",
+    "globalSettings.allProjectsTitle":
+      "Shared across all projects — set once, used everywhere",
+    "globalSettings.hint":
+      "Web search API keys are shared across all projects. Keys are saved in the browser and synced to the server.",
   },
   ru: {
     "app.title": "AIlourOS",
@@ -905,6 +911,12 @@ const messages: Record<Locale, Messages> = {
     "agentEditor.config.value": "\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435",
     "agentEditor.config.noConfig":
       "\u041d\u0435\u0442 \u043a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u0438 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0442\u0438\u043f\u0430 \u0443\u0437\u043b\u0430.",
+    "globalSettings.summary": "Поиск в интернете и MCP",
+    "globalSettings.allProjects": "все проекты",
+    "globalSettings.allProjectsTitle":
+      "Общие настройки для всех проектов — задаются один раз",
+    "globalSettings.hint":
+      "API-ключи для поиска в интернете общие для всех проектов. Сохраняются в браузере и синхронизируются с сервером.",
   },
 };
 

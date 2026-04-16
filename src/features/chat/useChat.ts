@@ -8,6 +8,7 @@ import {
   TOPOLOGY_PRESETS,
   deriveStagesForTopology,
 } from "@/features/pipeline/topologyPresets";
+import { getGlobalSearchKeys } from "@/features/global-settings/useGlobalSettings";
 
 /** Reactive error message for user-facing validation errors. */
 export const errorMessage = ref<string | null>(null);
@@ -185,15 +186,14 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (backgroundWatchPaths) swarm.background_watch_paths = backgroundWatchPaths;
   if (form.swarm_dream_enabled) swarm.dream_enabled = true;
   if (form.swarm_quality_gate) swarm.quality_gate_enabled = true;
-  if (form.swarm_tavily_api_key?.trim()) {
-    swarm.tavily_api_key = form.swarm_tavily_api_key.trim();
-  }
-  if (form.swarm_exa_api_key?.trim()) {
-    swarm.exa_api_key = form.swarm_exa_api_key.trim();
-  }
-  if (form.swarm_scrapingdog_api_key?.trim()) {
-    swarm.scrapingdog_api_key = form.swarm_scrapingdog_api_key.trim();
-  }
+  const _globalKeys = getGlobalSearchKeys();
+  const _tavilyKey = _globalKeys.tavily || form.swarm_tavily_api_key?.trim();
+  const _exaKey = _globalKeys.exa || form.swarm_exa_api_key?.trim();
+  const _scrapingdogKey =
+    _globalKeys.scrapingdog || form.swarm_scrapingdog_api_key?.trim();
+  if (_tavilyKey) swarm.tavily_api_key = _tavilyKey;
+  if (_exaKey) swarm.exa_api_key = _exaKey;
+  if (_scrapingdogKey) swarm.scrapingdog_api_key = _scrapingdogKey;
   const memoryNamespace = form.swarm_memory_namespace?.trim();
   if (memoryNamespace && memoryNamespace !== "default") {
     swarm.cross_task_memory = {

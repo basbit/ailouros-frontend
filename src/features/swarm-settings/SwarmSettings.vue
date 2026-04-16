@@ -234,9 +234,6 @@ const mcpSlice = computed(() => ({
   swarm_mcp_auto: props.form.swarm_mcp_auto,
   swarm_skip_mcp_tools: props.form.swarm_skip_mcp_tools,
   mcp_servers_json: props.form.mcp_servers_json,
-  swarm_tavily_api_key: props.form.swarm_tavily_api_key,
-  swarm_exa_api_key: props.form.swarm_exa_api_key,
-  swarm_scrapingdog_api_key: props.form.swarm_scrapingdog_api_key,
 }));
 
 const dbSlice = computed(() => ({

@@ -50,45 +50,57 @@
     <!-- Fetch error -->
     <div v-if="fetchError" class="clarify-error">{{ fetchError }}</div>
 
-    <!-- Clarify mode: chips -->
+    <!-- Clarify mode: chips or free-text per question -->
     <div v-if="clarifyQuestions.length" class="clarify-form">
       <div v-for="q in clarifyQuestions" :key="q.index" class="clarify-q">
         <p class="clarify-q__text">{{ q.index }}. {{ q.text }}</p>
-        <div class="clarify-q__options">
-          <button
-            v-for="opt in q.options.filter((o) => o !== 'Other')"
-            :key="opt"
-            type="button"
-            class="chip"
-            :class="{ selected: answers[q.index] === opt && !customMode[q.index] }"
-            @click="selectAnswer(q.index, opt)"
-          >
-            {{ opt }}
-          </button>
-          <button
-            type="button"
-            class="chip chip--other"
-            :class="{ selected: customMode[q.index] }"
-            @click="enableCustom(q.index)"
-          >
-            {{ t("humanGate.other") }}
-          </button>
-        </div>
-        <input
-          v-if="customMode[q.index]"
-          :value="customAnswers[q.index] ?? ''"
-          class="clarify-q__custom-input"
-          :placeholder="t('humanGate.answerPlaceholder')"
-          @input="customAnswers[q.index] = ($event.target as HTMLInputElement).value"
-        />
-        <input
-          v-if="answers[q.index] !== undefined || customMode[q.index]"
-          :value="comments[q.index] ?? ''"
-          class="clarify-q__custom-input"
-          style="margin-top: 4px; font-size: 11px; opacity: 0.8"
-          :placeholder="t('humanGate.commentPlaceholder')"
-          @input="comments[q.index] = ($event.target as HTMLInputElement).value"
-        />
+        <!-- Questions with predefined options → chip buttons -->
+        <template v-if="q.options.length > 0">
+          <div class="clarify-q__options">
+            <button
+              v-for="opt in q.options.filter((o) => o !== 'Other')"
+              :key="opt"
+              type="button"
+              class="chip"
+              :class="{ selected: answers[q.index] === opt && !customMode[q.index] }"
+              @click="selectAnswer(q.index, opt)"
+            >
+              {{ opt }}
+            </button>
+            <button
+              type="button"
+              class="chip chip--other"
+              :class="{ selected: customMode[q.index] }"
+              @click="enableCustom(q.index)"
+            >
+              {{ t("humanGate.other") }}
+            </button>
+          </div>
+          <input
+            v-if="customMode[q.index]"
+            :value="customAnswers[q.index] ?? ''"
+            class="clarify-q__custom-input"
+            :placeholder="t('humanGate.answerPlaceholder')"
+            @input="customAnswers[q.index] = ($event.target as HTMLInputElement).value"
+          />
+          <input
+            v-if="answers[q.index] !== undefined || customMode[q.index]"
+            :value="comments[q.index] ?? ''"
+            class="clarify-q__custom-input"
+            style="margin-top: 4px; font-size: 11px; opacity: 0.8"
+            :placeholder="t('humanGate.commentPlaceholder')"
+            @input="comments[q.index] = ($event.target as HTMLInputElement).value"
+          />
+        </template>
+        <!-- Questions without options → direct text input -->
+        <template v-else>
+          <input
+            :value="customAnswers[q.index] ?? ''"
+            class="clarify-q__custom-input"
+            :placeholder="t('humanGate.answerPlaceholder')"
+            @input="customAnswers[q.index] = ($event.target as HTMLInputElement).value"
+          />
+        </template>
       </div>
       <button
         type="button"
@@ -275,8 +287,7 @@ async function fetchClarifyQuestions(): Promise<void> {
     }
     const data = await r.json();
     const qs: ClarifyQuestion[] = Array.isArray(data.questions) ? data.questions : [];
-    // Only use chip mode if at least one question has options
-    clarifyQuestions.value = qs.filter((q) => q.options && q.options.length > 0);
+    clarifyQuestions.value = qs;
   } catch (e) {
     fetchError.value = e instanceof Error ? e.message : String(e);
     clarifyQuestions.value = [];
@@ -316,6 +327,9 @@ function enableCustom(idx: number): void {
 
 const allAnswered = computed(() =>
   clarifyQuestions.value.every((q) => {
+    // Questions without options use customAnswers directly (free-text input)
+    if (q.options.length === 0)
+      return (customAnswers.value[q.index] ?? "").trim() !== "";
     if (customMode.value[q.index])
       return (customAnswers.value[q.index] ?? "").trim() !== "";
     return (answers.value[q.index] ?? "") !== "";
@@ -324,9 +338,12 @@ const allAnswered = computed(() =>
 
 function submitAnswers(): void {
   const lines = clarifyQuestions.value.map((q) => {
-    const mainAns = customMode.value[q.index]
-      ? (customAnswers.value[q.index] ?? "").trim()
-      : (answers.value[q.index] ?? "").trim();
+    const mainAns =
+      q.options.length === 0
+        ? (customAnswers.value[q.index] ?? "").trim()
+        : customMode.value[q.index]
+          ? (customAnswers.value[q.index] ?? "").trim()
+          : (answers.value[q.index] ?? "").trim();
     const comment = (comments.value[q.index] ?? "").trim();
     if (comment) {
       return `Q${q.index}: ${mainAns} | ${t("humanGate.commentLabel")}: ${comment}`;

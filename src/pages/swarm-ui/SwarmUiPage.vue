@@ -16,6 +16,9 @@
       <!-- ── Sidebar ─────────────────────────────────────────── -->
       <aside class="sidebar">
         <div class="sidebar-scroll">
+          <!-- Global settings: internet search API keys (cross-project) -->
+          <GlobalSettingsPanel />
+
           <!-- Remote API profiles (global) -->
           <RemoteApiProfiles
             :profiles="settings.profilesState.profiles.value"
@@ -209,9 +212,9 @@
       <main class="content">
         <OnboardingWizard
           :workspace-root="settings.form.workspace_root"
-          :tavily-api-key="settings.form.swarm_tavily_api_key"
-          :exa-api-key="settings.form.swarm_exa_api_key"
-          :scrapingdog-api-key="settings.form.swarm_scrapingdog_api_key"
+          :tavily-api-key="globalSettings.state.tavily_api_key"
+          :exa-api-key="globalSettings.state.exa_api_key"
+          :scrapingdog-api-key="globalSettings.state.scrapingdog_api_key"
           @model-assignments="onOnboardingModelAssignments"
         />
 
@@ -314,6 +317,7 @@ import PipelineGraph from "@/widgets/pipeline-graph/PipelineGraph.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import EventsFeed from "@/widgets/task-panel/EventsFeed.vue";
 import HistoryPanel from "@/widgets/task-panel/HistoryPanel.vue";
+import GlobalSettingsPanel from "@/features/global-settings/GlobalSettingsPanel.vue";
 import RemoteApiProfiles from "@/features/remote-api/RemoteApiProfiles.vue";
 import ProjectSelect from "@/features/project-settings/ProjectSelect.vue";
 import WorkspaceSettings from "@/features/workspace/WorkspaceSettings.vue";
@@ -335,6 +339,7 @@ import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
+import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 
 // Page navigation — injected from App.vue. "wiki-graph" is no longer a
 // separate view — it renders inline as `WikiGraphPanel` between Pipeline
@@ -348,6 +353,7 @@ const projectsStore = useProjectsStore();
 const ui = useUiStore();
 const taskStore = useTaskStore();
 const settings = useSettings();
+const globalSettings = useGlobalSettings();
 const preferences = usePreferencesStore();
 const ux = useUxStore();
 const { t } = useI18n();
@@ -756,6 +762,7 @@ async function onViewHistoryRun(id: string): Promise<void> {
 }
 
 onMounted(async () => {
+  void globalSettings.loadFromBackend();
   await settings.init();
 
   ui.loadEventsView(projectsStore.currentId);
