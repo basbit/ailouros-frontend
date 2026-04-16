@@ -113,29 +113,41 @@ test.describe("App smoke", () => {
           status: "running",
           agents: ["PM", "BA"],
           history: [
-            { agent: "PM", message: "Plan the work breakdown", timestamp: "2026-04-13T10:01:54Z" },
+            {
+              agent: "PM",
+              message: "Plan the work breakdown",
+              timestamp: "2026-04-13T10:01:54Z",
+            },
             { agent: "BA", message: "ba started", timestamp: "2026-04-13T10:01:55Z" },
           ],
         }),
       });
     });
 
-    await page.route("**/artifacts/task-running-casing-1/pipeline.json", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          pipeline_steps: ["clarify_input", "pm", "ba", "review_qa"],
-        }),
-      });
-    });
+    await page.route(
+      "**/artifacts/task-running-casing-1/pipeline.json",
+      async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            pipeline_steps: ["clarify_input", "pm", "ba", "review_qa"],
+          }),
+        });
+      },
+    );
 
     await page.goto("/");
 
-    await expect(page.locator(".step-card").nth(1)).toHaveClass(/step-card--completed/, {
-      timeout: 8_000,
-    });
-    await expect(page.locator(".step-card").nth(2)).toHaveClass(/step-card--in_progress/);
+    await expect(page.locator(".step-card").nth(1)).toHaveClass(
+      /step-card--completed/,
+      {
+        timeout: 8_000,
+      },
+    );
+    await expect(page.locator(".step-card").nth(2)).toHaveClass(
+      /step-card--in_progress/,
+    );
   });
 
   test("history filters and playback reopen a persisted multi-run task", async ({

@@ -113,7 +113,20 @@ export async function fetchPendingHuman(
   }
 }
 
-export async function fetchPendingShellCommands(taskId: string): Promise<string[]> {
+export interface PendingShellPayload {
+  commands: string[];
+  needs_allowlist: string[];
+  already_allowed: string[];
+}
+
+export async function fetchPendingShellCommands(
+  taskId: string,
+): Promise<PendingShellPayload> {
+  const empty: PendingShellPayload = {
+    commands: [],
+    needs_allowlist: [],
+    already_allowed: [],
+  };
   try {
     const resp = await fetch(
       apiUrl("/v1/tasks/" + encodeURIComponent(taskId) + "/pending-shell"),
@@ -124,13 +137,17 @@ export async function fetchPendingShellCommands(taskId: string): Promise<string[
           `fetchPendingShellCommands: unexpected HTTP ${resp.status} for task ${taskId}`,
         );
       }
-      return [];
+      return empty;
     }
-    const data = (await resp.json()) as { commands?: string[] };
-    return data.commands ?? [];
+    const data = (await resp.json()) as Partial<PendingShellPayload>;
+    return {
+      commands: data.commands ?? [],
+      needs_allowlist: data.needs_allowlist ?? [],
+      already_allowed: data.already_allowed ?? [],
+    };
   } catch (error) {
     console.warn(`fetchPendingShellCommands: network error for task ${taskId}:`, error);
-    return [];
+    return empty;
   }
 }
 

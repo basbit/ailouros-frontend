@@ -29,6 +29,19 @@ export default defineConfig({
   build: {
     outDir: resolveBuildOutDir(),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("@vue-flow")) return "chunk-vueflow";
+          if (id.includes("/d3") || id.includes("/d3-")) return "chunk-d3";
+          if (id.includes("marked") || id.includes("dompurify"))
+            return "chunk-markdown";
+          if (id.includes("vue") || id.includes("pinia")) return "chunk-vue";
+          return "chunk-vendor";
+        },
+      },
+    },
   },
   server: {
     port: 5173,

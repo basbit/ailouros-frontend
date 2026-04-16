@@ -15,6 +15,12 @@ export interface OnboardingWizardEmits {
   "model-assignments": (assignments: ModelAssignment[]) => void;
 }
 
+export interface SearchApiKeys {
+  tavily_api_key?: string;
+  exa_api_key?: string;
+  scrapingdog_api_key?: string;
+}
+
 export function useOnboardingWizard(
   workspaceRoot: () => string,
   emit: {
@@ -22,6 +28,7 @@ export function useOnboardingWizard(
     (event: "dismissed"): void;
     (event: "model-assignments", assignments: ModelAssignment[]): void;
   },
+  getSearchKeys?: () => SearchApiKeys,
 ) {
   // ── State ──────────────────────────────────────────────────────────────────
   const step = ref<1 | 2 | 3>(1);
@@ -248,10 +255,11 @@ export function useOnboardingWizard(
     recommendedServers.value = [];
 
     try {
+      const searchKeys = getSearchKeys ? getSearchKeys() : {};
       const r = await fetch(apiUrl("/v1/onboarding/mcp-preflight"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspace_root: localRoot.value }),
+        body: JSON.stringify({ workspace_root: localRoot.value, ...searchKeys }),
       });
       if (!r.ok) throw new Error(`Preflight failed: ${r.status}`);
       const results = (await r.json()) as {

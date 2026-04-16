@@ -240,6 +240,9 @@ import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{
   workspaceRoot: string;
+  tavilyApiKey?: string;
+  exaApiKey?: string;
+  scrapingdogApiKey?: string;
 }>();
 
 const emit = defineEmits<{
@@ -271,7 +274,15 @@ const {
   runAiPreconfigure,
   applyConfig,
   reRunPreconfigure,
-} = useOnboardingWizard(() => props.workspaceRoot, emit);
+} = useOnboardingWizard(
+  () => props.workspaceRoot,
+  emit,
+  () => ({
+    tavily_api_key: props.tavilyApiKey ?? "",
+    exa_api_key: props.exaApiKey ?? "",
+    scrapingdog_api_key: props.scrapingdogApiKey ?? "",
+  }),
+);
 </script>
 
 <style scoped>

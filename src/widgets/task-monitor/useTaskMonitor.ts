@@ -57,6 +57,10 @@ export function walkerEmojiForAgent(agent: string, taskStatus: string | null): s
     human_code_review: "👤",
     code_review: "👁️",
     pm_tasks: "📌",
+    // Automation agents — shown between/during pipeline steps
+    self_verify: "🔍",
+    deep_planning: "🧠",
+    swarm_planner: "🗺️",
   };
   if (map[b]) return map[b];
   if (b.startsWith("crole_") || agent.startsWith("crole_")) return "✨";
@@ -87,6 +91,10 @@ export function deskSlotForAgent(agent: string): number {
     ["pm", 1],
     ["qa", 8],
     ["dev", 7],
+    // Automation agents: position near the step they assist
+    ["deep_planning", 1], // assists PM
+    ["self_verify", 7], // assists Dev
+    ["swarm_planner", 0], // pre-pipeline planning (hall)
   ];
   for (const [key, slot] of pairs) {
     if (b === key || b.startsWith(`${key}_`)) return slot;

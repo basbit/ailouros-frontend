@@ -72,6 +72,7 @@
 import { ref } from "vue";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { unwrapMarkdownFence } from "@/shared/lib/markdown";
 import { apiUrl } from "@/shared/api/base";
 import SafeHtmlBlock from "@/shared/components/SafeHtmlBlock";
 import { useI18n } from "@/shared/lib/i18n";
@@ -170,8 +171,11 @@ function formatTimestamp(iso: string): string {
 
 function renderMarkdown(md: string): string {
   try {
+    // §6.4 bug-plan: strip agent-wrapped ```markdown fence so inner
+    // headings/lists render as real HTML instead of a <pre><code> block.
+    const unwrapped = unwrapMarkdownFence(String(md ?? ""));
     const html = String(
-      marked.parse(String(md ?? ""), { async: false, breaks: true, gfm: true }),
+      marked.parse(unwrapped, { async: false, breaks: true, gfm: true }),
     );
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [

@@ -74,11 +74,11 @@ export function usePipeline(
     for (const group of normalized) {
       group.sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0));
     }
-    normalized.sort(
-      (a, b) => (order.get(a[0]) ?? 0) - (order.get(b[0]) ?? 0),
-    );
+    normalized.sort((a, b) => (order.get(a[0]) ?? 0) - (order.get(b[0]) ?? 0));
 
-    stageGroups.value = normalized.length ? normalized : defaultStageGroups(steps.value);
+    stageGroups.value = normalized.length
+      ? normalized
+      : defaultStageGroups(steps.value);
   }
 
   function getOptions(): [string, string][] {
@@ -111,9 +111,11 @@ export function usePipeline(
   }
 
   function updateStep(idx: number, id: string): void {
-    if (steps.value[idx]) {
-      steps.value[idx].id = id;
-    }
+    if (!steps.value[idx]) return;
+    // Replace the element so Vue's reactivity tracks the array mutation.
+    const arr = steps.value.slice();
+    arr[idx] = { ...arr[idx], id };
+    steps.value = arr;
     onChangeCb();
   }
 
@@ -128,6 +130,13 @@ export function usePipeline(
     _rebuildDefaultStages();
   }
 
+  /** Replace step list with *ids* (used by "Reset to recommended for topology"). */
+  function applyStepIds(ids: ReadonlyArray<string>): void {
+    steps.value = ids.map((id) => createStep(id));
+    _rebuildDefaultStages();
+    onChangeCb();
+  }
+
   function collectSnap(): { id: string }[] {
     return steps.value.map((s) => ({ id: s.id }));
   }
@@ -136,11 +145,31 @@ export function usePipeline(
     return steps.value.map((s) => s.id);
   }
 
-  function reorder(oldIdx: number, newIdx: number): void {
+  /**
+   * Move a contiguous range of *count* steps from *oldIdx* to *newIdx*.
+   *
+   * ``count === 1`` is the linear-mode case: a single step dragged to a
+   * new position. ``count > 1`` is the parallel/hierarchical case where
+   * a stage or row containing multiple cards is dragged as one unit —
+   * **all** cards must move together, not just the first one
+   * (bug: dropping a 2-card parallel stage previously moved only the
+   * first card, leaving the second orphaned in the old slot).
+   *
+   * *newIdx* is the pre-removal destination index (i.e. the index the
+   * caller sees in the flattened list before the range is extracted).
+   */
+  function reorder(oldIdx: number, newIdx: number, count = 1): void {
+    const total = steps.value.length;
+    if (count < 1) return;
+    if (oldIdx < 0 || oldIdx + count > total) return;
+    if (newIdx < 0 || newIdx > total) return;
+    if (oldIdx === newIdx) return;
     const arr = steps.value.slice();
-    const [item] = arr.splice(oldIdx, 1);
-    if (!item) return;
-    arr.splice(newIdx, 0, item);
+    const moved = arr.splice(oldIdx, count);
+    if (!moved.length) return;
+    // Adjust destination when removing *before* the insertion point shifts it left.
+    const insertAt = newIdx > oldIdx ? newIdx - count : newIdx;
+    arr.splice(insertAt, 0, ...moved);
     steps.value = arr;
     normalizeStageGroups(stageGroups.value);
     onChangeCb();
@@ -248,5 +277,6 @@ export function usePipeline(
     reorder,
     groupSteps,
     ungroupStep,
+    applyStepIds,
   };
 }

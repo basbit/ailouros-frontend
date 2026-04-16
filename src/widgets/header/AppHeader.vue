@@ -90,32 +90,6 @@
 
     <div class="hdr-spacer"></div>
 
-    <!-- Wiki Graph toggle -->
-    <button
-      class="wiki-graph-toggle"
-      :class="{ active: wikiGraphActive }"
-      :title="t('header.wikiGraph')"
-      @click="emit('toggle-wiki-graph')"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="12" cy="5" r="3" />
-        <circle cx="5" cy="19" r="3" />
-        <circle cx="19" cy="19" r="3" />
-        <line x1="12" y1="8" x2="5.5" y2="16" />
-        <line x1="12" y1="8" x2="18.5" y2="16" />
-      </svg>
-    </button>
-
     <div class="header-status" :class="{ 'header-status--running': isRunning }">
       <span
         class="header-status-dot"
@@ -190,11 +164,13 @@ defineProps<{
   taskId: string | null;
   isRunning: boolean;
   projectName?: string | null;
-  wikiGraphActive?: boolean;
+  agentEditorActive?: boolean;
 }>();
 
-const emit = defineEmits<{
-  "toggle-wiki-graph": [];
+// Declared for parent API parity; AppHeader has no agent-editor button
+// yet, but SwarmUiPage listens for this event — keep the typed contract.
+defineEmits<{
+  "toggle-agent-editor": [];
 }>();
 
 const preferences = usePreferencesStore();
@@ -223,35 +199,6 @@ const { t } = useI18n();
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.025em;
-}
-
-.wiki-graph-toggle {
-  background: none;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  padding: 6px 9px;
-  border-radius: 999px;
-  line-height: 1;
-  color: var(--text2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background 0.18s,
-    border-color 0.18s,
-    color 0.18s,
-    box-shadow 0.18s;
-}
-.wiki-graph-toggle:hover {
-  background: var(--surface2);
-  border-color: var(--border-hi);
-  color: var(--text);
-  box-shadow: 0 0 0 2px rgba(244, 193, 93, 0.1);
-}
-.wiki-graph-toggle.active {
-  background: color-mix(in srgb, var(--accent, #3b5bdb) 20%, transparent);
-  border-color: var(--accent, #3b5bdb);
-  color: var(--accent, #3b5bdb);
 }
 
 .sidebar-toggle,

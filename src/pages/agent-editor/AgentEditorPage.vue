@@ -123,7 +123,6 @@ import { Background } from "@vue-flow/background";
 import { MiniMap } from "@vue-flow/minimap";
 import { Controls } from "@vue-flow/controls";
 import "@vue-flow/core/dist/style.css";
-import "@vue-flow/background/dist/style.css";
 import "@vue-flow/minimap/dist/style.css";
 import "@vue-flow/controls/dist/style.css";
 import { useI18n } from "@/shared/lib/i18n";

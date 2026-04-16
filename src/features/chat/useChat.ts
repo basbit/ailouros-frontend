@@ -4,6 +4,10 @@ import { useI18n } from "@/shared/lib/i18n";
 import { parseSkillIds } from "@/shared/lib/skill-utils";
 import { ROLES } from "@/shared/lib/pipeline-schema";
 import type { useSettings } from "@/features/project-settings/useSettings";
+import {
+  TOPOLOGY_PRESETS,
+  deriveStagesForTopology,
+} from "@/features/pipeline/topologyPresets";
 
 /** Reactive error message for user-facing validation errors. */
 export const errorMessage = ref<string | null>(null);
@@ -348,11 +352,48 @@ export function buildAgentConfig(
   return config;
 }
 
+/** Typed SSE events extracted from `delta.content` JSON frames. */
+export interface AutoApprovedEvent {
+  kind: "auto_approved";
+  step: string;
+  rule?: string | null;
+  audit?: Record<string, unknown> | null;
+}
+
+export type ChatStreamEvent = AutoApprovedEvent;
+
+/** Parse a single SSE `delta.content` string for structured pipeline events.
+ *
+ * The backend occasionally emits JSON-encoded audit events (e.g. auto_approved)
+ * as a single `delta.content` chunk — distinguishable from regular log text
+ * because the first non-whitespace character is `{` and the parsed object has
+ * a recognised `status` or `_event_type` discriminator.
+ * Returns `null` when the chunk is plain text (the common case).
+ */
+function parseChatStreamEvent(content: string): ChatStreamEvent | null {
+  const trimmed = content.trim();
+  if (!trimmed || trimmed.charAt(0) !== "{") return null;
+  try {
+    const obj = JSON.parse(trimmed) as Record<string, unknown>;
+    const disc = (obj["status"] ?? obj["_event_type"]) as string | undefined;
+    if (disc !== "auto_approved") return null;
+    return {
+      kind: "auto_approved",
+      step: String(obj["step"] ?? ""),
+      rule: (obj["rule"] as string | undefined) ?? null,
+      audit: (obj["audit"] as Record<string, unknown> | undefined) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function runSwarmChat(
   settings: SettingsRef,
   onTaskId: (taskId: string) => void,
   onDone: () => void,
   sendWsSubscribe: () => void,
+  onEvent?: (event: ChatStreamEvent) => void,
 ): Promise<void> {
   const { t } = useI18n();
   const { form, pipelineState } = settings;
@@ -368,7 +409,16 @@ export async function runSwarmChat(
     pipelineSteps.unshift("clarify_input");
   }
 
-  const pipelineStages = pipelineState.collectStages();
+  // Topology from UI drives stage grouping: if the user has NOT manually
+  // regrouped steps, apply the topology preset (e.g. parallel → BA ∥ Arch).
+  // If the user manually grouped steps, respect their choice.
+  const topology = form.swarm_topology.trim();
+  const manualStages = pipelineState.collectStages();
+  const hasManualParallelStages = manualStages.some((stage) => stage.length > 1);
+  let pipelineStages: string[][] = manualStages;
+  if (!hasManualParallelStages && topology && topology in TOPOLOGY_PRESETS) {
+    pipelineStages = deriveStagesForTopology(pipelineSteps, topology);
+  }
   const hasParallelStages = pipelineStages.some((stage) => stage.length > 1);
 
   const workspaceRoot = form.workspace_root.trim();
@@ -407,9 +457,37 @@ export async function runSwarmChat(
 
   const reader = resp.body?.getReader();
   if (reader) {
+    const decoder = new TextDecoder();
+    let buffer = "";
     while (true) {
-      const { done } = await reader.read();
+      const { done, value } = await reader.read();
       if (done) break;
+      if (!onEvent || !value) continue;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE framing: events are separated by blank lines; each event has one or
+      // more `data: ...` lines we care about. Drain complete events from buffer.
+      let sep = buffer.indexOf("\n\n");
+      while (sep !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        for (const line of frame.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const chunk = JSON.parse(payload) as {
+              choices?: { delta?: { content?: string } }[];
+            };
+            const content = chunk.choices?.[0]?.delta?.content ?? "";
+            if (!content) continue;
+            const evt = parseChatStreamEvent(content);
+            if (evt) onEvent(evt);
+          } catch {
+            // Non-JSON data line — ignore silently.
+          }
+        }
+        sep = buffer.indexOf("\n\n");
+      }
     }
   }
   onDone();

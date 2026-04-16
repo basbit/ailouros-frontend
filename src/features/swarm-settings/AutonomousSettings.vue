@@ -536,21 +536,9 @@ async function reloadApChoices(): Promise<void> {
   syncModelSel(props.form.swarm_planner_model, apChoices, apSel);
 }
 
-watch(
-  svEnv,
-  async () => reloadSvChoices(),
-  { immediate: true },
-);
-watch(
-  dpEnv,
-  async () => reloadDpChoices(),
-  { immediate: true },
-);
-watch(
-  apEnv,
-  async () => reloadApChoices(),
-  { immediate: true },
-);
+watch(svEnv, async () => reloadSvChoices(), { immediate: true });
+watch(dpEnv, async () => reloadDpChoices(), { immediate: true });
+watch(apEnv, async () => reloadApChoices(), { immediate: true });
 watch(
   () => [
     props.form.remote_api_provider,

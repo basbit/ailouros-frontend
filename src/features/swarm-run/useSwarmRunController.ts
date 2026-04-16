@@ -8,7 +8,7 @@ import { useProjectsStore } from "@/shared/store/projects";
 import { useWs } from "@/shared/lib/use-ws";
 import { apiUrl } from "@/shared/api/base";
 import { hydrateTaskFromServer } from "@/shared/lib/hydrate-task";
-import { runSwarmChat } from "@/features/chat/useChat";
+import { runSwarmChat, type ChatStreamEvent } from "@/features/chat/useChat";
 import {
   submitHumanResume,
   confirmShell,
@@ -205,8 +205,10 @@ export function useSwarmRunController(settings: SettingsRef) {
       ui.shellGateVisible = true;
       ui.humanGateVisible = false;
       ui.retryGateVisible = false;
-      void fetchPendingShellCommands(ui.taskId).then((cmds) => {
-        ui.shellGateCommands = cmds;
+      void fetchPendingShellCommands(ui.taskId).then((payload) => {
+        ui.shellGateCommands = payload.commands;
+        ui.shellGateNeedsAllowlist = payload.needs_allowlist;
+        ui.shellGateAlreadyAllowed = payload.already_allowed;
       });
     } else if (status === "failed" && ui.taskId) {
       ui.humanGateVisible = false;
@@ -320,6 +322,14 @@ export function useSwarmRunController(settings: SettingsRef) {
           /* stream done */
         },
         sendWsSubscribe,
+        (event: ChatStreamEvent) => {
+          // M-14 — surface auto_approved pipeline events as toast notifications
+          if (event.kind === "auto_approved") {
+            const step = event.step || "step";
+            const rule = event.rule ? ` (${event.rule})` : "";
+            ux.notify(`${t("toast.autoApproved", { step })}${rule}`, "info", 3500);
+          }
+        },
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

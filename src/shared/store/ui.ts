@@ -68,6 +68,8 @@ export const useUiStore = defineStore("ui", () => {
 
   const shellGateVisible = ref(false);
   const shellGateCommands = ref<string[]>([]);
+  const shellGateNeedsAllowlist = ref<string[]>([]);
+  const shellGateAlreadyAllowed = ref<string[]>([]);
 
   const retryGateVisible = ref(false);
   const retryFailedStep = ref("(unknown)");
@@ -238,6 +240,8 @@ export const useUiStore = defineStore("ui", () => {
     humanGateFeedback.value = "";
     shellGateVisible.value = false;
     shellGateCommands.value = [];
+    shellGateNeedsAllowlist.value = [];
+    shellGateAlreadyAllowed.value = [];
     retryGateVisible.value = false;
     retryFailedStep.value = "(unknown)";
     artifactPath.value = null;
@@ -263,6 +267,8 @@ export const useUiStore = defineStore("ui", () => {
     humanGateFeedback,
     shellGateVisible,
     shellGateCommands,
+    shellGateNeedsAllowlist,
+    shellGateAlreadyAllowed,
     retryGateVisible,
     retryFailedStep,
     artifactPath,

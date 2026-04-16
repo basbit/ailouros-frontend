@@ -12,6 +12,41 @@
       :task-id="props.taskId"
     />
 
+    <!-- Inline file editor (H-11) — appears only when diff has file_list -->
+    <div v-if="diffData && diffData.files.length > 0" class="file-editor">
+      <div class="file-editor__header">
+        <select
+          v-model="selectedEditPath"
+          class="file-editor__select"
+          @change="onEditPathChange"
+        >
+          <option value="">{{ t("humanGate.editPickFile") }}</option>
+          <option v-for="path in diffData.files" :key="path" :value="path">
+            {{ path }}
+          </option>
+        </select>
+        <button
+          v-if="selectedEditPath"
+          type="button"
+          class="btn-primary file-editor__save"
+          :disabled="editSaving || editLoading || editContent === editOriginal"
+          @click="saveEditedFile"
+        >
+          {{ editSaving ? t("humanGate.editSaving") : t("humanGate.editSave") }}
+        </button>
+      </div>
+      <div v-if="editLoading" class="file-editor__status">
+        {{ t("humanGate.editLoading") }}
+      </div>
+      <div v-if="editError" class="clarify-error">{{ editError }}</div>
+      <textarea
+        v-if="selectedEditPath && !editLoading"
+        v-model="editContent"
+        class="file-editor__textarea"
+        spellcheck="false"
+      />
+    </div>
+
     <!-- Fetch error -->
     <div v-if="fetchError" class="clarify-error">{{ fetchError }}</div>
 
@@ -126,6 +161,84 @@ const diffData = ref<{
   source: "git" | "file_list" | "none";
 } | null>(null);
 
+// H-11 inline file editor state
+const selectedEditPath = ref<string>("");
+const editContent = ref<string>("");
+const editOriginal = ref<string>("");
+const editLoading = ref<boolean>(false);
+const editSaving = ref<boolean>(false);
+const editError = ref<string | null>(null);
+
+async function loadEditFile(path: string): Promise<void> {
+  if (!props.taskId || !path) return;
+  editLoading.value = true;
+  editError.value = null;
+  editContent.value = "";
+  editOriginal.value = "";
+  try {
+    const r = await fetch(
+      apiUrl(
+        `/v1/tasks/${props.taskId}/workspace-file?path=${encodeURIComponent(path)}`,
+      ),
+    );
+    if (!r.ok) {
+      const body = (await r.json().catch(() => ({}))) as { detail?: string };
+      editError.value =
+        body.detail ?? `${t("humanGate.editLoadError")} (HTTP ${r.status})`;
+      return;
+    }
+    const data = (await r.json()) as { path: string; content: string };
+    editContent.value = data.content ?? "";
+    editOriginal.value = data.content ?? "";
+  } catch (e) {
+    editError.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    editLoading.value = false;
+  }
+}
+
+function onEditPathChange(): void {
+  void loadEditFile(selectedEditPath.value);
+}
+
+async function saveEditedFile(): Promise<void> {
+  if (!props.taskId || !selectedEditPath.value) return;
+  editSaving.value = true;
+  editError.value = null;
+  try {
+    const r = await fetch(apiUrl(`/v1/tasks/${props.taskId}/workspace-file`), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: selectedEditPath.value,
+        content: editContent.value,
+      }),
+    });
+    if (!r.ok) {
+      const body = (await r.json().catch(() => ({}))) as { detail?: string };
+      editError.value =
+        body.detail ?? `${t("humanGate.editSaveError")} (HTTP ${r.status})`;
+      return;
+    }
+    editOriginal.value = editContent.value;
+    // Refetch diff so the viewer reflects manual edits
+    void fetchWorkspaceDiff();
+  } catch (e) {
+    editError.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    editSaving.value = false;
+  }
+}
+
+function resetEditState(): void {
+  selectedEditPath.value = "";
+  editContent.value = "";
+  editOriginal.value = "";
+  editError.value = null;
+  editLoading.value = false;
+  editSaving.value = false;
+}
+
 async function fetchWorkspaceDiff(): Promise<void> {
   if (!props.taskId) return;
   try {
@@ -180,10 +293,12 @@ watch(
       comments.value = {};
       clarifyQuestions.value = [];
       fetchError.value = null;
+      resetEditState();
       void fetchClarifyQuestions();
       void fetchWorkspaceDiff();
     } else {
       diffData.value = null;
+      resetEditState();
     }
   },
   { immediate: true },
@@ -279,5 +394,53 @@ function submitAnswers(): void {
   border: 1px solid var(--border, #2a2f3e);
   border-radius: 4px;
   color: var(--text1, #c8cfe8);
+}
+.file-editor {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 4px;
+  background: var(--bg2, #1e2230);
+}
+.file-editor__header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.file-editor__select {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--bg1, #14171e);
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 4px;
+  color: var(--text1, #c8cfe8);
+}
+.file-editor__save {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.file-editor__save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.file-editor__status {
+  font-size: 12px;
+  color: var(--text2, #9dadd0);
+  margin-bottom: 6px;
+}
+.file-editor__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 180px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  background: var(--bg1, #14171e);
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 4px;
+  color: var(--text1, #c8cfe8);
+  resize: vertical;
 }
 </style>

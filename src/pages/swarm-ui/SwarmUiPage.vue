@@ -8,8 +8,8 @@
       :task-id="ui.taskId"
       :is-running="isRunning"
       :project-name="currentProjectName"
-      :wiki-graph-active="activeView === 'wiki-graph'"
-      @toggle-wiki-graph="toggleWikiGraph()"
+      :agent-editor-active="activeView === 'agent-editor'"
+      @toggle-agent-editor="toggleAgentEditor()"
     />
 
     <div class="app-body">
@@ -102,6 +102,8 @@
             <ShellGate
               :visible="ui.shellGateVisible"
               :commands="ui.shellGateCommands"
+              :needs-allowlist="ui.shellGateNeedsAllowlist"
+              :already-allowed="ui.shellGateAlreadyAllowed"
               @confirm="onConfirmShell"
             />
 
@@ -200,6 +202,9 @@
       <main class="content">
         <OnboardingWizard
           :workspace-root="settings.form.workspace_root"
+          :tavily-api-key="settings.form.swarm_tavily_api_key"
+          :exa-api-key="settings.form.swarm_exa_api_key"
+          :scrapingdog-api-key="settings.form.swarm_scrapingdog_api_key"
           @model-assignments="onOnboardingModelAssignments"
         />
 
@@ -219,12 +224,15 @@
           @update:topology="(val) => onSwarmFormUpdate('swarm_topology', val)"
           @editor:add="settings.pipelineState.addStep()"
           @editor:reset="settings.pipelineState.reset()"
+          @editor:reset-recommended="onResetRecommendedSteps"
           @editor:remove="(idx) => settings.pipelineState.removeStep(idx)"
           @editor:change="(idx, val) => settings.pipelineState.updateStep(idx, val)"
-          @editor:reorder="(o, n) => settings.pipelineState.reorder(o, n)"
+          @editor:reorder="(o, n, c) => settings.pipelineState.reorder(o, n, c ?? 1)"
         />
 
         <BackgroundRecommendations :enabled="settings.form.swarm_background_agent" />
+
+        <WikiGraphPanel />
 
         <EventsFeed
           :events="taskHistory"
@@ -236,6 +244,8 @@
             }
           "
         />
+
+        <StepTokensPanel v-if="ui.taskId" :task-id="ui.taskId" />
 
         <div class="panel panel--artifacts content-panel--artifacts">
           <div class="panel-header">
@@ -290,6 +300,7 @@ import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useSettings } from "@/features/project-settings/useSettings";
 import { useSwarmRunController } from "@/features/swarm-run/useSwarmRunController";
+import { recommendedStepsForTopology } from "@/features/pipeline/topologyPresets";
 
 import AppHeader from "@/widgets/header/AppHeader.vue";
 import PipelineGraph from "@/widgets/pipeline-graph/PipelineGraph.vue";
@@ -311,14 +322,18 @@ import RetryGate from "@/features/task-gate/RetryGate.vue";
 import OnboardingWizard from "@/features/onboarding/OnboardingWizard.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
 import BackgroundRecommendations from "@/widgets/background-agent/BackgroundRecommendations.vue";
+import WikiGraphPanel from "@/widgets/wiki-graph-panel/WikiGraphPanel.vue";
+import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
 
-// Wiki-graph navigation — injected from App.vue
-const _activeView = inject<Ref<"main" | "wiki-graph">>("activeView", ref("main"));
+// Page navigation — injected from App.vue. "wiki-graph" is no longer a
+// separate view — it renders inline as `WikiGraphPanel` between Pipeline
+// and Events (see review-rules §10.6: surface inline, not hidden behind nav).
+const _activeView = inject<Ref<"main" | "agent-editor">>("activeView", ref("main"));
 const activeView = computed(() => _activeView.value);
-const toggleWikiGraph = inject<() => void>("toggleWikiGraph", () => {});
+const toggleAgentEditor = inject<() => void>("toggleAgentEditor", () => {});
 const setWorkspaceRoot = inject<(value: string) => void>("setWorkspaceRoot", () => {});
 
 const projectsStore = useProjectsStore();
@@ -375,7 +390,9 @@ function normalizePipelineStepId(value: unknown): string {
 }
 
 function isNonTerminalHistoryMessage(stepId: string, message: unknown): boolean {
-  const text = String(message ?? "").trim().toLowerCase();
+  const text = String(message ?? "")
+    .trim()
+    .toLowerCase();
   if (!text) return true;
   return text === `${stepId} started` || text === "continuing after shell-gate";
 }
@@ -390,7 +407,10 @@ function sameStepSequence(left: string[], right: string[]): boolean {
   );
 }
 
-function normalizedStepIndex(steps: string[], stepId: string | null | undefined): number {
+function normalizedStepIndex(
+  steps: string[],
+  stepId: string | null | undefined,
+): number {
   const target = normalizePipelineStepId(stepId);
   if (!target) return -1;
   return steps.findIndex((candidate) => normalizePipelineStepId(candidate) === target);
@@ -438,18 +458,24 @@ const completedStepsFromHistory = computed((): string[] => {
   if (ui.taskStatus === "completed" && graphShowsLastRunState.value) return [...steps];
 
   const completed = new Set<string>();
-  const visibleStepIds = new Set(steps.map((stepId) => normalizePipelineStepId(stepId)));
+  const visibleStepIds = new Set(
+    steps.map((stepId) => normalizePipelineStepId(stepId)),
+  );
 
   if (failed) {
     const idx = normalizedStepIndex(steps, failed);
     if (idx > 0) {
-      steps.slice(0, idx).forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
+      steps
+        .slice(0, idx)
+        .forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
     }
   }
   if (active) {
     const idx = normalizedStepIndex(steps, active);
     if (idx > 0) {
-      steps.slice(0, idx).forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
+      steps
+        .slice(0, idx)
+        .forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
     }
   }
 
@@ -629,6 +655,11 @@ function onRolePromptCustomInput(roleId: string, val: string): void {
 function onRoleSkillIdsInput(roleId: string, val: string): void {
   settings.rolesState.roleStates[roleId].skillIds = val;
   settings.saveSettingsSoon();
+}
+
+function onResetRecommendedSteps(): void {
+  const ids = recommendedStepsForTopology(settings.form.swarm_topology);
+  settings.pipelineState.applyStepIds(ids);
 }
 
 function onOnboardingModelAssignments(assignments: ModelAssignment[]): void {

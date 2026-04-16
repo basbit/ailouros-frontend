@@ -30,6 +30,7 @@ export interface ModelAssignment {
   model_id: string;
   provider: string;
   reason: string;
+  remote_profile?: string;
 }
 
 export interface PreflightInfo {

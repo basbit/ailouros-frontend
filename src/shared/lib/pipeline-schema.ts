@@ -116,30 +116,29 @@ export interface AgentModelRowMeta {
  * in the Agent Models UI. Roles not listed here use automatic defaults:
  *   { configKey: role, label: PIPELINE_STEP_LABEL[role], pipelineStepsHint: role }
  */
-const _AGENT_MODEL_ROW_OVERRIDES: Partial<
-  Record<RoleId, Partial<AgentModelRowMeta>>
-> = {
-  reviewer: {
-    label: "Clarify + Reviews + BA↔Arch debate",
-    pipelineStepsHint: REVIEWER_PIPELINE_STEP_IDS.join(", "),
-  },
-  stack_reviewer: {
-    label: PIPELINE_STEP_LABEL.review_stack,
-    pipelineStepsHint: "review_stack",
-  },
-  code_diagram: {
-    label: `${PIPELINE_STEP_LABEL.generate_documentation} — Mermaid`,
-    pipelineStepsHint: "generate_documentation → code_diagram",
-    docSubgroup: "generate_documentation",
-  },
-  doc_generate: {
-    label: `${PIPELINE_STEP_LABEL.generate_documentation} — prose`,
-    pipelineStepsHint: "generate_documentation → doc_generate",
-  },
-};
+const _AGENT_MODEL_ROW_OVERRIDES: Partial<Record<RoleId, Partial<AgentModelRowMeta>>> =
+  {
+    reviewer: {
+      label: "Clarify + Reviews + BA↔Arch debate",
+      pipelineStepsHint: REVIEWER_PIPELINE_STEP_IDS.join(", "),
+    },
+    stack_reviewer: {
+      label: PIPELINE_STEP_LABEL.review_stack,
+      pipelineStepsHint: "review_stack",
+    },
+    code_diagram: {
+      label: `${PIPELINE_STEP_LABEL.generate_documentation} — Mermaid`,
+      pipelineStepsHint: "generate_documentation → code_diagram",
+      docSubgroup: "generate_documentation",
+    },
+    doc_generate: {
+      label: `${PIPELINE_STEP_LABEL.generate_documentation} — prose`,
+      pipelineStepsHint: "generate_documentation → doc_generate",
+    },
+  };
 
-export const AGENT_MODEL_ROWS_PIPELINE_ORDER: readonly AgentModelRowMeta[] =
-  ROLES.map((role): AgentModelRowMeta => {
+export const AGENT_MODEL_ROWS_PIPELINE_ORDER: readonly AgentModelRowMeta[] = ROLES.map(
+  (role): AgentModelRowMeta => {
     const overrides = _AGENT_MODEL_ROW_OVERRIDES[role];
     return {
       configKey: role,
@@ -147,7 +146,8 @@ export const AGENT_MODEL_ROWS_PIPELINE_ORDER: readonly AgentModelRowMeta[] =
       pipelineStepsHint: overrides?.pipelineStepsHint ?? role,
       ...(overrides?.docSubgroup ? { docSubgroup: overrides.docSubgroup } : {}),
     };
-  });
+  },
+);
 
 export function splitAgentModelRowsAroundDevSlot(): {
   beforeDevSlot: readonly AgentModelRowMeta[];
@@ -186,5 +186,6 @@ export const ROLE_MODEL_HINT: Partial<Record<RoleId, string>> = {
   ui_designer: "Visual design & components. Suggested: qwen2.5:14b+ / claude",
   seo_specialist: "SEO strategy & technical audit. Suggested: qwen2.5:14b+ / claude",
   ai_citation_strategist: "AI citation & AEO/GEO. Suggested: qwen2.5:14b+ / claude",
-  app_store_optimizer: "ASO & conversion optimization. Suggested: qwen2.5:14b+ / claude",
+  app_store_optimizer:
+    "ASO & conversion optimization. Suggested: qwen2.5:14b+ / claude",
 };

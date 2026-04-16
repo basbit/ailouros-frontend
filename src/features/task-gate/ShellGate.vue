@@ -11,16 +11,58 @@
         background: #1a1a1a;
         padding: 8px;
         border-radius: 4px;
-        max-height: 160px;
+        max-height: 200px;
         overflow-y: auto;
       "
     >
       <div v-if="loading" style="color: var(--text3)">{{ t("shellGate.loading") }}</div>
-      <div v-else-if="!commands.length" style="color: var(--text3)">
-        {{ t("shellGate.empty") }}
-      </div>
-      <div v-for="(cmd, i) in commands" :key="i">{{ i + 1 }}. {{ cmd }}</div>
+      <template v-else>
+        <div v-if="!commands.length" style="color: var(--text3)">
+          {{ t("shellGate.empty") }}
+        </div>
+        <div v-for="(cmd, i) in commands" :key="i" :style="cmdStyle(cmd)">
+          {{ i + 1 }}. {{ cmd }}
+        </div>
+      </template>
     </div>
+
+    <!-- allowlist extension notice -->
+    <div
+      v-if="(needsAllowlist ?? []).length"
+      style="margin-top: 8px; font-size: 11px; color: #e6a817"
+    >
+      {{ t("shellGate.needsAllowlist") }}:
+      <code
+        v-for="bin in needsAllowlist ?? []"
+        :key="bin"
+        style="
+          margin-left: 4px;
+          background: #2a2200;
+          padding: 1px 4px;
+          border-radius: 3px;
+          border: 1px solid #e6a81755;
+        "
+        >{{ bin }}</code
+      >
+    </div>
+    <div
+      v-if="(alreadyAllowed ?? []).length"
+      style="margin-top: 4px; font-size: 11px; color: var(--text3)"
+    >
+      {{ t("shellGate.alreadyAllowed") }}:
+      <code
+        v-for="bin in alreadyAllowed ?? []"
+        :key="bin"
+        style="
+          margin-left: 4px;
+          background: #1a2a1a;
+          padding: 1px 4px;
+          border-radius: 3px;
+        "
+        >{{ bin }}</code
+      >
+    </div>
+
     <div style="display: flex; gap: 8px; margin-top: 10px">
       <button
         v-if="commands.length"
@@ -50,6 +92,8 @@ import { useI18n } from "@/shared/lib/i18n";
 const props = defineProps<{
   visible: boolean;
   commands: string[];
+  needsAllowlist?: string[];
+  alreadyAllowed?: string[];
 }>();
 const emit = defineEmits<{
   confirm: [approved: boolean];
@@ -58,6 +102,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const loading = ref(true);
+
+function cmdStyle(cmd: string): Record<string, string> {
+  const binary = cmd.trim().split(/\s+/)[0] ?? "";
+  const inNeeds = (props.needsAllowlist ?? []).includes(binary);
+  return inNeeds ? { color: "#e6c84a" } : {};
+}
 
 watch(
   () => props.commands,
@@ -70,7 +120,6 @@ watch(
   (v) => {
     if (v) {
       loading.value = true;
-      // Give backend 5s to populate commands, then stop loading
       setTimeout(() => {
         loading.value = false;
       }, 5000);

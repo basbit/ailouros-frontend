@@ -291,8 +291,46 @@ export function useAgentRoles(
     };
   }
 
+  function _providerToEnv(provider: string): string {
+    if (provider === "anthropic" || provider === "openai") return "cloud";
+    if (provider === "lm_studio") return "lmstudio";
+    return "ollama";
+  }
+
+  async function _applyOneAssignment(a: {
+    role: string;
+    model_id: string;
+    provider: string;
+    remote_profile?: string;
+  }): Promise<void> {
+    const rs = roleStates[a.role];
+    if (!rs) return;
+    const env = _providerToEnv(a.provider);
+    rs.environment = env;
+    rs.showProfileSelect = env === "cloud";
+    rs.modelFetchError = null;
+    // Apply remote_profile before loading choices: cloud choices depend on it.
+    if (a.remote_profile) {
+      rs.remoteProfile = a.remote_profile;
+    }
+    try {
+      const choices = await _loadModelChoices(a.role, env);
+      await _applyModelChoices(a.role, choices, a.model_id);
+    } catch (e) {
+      // Keep the assignment visible even if the live list can't be fetched
+      // (provider offline, missing profile creds). The user can still edit it.
+      rs.modelFetchError = e instanceof Error ? e.message : String(e);
+      rs.modelChoices = [];
+      rs.modelSel = "__custom__";
+      rs.modelCustom = a.model_id;
+    }
+  }
+
   async function applyAssignments(workspaceRoot: string): Promise<string> {
-    // Returns error message or "" on success
+    // Returns error message or "" on success.
+    // Resolves each backend-assigned model_id against the real list of available
+    // choices for the target environment/profile. If the model is in the list,
+    // the dropdown picks it directly; only unknown ids fall back to "Custom…".
     try {
       const wr = (workspaceRoot || "").trim();
       const url = `/v1/onboarding/models${wr ? `?workspace_root=${encodeURIComponent(wr)}` : ""}`;
@@ -305,26 +343,9 @@ export function useAgentRoles(
         provider: string;
         remote_profile?: string;
       }[] = data.assignments ?? [];
-      for (const a of assignments) {
-        const rs = roleStates[a.role];
-        if (!rs) continue;
-        // Map provider to environment
-        const env =
-          a.provider === "anthropic" || a.provider === "openai"
-            ? "cloud"
-            : a.provider === "lm_studio"
-              ? "lmstudio"
-              : "ollama";
-        rs.environment = env;
-        rs.modelSel = "__custom__";
-        rs.modelCustom = a.model_id;
-        rs.showProfileSelect = env === "cloud";
-        rs.modelFetchError = null;
-        // Apply remote_profile from backend (e.g. "claude", "chat-gpt")
-        if (a.remote_profile) {
-          rs.remoteProfile = a.remote_profile;
-        }
-      }
+
+      await Promise.all(assignments.map(_applyOneAssignment));
+
       onChangeCb();
       return "";
     } catch (e: unknown) {

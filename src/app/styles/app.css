@@ -5,6 +5,11 @@
       --bg:           #05070B;
       --surface:      #0B1017;
       --surface2:     #131922;
+      /* Legacy aliases for components that used --bg1 / --bg2 with hardcoded
+         dark fallbacks (bug: light theme inherited the fallback). Keep these
+         in sync with the canonical surface tokens in both themes. */
+      --bg1:          var(--surface);
+      --bg2:          var(--surface2);
       --border:       #2A241E;
       --border-hi:    #4B4138;
       --border-focus: #F4C15D;

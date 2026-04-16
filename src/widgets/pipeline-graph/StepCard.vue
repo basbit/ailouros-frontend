@@ -51,64 +51,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { walkerEmojiForAgent } from "@/widgets/task-monitor/useTaskMonitor";
+// §10.5: single source of truth for node taxonomy — shared with
+// PipelineSummary.vue and step-summarisation utilities. Do NOT duplicate
+// the map here; prior duplication led to drift when new step ids landed.
+import { classifyStep, type NodeType } from "@/shared/lib/step-taxonomy";
 
-/** Node taxonomy for the pipeline graph (P3.2 Этап 1). */
-export type NodeType =
-  | "agent"
-  | "reviewer"
-  | "verification"
-  | "human_gate"
-  | "tool_preflight"
-  | "join_branch";
-
-/** Maps step ID patterns to node taxonomy types. */
-const NODE_TYPE_MAP: Record<string, NodeType> = {
-  // Agents (do the work)
-  pm: "agent",
-  ba: "agent",
-  architect: "agent",
-  arch: "agent",
-  devops: "agent",
-  dev_lead: "agent",
-  dev: "agent",
-  qa: "agent",
-  dev_subtasks: "agent",
-  clarify_input: "agent",
-  deep_planning: "agent",
-  custom: "agent",
-  generate_documentation: "agent",
-  analyze_code: "tool_preflight",
-  spec_merge: "join_branch",
-  refactor_plan: "agent",
-  problem_spotter: "agent",
-  // Reviewers
-  review_pm: "reviewer",
-  review_ba: "reviewer",
-  review_arch: "reviewer",
-  review_stack: "reviewer",
-  review_spec: "reviewer",
-  review_devops: "reviewer",
-  review_dev_lead: "reviewer",
-  review_dev: "reviewer",
-  review_qa: "reviewer",
-  stack_review: "reviewer",
-  // Verification
-  verification_layer: "verification",
-  dev_retry_gate: "verification",
-  qa_retry_gate: "verification",
-  finalize_pipeline: "verification",
-  // Human gates
-  human_pm: "human_gate",
-  human_ba: "human_gate",
-  human_arch: "human_gate",
-  human_devops: "human_gate",
-  human_dev_lead: "human_gate",
-  human_dev: "human_gate",
-  human_qa: "human_gate",
-  human_code_review: "human_gate",
-  human_clarify_input: "human_gate",
-  human_spec: "human_gate",
-};
+export type { NodeType };
 
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
   agent: "Agent",
@@ -137,16 +85,8 @@ const label = computed(() =>
   props.stepId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
 );
 
-/** Resolve node type: exact match → prefix match → default "agent". */
-const nodeType = computed((): NodeType => {
-  const id = props.stepId;
-  if (NODE_TYPE_MAP[id]) return NODE_TYPE_MAP[id];
-  if (id.startsWith("human_")) return "human_gate";
-  if (id.startsWith("review_")) return "reviewer";
-  if (id.includes("verify") || id.includes("gate") || id.includes("check"))
-    return "verification";
-  return "agent";
-});
+/** Resolve node type via shared taxonomy (see step-taxonomy.ts). */
+const nodeType = computed((): NodeType => classifyStep(props.stepId));
 
 const nodeTypeLabel = computed(() => NODE_TYPE_LABELS[nodeType.value]);
 

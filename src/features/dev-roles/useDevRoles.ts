@@ -95,5 +95,15 @@ export function useDevRoles(onChangeCb: () => void) {
       });
   }
 
-  return { devRoles, uiStates, add, remove, update, applySnap, collectSnap, collectForApi, fetchModels };
+  return {
+    devRoles,
+    uiStates,
+    add,
+    remove,
+    update,
+    applySnap,
+    collectSnap,
+    collectForApi,
+    fetchModels,
+  };
 }

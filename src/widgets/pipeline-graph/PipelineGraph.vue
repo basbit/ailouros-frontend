@@ -2,7 +2,7 @@
   <details class="panel pipeline-graph-panel" :open="open">
     <summary class="panel-header" @click.prevent="open = !open">
       <span class="panel-title">{{ t("graph.title") }}</span>
-      <span v-if="steps.length" class="hint">{{ steps.length }} steps</span>
+      <PipelineSummary v-if="steps.length" :steps="steps" />
       <span
         v-if="taskStatus"
         class="pg-status-badge"
@@ -27,6 +27,26 @@
         </div>
       </div>
       <div class="hint pg-layout-hint">{{ t("graph.layoutHelp") }}</div>
+
+      <div
+        v-if="editorSteps && steps.length > recommendedCount * 2"
+        class="pg-reset-recommended"
+      >
+        <span class="hint">{{
+          t("graph.pipelineHeavyHint", {
+            n: steps.length,
+            recommended: recommendedCount,
+          })
+        }}</span>
+        <button
+          type="button"
+          class="pg-reset-btn"
+          :title="t('graph.resetRecommendedTitle')"
+          @click="$emit('editor:reset-recommended')"
+        >
+          {{ t("graph.resetRecommended") }}
+        </button>
+      </div>
 
       <template v-if="steps.length">
         <!-- ═══ LINEAR ═══ -->
@@ -214,7 +234,9 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import Sortable from "sortablejs";
 import HostMetrics from "@/widgets/task-panel/HostMetrics.vue";
 import StepCard from "@/widgets/pipeline-graph/StepCard.vue";
+import PipelineSummary from "@/widgets/pipeline-graph/PipelineSummary.vue";
 import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConnections";
+import { recommendedStepsForTopology } from "@/features/pipeline/topologyPresets";
 import {
   usePipelineGraphLayout,
   type GraphStepRef,
@@ -249,9 +271,10 @@ const emit = defineEmits<{
   "update:topology": [value: string];
   "editor:add": [];
   "editor:reset": [];
+  "editor:reset-recommended": [];
   "editor:remove": [idx: number];
   "editor:change": [idx: number, val: string];
-  "editor:reorder": [oldIdx: number, newIdx: number];
+  "editor:reorder": [oldIdx: number, newIdx: number, count?: number];
   "editor:group": [idxA: number, idxB: number];
   "editor:ungroup": [idx: number];
 }>();
@@ -266,6 +289,8 @@ const topo = computed(() => {
     ? value
     : "linear";
 });
+
+const recommendedCount = computed(() => recommendedStepsForTopology(topo.value).length);
 
 const { stepRefs, parallelStages, hierarchicalRows, stepStatus } =
   usePipelineGraphLayout(props);
@@ -305,6 +330,7 @@ function initSortable(): void {
     handle: ".step-drag-handle",
     draggable,
     filter: ".step-remove-btn, .step-select",
+    preventOnFilter: false,
     ghostClass: "step-sortable-ghost",
     chosenClass: "step-sortable-chosen",
     dragClass: "step-sortable-drag",
@@ -323,22 +349,25 @@ function initSortable(): void {
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex)
         return;
 
+      // When a whole stage/row is dragged, translate stage-position into
+      // a flat (oldStart, newStart, count) tuple. Bug (2026-04): parallel
+      // stages containing >1 card only moved the first — the remaining
+      // cards stayed at the old flat position. reorder now supports a
+      // count argument so the entire stage moves together.
       if (currentTopo === "parallel") {
         const stages = parallelStages.value;
-        emit(
-          "editor:reorder",
-          stages.slice(0, oldIndex).flat().length,
-          stages.slice(0, newIndex).flat().length,
-        );
+        const stage = stages[oldIndex];
+        const oldFlat = stages.slice(0, oldIndex).flat().length;
+        const newFlat = stages.slice(0, newIndex).flat().length;
+        emit("editor:reorder", oldFlat, newFlat, stage?.length ?? 1);
       } else if (currentTopo === "hierarchical") {
         const rows = hierarchicalRows.value;
-        emit(
-          "editor:reorder",
-          rows.slice(0, oldIndex).flat().length,
-          rows.slice(0, newIndex).flat().length,
-        );
+        const row = rows[oldIndex];
+        const oldFlat = rows.slice(0, oldIndex).flat().length;
+        const newFlat = rows.slice(0, newIndex).flat().length;
+        emit("editor:reorder", oldFlat, newFlat, row?.length ?? 1);
       } else {
-        emit("editor:reorder", oldIndex, newIndex);
+        emit("editor:reorder", oldIndex, newIndex, 1);
       }
     },
   });
@@ -672,6 +701,34 @@ const {
   gap: 6px;
   padding: 6px 0 0;
   flex-wrap: wrap;
+}
+
+.pg-reset-recommended {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 8px 0;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  font-size: 12px;
+}
+.pg-reset-recommended .hint {
+  flex: 1;
+  color: #fcd67a;
+}
+.pg-reset-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  border-radius: 4px;
+  color: #fcd67a;
+  cursor: pointer;
+}
+.pg-reset-btn:hover {
+  background: rgba(245, 158, 11, 0.3);
 }
 
 /* ═══ Topology selector ═══════════════════════════════════ */
