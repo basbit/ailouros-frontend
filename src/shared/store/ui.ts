@@ -71,6 +71,12 @@ export const useUiStore = defineStore("ui", () => {
   const shellGateNeedsAllowlist = ref<string[]>([]);
   const shellGateAlreadyAllowed = ref<string[]>([]);
 
+  // Manual-execution gate: orchestrator refuses to run a command (sudo etc.)
+  // and asks the user to run it themselves in their own terminal.
+  const manualShellGateVisible = ref(false);
+  const manualShellCommands = ref<string[]>([]);
+  const manualShellReason = ref("");
+
   const retryGateVisible = ref(false);
   const retryFailedStep = ref("(unknown)");
 
@@ -242,6 +248,9 @@ export const useUiStore = defineStore("ui", () => {
     shellGateCommands.value = [];
     shellGateNeedsAllowlist.value = [];
     shellGateAlreadyAllowed.value = [];
+    manualShellGateVisible.value = false;
+    manualShellCommands.value = [];
+    manualShellReason.value = "";
     retryGateVisible.value = false;
     retryFailedStep.value = "(unknown)";
     artifactPath.value = null;
@@ -269,6 +278,9 @@ export const useUiStore = defineStore("ui", () => {
     shellGateCommands,
     shellGateNeedsAllowlist,
     shellGateAlreadyAllowed,
+    manualShellGateVisible,
+    manualShellCommands,
+    manualShellReason,
     retryGateVisible,
     retryFailedStep,
     artifactPath,

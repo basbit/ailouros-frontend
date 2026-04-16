@@ -13,8 +13,10 @@ import {
   submitHumanResume,
   confirmShell,
   confirmHuman,
+  confirmManualShell,
   fetchPendingHuman,
   fetchPendingShellCommands,
+  fetchPendingManualShell,
   fetchFailedStep,
   submitRetry,
   submitContinuePipeline,
@@ -204,15 +206,26 @@ export function useSwarmRunController(settings: SettingsRef) {
     } else if (status === "awaiting_shell_confirm" && ui.taskId) {
       ui.shellGateVisible = true;
       ui.humanGateVisible = false;
+      ui.manualShellGateVisible = false;
       ui.retryGateVisible = false;
       void fetchPendingShellCommands(ui.taskId).then((payload) => {
         ui.shellGateCommands = payload.commands;
         ui.shellGateNeedsAllowlist = payload.needs_allowlist;
         ui.shellGateAlreadyAllowed = payload.already_allowed;
       });
+    } else if (status === "awaiting_manual_shell" && ui.taskId) {
+      ui.manualShellGateVisible = true;
+      ui.humanGateVisible = false;
+      ui.shellGateVisible = false;
+      ui.retryGateVisible = false;
+      void fetchPendingManualShell(ui.taskId).then((payload) => {
+        ui.manualShellCommands = payload.commands;
+        ui.manualShellReason = payload.reason;
+      });
     } else if (status === "failed" && ui.taskId) {
       ui.humanGateVisible = false;
       ui.shellGateVisible = false;
+      ui.manualShellGateVisible = false;
       ui.retryGateVisible = true;
       const tid = ui.taskId;
       void fetchFailedStep(tid).then((step) => {
@@ -226,12 +239,14 @@ export function useSwarmRunController(settings: SettingsRef) {
     } else if (status === "completed") {
       ui.humanGateVisible = false;
       ui.shellGateVisible = false;
+      ui.manualShellGateVisible = false;
       ui.retryGateVisible = false;
       ui.persistActiveTask(null, projectsStore.currentId);
       if (ui.taskId) void loadPipelinePlan(ui.taskId, "completed");
     } else if (status === "running" || status === "in_progress") {
       ui.humanGateVisible = false;
       ui.shellGateVisible = false;
+      ui.manualShellGateVisible = false;
       ui.retryGateVisible = false;
     }
 
@@ -264,7 +279,11 @@ export function useSwarmRunController(settings: SettingsRef) {
     if (typeof j.tools_enabled === "boolean") ui.toolsEnabled = j.tools_enabled;
     if (j.mcp_phase) ui.mcpPhase = String(j.mcp_phase);
     ui.pendingApprovals =
-      status === "awaiting_human" || status === "awaiting_shell_confirm" ? 1 : 0;
+      status === "awaiting_human" ||
+      status === "awaiting_shell_confirm" ||
+      status === "awaiting_manual_shell"
+        ? 1
+        : 0;
 
     ui.artifactPath = ui.taskId
       ? apiUrl("/artifacts/" + ui.taskId + "/pipeline.json")
@@ -377,6 +396,14 @@ export function useSwarmRunController(settings: SettingsRef) {
     ui.shellGateCommands = [];
   }
 
+  async function onConfirmManualShell(done: boolean): Promise<void> {
+    if (!ui.taskId) return;
+    await confirmManualShell(ui.taskId, done);
+    ui.manualShellGateVisible = false;
+    ui.manualShellCommands = [];
+    ui.manualShellReason = "";
+  }
+
   async function onRetry(fromBeginning: boolean): Promise<void> {
     if (!ui.taskId) return;
     ui.retryGateVisible = false;
@@ -400,6 +427,7 @@ export function useSwarmRunController(settings: SettingsRef) {
     onStopRun,
     onHumanResume,
     onConfirmShell,
+    onConfirmManualShell,
     onRetry,
     onContinuePipeline,
   };

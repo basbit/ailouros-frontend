@@ -107,6 +107,13 @@
               @confirm="onConfirmShell"
             />
 
+            <ManualShellGate
+              :visible="ui.manualShellGateVisible"
+              :commands="ui.manualShellCommands"
+              :reason="ui.manualShellReason"
+              @confirm="onConfirmManualShell"
+            />
+
             <RetryGate
               :visible="ui.retryGateVisible"
               :failed-step="ui.retryFailedStep"
@@ -318,6 +325,7 @@ import SwarmSettings from "@/features/swarm-settings/SwarmSettings.vue";
 import HumanGate from "@/features/task-gate/HumanGate.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ShellGate from "@/features/task-gate/ShellGate.vue";
+import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
 import RetryGate from "@/features/task-gate/RetryGate.vue";
 import OnboardingWizard from "@/features/onboarding/OnboardingWizard.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
@@ -353,6 +361,7 @@ const {
   onStopRun,
   onHumanResume,
   onConfirmShell,
+  onConfirmManualShell,
   onRetry,
   onContinuePipeline,
 } = useSwarmRunController(settings);

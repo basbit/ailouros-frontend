@@ -64,6 +64,48 @@ export async function confirmShell(taskId: string, approved: boolean): Promise<v
   if (!resp.ok) notifyError("confirm-shell HTTP " + resp.status);
 }
 
+export interface PendingManualShellPayload {
+  commands: string[];
+  reason: string;
+}
+
+export async function fetchPendingManualShell(
+  taskId: string,
+): Promise<PendingManualShellPayload> {
+  const empty: PendingManualShellPayload = { commands: [], reason: "" };
+  try {
+    const resp = await fetch(
+      apiUrl("/v1/tasks/" + encodeURIComponent(taskId) + "/pending-manual-shell"),
+    );
+    if (!resp.ok) {
+      if (resp.status !== 404) {
+        console.warn(
+          `fetchPendingManualShell: unexpected HTTP ${resp.status} for task ${taskId}`,
+        );
+      }
+      return empty;
+    }
+    const data = (await resp.json()) as Partial<PendingManualShellPayload>;
+    return { commands: data.commands ?? [], reason: data.reason ?? "" };
+  } catch (error) {
+    console.warn(`fetchPendingManualShell: network error for task ${taskId}:`, error);
+    return empty;
+  }
+}
+
+export async function confirmManualShell(taskId: string, done: boolean): Promise<void> {
+  if (!taskId) return;
+  const resp = await fetch(
+    apiUrl("/v1/tasks/" + encodeURIComponent(taskId) + "/confirm-manual-shell"),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ done }),
+    },
+  );
+  if (!resp.ok) notifyError("confirm-manual-shell HTTP " + resp.status);
+}
+
 export async function confirmHuman(
   taskId: string,
   approved: boolean,
