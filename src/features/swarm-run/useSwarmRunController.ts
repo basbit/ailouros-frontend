@@ -24,7 +24,7 @@ import {
 } from "@/features/task-gate/useTaskGates";
 import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
 import type { useSettings } from "@/features/project-settings/useSettings";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { isTaskActive } from "@/shared/lib/task-status";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
@@ -45,6 +45,19 @@ export function useSwarmRunController(settings: SettingsRef) {
   const pipelinePlanInflight = new Map<string, Promise<void>>();
 
   const isRunning = computed(() => isTaskActive(ui.taskStatus ?? ""));
+
+  function waitForUiPaint(): Promise<void> {
+    return new Promise((resolve) => {
+      if (
+        typeof window === "undefined" ||
+        typeof window.requestAnimationFrame !== "function"
+      ) {
+        resolve();
+        return;
+      }
+      window.requestAnimationFrame(() => resolve());
+    });
+  }
 
   // ── WS ────────────────────────────────────────────────────────────────────
 
@@ -312,6 +325,12 @@ export function useSwarmRunController(settings: SettingsRef) {
     lastPipelinePlanLoadKey.value = "";
     taskStore.resetTask();
     sendWsSubscribe();
+    // Show Stop button immediately — before any SSE events arrive from the backend.
+    ui.taskStatus = "running";
+    // Let Vue flush the reactive update and give the browser one paint before
+    // the request setup / JSON serialization work starts.
+    await nextTick();
+    await waitForUiPaint();
 
     try {
       await runSwarmChat(

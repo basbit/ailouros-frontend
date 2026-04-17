@@ -16,7 +16,7 @@
       <!-- ── Sidebar ─────────────────────────────────────────── -->
       <aside class="sidebar">
         <div class="sidebar-scroll">
-          <!-- Remote API profiles (global) -->
+          <!-- Remote API profiles -->
           <RemoteApiProfiles
             :profiles="settings.profilesState.profiles.value"
             @add="settings.profilesState.addProfile()"
@@ -25,6 +25,31 @@
               (idx, field, val) => {
                 settings.profilesState.updateProfile(idx, field, val);
                 settings.rolesState.refreshAllProfileSelects();
+              }
+            "
+          />
+
+          <!-- Global web search API keys -->
+          <GlobalSearchKeys
+            :tavily-api-key="settings.form.swarm_tavily_api_key"
+            :exa-api-key="settings.form.swarm_exa_api_key"
+            :scrapingdog-api-key="settings.form.swarm_scrapingdog_api_key"
+            @update:tavily-api-key="
+              (value) => {
+                settings.form.swarm_tavily_api_key = value;
+                settings.saveSettingsSoon();
+              }
+            "
+            @update:exa-api-key="
+              (value) => {
+                settings.form.swarm_exa_api_key = value;
+                settings.saveSettingsSoon();
+              }
+            "
+            @update:scrapingdog-api-key="
+              (value) => {
+                settings.form.swarm_scrapingdog_api_key = value;
+                settings.saveSettingsSoon();
               }
             "
           />
@@ -237,7 +262,16 @@
           @editor:reorder="(o, n, c) => settings.pipelineState.reorder(o, n, c ?? 1)"
         />
 
-        <BackgroundRecommendations :enabled="settings.form.swarm_background_agent" />
+        <BackgroundRecommendations
+          :enabled="settings.form.swarm_background_agent"
+          :workspace-root="settings.form.workspace_root"
+          :watch-paths="settings.form.swarm_background_watch_paths"
+          :environment="settings.form.swarm_background_agent_provider"
+          :model="settings.form.swarm_background_agent_model"
+          :remote-api-provider="backgroundAgentRemoteConfig.provider"
+          :remote-api-key="backgroundAgentRemoteConfig.apiKey"
+          :remote-api-base-url="backgroundAgentRemoteConfig.baseUrl"
+        />
 
         <WikiGraphPanel />
 
@@ -298,7 +332,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import type { Ref } from "vue";
 import { useProjectsStore } from "@/shared/store/projects";
 import type { RoleSnapshot } from "@/shared/store/projects";
@@ -322,6 +356,7 @@ import DevRoles from "@/features/dev-roles/DevRoles.vue";
 import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
 import SwarmSettings from "@/features/swarm-settings/SwarmSettings.vue";
+import GlobalSearchKeys from "@/features/swarm-settings/GlobalSearchKeys.vue";
 import HumanGate from "@/features/task-gate/HumanGate.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ShellGate from "@/features/task-gate/ShellGate.vue";
@@ -348,6 +383,37 @@ const projectsStore = useProjectsStore();
 const ui = useUiStore();
 const taskStore = useTaskStore();
 const settings = useSettings();
+
+// Effective remote connection for the background agent. Prefer the global
+// connection fields; otherwise inherit the first stored profile that has a key.
+// Keeping provider/base_url aligned with the selected key avoids sending an
+// OpenAI-compatible key into the Anthropic SDK path.
+const backgroundAgentRemoteConfig = computed(() => {
+  const globalProvider = settings.form.remote_api_provider?.trim() ?? "";
+  const globalKey = settings.form.remote_api_key?.trim() ?? "";
+  const globalBaseUrl = settings.form.remote_api_base_url?.trim() ?? "";
+  if (globalKey || globalBaseUrl) {
+    return {
+      provider: globalProvider,
+      apiKey: globalKey,
+      baseUrl: globalBaseUrl,
+    };
+  }
+  for (const row of settings.profilesState.profiles.value ?? []) {
+    const apiKey = row.api_key?.trim() ?? "";
+    if (!apiKey) continue;
+    return {
+      provider: row.provider?.trim() ?? "",
+      apiKey,
+      baseUrl: row.base_url?.trim() ?? "",
+    };
+  }
+  return {
+    provider: globalProvider,
+    apiKey: "",
+    baseUrl: globalBaseUrl,
+  };
+});
 const preferences = usePreferencesStore();
 const ux = useUxStore();
 const { t } = useI18n();
@@ -767,6 +833,12 @@ onMounted(async () => {
     taskStore.setTaskId(tid);
     void syncTaskFromServer(tid);
   }
+
+  window.addEventListener("beforeunload", settings.flushSave);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("beforeunload", settings.flushSave);
 });
 </script>
 

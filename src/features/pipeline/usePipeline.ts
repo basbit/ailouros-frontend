@@ -148,9 +148,8 @@ export function usePipeline(
   /**
    * Move a contiguous range of *count* steps from *oldIdx* to *newIdx*.
    *
-   * ``count === 1`` is the linear-mode case: a single step dragged to a
-   * new position. ``count > 1`` is the parallel/hierarchical case where
-   * a stage or row containing multiple cards is dragged as one unit —
+   * ``count === 1`` is the single-card case. ``count > 1`` is the grouped
+   * parallel-stage case where multiple cards are dragged as one unit —
    * **all** cards must move together, not just the first one
    * (bug: dropping a 2-card parallel stage previously moved only the
    * first card, leaving the second orphaned in the old slot).

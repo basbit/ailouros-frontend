@@ -83,6 +83,8 @@ export function buildEmptySnap(): SettingsSnap {
     swarm_deep_planning: false,
     swarm_deep_planning_model: "",
     swarm_background_agent: false,
+    swarm_background_agent_model: "",
+    swarm_background_agent_provider: "cloud",
     swarm_background_watch_paths: "",
     swarm_dream_enabled: false,
     swarm_quality_gate: false,
@@ -192,12 +194,6 @@ export const useProjectsStore = defineStore("projects", () => {
     const cur = data.value.current;
     if (cur && data.value.projects[cur]) {
       data.value.projects[cur].snap = snap;
-    }
-    // Also write to LS_SETTINGS for legacy compat
-    try {
-      localStorage.setItem(LS_SETTINGS, JSON.stringify(snap));
-    } catch {
-      /* quota */
     }
     _save(data.value);
   }

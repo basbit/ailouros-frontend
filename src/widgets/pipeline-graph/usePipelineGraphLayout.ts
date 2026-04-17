@@ -1,4 +1,4 @@
-import { computed } from "vue";
+import { computed, type Ref } from "vue";
 
 const PARALLEL_GROUP_MAP: Record<string, string> = {
   ba: "ba-arch",
@@ -27,9 +27,24 @@ export interface GraphStepRef {
 
 export type StepStatus = "pending" | "in_progress" | "completed" | "failed" | "skipped";
 
-export function usePipelineGraphLayout(props: LayoutProps) {
+/**
+ * @param props       - reactive display props (steps = effectivePipelineSteps)
+ * @param stepsOverride - when provided, used instead of props.steps for rendering
+ *                        and index calculations (e.g. editorSteps ids so that
+ *                        drag indices always match the configured array, not the
+ *                        historical run steps shown for status decoration).
+ */
+export function usePipelineGraphLayout(
+  props: LayoutProps,
+  stepsOverride?: Ref<string[]>,
+) {
+  // Use override when it contains steps; otherwise fall back to display steps.
+  const effectiveSteps = computed<string[]>(() =>
+    stepsOverride?.value?.length ? stepsOverride.value : props.steps,
+  );
+
   const stepRefs = computed((): GraphStepRef[] =>
-    props.steps.map((id, index) => ({ id, index })),
+    effectiveSteps.value.map((id, index) => ({ id, index })),
   );
 
   const parallelStages = computed((): GraphStepRef[][] => {
@@ -55,16 +70,6 @@ export function usePipelineGraphLayout(props: LayoutProps) {
     return result;
   });
 
-  const hierarchicalRows = computed((): GraphStepRef[][] => {
-    const [first, ...rest] = stepRefs.value;
-    if (!first) return [];
-    const rows: GraphStepRef[][] = [[first]];
-    for (let i = 0; i < rest.length; i += 3) {
-      rows.push(rest.slice(i, i + 3));
-    }
-    return rows;
-  });
-
   function stepStatus(stepId: string): StepStatus {
     if (props.failedStep === stepId) return "failed";
     if (props.activeStep === stepId) return "in_progress";
@@ -73,5 +78,5 @@ export function usePipelineGraphLayout(props: LayoutProps) {
     return "pending";
   }
 
-  return { stepRefs, parallelStages, hierarchicalRows, stepStatus };
+  return { stepRefs, parallelStages, stepStatus };
 }

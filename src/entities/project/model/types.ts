@@ -59,9 +59,9 @@ export interface SettingsSnap {
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
   mcp_servers_json: string;
-  swarm_tavily_api_key: string;
-  swarm_exa_api_key: string;
-  swarm_scrapingdog_api_key: string;
+  swarm_tavily_api_key?: string;
+  swarm_exa_api_key?: string;
+  swarm_scrapingdog_api_key?: string;
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
   swarm_auto_approve: string;
@@ -71,6 +71,8 @@ export interface SettingsSnap {
   swarm_deep_planning: boolean;
   swarm_deep_planning_model: string;
   swarm_background_agent: boolean;
+  swarm_background_agent_model: string;
+  swarm_background_agent_provider?: string;
   swarm_background_watch_paths: string;
   swarm_dream_enabled: boolean;
   swarm_quality_gate: boolean;
