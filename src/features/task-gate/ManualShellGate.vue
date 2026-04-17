@@ -1,38 +1,18 @@
 <template>
-  <div v-if="visible" class="human-gate" style="border-color: #e6a817">
-    <div class="human-gate-title" style="color: #e6a817">
+  <div v-if="visible" class="human-gate manual-shell-gate manual-shell-gate--warning">
+    <div class="human-gate-title manual-shell-gate__title">
       &#9888; {{ t("manualShellGate.title") }}
     </div>
-    <p v-if="reason" style="margin-top: 6px; font-size: 12px; color: var(--text2)">
+    <p v-if="reason" class="manual-shell-gate__reason">
       {{ reason }}
     </p>
-    <div
-      style="
-        margin-top: 8px;
-        font-family: monospace;
-        font-size: 12px;
-        background: #1a1a1a;
-        padding: 8px;
-        border-radius: 4px;
-        max-height: 240px;
-        overflow-y: auto;
-      "
-    >
-      <div v-for="(cmd, i) in commands" :key="i" style="position: relative">
-        <span style="color: #e6c84a">$ </span>{{ cmd }}
+    <div class="manual-shell-gate__code-block">
+      <div v-for="(cmd, i) in commands" :key="i" class="manual-shell-gate__cmd-row">
+        <span class="manual-shell-gate__prompt">$ </span>{{ cmd }}
         <button
           type="button"
+          class="manual-shell-gate__copy-btn"
           :aria-label="t('manualShellGate.copy')"
-          style="
-            margin-left: 8px;
-            padding: 1px 6px;
-            font-size: 11px;
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 3px;
-            color: var(--text2);
-            cursor: pointer;
-          "
           @click="copyCommand(cmd)"
         >
           {{ t("manualShellGate.copy") }}
@@ -40,11 +20,10 @@
       </div>
     </div>
 
-    <div style="display: flex; gap: 8px; margin-top: 10px">
+    <div class="manual-shell-gate__actions">
       <button
         type="button"
-        class="btn-primary"
-        style="background: #2a7a2a"
+        class="btn-primary btn-primary--success"
         :disabled="!commands.length"
         @click="emit('confirm', true)"
       >
@@ -52,8 +31,7 @@
       </button>
       <button
         type="button"
-        class="btn-primary"
-        style="background: #7a2a2a"
+        class="btn-primary btn-primary--danger"
         @click="emit('confirm', false)"
       >
         {{ t("manualShellGate.cancel") }}
@@ -88,3 +66,60 @@ async function copyCommand(cmd: string): Promise<void> {
   }
 }
 </script>
+
+<style scoped>
+.manual-shell-gate--warning {
+  border-color: var(--warning);
+}
+.manual-shell-gate__title {
+  color: var(--warning);
+}
+.manual-shell-gate__reason {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.manual-shell-gate__code-block {
+  margin-top: 8px;
+  padding: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.manual-shell-gate__cmd-row {
+  position: relative;
+  padding: 1px 0;
+}
+.manual-shell-gate__prompt {
+  color: var(--warning);
+}
+.manual-shell-gate__copy-btn {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.manual-shell-gate__copy-btn:hover {
+  background: var(--surface);
+  border-color: var(--border-focus);
+  color: var(--text);
+}
+.manual-shell-gate__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+</style>

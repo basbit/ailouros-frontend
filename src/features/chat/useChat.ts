@@ -8,6 +8,7 @@ import {
   TOPOLOGY_PRESETS,
   deriveStagesForTopology,
 } from "@/features/pipeline/topologyPresets";
+import { getGlobalSearchKeys } from "@/features/global-settings/useGlobalSettings";
 
 /** Reactive error message for user-facing validation errors. */
 export const errorMessage = ref<string | null>(null);
@@ -194,11 +195,15 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (backgroundWatchPaths) swarm.background_watch_paths = backgroundWatchPaths;
   if (form.swarm_dream_enabled) swarm.dream_enabled = true;
   if (form.swarm_quality_gate) swarm.quality_gate_enabled = true;
-  const tavilyApiKey = form.swarm_tavily_api_key.trim();
+  // Cross-project keys (GlobalSettingsPanel / backend /v1/user/settings) win;
+  // per-project form fields remain as fallback for legacy projects.
+  const globalKeys = getGlobalSearchKeys();
+  const tavilyApiKey = globalKeys.tavily || form.swarm_tavily_api_key.trim();
   if (tavilyApiKey) swarm.tavily_api_key = tavilyApiKey;
-  const exaApiKey = form.swarm_exa_api_key.trim();
+  const exaApiKey = globalKeys.exa || form.swarm_exa_api_key.trim();
   if (exaApiKey) swarm.exa_api_key = exaApiKey;
-  const scrapingdogApiKey = form.swarm_scrapingdog_api_key.trim();
+  const scrapingdogApiKey =
+    globalKeys.scrapingdog || form.swarm_scrapingdog_api_key.trim();
   if (scrapingdogApiKey) swarm.scrapingdog_api_key = scrapingdogApiKey;
   const memoryNamespace = form.swarm_memory_namespace?.trim();
   if (memoryNamespace && memoryNamespace !== "default") {

@@ -10,53 +10,32 @@
       :project-name="currentProjectName"
       :agent-editor-active="activeView === 'agent-editor'"
       @toggle-agent-editor="toggleAgentEditor()"
+      @open-settings="settingsDrawerOpen = true"
     />
+
+    <!-- ── Global settings drawer (cross-project) ─────────── -->
+    <SettingsDrawer
+      :open="settingsDrawerOpen"
+      @update:open="settingsDrawerOpen = $event"
+    >
+      <GlobalSettingsPanel />
+      <RemoteApiProfiles
+        :profiles="settings.profilesState.profiles.value"
+        @add="settings.profilesState.addProfile()"
+        @remove="(idx) => settings.profilesState.removeProfile(idx)"
+        @update="
+          (idx, field, val) => {
+            settings.profilesState.updateProfile(idx, field, val);
+            settings.rolesState.refreshAllProfileSelects();
+          }
+        "
+      />
+    </SettingsDrawer>
 
     <div class="app-body">
       <!-- ── Sidebar ─────────────────────────────────────────── -->
       <aside class="sidebar">
         <div class="sidebar-scroll">
-          <!-- Global settings: internet search API keys (cross-project) -->
-          <GlobalSettingsPanel />
-
-          <!-- Remote API profiles -->
-          <RemoteApiProfiles
-            :profiles="settings.profilesState.profiles.value"
-            @add="settings.profilesState.addProfile()"
-            @remove="(idx) => settings.profilesState.removeProfile(idx)"
-            @update="
-              (idx, field, val) => {
-                settings.profilesState.updateProfile(idx, field, val);
-                settings.rolesState.refreshAllProfileSelects();
-              }
-            "
-          />
-
-          <!-- Global web search API keys -->
-          <GlobalSearchKeys
-            :tavily-api-key="settings.form.swarm_tavily_api_key"
-            :exa-api-key="settings.form.swarm_exa_api_key"
-            :scrapingdog-api-key="settings.form.swarm_scrapingdog_api_key"
-            @update:tavily-api-key="
-              (value) => {
-                settings.form.swarm_tavily_api_key = value;
-                settings.saveSettingsSoon();
-              }
-            "
-            @update:exa-api-key="
-              (value) => {
-                settings.form.swarm_exa_api_key = value;
-                settings.saveSettingsSoon();
-              }
-            "
-            @update:scrapingdog-api-key="
-              (value) => {
-                settings.form.swarm_scrapingdog_api_key = value;
-                settings.saveSettingsSoon();
-              }
-            "
-          />
-
           <!-- Project selector -->
           <ProjectSelect
             :current-id="projectsStore.currentId"
@@ -360,7 +339,6 @@ import DevRoles from "@/features/dev-roles/DevRoles.vue";
 import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
 import SwarmSettings from "@/features/swarm-settings/SwarmSettings.vue";
-import GlobalSearchKeys from "@/features/swarm-settings/GlobalSearchKeys.vue";
 import HumanGate from "@/features/task-gate/HumanGate.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ShellGate from "@/features/task-gate/ShellGate.vue";
@@ -369,6 +347,7 @@ import RetryGate from "@/features/task-gate/RetryGate.vue";
 import OnboardingWizard from "@/features/onboarding/OnboardingWizard.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
 import BackgroundRecommendations from "@/widgets/background-agent/BackgroundRecommendations.vue";
+import SettingsDrawer from "@/widgets/settings-drawer/SettingsDrawer.vue";
 import WikiGraphPanel from "@/widgets/wiki-graph-panel/WikiGraphPanel.vue";
 import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
@@ -388,6 +367,8 @@ const projectsStore = useProjectsStore();
 const ui = useUiStore();
 const taskStore = useTaskStore();
 const settings = useSettings();
+const globalSettings = useGlobalSettings();
+const settingsDrawerOpen = ref(false);
 
 // Effective remote connection for the background agent. Prefer the global
 // connection fields; otherwise inherit the first stored profile that has a key.

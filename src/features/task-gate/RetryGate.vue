@@ -1,33 +1,30 @@
 <template>
-  <div v-if="visible" class="human-gate" style="border-color: #c0392b">
-    <div class="human-gate-title" style="color: #c0392b">
+  <div v-if="visible" class="human-gate retry-gate retry-gate--danger">
+    <div class="human-gate-title retry-gate__title">
       &#9888; {{ t("retryGate.title") }}
-      <span style="font-family: monospace">{{ failedStep }}</span>
+      <code class="retry-gate__failed-step">{{ failedStep }}</code>
     </div>
-    <div style="margin-top: 6px; font-size: 12px; color: #aaa">
+    <div class="retry-gate__hint">
       {{ t("retryGate.hint") }}
     </div>
-    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+    <div class="retry-gate__actions">
       <button
         type="button"
-        class="btn-primary"
-        style="background: #7a2a2a"
+        class="btn-primary btn-primary--danger"
         @click="emit('retry', false)"
       >
         {{ t("retryGate.retryFailed") }}
       </button>
       <button
         type="button"
-        class="btn-primary"
-        style="background: #2a4a7a; font-size: 11px"
+        class="btn-primary retry-gate__secondary-btn"
         @click="emit('retry', true)"
       >
         {{ t("retryGate.retryStart") }}
       </button>
       <button
         type="button"
-        class="btn-primary"
-        style="background: #2a6a3a; font-size: 11px"
+        class="btn-primary btn-primary--success retry-gate__secondary-btn"
         @click="toggleContinuePanel"
       >
         {{ t("retryGate.continueAdd") }}
@@ -35,19 +32,15 @@
     </div>
 
     <!-- Continue pipeline panel -->
-    <div
-      v-if="showContinuePanel"
-      style="margin-top: 12px; border-top: 1px solid #444; padding-top: 10px"
-    >
-      <div style="font-size: 12px; color: #ccc; margin-bottom: 8px">
+    <div v-if="showContinuePanel" class="retry-gate__continue-panel">
+      <div class="retry-gate__continue-hint">
         {{ t("retryGate.selectAdditional") }}
       </div>
-      <div style="display: flex; flex-direction: column; gap: 6px">
+      <div class="retry-gate__step-list">
         <label
           v-for="step in availableSteps"
           :key="step"
-          class="checkbox-row"
-          style="font-size: 12px"
+          class="checkbox-row retry-gate__step-row"
         >
           <input
             type="checkbox"
@@ -55,14 +48,13 @@
             :checked="selectedSteps.includes(step)"
             @change="toggleStep(step)"
           />
-          <span class="check-label" style="font-family: monospace">{{ step }}</span>
+          <span class="check-label retry-gate__step-name">{{ step }}</span>
         </label>
       </div>
-      <div style="display: flex; gap: 8px; margin-top: 10px">
+      <div class="retry-gate__continue-actions">
         <button
           type="button"
-          class="btn-primary"
-          style="background: #2a6a3a; font-size: 11px"
+          class="btn-primary btn-primary--success retry-gate__secondary-btn"
           :disabled="!selectedSteps.length"
           @click="onConfirmContinue"
         >
@@ -70,8 +62,7 @@
         </button>
         <button
           type="button"
-          class="btn-primary"
-          style="background: #444; font-size: 11px"
+          class="btn-secondary retry-gate__secondary-btn"
           @click="showContinuePanel = false"
         >
           {{ t("dialogs.cancel") }}
@@ -122,10 +113,71 @@ function toggleStep(step: string): void {
 
 function onConfirmContinue(): void {
   if (!selectedSteps.value.length) return;
-  // Emit in canonical order
   const ordered = ALL_PIPELINE_STEPS.filter((s) => selectedSteps.value.includes(s));
   emit("continuePipeline", ordered);
   showContinuePanel.value = false;
   selectedSteps.value = [];
 }
 </script>
+
+<style scoped>
+.retry-gate--danger {
+  border-color: var(--error);
+}
+.retry-gate__title {
+  color: var(--error);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.retry-gate__failed-step {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--error) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  color: var(--error);
+}
+.retry-gate__hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.retry-gate__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.retry-gate__secondary-btn {
+  font-size: 11px;
+}
+.retry-gate__continue-panel {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.retry-gate__continue-hint {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.retry-gate__step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.retry-gate__step-row {
+  font-size: 12px;
+}
+.retry-gate__step-name {
+  font-family: var(--mono);
+}
+.retry-gate__continue-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+</style>

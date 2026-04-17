@@ -57,45 +57,57 @@ const tooltip = computed(() => {
 </script>
 
 <style scoped>
+/*
+ * Chip colors are built from theme tokens via color-mix so that every chip
+ * keeps ≥4.5:1 contrast in both dark and light themes. Text uses the full
+ * semantic token; background is the same token mixed into the surface.
+ */
 .pipeline-summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
   font-size: 11px;
-  color: var(--text2, #9dadd0);
+  color: var(--text2);
   padding: 2px 8px;
-  background: var(--bg2, #1e2230);
-  border: 1px solid var(--border, #2a2f3e);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   border-radius: 12px;
 }
 .pipeline-summary__count {
   font-weight: 600;
-  color: var(--text1, #c8cfe8);
+  color: var(--text);
 }
 .pipeline-summary__sep {
-  opacity: 0.4;
+  color: var(--text3);
+  opacity: 0.6;
 }
 .pipeline-summary__chip {
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 8px;
   font-size: 11px;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.5;
+  border: 1px solid transparent;
 }
 .pipeline-summary__chip--agent {
-  background: rgba(59, 91, 219, 0.18);
-  color: #a7baf5;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 .pipeline-summary__chip--reviewer {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fcd67a;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--warning) 32%, transparent);
 }
 .pipeline-summary__chip--human {
-  background: rgba(56, 189, 148, 0.18);
-  color: #7ed7b7;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 32%, transparent);
 }
 .pipeline-summary__chip--verify {
-  background: rgba(156, 163, 175, 0.2);
-  color: #c9cdd6;
+  color: var(--text2);
+  background: color-mix(in srgb, var(--text2) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--text2) 24%, transparent);
 }
 </style>
