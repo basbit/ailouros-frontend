@@ -75,7 +75,7 @@ const messages: Record<Locale, Messages> = {
     "project.rename": "Rename",
     "project.delete": "Delete",
     "project.scope":
-      "Prompt, workspace, pipeline, agents, swarm/MCP/DB and run history are project-scoped. Remote API profiles stay global.",
+      "Prompt, workspace, pipeline, agents, swarm/MCP/DB, Remote API profiles and run history are project-scoped.",
     "prompt.placeholder": "Describe the task… Type @ to attach a file",
     "prompt.mention.loading": "Loading files…",
     "prompt.mention.empty": "No matching files",
@@ -84,7 +84,7 @@ const messages: Record<Locale, Messages> = {
     "graph.title": "Pipeline",
     "graph.layout": "Layout",
     "graph.layoutHelp":
-      "Topology shapes both the layout and how steps run: parallel groups BA∥Architect into a concurrent stage; mesh runs Dev subtasks in parallel; linear/hierarchical/ring keep steps sequential. If you manually grouped steps in the editor, that grouping wins.",
+      "Topology shapes both the layout and how steps run: parallel groups BA∥Architect into a concurrent stage; mesh runs Dev subtasks in parallel; linear and ring keep steps sequential. If you manually grouped steps in the editor, that grouping wins.",
     "graph.empty": "No steps configured",
     "graph.add": "Add step",
     "graph.reset": "Reset to default",
@@ -159,9 +159,12 @@ const messages: Record<Locale, Messages> = {
     "mcp.tavilyLabel": "Tavily API key (web search, 1000 req/month free)",
     "mcp.exaLabel": "Exa API key (web search, 1000 req/month free)",
     "mcp.scrapingdogLabel": "ScrapingDog API key (web search, 1000 req/month free)",
+    "search.sectionTitle": "Web Search API Keys (global)",
+    "search.sectionHint":
+      "Saved globally for all projects. At least one key enables web search in source research.",
     "database.urlLabel": "Database URL (optional)",
     "database.secretHint":
-      "Saved in browser localStorage — avoid production secrets here.",
+      "Saved in the project settings file (.swarm/settings.json) — avoid production secrets here.",
     "database.hintLabel": "Database hint (schema, tables)",
     "database.readonlyLabel": "Database context read-only (default on)",
     "swarm.summary": "Swarm / MCP / Database",
@@ -184,7 +187,6 @@ const messages: Record<Locale, Messages> = {
     "auto.topologyLabel": "Swarm topology",
     "auto.topology.linear": "linear (default — sequential)",
     "auto.topology.parallel": "parallel (BA ∥ ARCH, concurrent stages)",
-    "auto.topology.hierarchical": "hierarchical (orchestrator → agents tree)",
     "auto.topology.ring": "↺ ring (restart pipeline with defect context)",
     "auto.topology.mesh": "⬡ mesh (parallel Dev+QA workers)",
     "auto.topologyHint": "Controls execution order and pipeline graph layout.",
@@ -208,8 +210,9 @@ const messages: Record<Locale, Messages> = {
     "auto.deepPlanningModelLabel": "Deep planning model (optional)",
     "auto.backgroundAgentLabel": "Background agent — event watcher",
     "auto.backgroundAgentHint":
-      "Watches repo/CI for issues, sends recommendations via SSE.",
-    "auto.experimentalHint": "(experimental — requires backend wiring)",
+      "Watches the workspace for changes and surfaces recommendations in the UI.",
+    "auto.backgroundAgentModelLabel": "Background agent model (optional)",
+    "auto.experimentalHint": "(experimental)",
     "auto.watchPathsLabel": "Watch paths (optional)",
     "auto.watchPathsHint": "Comma-separated paths relative to workspace root. Env:",
     "auto.memoryConsolidationLabel": "Memory consolidation",
@@ -521,7 +524,7 @@ const messages: Record<Locale, Messages> = {
     "project.rename": "Переименовать",
     "project.delete": "Удалить",
     "project.scope":
-      "Промпт, workspace, pipeline, агенты, swarm/MCP/DB и история прогонов привязаны к проекту. Профили Remote API остаются глобальными.",
+      "Промпт, workspace, pipeline, агенты, swarm/MCP/DB, профили Remote API и история прогонов привязаны к проекту.",
     "prompt.placeholder": "Опиши задачу… Нажми @, чтобы приложить файл",
     "prompt.mention.loading": "Загружаю файлы…",
     "prompt.mention.empty": "Подходящие файлы не найдены",
@@ -530,7 +533,7 @@ const messages: Record<Locale, Messages> = {
     "graph.title": "Пайплайн",
     "graph.layout": "Вид",
     "graph.layoutHelp":
-      "Топология задаёт и вид, и то как шаги реально исполняются: parallel объединяет BA∥Architect в параллельный этап; mesh параллелит Dev-подзадачи; linear/hierarchical/ring идут последовательно. Если вы вручную сгруппировали шаги в редакторе — ваша группировка важнее пресета.",
+      "Топология задаёт и вид, и то как шаги реально исполняются: parallel объединяет BA∥Architect в параллельный этап; mesh параллелит Dev-подзадачи; linear и ring идут последовательно. Если вы вручную сгруппировали шаги в редакторе — ваша группировка важнее пресета.",
     "graph.empty": "Шаги не настроены",
     "graph.add": "Добавить шаг",
     "graph.reset": "Сбросить к умолчанию",
@@ -607,9 +610,12 @@ const messages: Record<Locale, Messages> = {
     "mcp.exaLabel": "Exa API key (веб-поиск, 1000 запросов/месяц бесплатно)",
     "mcp.scrapingdogLabel":
       "ScrapingDog API key (веб-поиск, 1000 запросов/месяц бесплатно)",
+    "search.sectionTitle": "API ключи веб-поиска (глобальные)",
+    "search.sectionHint":
+      "Сохраняются глобально для всех проектов. Хотя бы один ключ включает веб-поиск в source research.",
     "database.urlLabel": "URL базы данных (необязательно)",
     "database.secretHint":
-      "Сохраняется в localStorage браузера — не храни здесь production secrets.",
+      "Сохраняется в файле настроек проекта (.swarm/settings.json) — не храни здесь production secrets.",
     "database.hintLabel": "Подсказка по базе (схемы, таблицы)",
     "database.readonlyLabel": "Контекст базы только для чтения (по умолчанию включено)",
     "swarm.summary": "Swarm / MCP / База данных",
@@ -633,7 +639,6 @@ const messages: Record<Locale, Messages> = {
     "auto.topologyLabel": "Топология swarm",
     "auto.topology.linear": "linear (по умолчанию — последовательно)",
     "auto.topology.parallel": "parallel (BA ∥ ARCH, параллельные стадии)",
-    "auto.topology.hierarchical": "hierarchical (оркестратор → дерево агентов)",
     "auto.topology.ring": "↺ ring (перезапуск пайплайна с контекстом дефектов)",
     "auto.topology.mesh": "⬡ mesh (параллельные Dev+QA воркеры)",
     "auto.topologyHint": "Управляет порядком исполнения и раскладкой pipeline graph.",
@@ -658,8 +663,10 @@ const messages: Record<Locale, Messages> = {
       "PM выполняет 5-стадийный анализ (scan→risks→alternatives→plan→review) до исполнения.",
     "auto.deepPlanningModelLabel": "Модель глубокого планирования (необязательно)",
     "auto.backgroundAgentLabel": "Фоновый агент — наблюдатель событий",
-    "auto.backgroundAgentHint": "Следит за repo/CI, отправляет рекомендации через SSE.",
-    "auto.experimentalHint": "(экспериментально — требует backend wiring)",
+    "auto.backgroundAgentHint":
+      "Следит за изменениями в workspace и показывает рекомендации в UI.",
+    "auto.backgroundAgentModelLabel": "Модель фонового агента (необязательно)",
+    "auto.experimentalHint": "(экспериментально)",
     "auto.watchPathsLabel": "Наблюдаемые пути (необязательно)",
     "auto.watchPathsHint": "Пути через запятую относительно workspace root. Env:",
     "auto.memoryConsolidationLabel": "Консолидация памяти",

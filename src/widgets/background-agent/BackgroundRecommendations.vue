@@ -26,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { apiUrl } from "@/shared/api/base";
+import { ref, computed, onUnmounted, watch } from "vue";
+import { fetchJson } from "@/shared/api/client";
 import { useI18n } from "@/shared/lib/i18n";
 
 interface Recommendation {
@@ -39,20 +39,43 @@ interface Recommendation {
   timestamp: number;
 }
 
-const props = defineProps<{ enabled: boolean }>();
+interface ConfigureResponse {
+  active: boolean;
+  watch_paths: string[];
+}
+
+interface PollResponse {
+  active: boolean;
+  recommendations: Recommendation[];
+}
+
+const props = defineProps<{
+  enabled: boolean;
+  workspaceRoot: string;
+  watchPaths: string;
+  environment?: string;
+  model?: string;
+  remoteApiProvider?: string;
+  remoteApiKey?: string;
+  remoteApiBaseUrl?: string;
+}>();
 const { t } = useI18n();
 
 const items = ref<Recommendation[]>([]);
 const visible = computed(() => items.value.length > 0);
+const active = ref(false);
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
 async function poll(): Promise<void> {
-  if (!props.enabled) return;
+  if (!active.value) return;
   try {
-    const r = await fetch(apiUrl("/v1/background-recommendations"));
-    if (!r.ok) return;
-    const data = await r.json();
+    const data = await fetchJson<PollResponse>("/v1/background-recommendations");
+    if (!data.active) {
+      active.value = false;
+      stopPolling();
+      return;
+    }
     if (
       data.active &&
       Array.isArray(data.recommendations) &&
@@ -61,7 +84,49 @@ async function poll(): Promise<void> {
       items.value = [...items.value, ...data.recommendations];
     }
   } catch {
-    // network errors are silently ignored for background polling
+    active.value = false;
+    stopPolling();
+  }
+}
+
+function stopPolling(): void {
+  if (timer !== null) {
+    clearInterval(timer);
+    timer = null;
+  }
+}
+
+function startPolling(): void {
+  stopPolling();
+  if (!active.value) return;
+  void poll();
+  timer = setInterval(() => {
+    void poll();
+  }, 10_000);
+}
+
+async function syncLifecycle(): Promise<void> {
+  stopPolling();
+  const shouldEnable = props.enabled && !!props.workspaceRoot.trim();
+  try {
+    const data = await fetchJson<ConfigureResponse>("/v1/background-agent", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        enabled: shouldEnable,
+        workspace_root: props.workspaceRoot,
+        watch_paths: props.watchPaths,
+        environment: props.environment ?? "",
+        model: props.model ?? "",
+        remote_provider: props.remoteApiProvider ?? "",
+        remote_api_key: props.remoteApiKey ?? "",
+        remote_base_url: props.remoteApiBaseUrl ?? "",
+      }),
+    });
+    active.value = !!data.active;
+    if (active.value) startPolling();
+  } catch {
+    active.value = false;
   }
 }
 
@@ -73,15 +138,26 @@ function dismissAll(): void {
   items.value = [];
 }
 
-onMounted(() => {
-  if (props.enabled) {
-    void poll();
-    timer = setInterval(poll, 10_000);
-  }
-});
+watch(
+  () =>
+    [
+      props.enabled,
+      props.workspaceRoot,
+      props.watchPaths,
+      props.environment,
+      props.model,
+      props.remoteApiProvider,
+      props.remoteApiKey,
+      props.remoteApiBaseUrl,
+    ] as const,
+  () => {
+    void syncLifecycle();
+  },
+  { immediate: true },
+);
 
 onUnmounted(() => {
-  if (timer !== null) clearInterval(timer);
+  stopPolling();
 });
 </script>
 

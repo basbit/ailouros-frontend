@@ -8,7 +8,6 @@ import {
   TOPOLOGY_PRESETS,
   deriveStagesForTopology,
 } from "@/features/pipeline/topologyPresets";
-import { getGlobalSearchKeys } from "@/features/global-settings/useGlobalSettings";
 
 /** Reactive error message for user-facing validation errors. */
 export const errorMessage = ref<string | null>(null);
@@ -167,6 +166,8 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (!form.swarm_database_readonly) swarm.database_readonly = false;
   if (form.swarm_disable_tree_sitter) swarm.disable_tree_sitter = true;
   if (form.swarm_self_verify) swarm.self_verify = true;
+  const selfVerifyProvider = form.swarm_self_verify_provider.trim();
+  if (selfVerifyProvider) swarm.self_verify_provider = selfVerifyProvider;
   const selfVerifyModel = form.swarm_self_verify_model.trim();
   if (selfVerifyModel) swarm.self_verify_model = selfVerifyModel;
   const autoApproveValue = form.swarm_auto_approve.trim();
@@ -179,21 +180,26 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (!isNaN(maxStepRetries) && maxStepRetries > 0)
     swarm.max_step_retries = maxStepRetries;
   if (form.swarm_deep_planning) swarm.deep_planning = true;
+  const deepPlanningProvider = form.swarm_deep_planning_provider.trim();
+  if (deepPlanningProvider) swarm.deep_planning_provider = deepPlanningProvider;
   const deepPlanningModel = form.swarm_deep_planning_model.trim();
   if (deepPlanningModel) swarm.deep_planning_model = deepPlanningModel;
   if (form.swarm_background_agent) swarm.background_agent = true;
+  const backgroundAgentProvider = form.swarm_background_agent_provider.trim();
+  if (backgroundAgentProvider)
+    swarm.background_agent_provider = backgroundAgentProvider;
+  const backgroundAgentModel = form.swarm_background_agent_model.trim();
+  if (backgroundAgentModel) swarm.background_agent_model = backgroundAgentModel;
   const backgroundWatchPaths = form.swarm_background_watch_paths.trim();
   if (backgroundWatchPaths) swarm.background_watch_paths = backgroundWatchPaths;
   if (form.swarm_dream_enabled) swarm.dream_enabled = true;
   if (form.swarm_quality_gate) swarm.quality_gate_enabled = true;
-  const _globalKeys = getGlobalSearchKeys();
-  const _tavilyKey = _globalKeys.tavily || form.swarm_tavily_api_key?.trim();
-  const _exaKey = _globalKeys.exa || form.swarm_exa_api_key?.trim();
-  const _scrapingdogKey =
-    _globalKeys.scrapingdog || form.swarm_scrapingdog_api_key?.trim();
-  if (_tavilyKey) swarm.tavily_api_key = _tavilyKey;
-  if (_exaKey) swarm.exa_api_key = _exaKey;
-  if (_scrapingdogKey) swarm.scrapingdog_api_key = _scrapingdogKey;
+  const tavilyApiKey = form.swarm_tavily_api_key.trim();
+  if (tavilyApiKey) swarm.tavily_api_key = tavilyApiKey;
+  const exaApiKey = form.swarm_exa_api_key.trim();
+  if (exaApiKey) swarm.exa_api_key = exaApiKey;
+  const scrapingdogApiKey = form.swarm_scrapingdog_api_key.trim();
+  if (scrapingdogApiKey) swarm.scrapingdog_api_key = scrapingdogApiKey;
   const memoryNamespace = form.swarm_memory_namespace?.trim();
   if (memoryNamespace && memoryNamespace !== "default") {
     swarm.cross_task_memory = {
@@ -205,9 +211,6 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   if (patternMemoryPath) swarm.pattern_memory_path = patternMemoryPath;
   if (form.swarm_force_rerun) swarm.force_rerun = true;
   if (form.swarm_auto_plan) swarm.auto_plan = true;
-  if (form.swarm_planner_model?.trim()) {
-    swarm.swarm_planner = { model: form.swarm_planner_model.trim() };
-  }
 
   return swarm;
 }
@@ -332,6 +335,14 @@ export function buildAgentConfig(
 
   const swarmSection = _buildSwarmSection(form);
   if (Object.keys(swarmSection).length) config.swarm = swarmSection;
+
+  const plannerModel = form.swarm_planner_model?.trim();
+  if (plannerModel) {
+    const plannerConfig: Record<string, string> = { model: plannerModel };
+    const plannerProvider = form.swarm_planner_provider.trim();
+    if (plannerProvider) plannerConfig.environment = plannerProvider;
+    config.swarm_planner = plannerConfig;
+  }
 
   const remoteApiSection = _buildRemoteApiSection(form);
   if (remoteApiSection) config.remote_api = remoteApiSection;

@@ -1,7 +1,8 @@
 /**
- * useRemoteApiProfiles — manages the global remote API provider profiles.
- * Mirrors addRemoteApiProfileRow, collectRemoteProfilesArrayForSnap, etc. from ui.js.
- * Stored in LS_REMOTE_PROFILES globally, not per-project.
+ * useRemoteApiProfiles — manages remote API provider profiles.
+ *
+ * Authoritative persistence is project-scoped via SettingsSnap / `.swarm/settings.json`.
+ * `loadGlobal()` remains only as a legacy localStorage migration path.
  */
 import { ref } from "vue";
 import type { RemoteProfileRow } from "@/shared/store/projects";
@@ -36,11 +37,7 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
   }
 
   function saveGlobal(): void {
-    try {
-      localStorage.setItem(LS_REMOTE_PROFILES, JSON.stringify(profiles.value));
-    } catch {
-      /* quota */
-    }
+    // Project-scoped persistence is handled by useSettings → collectSnap().
   }
 
   function addProfile(data: Partial<RemoteProfileRow> = {}): void {
@@ -82,7 +79,6 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
 
   function applyFromArray(arr: RemoteProfileRow[]): void {
     profiles.value = Array.isArray(arr) ? arr.filter((r) => r.id) : [];
-    saveGlobal();
   }
 
   function collectForSnap(): RemoteProfileRow[] {
@@ -150,7 +146,6 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
         base_url: String(v.base_url ?? ""),
       });
     }
-    saveGlobal();
   }
 
   return {

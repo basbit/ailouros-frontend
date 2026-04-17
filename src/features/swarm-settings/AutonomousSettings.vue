@@ -18,7 +18,6 @@
       >
         <option value="">{{ t("auto.topology.linear") }}</option>
         <option value="parallel">{{ t("auto.topology.parallel") }}</option>
-        <option value="hierarchical">{{ t("auto.topology.hierarchical") }}</option>
         <option value="ring">{{ t("auto.topology.ring") }}</option>
         <option value="mesh">{{ t("auto.topology.mesh") }}</option>
       </select>
@@ -280,6 +279,43 @@
         <code>SWARM_BACKGROUND_AGENT_WATCH_PATHS</code>
       </div>
     </div>
+    <div v-if="form.swarm_background_agent" class="field">
+      <label class="field-label">{{ t("auto.backgroundAgentModelLabel") }}</label>
+      <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap">
+        <select
+          :value="bgEnv"
+          @change="onBgEnvChange(($event.target as HTMLSelectElement).value)"
+        >
+          <option value="ollama">ollama</option>
+          <option value="lmstudio">lmstudio</option>
+          <option value="cloud">cloud</option>
+        </select>
+        <span v-if="bgErr" class="model-fetch-error" :title="bgErr">⚠ {{ bgErr }}</span>
+        <select
+          v-else
+          :value="bgSel"
+          @change="onBgModelSel(($event.target as HTMLSelectElement).value)"
+        >
+          <option v-for="[val, lbl] in bgChoices" :key="val" :value="val">
+            {{ lbl }}
+          </option>
+        </select>
+      </div>
+      <input
+        v-if="bgSel === '__custom__'"
+        type="text"
+        :placeholder="t('auto.modelIdPlaceholder')"
+        :value="form.swarm_background_agent_model"
+        @input="
+          emit(
+            'update:form',
+            'swarm_background_agent_model',
+            ($event.target as HTMLInputElement).value,
+          )
+        "
+      />
+      <div class="hint">Env: <code>SWARM_BACKGROUND_AGENT_MODEL</code></div>
+    </div>
 
     <!-- Memory Consolidation -->
     <div class="field">
@@ -431,6 +467,8 @@ interface AutonomousFormSlice {
   swarm_deep_planning_model: string;
   swarm_deep_planning_provider: string;
   swarm_background_agent: boolean;
+  swarm_background_agent_model: string;
+  swarm_background_agent_provider: string;
   swarm_background_watch_paths: string;
   swarm_dream_enabled: boolean;
   swarm_quality_gate: boolean;
@@ -461,6 +499,12 @@ const dpEnv = computed(() => props.form.swarm_deep_planning_provider || "ollama"
 const dpChoices = ref<[string, string][]>([["__custom__", "Custom…"]]);
 const dpErr = ref<string | null>(null);
 const dpSel = ref("__custom__");
+
+// ── Model picker for Background agent ───────────────────────────────────────
+const bgEnv = computed(() => props.form.swarm_background_agent_provider || "ollama");
+const bgChoices = ref<[string, string][]>([["__custom__", "Custom…"]]);
+const bgErr = ref<string | null>(null);
+const bgSel = ref("__custom__");
 
 // ── Model picker for Auto-planner ────────────────────────────────────────────
 const apEnv = computed(() => props.form.swarm_planner_provider || "ollama");
@@ -513,6 +557,7 @@ function syncModelSel(
 // load IDs: cancel stale responses when provider switches rapidly
 let svLoadId = 0;
 let dpLoadId = 0;
+let bgLoadId = 0;
 let apLoadId = 0;
 
 async function reloadSvChoices(): Promise<void> {
@@ -529,6 +574,13 @@ async function reloadDpChoices(): Promise<void> {
   syncModelSel(props.form.swarm_deep_planning_model, dpChoices, dpSel);
 }
 
+async function reloadBgChoices(): Promise<void> {
+  const id = ++bgLoadId;
+  await loadModelChoices(bgEnv.value, bgChoices, bgErr);
+  if (id !== bgLoadId) return;
+  syncModelSel(props.form.swarm_background_agent_model, bgChoices, bgSel);
+}
+
 async function reloadApChoices(): Promise<void> {
   const id = ++apLoadId;
   await loadModelChoices(apEnv.value, apChoices, apErr);
@@ -538,6 +590,7 @@ async function reloadApChoices(): Promise<void> {
 
 watch(svEnv, async () => reloadSvChoices(), { immediate: true });
 watch(dpEnv, async () => reloadDpChoices(), { immediate: true });
+watch(bgEnv, async () => reloadBgChoices(), { immediate: true });
 watch(apEnv, async () => reloadApChoices(), { immediate: true });
 watch(
   () => [
@@ -548,6 +601,7 @@ watch(
   async () => {
     if (svEnv.value === "cloud") await reloadSvChoices();
     if (dpEnv.value === "cloud") await reloadDpChoices();
+    if (bgEnv.value === "cloud") await reloadBgChoices();
     if (apEnv.value === "cloud") await reloadApChoices();
   },
 );
@@ -558,6 +612,10 @@ watch(
 watch(
   () => props.form.swarm_deep_planning_model,
   (m) => syncModelSel(m, dpChoices, dpSel),
+);
+watch(
+  () => props.form.swarm_background_agent_model,
+  (m) => syncModelSel(m, bgChoices, bgSel),
 );
 watch(
   () => props.form.swarm_planner_model,
@@ -578,6 +636,14 @@ function onDpEnvChange(env: string): void {
 function onDpModelSel(val: string): void {
   dpSel.value = val;
   if (val !== "__custom__") emit("update:form", "swarm_deep_planning_model", val);
+}
+
+function onBgEnvChange(env: string): void {
+  emit("update:form", "swarm_background_agent_provider", env);
+}
+function onBgModelSel(val: string): void {
+  bgSel.value = val;
+  if (val !== "__custom__") emit("update:form", "swarm_background_agent_model", val);
 }
 
 function onApEnvChange(env: string): void {

@@ -13,7 +13,7 @@
  *   - `ring`  → (no extra backend flag today) — retry gates are already global
  */
 
-export type TopologyId = "linear" | "parallel" | "hierarchical" | "ring" | "mesh";
+export type TopologyId = "linear" | "parallel" | "ring" | "mesh";
 
 /**
  * A single preset entry: how to regroup adjacent steps when the topology is applied.
@@ -76,14 +76,6 @@ export const TOPOLOGY_PRESETS: Readonly<Record<TopologyId, TopologyPreset>> = {
     label: "Parallel (BA ∥ Architect)",
     // BA and Architect can work concurrently — spec merge then collects both.
     mergePairs: [["ba", "architect"]],
-    recommendedSteps: _CORE_MINIMAL,
-  },
-  hierarchical: {
-    id: "hierarchical",
-    label: "Hierarchical (PM → Dev Lead)",
-    // Hierarchical is just sequential at the stage level; if the user wants
-    // to skip BA/Architect they drop those steps manually.
-    mergePairs: [],
     recommendedSteps: _CORE_MINIMAL,
   },
   ring: {

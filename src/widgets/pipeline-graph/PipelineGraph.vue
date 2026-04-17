@@ -88,27 +88,6 @@
           </div>
         </div>
 
-        <!-- ═══ HIERARCHICAL ═══ -->
-        <div
-          v-else-if="topo === 'hierarchical'"
-          ref="sortableContainer"
-          class="step-flow step-flow--hierarchical"
-        >
-          <div v-for="(row, ri) in hierarchicalRows" :key="ri" class="hier-row">
-            <StepCard
-              v-for="step in row"
-              :key="stepKey(step)"
-              :step-id="step.id"
-              :status="stepStatus(step.id)"
-              :parallel="row.length > 1"
-              :editable="!!editorSteps"
-              :options="editorOptions"
-              @remove="$emit('editor:remove', step.index)"
-              @change="(v) => $emit('editor:change', step.index, v)"
-            />
-          </div>
-        </div>
-
         <!-- ═══ RING ═══ -->
         <div
           v-else-if="topo === 'ring'"
@@ -248,7 +227,6 @@ import { useI18n } from "@/shared/lib/i18n";
 const TOPOLOGIES = [
   { id: "linear", icon: "⟶" },
   { id: "parallel", icon: "∥" },
-  { id: "hierarchical", icon: "⬡" },
   { id: "ring", icon: "↺" },
   { id: "mesh", icon: "⬡" },
 ] as const;
@@ -285,15 +263,22 @@ const sortableInstance = ref<Sortable | null>(null);
 
 const topo = computed(() => {
   const value = (props.topology ?? "").trim();
-  return ["parallel", "hierarchical", "ring", "mesh"].includes(value)
-    ? value
-    : "linear";
+  return ["parallel", "ring", "mesh"].includes(value) ? value : "linear";
 });
 
 const recommendedCount = computed(() => recommendedStepsForTopology(topo.value).length);
 
-const { stepRefs, parallelStages, hierarchicalRows, stepStatus } =
-  usePipelineGraphLayout(props);
+// When editorSteps is provided the SortableJS container must render from those
+// ids so that oldIndex/newIndex in onEnd always match the configured array —
+// not the historical run steps that effectivePipelineSteps may carry.
+const editorStepIds = computed<string[]>(() =>
+  props.editorSteps?.length ? props.editorSteps.map((s) => s.id) : [],
+);
+
+const { stepRefs, parallelStages, stepStatus } = usePipelineGraphLayout(
+  props,
+  editorStepIds,
+);
 
 function stepKey(step: GraphStepRef): string {
   return props.editorSteps?.[step.index]?.uid ?? `${step.id}:${step.index}`;
@@ -317,12 +302,7 @@ function initSortable(): void {
   if (!sortableContainer.value || !props.editorSteps) return;
 
   const currentTopo = topo.value;
-  const draggable =
-    currentTopo === "parallel"
-      ? ".step-stage"
-      : currentTopo === "hierarchical"
-        ? ".hier-row"
-        : ".step-card";
+  const draggable = currentTopo === "parallel" ? ".step-stage" : ".step-card";
 
   sortableInstance.value = Sortable.create(sortableContainer.value, {
     animation: 200,
@@ -349,25 +329,33 @@ function initSortable(): void {
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex)
         return;
 
-      // When a whole stage/row is dragged, translate stage-position into
+      // When a whole stage is dragged, translate stage-position into
       // a flat (oldStart, newStart, count) tuple. Bug (2026-04): parallel
       // stages containing >1 card only moved the first — the remaining
       // cards stayed at the old flat position. reorder now supports a
       // count argument so the entire stage moves together.
+      // reorder() expects a *pre-removal* destination index: the flat index
+      // in the original (pre-drag) array where the moved item(s) should be
+      // inserted AFTER the splice removes them.  For a forward move (new >
+      // old) the SortableJS newIndex points to the stage/card that becomes
+      // the right-hand neighbour AFTER the move — we must include that
+      // neighbour's content in the prefix sum so that the insertion lands
+      // after it.  Backward moves are already correct as-is.
       if (currentTopo === "parallel") {
         const stages = parallelStages.value;
         const stage = stages[oldIndex];
         const oldFlat = stages.slice(0, oldIndex).flat().length;
-        const newFlat = stages.slice(0, newIndex).flat().length;
+        const newFlat =
+          newIndex > oldIndex
+            ? stages.slice(0, newIndex + 1).flat().length
+            : stages.slice(0, newIndex).flat().length;
         emit("editor:reorder", oldFlat, newFlat, stage?.length ?? 1);
-      } else if (currentTopo === "hierarchical") {
-        const rows = hierarchicalRows.value;
-        const row = rows[oldIndex];
-        const oldFlat = rows.slice(0, oldIndex).flat().length;
-        const newFlat = rows.slice(0, newIndex).flat().length;
-        emit("editor:reorder", oldFlat, newFlat, row?.length ?? 1);
       } else {
-        emit("editor:reorder", oldIndex, newIndex, 1);
+        // Linear / ring / mesh: SortableJS newIndex is the *final* position
+        // of the card in the result array (post-removal). For a forward move
+        // the pre-removal index is newIndex + 1; backward stays the same.
+        const preRemovalNew = newIndex > oldIndex ? newIndex + 1 : newIndex;
+        emit("editor:reorder", oldIndex, preRemovalNew, 1);
       }
     },
   });
@@ -375,8 +363,10 @@ function initSortable(): void {
 
 onMounted(() => nextTick(initSortable));
 onUnmounted(destroySortable);
+// Re-init when the rendered step list changes. When editing we watch
+// editorStepIds (the configured list); otherwise watch display steps.
 watch(
-  () => props.steps.join("\u0000"),
+  () => (editorStepIds.value.length ? editorStepIds.value : props.steps).join("\u0000"),
   () => nextTick(initSortable),
 );
 watch(topo, () => nextTick(initSortable));
@@ -433,30 +423,6 @@ const {
   color: var(--text3, #666);
   font-size: 14px;
   pointer-events: none;
-}
-
-/* ═══ HIERARCHICAL ══════════════════════════════════════════ */
-.step-flow--hierarchical {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 0 8px;
-}
-.hier-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-}
-.hier-row:not(:last-child)::after {
-  content: "\2193"; /* ↓ */
-  display: block;
-  text-align: center;
-  color: var(--text3, #666);
-  font-size: 16px;
-  line-height: 1.4;
-  user-select: none;
 }
 
 /* ═══ RING ══════════════════════════════════════════════════ */

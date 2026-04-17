@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { ref, provide, defineAsyncComponent } from "vue";
 import { useSwarmDefaults } from "@/shared/lib/use-swarm-defaults";
-import { LS_SETTINGS } from "@/shared/store";
+import { LS_PROJECTS, LS_SETTINGS } from "@/shared/lib/swarm-ui-constants";
 import SwarmUiPage from "@/pages/swarm-ui/SwarmUiPage.vue";
 import AppDialogHost from "@/widgets/feedback/AppDialogHost.vue";
 import AppToastStack from "@/widgets/feedback/AppToastStack.vue";
@@ -25,10 +25,22 @@ useSwarmDefaults();
 
 const activeView = ref<"main" | "agent-editor">("main");
 
-// Initialise from localStorage so WikiGraphPanel has the workspace root
-// available immediately after mount (used to fetch the wiki graph on open).
+// Initialise from the cached project snapshot so WikiGraphPanel has the
+// workspace root immediately after mount. LS_SETTINGS remains only as a
+// legacy migration fallback for pre-project-cache installs.
 function _readStoredWorkspaceRoot(): string {
   try {
+    const projectsRaw = localStorage.getItem(LS_PROJECTS);
+    if (projectsRaw) {
+      const parsed = JSON.parse(projectsRaw) as {
+        current?: string;
+        projects?: Record<string, { snap?: { workspace_root?: string } }>;
+      };
+      const currentId = parsed.current ?? "";
+      const projectRoot =
+        parsed.projects?.[currentId]?.snap?.workspace_root?.trim() ?? "";
+      if (projectRoot) return projectRoot;
+    }
     const raw = localStorage.getItem(LS_SETTINGS);
     if (!raw) return "";
     return (

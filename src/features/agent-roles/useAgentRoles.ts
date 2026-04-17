@@ -292,9 +292,11 @@ export function useAgentRoles(
   }
 
   function _providerToEnv(provider: string): string {
-    if (provider === "anthropic" || provider === "openai") return "cloud";
-    if (provider === "lm_studio") return "lmstudio";
-    return "ollama";
+    if (provider === "lm_studio" || provider === "lm-studio") return "lmstudio";
+    if (provider === "ollama" || provider === "") return "ollama";
+    // Any named cloud provider (anthropic, openai, gemini, groq, cohere, openrouter, …)
+    // maps to the "cloud" environment so the role picks up remote API profile settings.
+    return "cloud";
   }
 
   async function _applyOneAssignment(a: {

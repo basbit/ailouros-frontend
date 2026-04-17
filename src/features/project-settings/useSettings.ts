@@ -9,10 +9,15 @@ import { useDevRoles } from "@/features/dev-roles/useDevRoles";
 import { useSkillsCatalog } from "@/features/skills-catalog/useSkillsCatalog";
 import { useProjectLifecycle } from "@/features/project-settings/useProjectLifecycle";
 import {
+  loadProjectSettings,
+  saveProjectSettings,
+} from "@/shared/api/endpoints/project-settings";
+import {
   defaultRemoteApiBaseUrl,
   defaultRemoteApiProvider,
   defaultSwarmProvider,
 } from "@/shared/lib/use-swarm-defaults";
+import { LS_GLOBAL_SEARCH_KEYS } from "@/shared/lib/swarm-ui-constants";
 
 export function useSettings() {
   const projectsStore = useProjectsStore();
@@ -51,6 +56,8 @@ export function useSettings() {
     swarm_deep_planning: false,
     swarm_deep_planning_model: "",
     swarm_background_agent: false,
+    swarm_background_agent_model: "",
+    swarm_background_agent_provider: "cloud",
     swarm_background_watch_paths: "",
     swarm_dream_enabled: false,
     swarm_quality_gate: false,
@@ -89,7 +96,7 @@ export function useSettings() {
     if (_saveTimer !== null) clearTimeout(_saveTimer);
     _saveTimer = setTimeout(() => {
       _saveTimer = null;
-      saveSettingsToStorage();
+      void persistSettings();
     }, 400);
   }
 
@@ -98,15 +105,35 @@ export function useSettings() {
       clearTimeout(_saveTimer);
       _saveTimer = null;
     }
-    saveSettingsToStorage();
+    void persistSettings();
   }
 
-  function saveSettingsToStorage(): void {
+  async function flushSaveAsync(): Promise<void> {
+    if (_saveTimer !== null) {
+      clearTimeout(_saveTimer);
+      _saveTimer = null;
+    }
+    await persistSettings();
+  }
+
+  async function persistSettings(): Promise<void> {
+    const snap = collectSnap();
     try {
-      projectsStore.saveSnap(collectSnap());
+      projectsStore.saveSnap(snap);
     } catch {
       /* storage quota exceeded */
     }
+    const workspaceRoot = snap.workspace_root.trim();
+    if (!workspaceRoot) return;
+    try {
+      await saveProjectSettings(workspaceRoot, snap);
+    } catch {
+      /* invalid/incomplete workspace path while editing */
+    }
+  }
+
+  function saveSettingsToStorage(): void {
+    void persistSettings();
   }
 
   // ── Snapshot I/O ───────────────────────────────────────────────────────────
@@ -145,6 +172,8 @@ export function useSettings() {
       swarm_deep_planning: form.swarm_deep_planning,
       swarm_deep_planning_model: form.swarm_deep_planning_model,
       swarm_background_agent: form.swarm_background_agent,
+      swarm_background_agent_model: form.swarm_background_agent_model,
+      swarm_background_agent_provider: form.swarm_background_agent_provider,
       swarm_background_watch_paths: form.swarm_background_watch_paths,
       swarm_dream_enabled: form.swarm_dream_enabled,
       swarm_quality_gate: form.swarm_quality_gate,
@@ -199,6 +228,9 @@ export function useSettings() {
     form.swarm_deep_planning = snap.swarm_deep_planning ?? false;
     form.swarm_deep_planning_model = snap.swarm_deep_planning_model ?? "";
     form.swarm_background_agent = snap.swarm_background_agent ?? false;
+    form.swarm_background_agent_model = snap.swarm_background_agent_model ?? "";
+    form.swarm_background_agent_provider =
+      snap.swarm_background_agent_provider ?? "cloud";
     form.swarm_background_watch_paths = snap.swarm_background_watch_paths ?? "";
     form.swarm_dream_enabled = snap.swarm_dream_enabled ?? false;
     form.swarm_quality_gate = snap.swarm_quality_gate ?? false;
@@ -244,6 +276,40 @@ export function useSettings() {
     }
   }
 
+  async function loadProjectSnap(workspaceRoot: string): Promise<SettingsSnap | null> {
+    const trimmed = workspaceRoot.trim();
+    if (!trimmed) return null;
+    try {
+      return await loadProjectSettings(trimmed);
+    } catch {
+      return null;
+    }
+  }
+
+  function loadLegacySearchKeys(): Partial<
+    Pick<
+      SettingsSnap,
+      "swarm_tavily_api_key" | "swarm_exa_api_key" | "swarm_scrapingdog_api_key"
+    >
+  > {
+    try {
+      const raw = localStorage.getItem(LS_GLOBAL_SEARCH_KEYS);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as {
+        tavily?: unknown;
+        exa?: unknown;
+        scrapingdog?: unknown;
+      };
+      return {
+        swarm_tavily_api_key: String(parsed.tavily ?? "").trim(),
+        swarm_exa_api_key: String(parsed.exa ?? "").trim(),
+        swarm_scrapingdog_api_key: String(parsed.scrapingdog ?? "").trim(),
+      };
+    } catch {
+      return {};
+    }
+  }
+
   // ── Project lifecycle (delegated) ─────────────────────────────────────────
 
   const lifecycle = useProjectLifecycle({
@@ -254,8 +320,11 @@ export function useSettings() {
       if (!pipelineState.steps.value.length) pipelineState.reset();
     },
     flushSave,
+    flushSaveAsync,
     saveToStorage: saveSettingsToStorage,
+    loadProjectSnap,
     loadGlobalProfiles: () => profilesState.loadGlobal(),
+    loadLegacySearchKeys,
     applyDefaultProviderUrl: applyRemoteProviderDefaultUrl,
   });
 
@@ -271,6 +340,7 @@ export function useSettings() {
     collectSnap,
     saveSettingsSoon,
     flushSave,
+    flushSaveAsync,
     applySnap,
     applyRemoteProviderDefaultUrl,
     ...lifecycle,

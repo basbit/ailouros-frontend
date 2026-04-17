@@ -194,9 +194,6 @@ interface FormSlice {
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
   mcp_servers_json: string;
-  swarm_tavily_api_key: string;
-  swarm_exa_api_key: string;
-  swarm_scrapingdog_api_key: string;
   // Automation & Quality
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
@@ -209,6 +206,8 @@ interface FormSlice {
   swarm_deep_planning_model: string;
   swarm_deep_planning_provider: string;
   swarm_background_agent: boolean;
+  swarm_background_agent_model: string;
+  swarm_background_agent_provider: string;
   swarm_background_watch_paths: string;
   swarm_dream_enabled: boolean;
   swarm_quality_gate: boolean;
@@ -259,6 +258,8 @@ const autonomousSlice = computed(() => ({
   swarm_deep_planning_model: props.form.swarm_deep_planning_model,
   swarm_deep_planning_provider: props.form.swarm_deep_planning_provider,
   swarm_background_agent: props.form.swarm_background_agent,
+  swarm_background_agent_model: props.form.swarm_background_agent_model,
+  swarm_background_agent_provider: props.form.swarm_background_agent_provider,
   swarm_background_watch_paths: props.form.swarm_background_watch_paths,
   swarm_dream_enabled: props.form.swarm_dream_enabled,
   swarm_quality_gate: props.form.swarm_quality_gate,
