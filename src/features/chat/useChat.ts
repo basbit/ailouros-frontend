@@ -220,6 +220,47 @@ function _buildSwarmSection(form: SettingsRef["form"]): Record<string, unknown> 
   return swarm;
 }
 
+function _buildMediaSection(
+  form: SettingsRef["form"],
+): Record<string, unknown> | undefined {
+  // §26: only send the media section when the user explicitly opted in,
+  // so the backend router falls through to QA when media generation is off.
+  if (!form.media_enabled) return undefined;
+
+  const image: Record<string, string> = {};
+  const imageProvider = form.media_image_provider.trim();
+  if (imageProvider) image.provider = imageProvider;
+  const imageModel = form.media_image_model.trim();
+  if (imageModel) image.model = imageModel;
+  const imageApiKey = form.media_image_api_key.trim();
+  if (imageApiKey) image.api_key = imageApiKey;
+
+  const audio: Record<string, string> = {};
+  const audioProvider = form.media_audio_provider.trim();
+  if (audioProvider) audio.provider = audioProvider;
+  const audioModel = form.media_audio_model.trim();
+  if (audioModel) audio.model = audioModel;
+  const audioApiKey = form.media_audio_api_key.trim();
+  if (audioApiKey) audio.api_key = audioApiKey;
+  const audioVoice = form.media_audio_voice.trim();
+  if (audioVoice) audio.voice = audioVoice;
+
+  const budget: Record<string, number> = {};
+  const maxCost = parseFloat(form.media_budget_max_cost_usd.trim());
+  if (!isNaN(maxCost) && maxCost > 0) budget.max_cost_usd_per_task = maxCost;
+  const maxAttempts = parseInt(form.media_budget_max_attempts.trim(), 10);
+  if (!isNaN(maxAttempts) && maxAttempts > 0)
+    budget.max_attempts_per_asset = maxAttempts;
+
+  const media: Record<string, unknown> = { enabled: true };
+  if (Object.keys(image).length) media.image = image;
+  if (Object.keys(audio).length) media.audio = audio;
+  if (Object.keys(budget).length) media.budget = budget;
+  const licensePolicy = form.media_license_policy.trim();
+  if (licensePolicy) media.license_policy = licensePolicy;
+  return media;
+}
+
 function _buildRemoteApiSection(
   form: SettingsRef["form"],
 ): Record<string, string> | undefined {
@@ -340,6 +381,9 @@ export function buildAgentConfig(
 
   const swarmSection = _buildSwarmSection(form);
   if (Object.keys(swarmSection).length) config.swarm = swarmSection;
+
+  const mediaSection = _buildMediaSection(form);
+  if (mediaSection) config.media = mediaSection;
 
   const plannerModel = form.swarm_planner_model?.trim();
   if (plannerModel) {

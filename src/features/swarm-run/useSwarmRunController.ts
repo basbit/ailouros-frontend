@@ -40,6 +40,7 @@ export function useSwarmRunController(settings: SettingsRef) {
 
   const currentPipelineSteps = ref<string[]>([]);
   const lastNotifiedError = ref<string | null>(null);
+  const runBootstrapPending = ref(false);
   const lastPipelinePlanLoadKey = ref<string>("");
   let pipelinePlanRequestId = 0;
   const pipelinePlanInflight = new Map<string, Promise<void>>();
@@ -190,6 +191,11 @@ export function useSwarmRunController(settings: SettingsRef) {
     }
 
     if (!ui.taskId) {
+      // During the short optimistic-start window we intentionally show the
+      // run as active before the backend returns X-Task-Id. The WS channel
+      // still emits idle ticks (`task: null`) in that gap; do not let them
+      // reset the UI back to idle or the Start button will flicker/stick.
+      if (runBootstrapPending.value) return;
       ui.resetTaskView();
       taskStore.resetTask();
       return;
@@ -320,6 +326,7 @@ export function useSwarmRunController(settings: SettingsRef) {
   async function onStartRun(): Promise<void> {
     currentPipelineSteps.value = [];
     lastNotifiedError.value = null;
+    runBootstrapPending.value = true;
     ui.persistActiveTask(null, projectsStore.currentId);
     ui.resetTaskView();
     lastPipelinePlanLoadKey.value = "";
@@ -336,6 +343,7 @@ export function useSwarmRunController(settings: SettingsRef) {
       await runSwarmChat(
         settings,
         (tid) => {
+          runBootstrapPending.value = false;
           ui.taskId = tid;
           ui.persistActiveTask(tid, projectsStore.currentId);
           taskStore.setTaskId(tid);
@@ -370,12 +378,17 @@ export function useSwarmRunController(settings: SettingsRef) {
         },
       );
     } catch (err: unknown) {
+      runBootstrapPending.value = false;
       const msg = err instanceof Error ? err.message : String(err);
       ui.taskError = msg;
       ui.taskStatus = "failed";
       if (lastNotifiedError.value !== msg) {
         ux.notify(`${t("toast.runError")}: ${msg}`, "error", 4200);
         lastNotifiedError.value = msg;
+      }
+    } finally {
+      if (!ui.taskId) {
+        runBootstrapPending.value = false;
       }
     }
   }

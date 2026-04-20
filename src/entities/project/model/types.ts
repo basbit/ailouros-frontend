@@ -62,6 +62,18 @@ export interface SettingsSnap {
   swarm_tavily_api_key?: string;
   swarm_exa_api_key?: string;
   swarm_scrapingdog_api_key?: string;
+  // Media generation (§26)
+  media_enabled?: boolean;
+  media_image_provider?: string;
+  media_image_model?: string;
+  media_image_api_key?: string;
+  media_audio_provider?: string;
+  media_audio_model?: string;
+  media_audio_api_key?: string;
+  media_audio_voice?: string;
+  media_budget_max_cost_usd?: string;
+  media_budget_max_attempts?: string;
+  media_license_policy?: string;
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
   swarm_auto_approve: string;

@@ -171,6 +171,8 @@
       <AutonomousSettings :form="autonomousSlice" @update:form="forwardUpdate" />
     </div>
   </details>
+
+  <MediaSettings :form="mediaSlice" @update:form="forwardUpdate" />
 </template>
 
 <script setup lang="ts">
@@ -178,6 +180,7 @@ import { computed } from "vue";
 import McpSettings from "./McpSettings.vue";
 import DatabaseSettings from "./DatabaseSettings.vue";
 import AutonomousSettings from "./AutonomousSettings.vue";
+import MediaSettings from "./MediaSettings.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
 interface FormSlice {
@@ -220,6 +223,18 @@ interface FormSlice {
   remote_api_provider: string;
   remote_api_key: string;
   remote_api_base_url: string;
+  // Media generation (§26)
+  media_enabled: boolean;
+  media_image_provider: string;
+  media_image_model: string;
+  media_image_api_key: string;
+  media_audio_provider: string;
+  media_audio_model: string;
+  media_audio_api_key: string;
+  media_audio_voice: string;
+  media_budget_max_cost_usd: string;
+  media_budget_max_attempts: string;
+  media_license_policy: string;
 }
 
 const props = defineProps<{ form: FormSlice }>();
@@ -270,5 +285,19 @@ const autonomousSlice = computed(() => ({
   remote_api_provider: props.form.remote_api_provider,
   remote_api_key: props.form.remote_api_key,
   remote_api_base_url: props.form.remote_api_base_url,
+}));
+
+const mediaSlice = computed(() => ({
+  media_enabled: props.form.media_enabled,
+  media_image_provider: props.form.media_image_provider,
+  media_image_model: props.form.media_image_model,
+  media_image_api_key: props.form.media_image_api_key,
+  media_audio_provider: props.form.media_audio_provider,
+  media_audio_model: props.form.media_audio_model,
+  media_audio_api_key: props.form.media_audio_api_key,
+  media_audio_voice: props.form.media_audio_voice,
+  media_budget_max_cost_usd: props.form.media_budget_max_cost_usd,
+  media_budget_max_attempts: props.form.media_budget_max_attempts,
+  media_license_policy: props.form.media_license_policy,
 }));
 </script>

@@ -46,6 +46,18 @@ export function useSettings() {
     swarm_tavily_api_key: "",
     swarm_exa_api_key: "",
     swarm_scrapingdog_api_key: "",
+    // Media generation (§26)
+    media_enabled: false,
+    media_image_provider: "",
+    media_image_model: "",
+    media_image_api_key: "",
+    media_audio_provider: "",
+    media_audio_model: "",
+    media_audio_api_key: "",
+    media_audio_voice: "",
+    media_budget_max_cost_usd: "",
+    media_budget_max_attempts: "",
+    media_license_policy: "permissive_only",
     // Automation & Quality
     swarm_self_verify: false,
     swarm_self_verify_model: "",
@@ -163,6 +175,17 @@ export function useSettings() {
       swarm_tavily_api_key: form.swarm_tavily_api_key,
       swarm_exa_api_key: form.swarm_exa_api_key,
       swarm_scrapingdog_api_key: form.swarm_scrapingdog_api_key,
+      media_enabled: form.media_enabled,
+      media_image_provider: form.media_image_provider,
+      media_image_model: form.media_image_model,
+      media_image_api_key: form.media_image_api_key,
+      media_audio_provider: form.media_audio_provider,
+      media_audio_model: form.media_audio_model,
+      media_audio_api_key: form.media_audio_api_key,
+      media_audio_voice: form.media_audio_voice,
+      media_budget_max_cost_usd: form.media_budget_max_cost_usd,
+      media_budget_max_attempts: form.media_budget_max_attempts,
+      media_license_policy: form.media_license_policy,
       swarm_self_verify: form.swarm_self_verify,
       swarm_self_verify_model: form.swarm_self_verify_model,
       swarm_auto_approve: form.swarm_auto_approve,
@@ -219,6 +242,17 @@ export function useSettings() {
     form.swarm_tavily_api_key = snap.swarm_tavily_api_key ?? "";
     form.swarm_exa_api_key = snap.swarm_exa_api_key ?? "";
     form.swarm_scrapingdog_api_key = snap.swarm_scrapingdog_api_key ?? "";
+    form.media_enabled = snap.media_enabled ?? false;
+    form.media_image_provider = snap.media_image_provider ?? "";
+    form.media_image_model = snap.media_image_model ?? "";
+    form.media_image_api_key = snap.media_image_api_key ?? "";
+    form.media_audio_provider = snap.media_audio_provider ?? "";
+    form.media_audio_model = snap.media_audio_model ?? "";
+    form.media_audio_api_key = snap.media_audio_api_key ?? "";
+    form.media_audio_voice = snap.media_audio_voice ?? "";
+    form.media_budget_max_cost_usd = snap.media_budget_max_cost_usd ?? "";
+    form.media_budget_max_attempts = snap.media_budget_max_attempts ?? "";
+    form.media_license_policy = snap.media_license_policy ?? "permissive_only";
     form.swarm_self_verify = snap.swarm_self_verify ?? false;
     form.swarm_self_verify_model = snap.swarm_self_verify_model ?? "";
     form.swarm_auto_approve = snap.swarm_auto_approve ?? "";
