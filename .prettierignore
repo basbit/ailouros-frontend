@@ -1,0 +1,8 @@
+node_modules
+dist
+../orchestrator/static/bundle
+package-lock.json
+src/pages/swarm-ui/body.html
+public/ui.js
+src/app/styles/app.css
+test-results
