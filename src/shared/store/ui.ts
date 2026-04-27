@@ -65,6 +65,7 @@ export const useUiStore = defineStore("ui", () => {
   const humanGateVisible = ref(false);
   const humanGateTitle = ref("Awaiting operator input");
   const humanGateFeedback = ref("");
+  const humanGateSubmitting = ref(false);
 
   const shellGateVisible = ref(false);
   const shellGateCommands = ref<string[]>([]);
@@ -251,6 +252,7 @@ export const useUiStore = defineStore("ui", () => {
     humanGateVisible.value = false;
     humanGateTitle.value = "Awaiting operator input";
     humanGateFeedback.value = "";
+    humanGateSubmitting.value = false;
     shellGateVisible.value = false;
     shellGateCommands.value = [];
     shellGateNeedsAllowlist.value = [];
@@ -287,6 +289,7 @@ export const useUiStore = defineStore("ui", () => {
     humanGateVisible,
     humanGateTitle,
     humanGateFeedback,
+    humanGateSubmitting,
     shellGateVisible,
     shellGateCommands,
     shellGateNeedsAllowlist,

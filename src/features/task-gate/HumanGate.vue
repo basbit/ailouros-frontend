@@ -106,10 +106,10 @@
         type="button"
         class="btn-primary"
         style="margin-top: 8px"
-        :disabled="!allAnswered"
+        :disabled="!allAnswered || submitting"
         @click="submitAnswers"
       >
-        {{ t("humanGate.submit") }}
+        {{ submitting ? t("humanGate.submitting") : t("humanGate.submit") }}
       </button>
     </div>
 
@@ -119,16 +119,22 @@
         :value="feedback"
         style="height: 100px; margin-top: 6px"
         :placeholder="t('humanGate.feedbackPlaceholder')"
+        :disabled="submitting"
         @input="emit('update:feedback', ($event.target as HTMLTextAreaElement).value)"
       />
       <button
         type="button"
         class="btn-primary"
         style="margin-top: 8px"
+        :disabled="submitting"
         @click="emit('submit')"
       >
-        {{ t("humanGate.submit") }}
+        {{ submitting ? t("humanGate.submitting") : t("humanGate.submit") }}
       </button>
+    </div>
+
+    <div v-if="submitting" class="human-gate-submitting">
+      {{ t("humanGate.processingMessage") }}
     </div>
   </div>
 </template>
@@ -156,6 +162,7 @@ const props = defineProps<{
   title: string;
   feedback: string;
   taskId?: string;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -289,25 +296,48 @@ async function fetchClarifyQuestions(): Promise<void> {
   }
 }
 
+function resetClarifyFormState(): void {
+  answers.value = {};
+  customMode.value = {};
+  customAnswers.value = {};
+  comments.value = {};
+  clarifyQuestions.value = [];
+  fetchError.value = null;
+  resetEditState();
+}
+
+watch(
+  () => props.taskId,
+  () => {
+    resetClarifyFormState();
+  },
+);
+
 watch(
   () => props.visible,
-  (v) => {
-    if (v) {
-      answers.value = {};
-      customMode.value = {};
-      customAnswers.value = {};
-      comments.value = {};
-      clarifyQuestions.value = [];
-      fetchError.value = null;
-      resetEditState();
+  (visibleNow) => {
+    if (visibleNow) {
       void fetchClarifyQuestions();
       void fetchWorkspaceDiff();
     } else {
       diffData.value = null;
-      resetEditState();
     }
   },
   { immediate: true },
+);
+
+watch(
+  clarifyQuestions,
+  (newQuestions, oldQuestions) => {
+    const newKey = newQuestions.map((q) => `${q.index}|${q.text}`).join("\n");
+    const oldKey = (oldQuestions ?? []).map((q) => `${q.index}|${q.text}`).join("\n");
+    if (newKey !== oldKey && newQuestions.length > 0) {
+      answers.value = {};
+      customMode.value = {};
+      customAnswers.value = {};
+      comments.value = {};
+    }
+  },
 );
 
 function selectAnswer(idx: number, opt: string): void {
@@ -454,5 +484,15 @@ function submitAnswers(): void {
   border-radius: 4px;
   color: var(--text1, #c8cfe8);
   resize: vertical;
+}
+.human-gate-submitting {
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text2, #9dadd0);
+  background: var(--bg2, #1e2230);
+  border: 1px dashed var(--border, #2a2f3e);
+  border-radius: 4px;
+  font-style: italic;
 }
 </style>

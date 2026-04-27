@@ -130,6 +130,7 @@
               :title="ui.humanGateTitle"
               :feedback="ui.humanGateFeedback"
               :task-id="ui.taskId ?? undefined"
+              :submitting="ui.humanGateSubmitting"
               @update:feedback="ui.humanGateFeedback = $event"
               @submit="onHumanResume"
             />

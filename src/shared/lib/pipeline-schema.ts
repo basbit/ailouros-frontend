@@ -56,6 +56,7 @@ export const PIPELINE_OPTIONS_BASE: [string, string][] = [
   ["human_ui_designer", "Human UI Design"],
   ["image_generator", "Image Generator"],
   ["audio_generator", "Audio Generator"],
+  ["asset_fetcher", "Asset Fetcher"],
   ["analyze_code", "Analyze code"],
   ["generate_documentation", "Docs + Mermaid"],
   ["problem_spotter", "Problem spotter"],

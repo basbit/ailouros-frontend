@@ -50,6 +50,9 @@ export const taskMonitorEn: Messages = {
   "humanGate.answerPlaceholder": "Enter an answer…",
   "humanGate.commentPlaceholder": "Comment (optional)",
   "humanGate.submit": "Submit & Continue",
+  "humanGate.submitting": "Sending…",
+  "humanGate.processingMessage":
+    "Your answer was sent. The model is processing it — the panel will update or close once the next state arrives.",
   "humanGate.feedbackPlaceholder":
     "Edits, notes, or refusal — sent as the human-step artifact.",
   "humanGate.fetchError": "Failed to load clarification questions",
@@ -112,6 +115,9 @@ export const taskMonitorRu: Messages = {
   "humanGate.answerPlaceholder": "Введите ответ…",
   "humanGate.commentPlaceholder": "Комментарий (необязательно)",
   "humanGate.submit": "Отправить и продолжить",
+  "humanGate.submitting": "Отправляется…",
+  "humanGate.processingMessage":
+    "Ответ отправлен. Модель обрабатывает его — панель обновится или закроется, как только придёт следующий статус.",
   "humanGate.feedbackPlaceholder":
     "Правки, заметки или отказ — будут отправлены как артефакт human-step.",
   "humanGate.fetchError": "Не удалось загрузить вопросы для уточнения",

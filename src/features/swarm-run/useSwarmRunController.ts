@@ -213,6 +213,7 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
 
     if (status === "awaiting_human" && ui.taskId) {
       ui.humanGateVisible = true;
+      ui.humanGateSubmitting = false;
       ui.shellGateVisible = false;
       ui.retryGateVisible = false;
       const hist =
@@ -492,17 +493,19 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
     if (!ui.taskId) return;
     const taskId = ui.taskId;
     const feedback = ui.humanGateFeedback;
-    ui.humanGateFeedback = "";
-    ui.humanGateVisible = false;
-
-    // Try new blocking confirm-human first (BUG-1 fix: pipeline thread is waiting)
-    const pending = await fetchPendingHuman(taskId);
-    if (pending?.pending) {
-      await confirmHuman(taskId, true, feedback);
-      return;
+    if (ui.humanGateSubmitting) return;
+    ui.humanGateSubmitting = true;
+    try {
+      const pending = await fetchPendingHuman(taskId);
+      if (pending?.pending) {
+        await confirmHuman(taskId, true, feedback);
+      } else {
+        await submitHumanResume(taskId, feedback, sendWsSubscribe);
+      }
+      ui.humanGateFeedback = "";
+    } finally {
+      ui.humanGateSubmitting = false;
     }
-    // Fallback to old human-resume (stop-and-restart pattern)
-    await submitHumanResume(taskId, feedback, sendWsSubscribe);
   }
 
   async function onConfirmShell(approved: boolean): Promise<void> {
