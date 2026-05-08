@@ -104,6 +104,7 @@ const ICON_BY_STEP: Record<string, AgentIconKey> = {
   analyze_code: "microscope",
   image_generator: "image",
   audio_generator: "volume",
+  media_generator: "sparkles",
   human_code_review: "user",
   code_review: "eye",
   self_verify: "search",

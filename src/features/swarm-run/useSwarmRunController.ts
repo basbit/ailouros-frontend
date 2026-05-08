@@ -94,6 +94,9 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
     ui.taskStatus = h.status as typeof ui.taskStatus;
     ui.taskError = h.error ?? null;
     ui.taskAgents = h.agents;
+    ui.taskScenarioId = h.scenarioId;
+    ui.taskScenarioTitle = h.scenarioTitle;
+    ui.taskScenarioCategory = h.scenarioCategory;
     ui.activeStep = h.agents.length ? h.agents[h.agents.length - 1] : null;
     ui.artifactPath = h.artifactPath;
     if (h.fromLogFallback) {
@@ -156,17 +159,25 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
       | "running"
       | "in_progress"
       | "completed"
+      | "completed_no_writes"
+      | "completed_with_failures"
       | "failed"
+      | "blocked"
       | "awaiting_human"
       | "awaiting_shell_confirm"
+      | "awaiting_manual_shell"
       | "cancelled"
       | null;
     const entry = ui.historyList.find((item) => (item.taskId ?? "").trim() === tid);
     const startedAt = entry?.startedAt ?? entry?.at ?? Date.now();
-    const finishedAt =
-      status === "completed" || status === "failed" || status === "cancelled"
-        ? Date.now()
-        : null;
+    const isTerminal =
+      status === "completed" ||
+      status === "completed_no_writes" ||
+      status === "completed_with_failures" ||
+      status === "failed" ||
+      status === "blocked" ||
+      status === "cancelled";
+    const finishedAt = isTerminal ? Date.now() : null;
     ui.updateHistoryResult(
       tid,
       {
@@ -178,6 +189,39 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
       },
       projectsStore.currentId,
     );
+    if (isTerminal) {
+      void emitTerminalDesktopNotification(historyStatus, tid, error);
+    }
+  }
+
+  async function emitTerminalDesktopNotification(
+    finalStatus: string | null,
+    taskId: string,
+    runError: unknown,
+  ): Promise<void> {
+    try {
+      const desktopNotifications =
+        await import("@/features/notifications/useDesktopNotifications");
+      const title =
+        finalStatus === "failed" || finalStatus === "blocked"
+          ? `Run ${finalStatus}`
+          : `Run ${finalStatus ?? "completed"}`;
+      const errorText = runError ? String(runError).slice(0, 240) : "";
+      const body = `task ${taskId.slice(0, 8)}` + (errorText ? ` — ${errorText}` : "");
+      await desktopNotifications.sendDesktopNotification({
+        title,
+        body,
+        level:
+          finalStatus === "failed" || finalStatus === "blocked"
+            ? "error"
+            : finalStatus === "completed_no_writes" ||
+                finalStatus === "completed_with_failures"
+              ? "warning"
+              : "info",
+      });
+    } catch {
+      /* desktop notifications are best-effort; ignore */
+    }
   }
 
   // ── Tick processor ────────────────────────────────────────────────────────
@@ -213,6 +257,7 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
 
     if (status === "awaiting_human" && ui.taskId) {
       ui.humanGateVisible = true;
+      ui.humanGateSubmitting = false;
       ui.shellGateVisible = false;
       ui.retryGateVisible = false;
       const hist =
@@ -402,6 +447,10 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
     lastPipelinePlanLoadKey.value = "";
     taskStore.resetTask();
     sendWsSubscribe();
+    const pickedScenarioId = (settings.form.scenario_id ?? "").trim();
+    ui.taskScenarioId = pickedScenarioId || null;
+    ui.taskScenarioTitle = null;
+    ui.taskScenarioCategory = null;
     // Show Stop button immediately — before any SSE events arrive from the backend.
     ui.taskStatus = "running";
     // Let Vue flush the reactive update and give the browser one paint before
@@ -492,17 +541,19 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
     if (!ui.taskId) return;
     const taskId = ui.taskId;
     const feedback = ui.humanGateFeedback;
-    ui.humanGateFeedback = "";
-    ui.humanGateVisible = false;
-
-    // Try new blocking confirm-human first (BUG-1 fix: pipeline thread is waiting)
-    const pending = await fetchPendingHuman(taskId);
-    if (pending?.pending) {
-      await confirmHuman(taskId, true, feedback);
-      return;
+    if (ui.humanGateSubmitting) return;
+    ui.humanGateSubmitting = true;
+    try {
+      const pending = await fetchPendingHuman(taskId);
+      if (pending?.pending) {
+        await confirmHuman(taskId, true, feedback);
+      } else {
+        await submitHumanResume(taskId, feedback, sendWsSubscribe);
+      }
+      ui.humanGateFeedback = "";
+    } finally {
+      ui.humanGateSubmitting = false;
     }
-    // Fallback to old human-resume (stop-and-restart pattern)
-    await submitHumanResume(taskId, feedback, sendWsSubscribe);
   }
 
   async function onConfirmShell(approved: boolean): Promise<void> {

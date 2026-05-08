@@ -1,4 +1,4 @@
-import { ref, watch, computed } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   applyOnboardingConfig,
   applyOnboardingMcpConfig,
@@ -57,7 +57,7 @@ export function useOnboardingWizard(
   const applyError = ref("");
   const contextFileExists = ref(false);
 
-  const shouldShow = computed(() => Boolean(localRoot.value || workspaceRoot()));
+  const shouldShow = computed(() => true);
   const hasPreflight = computed(() => Object.keys(mcpPreflight.value).length > 0);
 
   // ── Watch workspace root prop ──────────────────────────────────────────────

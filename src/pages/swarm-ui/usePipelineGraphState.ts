@@ -1,9 +1,12 @@
 import { computed } from "vue";
 import type { useSettings } from "@/features/project-settings/useSettings";
+import { useScenarioCatalog } from "@/features/scenario-picker";
 import type { useUiStore } from "@/shared/store/ui";
 
 type SettingsRef = ReturnType<typeof useSettings>;
 type UiRef = ReturnType<typeof useUiStore>;
+
+export const CUSTOM_SCENARIO_ID = "__custom__";
 
 const PIPELINE_STEP_ID_ALIASES: Record<string, string> = {
   arch: "architect",
@@ -49,6 +52,8 @@ function normalizedStepIndex(
 }
 
 export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
+  const catalog = useScenarioCatalog();
+
   const configuredPipelineSteps = computed(() =>
     settings.pipelineState.collectStepIds(),
   );
@@ -64,9 +69,38 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
     return historyEntry?.pipeline_steps ?? [];
   });
 
+  const isCustomScenario = computed(() => {
+    const id = (settings.form.scenario_id ?? "").trim();
+    return !id || id === CUSTOM_SCENARIO_ID;
+  });
+
+  const activeScenario = computed(() => {
+    const id = (settings.form.scenario_id ?? "").trim();
+    if (!id || id === CUSTOM_SCENARIO_ID) return null;
+    return catalog.scenarios.value.find((entry) => entry.id === id) ?? null;
+  });
+
+  const scenarioPreviewSteps = computed(() => {
+    const scenario = activeScenario.value;
+    return scenario ? scenario.pipeline_steps : [];
+  });
+
+  const isViewingTaskRun = computed(() => {
+    const tid = (ui.taskId ?? "").trim();
+    return !!tid && runPipelineSteps.value.length > 0;
+  });
+
   const effectivePipelineSteps = computed(() => {
-    if (runPipelineSteps.value.length) return runPipelineSteps.value;
-    return configuredPipelineSteps.value;
+    if (isViewingTaskRun.value) {
+      return runPipelineSteps.value;
+    }
+    if (!isCustomScenario.value && scenarioPreviewSteps.value.length) {
+      return scenarioPreviewSteps.value;
+    }
+    if (configuredPipelineSteps.value.length) {
+      return configuredPipelineSteps.value;
+    }
+    return runPipelineSteps.value;
   });
 
   const graphShowsLastRunState = computed(() => {
@@ -196,5 +230,7 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
     completedStepsFromHistory,
     clarifyCacheProvenance,
     workspaceIdentityResolved,
+    isCustomScenario,
+    activeScenario,
   };
 }

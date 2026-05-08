@@ -1,4 +1,5 @@
 import { startSwarmChatStream } from "@/shared/api/endpoints/onboarding";
+import { listScenarios } from "@/shared/api/endpoints/scenarios";
 import {
   agentConfigErrorMessage,
   buildAgentConfig,
@@ -14,8 +15,41 @@ import {
   deriveStagesForTopology,
 } from "@/shared/lib/pipeline-topology";
 import { useI18n } from "@/shared/lib/i18n";
+import {
+  analyzePipelineStepOrder,
+  formatStepOrderSummary,
+} from "@/shared/lib/step-order";
+import type { ScenarioInputKey, ScenarioSummary } from "@/shared/model/scenario-types";
 
 export type { ChatStreamEvent, OrchestratorStreamEvent };
+
+async function collectMissingRequiredInputs(
+  scenarioId: string,
+  prompt: string,
+  workspaceRoot: string,
+  projectContextFile: string,
+): Promise<ScenarioInputKey[]> {
+  let scenario: ScenarioSummary | undefined;
+  try {
+    const list = await listScenarios();
+    scenario = list.scenarios.find((entry) => entry.id === scenarioId);
+  } catch {
+    return [];
+  }
+  if (!scenario) return [];
+  const missing: ScenarioInputKey[] = [];
+  for (const spec of scenario.inputs) {
+    if (!spec.required) continue;
+    if (spec.key === "prompt" && !prompt.trim()) {
+      missing.push(spec.key);
+    } else if (spec.key === "workspace_root" && !workspaceRoot) {
+      missing.push(spec.key);
+    } else if (spec.key === "project_context_file" && !projectContextFile) {
+      missing.push(spec.key);
+    }
+  }
+  return missing;
+}
 
 export async function runSwarmChat(
   settings: RunSwarmChatSettings,
@@ -38,6 +72,19 @@ export async function runSwarmChat(
     pipelineSteps.unshift("clarify_input");
   }
 
+  const orderReport = analyzePipelineStepOrder(pipelineSteps);
+  if (orderReport.hasViolations) {
+    const confirmed = window.confirm(
+      `${t("pipelineSteps.orderWarningTitle")}\n\n${formatStepOrderSummary(orderReport)}\n\n${t(
+        "pipelineSteps.orderWarningPrompt",
+      )}`,
+    );
+    if (!confirmed) {
+      agentConfigErrorMessage.value = t("pipelineSteps.orderWarningCancelled");
+      return;
+    }
+  }
+
   const topology = form.swarm_topology.trim();
   const manualStages = pipelineState.collectStages();
   const hasManualParallelStages = manualStages.some((stage) => stage.length > 1);
@@ -49,6 +96,27 @@ export async function runSwarmChat(
 
   const workspaceRoot = form.workspace_root.trim();
   const projectContextFile = form.project_context_file.trim();
+  const scenarioId = (form.scenario_id ?? "").trim();
+
+  if (scenarioId) {
+    const missing = await collectMissingRequiredInputs(
+      scenarioId,
+      form.prompt,
+      workspaceRoot,
+      projectContextFile,
+    );
+    if (missing.length > 0) {
+      agentConfigErrorMessage.value = t("scenarios.preflight.missingInputs", {
+        scenario: scenarioId,
+        fields: missing.join(", "),
+      });
+      return;
+    }
+  }
+  const scenarioOverridesMap = form.scenario_overrides ?? {};
+  const overrideForActive = scenarioId ? scenarioOverridesMap[scenarioId] : undefined;
+  const sendOverrides =
+    scenarioId && overrideForActive ? { [scenarioId]: overrideForActive } : null;
 
   const resp = await startSwarmChatStream({
     model: "swarm-local",
@@ -57,6 +125,8 @@ export async function runSwarmChat(
     agent_config: agentConfig,
     pipeline_steps: pipelineSteps,
     ...(hasParallelStages ? { pipeline_stages: pipelineStages } : {}),
+    ...(scenarioId ? { scenario_id: scenarioId } : {}),
+    ...(sendOverrides ? { scenario_overrides: sendOverrides } : {}),
     workspace_root: workspaceRoot || null,
     project_context_file: projectContextFile || null,
     workspace_write: form.workspace_write,

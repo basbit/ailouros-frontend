@@ -33,10 +33,15 @@ export function useEditorStore() {
     position: { x: number; y: number },
   ): PipelineNode {
     const id = `node-${Date.now()}`;
+    const baseConfig = defaultConfig(type);
+    const taggedConfig = {
+      ...(baseConfig as Record<string, unknown>),
+      official: false,
+    };
     const node: PipelineNode = {
       id,
       type,
-      config: defaultConfig(type),
+      config: taggedConfig,
       position,
     };
     pipeline.value = { ...pipeline.value, nodes: [...pipeline.value.nodes, node] };

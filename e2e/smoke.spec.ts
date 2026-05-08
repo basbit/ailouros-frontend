@@ -30,15 +30,17 @@ test.describe("App smoke", () => {
     await expect(page.locator(".swarm-vue-host--sidebar-collapsed")).toBeVisible();
 
     await page.locator(".sidebar-toggle").click();
+    await page.locator(".project-switcher__trigger").click();
     await page.getByRole("button", { name: /New project|Новый проект/i }).click();
-    await expect(page.getByRole("dialog")).toContainText(
-      /Create project|Создать проект/i,
+    const projectFormDialog = page.locator(".project-form__backdrop");
+    await expect(projectFormDialog).toContainText(/New project|Новый проект/i);
+    await projectFormDialog.locator("#pf-name").fill("QA Sandbox");
+    await projectFormDialog
+      .getByRole("button", { name: /Create project|Создать проект/i })
+      .click();
+    await expect(page.locator(".project-switcher__trigger-value")).toContainText(
+      "QA Sandbox",
     );
-    // Scope textbox to dialog to avoid matching the prompt textarea
-    await page.locator(".dialog-card__input").fill("QA Sandbox");
-    await page.getByRole("button", { name: /^OK$|^ОК$/ }).click();
-    // Header shows the active project name — more reliable than checking 65 selects
-    await expect(page.locator(".header-kv__value")).toContainText("QA Sandbox");
   });
 
   test("terminal summary and graph failed-step status are rendered from persisted task state", async ({

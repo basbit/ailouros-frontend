@@ -12,6 +12,9 @@ export interface LegacyTaskSnapshot {
   error?: unknown;
   history?: LegacyTaskHistoryRow[];
   agents?: string[];
+  scenario_id?: string | null;
+  scenario_title?: string | null;
+  scenario_category?: string | null;
 }
 
 export async function getLegacyTaskSnapshot(

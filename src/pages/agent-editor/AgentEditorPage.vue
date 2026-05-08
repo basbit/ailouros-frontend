@@ -1,5 +1,6 @@
 <template>
   <div class="agent-editor-page">
+    <ScenarioToolbar />
     <!-- Toolbar -->
     <div class="agent-editor-page__toolbar">
       <input
@@ -128,6 +129,7 @@ import "@vue-flow/controls/dist/style.css";
 import { useI18n } from "@/shared/lib/i18n";
 import { useEditorStore } from "@/features/agent-editor/useEditorStore";
 import NodeConfigPanel from "@/features/agent-editor/NodeConfigPanel.vue";
+import ScenarioToolbar from "@/features/agent-editor/ScenarioToolbar.vue";
 import type { PipelineNode } from "@/features/agent-editor/types";
 
 const { t } = useI18n();
@@ -191,20 +193,31 @@ const availableNodeTypes = [
 
 // Map pipeline nodes to Vue Flow format
 const vueFlowNodes = computed(() =>
-  pipeline.value.nodes.map((n) => ({
-    id: n.id,
-    type: n.type,
-    position: n.position,
-    data: {
-      label: (n.config as Record<string, unknown>).name ?? n.type,
-      config: n.config,
-    },
-    style: {
-      background: NODE_COLORS[n.type] ?? "#4a5578",
-      borderRadius: "8px",
-      border: `2px solid ${n.id === selectedNode.value?.id ? "#fff" : "transparent"}`,
-    },
-  })),
+  pipeline.value.nodes.map((n) => {
+    const config = n.config as Record<string, unknown>;
+    const isOfficial = config.official === true;
+    const isSelected = n.id === selectedNode.value?.id;
+    let borderColor = "transparent";
+    if (isSelected) {
+      borderColor = "#fff";
+    } else if (!isOfficial) {
+      borderColor = "#fab005";
+    }
+    return {
+      id: n.id,
+      type: n.type,
+      position: n.position,
+      data: {
+        label: config.name ?? n.type,
+        config: n.config,
+      },
+      style: {
+        background: NODE_COLORS[n.type] ?? "#4a5578",
+        borderRadius: "8px",
+        border: `2px solid ${borderColor}`,
+      },
+    };
+  }),
 );
 
 const vueFlowEdges = computed(() =>

@@ -68,8 +68,8 @@ export function usePipelineGraphInteractions(
           ? { name: "stages", pull: true, put: true }
           : undefined,
       onEnd(evt) {
-        const oldIndex = evt.oldIndex;
-        const newIndex = evt.newIndex;
+        const oldIndex = evt.oldDraggableIndex;
+        const newIndex = evt.newDraggableIndex;
         if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex)
           return;
 

@@ -11,6 +11,21 @@
       >
     </summary>
     <div class="panel-body">
+      <PipelineGraphHeader
+        :active-id="scenarioId ?? ''"
+        :step-count="steps.length"
+        :workspace-write="!!workspaceWrite"
+        :gates="scenarioGates ?? []"
+        :tools="scenarioTools ?? []"
+        :warning-tools="scenarioWarningTools ?? []"
+        :custom-scenarios="customScenarios ?? []"
+        :active-custom-scenario-id="activeCustomScenarioId ?? null"
+        :disabled="!!disabled"
+        @update:active-id="(value) => $emit('scenario:select', value)"
+        @copy-to-custom="$emit('scenario:copy-to-custom')"
+        @select-custom="(id) => $emit('scenario:select-custom', id)"
+        @save-custom="$emit('scenario:save-custom')"
+      />
       <PipelineGraphTopologySelector
         :active-topology="topo"
         :show-heavy-hint="!!editorSteps && steps.length > recommendedCount * 2"
@@ -42,6 +57,7 @@
             :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
+            :order-violation="orderViolationFor(step)"
             @remove="$emit('editor:remove', step.index)"
             @change="(v) => $emit('editor:change', step.index, v)"
           />
@@ -62,6 +78,7 @@
               :parallel="stage.length > 1"
               :editable="!!editorSteps"
               :options="editorOptions"
+              :order-violation="orderViolationFor(step)"
               @remove="$emit('editor:remove', step.index)"
               @change="(v) => $emit('editor:change', step.index, v)"
             />
@@ -88,6 +105,7 @@
             :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
+            :order-violation="orderViolationFor(step)"
             @remove="$emit('editor:remove', step.index)"
             @change="(v) => $emit('editor:change', step.index, v)"
           />
@@ -113,6 +131,7 @@
             :status="stepStatus(step.id)"
             :editable="!!editorSteps"
             :options="editorOptions"
+            :order-violation="orderViolationFor(step)"
             @remove="$emit('editor:remove', step.index)"
             @change="(v) => $emit('editor:change', step.index, v)"
           />
@@ -145,6 +164,7 @@ import StepCard from "@/widgets/pipeline-graph/StepCard.vue";
 import PipelineSummary from "@/widgets/pipeline-graph/PipelineSummary.vue";
 import PipelineGraphLegend from "@/widgets/pipeline-graph/PipelineGraphLegend.vue";
 import PipelineGraphTopologySelector from "@/widgets/pipeline-graph/PipelineGraphTopologySelector.vue";
+import PipelineGraphHeader from "@/widgets/pipeline-graph/PipelineGraphHeader.vue";
 import PipelineGraphEdges from "@/widgets/pipeline-graph/PipelineGraphEdges.vue";
 import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConnections";
 import { usePipelineGraphInteractions } from "@/widgets/pipeline-graph/usePipelineGraphInteractions";
@@ -154,8 +174,10 @@ import {
   type GraphStepRef,
 } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
 import type { PipeStep } from "@/shared/model/pipeline-types";
+import type { CustomScenarioSnap } from "@/shared/model/project-types";
 import type { HostMetrics as HostMetricsType } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
+import { analyzePipelineStepOrder } from "@/shared/lib/step-order";
 
 const props = defineProps<{
   steps: string[];
@@ -170,6 +192,14 @@ const props = defineProps<{
   hostMetrics?: HostMetricsType | null;
   editorSteps?: PipeStep[];
   editorOptions?: [string, string][];
+  scenarioId?: string | null;
+  customScenarios?: CustomScenarioSnap[];
+  activeCustomScenarioId?: string | null;
+  workspaceWrite?: boolean;
+  scenarioGates?: string[];
+  scenarioTools?: string[];
+  scenarioWarningTools?: string[];
+  disabled?: boolean;
 }>();
 const { t } = useI18n();
 
@@ -183,6 +213,10 @@ const emit = defineEmits<{
   "editor:reorder": [oldIdx: number, newIdx: number, count?: number];
   "editor:group": [idxA: number, idxB: number];
   "editor:ungroup": [idx: number];
+  "scenario:select": [scenarioId: string];
+  "scenario:copy-to-custom": [];
+  "scenario:select-custom": [scenarioId: string];
+  "scenario:save-custom": [];
 }>();
 
 const open = ref(true);
@@ -209,6 +243,22 @@ const { stepRefs, parallelStages, stepStatus } = usePipelineGraphLayout(
 
 function stepKey(step: GraphStepRef): string {
   return props.editorSteps?.[step.index]?.uid ?? `${step.id}:${step.index}`;
+}
+
+const orderViolationsByIndex = computed<Record<number, string>>(() => {
+  if (!props.editorSteps?.length) return {};
+  const report = analyzePipelineStepOrder(editorStepIds.value);
+  const out: Record<number, string> = {};
+  for (const violation of report.violations) {
+    out[violation.stepIndex] = t("pipelineSteps.orderWarningTooltip", {
+      prerequisite: violation.missingPrerequisite,
+    });
+  }
+  return out;
+});
+
+function orderViolationFor(step: GraphStepRef): string | undefined {
+  return orderViolationsByIndex.value[step.index];
 }
 
 const editorEnabled = computed(() => !!props.editorSteps);

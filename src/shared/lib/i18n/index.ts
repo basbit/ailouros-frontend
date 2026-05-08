@@ -10,6 +10,7 @@ import { onboardingEn, onboardingRu } from "./onboarding";
 import { taskMonitorEn, taskMonitorRu } from "./task-monitor";
 import { agentsEn, agentsRu } from "./agents";
 import { miscEn, miscRu } from "./misc";
+import { scenariosEn, scenariosRu } from "./scenarios";
 
 const messages: Record<Locale, Messages> = {
   en: {
@@ -22,6 +23,7 @@ const messages: Record<Locale, Messages> = {
     ...taskMonitorEn,
     ...agentsEn,
     ...miscEn,
+    ...scenariosEn,
   },
   ru: {
     ...commonRu,
@@ -33,6 +35,7 @@ const messages: Record<Locale, Messages> = {
     ...taskMonitorRu,
     ...agentsRu,
     ...miscRu,
+    ...scenariosRu,
   },
 };
 

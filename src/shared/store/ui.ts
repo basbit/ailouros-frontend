@@ -57,6 +57,9 @@ export const useUiStore = defineStore("ui", () => {
     }[]
   >([]);
   const taskAgents = ref<string[]>([]);
+  const taskScenarioId = ref<string | null>(null);
+  const taskScenarioTitle = ref<string | null>(null);
+  const taskScenarioCategory = ref<string | null>(null);
 
   const eventsViewMode = ref<"preview" | "raw">("preview");
   const capabilities = ref<ServerCapabilities | null>(null);
@@ -65,6 +68,7 @@ export const useUiStore = defineStore("ui", () => {
   const humanGateVisible = ref(false);
   const humanGateTitle = ref("Awaiting operator input");
   const humanGateFeedback = ref("");
+  const humanGateSubmitting = ref(false);
 
   const shellGateVisible = ref(false);
   const shellGateCommands = ref<string[]>([]);
@@ -248,9 +252,13 @@ export const useUiStore = defineStore("ui", () => {
     taskError.value = null;
     taskHistory.value = [];
     taskAgents.value = [];
+    taskScenarioId.value = null;
+    taskScenarioTitle.value = null;
+    taskScenarioCategory.value = null;
     humanGateVisible.value = false;
     humanGateTitle.value = "Awaiting operator input";
     humanGateFeedback.value = "";
+    humanGateSubmitting.value = false;
     shellGateVisible.value = false;
     shellGateCommands.value = [];
     shellGateNeedsAllowlist.value = [];
@@ -281,12 +289,16 @@ export const useUiStore = defineStore("ui", () => {
     taskError,
     taskHistory,
     taskAgents,
+    taskScenarioId,
+    taskScenarioTitle,
+    taskScenarioCategory,
     eventsViewMode,
     capabilities,
     hostMetrics,
     humanGateVisible,
     humanGateTitle,
     humanGateFeedback,
+    humanGateSubmitting,
     shellGateVisible,
     shellGateCommands,
     shellGateNeedsAllowlist,

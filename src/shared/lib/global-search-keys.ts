@@ -32,6 +32,23 @@ export interface GlobalSearchKeysState {
   swarm_auto_plan: boolean;
   swarm_planner_model: string;
   swarm_planner_provider: string;
+
+  swarm_notify_enabled: boolean;
+  swarm_notify_min_severity: string;
+  swarm_notify_rate_limit_per_min: string;
+  swarm_notify_webhook_url: string;
+  swarm_notify_webhook_token: string;
+  swarm_notify_email_sender: string;
+  swarm_notify_email_recipients: string;
+  swarm_notify_smtp_host: string;
+  swarm_notify_smtp_port: string;
+  swarm_notify_smtp_tls: boolean;
+  swarm_notify_smtp_user: string;
+  swarm_notify_smtp_password: string;
+  swarm_notify_telegram_bot_token: string;
+  swarm_notify_telegram_chat_id: string;
+  swarm_notify_slack_webhook_url: string;
+  swarm_notify_discord_webhook_url: string;
 }
 
 const _DEFAULTS: GlobalSearchKeysState = {
@@ -57,6 +74,22 @@ const _DEFAULTS: GlobalSearchKeysState = {
   swarm_auto_plan: false,
   swarm_planner_model: "",
   swarm_planner_provider: "",
+  swarm_notify_enabled: false,
+  swarm_notify_min_severity: "",
+  swarm_notify_rate_limit_per_min: "",
+  swarm_notify_webhook_url: "",
+  swarm_notify_webhook_token: "",
+  swarm_notify_email_sender: "",
+  swarm_notify_email_recipients: "",
+  swarm_notify_smtp_host: "",
+  swarm_notify_smtp_port: "",
+  swarm_notify_smtp_tls: true,
+  swarm_notify_smtp_user: "",
+  swarm_notify_smtp_password: "",
+  swarm_notify_telegram_bot_token: "",
+  swarm_notify_telegram_chat_id: "",
+  swarm_notify_slack_webhook_url: "",
+  swarm_notify_discord_webhook_url: "",
 };
 
 const state = reactive<GlobalSearchKeysState>({ ..._DEFAULTS });

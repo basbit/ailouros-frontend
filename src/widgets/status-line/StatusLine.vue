@@ -82,7 +82,8 @@ const isActive = computed(() => {
     s === "running" ||
     s === "in_progress" ||
     s === "awaiting_human" ||
-    s === "awaiting_shell_confirm"
+    s === "awaiting_shell_confirm" ||
+    s === "awaiting_manual_shell"
   );
 });
 
@@ -113,17 +114,26 @@ const errorText = computed(() => {
 const terminalLabel = computed(() => {
   const status = ui.taskStatus;
   if (status === "completed") return t("status.completed");
+  if (status === "completed_no_writes") return t("status.completedNoWrites");
+  if (status === "completed_with_failures") return t("status.completedWithFailures");
   if (status === "failed") return t("status.failed");
+  if (status === "blocked") return t("status.blocked");
   if (status === "cancelled") return t("status.cancelled");
   if (status === "awaiting_human") return t("status.awaitingHuman");
+  if (status === "awaiting_manual_shell") return t("status.awaitingManualShell");
   return t("status.step");
 });
 
 const terminalTone = computed(() => {
   const status = ui.taskStatus;
   if (status === "completed") return "sl-ok";
+  if (status === "completed_no_writes") return "sl-warn";
+  if (status === "completed_with_failures") return "sl-warn";
   if (status === "failed" || status === "cancelled") return "sl-err";
-  if (status === "awaiting_human") return "sl-warn";
+  if (status === "blocked") return "sl-err";
+  if (status === "awaiting_human" || status === "awaiting_manual_shell") {
+    return "sl-warn";
+  }
   return "";
 });
 

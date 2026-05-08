@@ -6,6 +6,7 @@
         :value="state.environment"
         @change="onEnvChange(($event.target as HTMLSelectElement).value)"
       >
+        <option v-if="isDesktopShell" value="local">local</option>
         <option value="ollama">ollama</option>
         <option value="lmstudio">lmstudio</option>
         <option value="cloud">cloud</option>
@@ -102,6 +103,7 @@
 <script setup lang="ts">
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
+import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { ROLE_NEEDS_TOOL_CALLING, ROLE_MODEL_HINT } from "@/shared/lib/swarm-constants";
 import type { RoleId } from "@/shared/lib/swarm-constants";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
@@ -119,6 +121,7 @@ const { t } = useI18n();
 
 const needsToolCalling = ROLE_NEEDS_TOOL_CALLING[props.roleId as RoleId] ?? false;
 const modelHint = ROLE_MODEL_HINT[props.roleId as RoleId] ?? "";
+const isDesktopShell = isDesktop();
 
 const emit = defineEmits<{
   envChange: [roleId: string, env: string];

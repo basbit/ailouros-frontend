@@ -2,7 +2,7 @@
   <div
     class="step-card"
     :class="cardClass"
-    :title="nodeTypeLabel"
+    :title="orderViolation ?? nodeTypeLabel"
     :data-step-id="stepId"
   >
     <span v-if="editable" class="step-drag-handle" title="Drag to reorder">⠿</span>
@@ -24,15 +24,25 @@
     <span class="step-icon" :class="{ 'step-icon--bob': status === 'in_progress' }">
       <AgentIcon :agent="stepId" :size="20" />
     </span>
-    <select
+    <button
       v-if="editable && options"
-      class="step-select"
-      :value="stepId"
-      @change="$emit('change', ($event.target as HTMLSelectElement).value)"
+      type="button"
+      class="step-role-button"
+      :title="t('rolePicker.openLabel')"
+      @click.stop="pickerOpen = true"
     >
-      <option v-for="[val, lbl] in options" :key="val" :value="val">{{ lbl }}</option>
-    </select>
+      <span class="step-role-button__label">{{ activeOptionLabel }}</span>
+      <span class="step-role-button__chevron">▾</span>
+    </button>
     <span v-else class="step-name">{{ label }}</span>
+    <RolePickerPopover
+      v-if="editable && options"
+      :open="pickerOpen"
+      :model-value="stepId"
+      :roles="roleSummaries"
+      @update:model-value="onPickRole"
+      @close="pickerOpen = false"
+    />
     <span class="step-badge">
       <template v-if="status === 'in_progress'">
         <span class="dots"
@@ -60,8 +70,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import AgentIcon from "@/shared/ui/AgentIcon.vue";
+import RolePickerPopover from "@/features/agent-roles/RolePickerPopover.vue";
+import { useI18n } from "@/shared/lib/i18n";
 // §10.5: single source of truth for node taxonomy — shared with
 // PipelineSummary.vue and step-summarisation utilities. Do NOT duplicate
 // the map here; prior duplication led to drift when new step ids landed.
@@ -91,11 +103,7 @@ const props = defineProps<{
   editable?: boolean;
   options?: [string, string][];
   parallel?: boolean;
-}>();
-
-defineEmits<{
-  remove: [];
-  change: [val: string];
+  orderViolation?: string;
 }>();
 
 const label = computed(() =>
@@ -111,7 +119,35 @@ const cardClass = computed(() => ({
   [`step-card--${props.status}`]: true,
   [`step-card--type-${nodeType.value}`]: true,
   "step-card--parallel-sibling": !!props.parallel,
+  "step-card--order-violation": !!props.orderViolation,
 }));
+
+const { t } = useI18n();
+const pickerOpen = ref(false);
+
+const emit = defineEmits<{
+  remove: [];
+  change: [val: string];
+}>();
+
+const activeOptionLabel = computed(() => {
+  const match = props.options?.find(([val]) => val === props.stepId);
+  return match ? match[1] : label.value;
+});
+
+const roleSummaries = computed(() => {
+  if (!props.options) return [];
+  return props.options.map(([id, title]) => ({
+    id,
+    title,
+    summary: NODE_TYPE_LABELS[classifyStep(id)],
+    skills: [] as string[],
+  }));
+});
+
+function onPickRole(value: string): void {
+  emit("change", value);
+}
 </script>
 
 <!-- Styles extracted to sibling StepCard.css (scoped preserved via src attr). -->

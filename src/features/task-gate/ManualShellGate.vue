@@ -22,6 +22,14 @@
 
     <div class="manual-shell-gate__actions">
       <button
+        v-if="sudoPromptAvailable"
+        type="button"
+        class="btn-primary"
+        @click="emit('open-sudo-prompt')"
+      >
+        {{ t("sudoPrompt.title") }}
+      </button>
+      <button
         type="button"
         class="btn-primary btn-primary--success"
         :disabled="!commands.length"
@@ -48,9 +56,11 @@ defineProps<{
   visible: boolean;
   commands: string[];
   reason: string;
+  sudoPromptAvailable?: boolean;
 }>();
 const emit = defineEmits<{
   confirm: [done: boolean];
+  "open-sudo-prompt": [];
 }>();
 
 const { t } = useI18n();

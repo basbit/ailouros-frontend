@@ -45,6 +45,7 @@ const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
   ui_designer: "agent",
   image_generator: "agent",
   audio_generator: "agent",
+  media_generator: "tool_preflight",
   seo_specialist: "agent",
   ai_citation_strategist: "agent",
   app_store_optimizer: "agent",
@@ -70,7 +71,9 @@ const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
   verification_layer: "verification",
   dev_retry_gate: "verification",
   qa_retry_gate: "verification",
+  visual_probe: "verification",
   finalize_pipeline: "verification",
+  visual_design_review: "reviewer",
   // Human gates
   human_pm: "human_gate",
   human_ba: "human_gate",

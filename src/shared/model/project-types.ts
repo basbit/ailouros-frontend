@@ -1,3 +1,5 @@
+import type { ScenarioProjectOverride } from "@/shared/model/scenario-types";
+
 export interface RemoteProfileRow {
   id: string;
   provider: string;
@@ -37,6 +39,13 @@ export interface SkillCatalogSnap {
   path: string;
 }
 
+export interface CustomScenarioSnap {
+  id: string;
+  title: string;
+  pipeline_steps: string[];
+  workspace_write_default: boolean;
+}
+
 export interface SettingsSnap {
   v: 1;
   prompt: string;
@@ -58,6 +67,16 @@ export interface SettingsSnap {
   swarm_database_hint: string;
   swarm_database_readonly: boolean;
   swarm_disable_tree_sitter: boolean;
+  swarm_visual_probe_enabled: boolean;
+  swarm_visual_base_url: string;
+  swarm_visual_start_command: string;
+  swarm_visual_start_directory: string;
+  swarm_visual_ready_path: string;
+  swarm_visual_pages: string;
+  swarm_visual_capture_har: boolean;
+  swarm_visual_capture_trace: boolean;
+  swarm_visual_multimodal_review: boolean;
+  swarm_visual_max_review_images: string;
   mcp_servers_json: string;
   swarm_tavily_api_key?: string;
   swarm_exa_api_key?: string;
@@ -78,6 +97,11 @@ export interface SettingsSnap {
   swarm_memory_namespace: string;
   swarm_pattern_memory_path: string;
   swarm_force_rerun: boolean;
+  scenario_id: string | null;
+  custom_scenario_id?: string | null;
+  custom_scenarios?: CustomScenarioSnap[];
+  favorite_scenarios: string[];
+  scenario_overrides: Record<string, ScenarioProjectOverride>;
   remote_api_provider: string;
   remote_api_key: string;
   remote_api_base_url: string;

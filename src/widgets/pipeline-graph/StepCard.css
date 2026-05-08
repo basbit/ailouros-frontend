@@ -73,6 +73,42 @@
   color: var(--text1, #eee);
 }
 
+.step-role-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text, #f5f0e7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, #2a2f3e);
+  outline: none;
+  max-width: 96px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+.step-role-button:hover {
+  border-color: var(--accent, #4dabf7);
+  color: var(--accent, #4dabf7);
+}
+.step-role-button__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+.step-role-button__chevron {
+  font-size: 9px;
+  color: var(--text3, #6b7280);
+}
+
 .step-icon {
   display: flex;
   align-items: center;
@@ -199,6 +235,12 @@
 }
 .step-card--skipped .step-name {
   color: #f59f00;
+}
+.step-card--order-violation {
+  border-color: #fab005;
+  border-width: 2px;
+  background: rgba(250, 176, 5, 0.08);
+  box-shadow: 0 0 8px 1px rgba(250, 176, 5, 0.35);
 }
 
 /* ── Keyframes ───────────────────────────────────────────── */

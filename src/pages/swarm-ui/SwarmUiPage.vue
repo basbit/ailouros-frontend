@@ -3,6 +3,8 @@
     class="swarm-vue-host"
     :class="{ 'swarm-vue-host--sidebar-collapsed': preferences.sidebarCollapsed }"
   >
+    <FirstRunGate />
+
     <!-- ── Header ──────────────────────────────────────────── -->
     <AppHeader
       :task-id="ui.taskId"
@@ -51,7 +53,46 @@
         :remote-api-key="settings.form.remote_api_key"
         :remote-api-base-url="settings.form.remote_api_base_url"
       />
+      <LocalModels />
     </SettingsDrawer>
+
+    <PromptLibraryPopover
+      :open="promptLibraryOpen"
+      :entries="promptLibraryEntries"
+      @pick="onPromptLibraryPick"
+      @remove="promptLibrary.remove"
+      @save-current="onPromptLibrarySaveCurrent"
+      @close="promptLibrary.closePanel"
+    />
+
+    <AssetUploadDialog
+      :visible="assetUploadOpen"
+      :workspace-root="settings.form.workspace_root"
+      target-subdir="assets"
+      @uploaded="onAssetUploaded"
+      @close="assetUploadOpen = false"
+    />
+
+    <ReportProblemDialog
+      :open="reportProblemOpen"
+      repo-slug="basbit/ailouros"
+      :task-id="ui.taskId"
+      :scenario-id="ui.taskScenarioId"
+      :scenario-title="ui.taskScenarioTitle"
+      :task-status="ui.taskStatus ?? null"
+      :error-text="ui.taskError ? String(ui.taskError) : null"
+      :recent-log="reportRecentLog"
+      :artifact-paths="reportArtifactPaths"
+      @close="reportProblemOpen = false"
+    />
+
+    <SudoPromptDialog
+      :visible="sudoPromptOpen"
+      :allowed="false"
+      :command="manualSudoCommand"
+      @confirm="onSudoPromptConfirm"
+      @cancel="sudoPromptOpen = false"
+    />
 
     <div class="app-body">
       <!-- ── Sidebar ─────────────────────────────────────────── -->
@@ -59,6 +100,33 @@
         <div class="sidebar-scroll">
           <div class="section">
             <div class="section-title">{{ t("page.prompt") }}</div>
+            <div class="prompt-actions">
+              <button
+                type="button"
+                class="prompt-action"
+                :title="t('promptLibrary.openLabel')"
+                @click="promptLibrary.openPanel()"
+              >
+                {{ t("promptLibrary.openLabel") }}
+              </button>
+              <button
+                type="button"
+                class="prompt-action"
+                :disabled="!settings.form.workspace_root.trim()"
+                :title="t('assetUpload.title')"
+                @click="openAssetUpload"
+              >
+                {{ t("assetUpload.title") }}
+              </button>
+              <button
+                type="button"
+                class="prompt-action"
+                :title="t('reportProblem.title')"
+                @click="onOpenReportProblem"
+              >
+                {{ t("reportProblem.title") }}
+              </button>
+            </div>
             <PromptInput
               :model-value="settings.form.prompt"
               :workspace-root="settings.form.workspace_root"
@@ -69,17 +137,37 @@
                 settings.saveSettingsSoon();
               "
             />
-
-            <MemoryPanel
-              @append-to-prompt="
-                (text) => {
-                  settings.form.prompt = settings.form.prompt
-                    ? settings.form.prompt + '\n' + text
-                    : text;
-                  settings.saveSettingsSoon();
-                }
-              "
+            <ScenarioInputs
+              :inputs="scenarioPreview.preview.value?.scenario.inputs ?? []"
+              :values="scenarioInputValues"
+              :scenario-title="scenarioPreviewTitle"
+              :disabled="isRunning"
+              @update:value="onScenarioInputUpdate"
             />
+
+            <button
+              type="button"
+              class="sidebar-advanced-toggle"
+              :aria-expanded="advancedSidebarOpen"
+              @click="onToggleAdvancedSidebar"
+            >
+              {{
+                advancedSidebarOpen ? t("page.advanced.hide") : t("page.advanced.show")
+              }}
+            </button>
+            <template v-if="advancedSidebarOpen">
+              <MemoryPanel
+                @append-to-prompt="
+                  (text) => {
+                    settings.form.prompt = settings.form.prompt
+                      ? settings.form.prompt + '\n' + text
+                      : text;
+                    settings.saveSettingsSoon();
+                  }
+                "
+              />
+              <CrossProjectStats />
+            </template>
 
             <div class="run-controls" style="margin-top: 10px">
               <div class="field">
@@ -117,7 +205,35 @@
                 </label>
                 <div class="hint">{{ t("auto.forceRerunHint") }}</div>
               </div>
-              <button v-if="!isRunning" class="start-btn" @click="onStartRun">
+              <div
+                v-if="
+                  !isRunning &&
+                  scenarioReadiness.scenario.value &&
+                  scenarioReadiness.missingKeys.value.length
+                "
+                class="scenario-readiness-warning"
+              >
+                {{
+                  t("scenarios.preflight.missingInputs", {
+                    scenario: scenarioReadiness.scenario.value.title,
+                    fields: scenarioReadiness.missingKeys.value.join(", "),
+                  })
+                }}
+              </div>
+              <button
+                v-if="!isRunning"
+                class="start-btn"
+                :disabled="!scenarioReadiness.ready.value"
+                :title="
+                  !scenarioReadiness.ready.value
+                    ? t('scenarios.preflight.missingInputs', {
+                        scenario: scenarioReadiness.scenario.value?.title ?? '',
+                        fields: scenarioReadiness.missingKeys.value.join(', '),
+                      })
+                    : ''
+                "
+                @click="onStartRun"
+              >
                 &#9654; {{ t("page.start") }}
               </button>
               <button v-else class="stop-btn" @click="onStopRun">
@@ -130,6 +246,7 @@
               :title="ui.humanGateTitle"
               :feedback="ui.humanGateFeedback"
               :task-id="ui.taskId ?? undefined"
+              :submitting="ui.humanGateSubmitting"
               @update:feedback="ui.humanGateFeedback = $event"
               @submit="onHumanResume"
             />
@@ -146,6 +263,8 @@
               :visible="ui.manualShellGateVisible"
               :commands="ui.manualShellCommands"
               :reason="ui.manualShellReason"
+              :sudo-prompt-available="!!manualSudoCommand"
+              @open-sudo-prompt="sudoPromptOpen = true"
               @confirm="onConfirmManualShell"
             />
 
@@ -166,6 +285,21 @@
               <span v-if="ui.blockedStep"> · {{ ui.blockedStep }}</span>
               <span v-if="ui.blockedCode"> [{{ ui.blockedCode }}]</span>
               <div class="task-blocked-reason">{{ ui.blockedReason }}</div>
+            </div>
+
+            <div v-if="ui.taskScenarioId" class="task-scenario-badge">
+              <span class="task-scenario-badge__label">
+                {{ t("scenarios.runningAs") }}
+              </span>
+              <span class="task-scenario-badge__title">
+                {{ ui.taskScenarioTitle ?? ui.taskScenarioId }}
+              </span>
+              <span
+                v-if="ui.taskScenarioCategory"
+                class="task-scenario-badge__category"
+              >
+                {{ t(`scenarios.tab.${ui.taskScenarioCategory}`) }}
+              </span>
             </div>
 
             <div id="agentChips" class="agents">
@@ -236,6 +370,7 @@
 
       <main class="content">
         <OnboardingWizard
+          class="page-onboarding"
           :workspace-root="settings.form.workspace_root"
           :tavily-api-key="globalSettings.state.tavily_api_key"
           :exa-api-key="globalSettings.state.exa_api_key"
@@ -244,6 +379,16 @@
         />
 
         <StatusLine />
+
+        <FirstRunScenarioPanel
+          :visible="
+            firstRunScenarioVisible &&
+            !settings.form.scenario_id &&
+            !settings.form.custom_scenario_id
+          "
+          @pick="onFirstRunScenarioPick"
+          @skip="onFirstRunScenarioSkip"
+        />
 
         <PipelineGraph
           :steps="effectivePipelineSteps"
@@ -256,8 +401,18 @@
           :blocked-step="blockedStepForGraph"
           :task-status="ui.taskStatus ?? undefined"
           :host-metrics="ui.hostMetrics"
-          :editor-steps="settings.pipelineState.steps.value"
+          :editor-steps="
+            isCustomScenario ? settings.pipelineState.steps.value : undefined
+          "
           :editor-options="settings.pipelineState.getOptions()"
+          :scenario-id="settings.form.scenario_id ?? CUSTOM_SCENARIO_ID"
+          :custom-scenarios="settings.form.custom_scenarios"
+          :active-custom-scenario-id="settings.form.custom_scenario_id"
+          :workspace-write="scenarioGraphWorkspaceWrite"
+          :scenario-gates="scenarioGraphGates"
+          :scenario-tools="scenarioGraphTools"
+          :scenario-warning-tools="scenarioGraphWarningTools"
+          :disabled="isRunning"
           @update:topology="(val) => onSwarmFormUpdate('swarm_topology', val)"
           @editor:add="settings.pipelineState.addStep()"
           @editor:reset="settings.pipelineState.reset()"
@@ -265,6 +420,10 @@
           @editor:remove="(idx) => settings.pipelineState.removeStep(idx)"
           @editor:change="(idx, val) => settings.pipelineState.updateStep(idx, val)"
           @editor:reorder="(o, n, c) => settings.pipelineState.reorder(o, n, c ?? 1)"
+          @scenario:select="onScenarioChipSelect"
+          @scenario:copy-to-custom="onCopyScenarioToCustom"
+          @scenario:select-custom="onSelectCustomScenario"
+          @scenario:save-custom="onSaveCustomScenario"
         />
 
         <BackgroundRecommendations
@@ -326,6 +485,20 @@
               <strong>{{ t("page.workspaceIdentity") }}:</strong>
               {{ workspaceIdentityResolved }}
             </div>
+            <VisualArtifactsPanel :manifest="visualProbeManifest" />
+            <ScenarioArtifactsPanel
+              :task-id="ui.taskId"
+              :scenario-id="ui.taskScenarioId"
+              :task-status="ui.taskStatus"
+            />
+            <ScenarioQualityChecksPanel
+              :task-id="ui.taskId"
+              :scenario-id="ui.taskScenarioId"
+              :task-status="ui.taskStatus"
+            />
+            <ScenarioSourcesPanel :raw-agent-text="researchSourcesText" />
+            <ScenarioFindingsPanel :raw-agent-text="codeReviewFindingsText" />
+            <ScenarioScreenshotGalleryPanel :visual-manifest="visualProbeManifest" />
           </div>
         </details>
 
@@ -343,6 +516,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import type { Ref } from "vue";
+import { invokeCommand, isDesktop } from "@/shared/lib/desktop-bridge";
 import { useProjectsStore } from "@/shared/store/projects";
 import type { RoleSnapshot } from "@/shared/store/projects";
 import type { ModelAssignment } from "@/shared/model/onboarding-types";
@@ -357,7 +531,15 @@ import PipelineGraph from "@/widgets/pipeline-graph/PipelineGraph.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import EventsFeed from "@/widgets/task-panel/EventsFeed.vue";
 import HistoryPanel from "@/widgets/task-panel/HistoryPanel.vue";
+import VisualArtifactsPanel from "@/widgets/task-panel/VisualArtifactsPanel.vue";
+import ScenarioArtifactsPanel from "@/widgets/task-panel/ScenarioArtifactsPanel.vue";
+import ScenarioQualityChecksPanel from "@/widgets/task-panel/ScenarioQualityChecksPanel.vue";
+import ScenarioSourcesPanel from "@/widgets/task-panel/ScenarioSourcesPanel.vue";
+import ScenarioFindingsPanel from "@/widgets/task-panel/ScenarioFindingsPanel.vue";
+import ScenarioScreenshotGalleryPanel from "@/widgets/task-panel/ScenarioScreenshotGalleryPanel.vue";
 import GlobalSettingsPanel from "@/features/global-settings/GlobalSettingsPanel.vue";
+import { LocalModels } from "@/features/local-models";
+import { FirstRunGate } from "@/features/onboarding-desktop";
 import RemoteApiProfiles from "@/features/remote-api/RemoteApiProfiles.vue";
 import ProjectFormDialog, {
   type ProjectFormValues,
@@ -368,20 +550,40 @@ import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
 import HumanGate from "@/features/task-gate/HumanGate.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
+import PromptLibraryPopover from "@/features/prompt-input/PromptLibraryPopover.vue";
+import {
+  usePromptLibrary,
+  type PromptEntry,
+} from "@/features/prompt-input/usePromptLibrary";
+import AssetUploadDialog from "@/features/asset-upload/AssetUploadDialog.vue";
+import ReportProblemDialog from "@/features/report-a-problem/ReportProblemDialog.vue";
+import SudoPromptDialog from "@/features/sudo-prompt/SudoPromptDialog.vue";
 import ShellGate from "@/features/task-gate/ShellGate.vue";
 import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
 import RetryGate from "@/features/task-gate/RetryGate.vue";
 import OnboardingWizard from "@/widgets/onboarding-wizard/OnboardingWizard.vue";
+import FirstRunScenarioPanel from "@/widgets/onboarding-wizard/FirstRunScenarioPanel.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
+import {
+  scenarioTitle,
+  useScenarioPreview,
+  useScenarioRunReadiness,
+} from "@/features/scenario-picker";
+import ScenarioInputs from "@/features/scenario-picker/ScenarioInputs.vue";
 import BackgroundRecommendations from "@/widgets/background-agent/BackgroundRecommendations.vue";
 import SettingsDrawer from "@/widgets/settings-drawer/SettingsDrawer.vue";
 import WikiGraphPanel from "@/widgets/wiki-graph-panel/WikiGraphPanel.vue";
 import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";
+import CrossProjectStats from "@/widgets/observability/CrossProjectStats.vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
+import { useSettingsHotReload } from "@/shared/lib/use-settings-hot-reload";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
-import { usePipelineGraphState } from "@/pages/swarm-ui/usePipelineGraphState";
+import {
+  usePipelineGraphState,
+  CUSTOM_SCENARIO_ID,
+} from "@/pages/swarm-ui/usePipelineGraphState";
 
 // Page navigation — injected from App.vue. "wiki-graph" is no longer a
 // separate view — it renders inline as `WikiGraphPanel` between Pipeline
@@ -404,6 +606,15 @@ function onArtifactsToggle(event: Event): void {
   const target = event.target as HTMLDetailsElement;
   artifactsOpen.value = target.open;
   localStorage.setItem(LS_ARTIFACTS_OPEN_KEY, target.open ? "1" : "0");
+}
+
+const LS_ADVANCED_SIDEBAR_KEY = "swarm.sidebar-advanced-open";
+const advancedSidebarOpen = ref<boolean>(
+  localStorage.getItem(LS_ADVANCED_SIDEBAR_KEY) === "1",
+);
+function onToggleAdvancedSidebar(): void {
+  advancedSidebarOpen.value = !advancedSidebarOpen.value;
+  localStorage.setItem(LS_ADVANCED_SIDEBAR_KEY, advancedSidebarOpen.value ? "1" : "0");
 }
 
 // Effective remote connection for the background agent. Prefer the global
@@ -440,6 +651,20 @@ const preferences = usePreferencesStore();
 const ux = useUxStore();
 const { t } = useI18n();
 
+const FIRST_RUN_SCENARIO_DISMISS_KEY = "ailouros.first-run-scenario-panel.dismissed";
+const firstRunScenarioVisible = ref(
+  typeof localStorage === "undefined"
+    ? true
+    : localStorage.getItem(FIRST_RUN_SCENARIO_DISMISS_KEY) !== "1",
+);
+const promptLibrary = usePromptLibrary(() => projectsStore.currentId);
+const promptLibraryOpen = promptLibrary.open;
+const promptLibraryEntries = promptLibrary.entries;
+const assetUploadOpen = ref(false);
+const reportProblemOpen = ref(false);
+const reportDesktopLog = ref<string>("");
+const sudoPromptOpen = ref(false);
+
 const {
   isRunning,
   currentPipelineSteps,
@@ -454,6 +679,17 @@ const {
   onContinuePipeline,
 } = useSwarmRunController(settings);
 
+useSettingsHotReload({
+  intervalMs: 7000,
+  enabled: () =>
+    !settings.isBooting.value &&
+    !isRunning.value &&
+    (typeof document === "undefined" || document.visibilityState === "visible"),
+  fetcher: async () => {
+    await settings.reloadProjectFile();
+  },
+});
+
 const currentProjectName = computed(() => {
   const pdata = projectsStore.data;
   if (!pdata) return "";
@@ -463,6 +699,65 @@ const currentProjectName = computed(() => {
 const taskHistory = computed(() => ui.taskHistory.slice().reverse());
 
 const taskAgents = computed(() => ui.taskAgents);
+
+const manualSudoCommand = computed(
+  () => ui.manualShellCommands.find((cmd) => /^\s*sudo(\s|$)/.test(cmd)) ?? "",
+);
+
+const reportRecentLog = computed(() => {
+  const taskLog = ui.taskHistory
+    .slice(-12)
+    .map((entry) => {
+      const agent = entry.agent ? `[${entry.agent}] ` : "";
+      return `${agent}${entry.message ?? ""}`.trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+  if (reportDesktopLog.value) {
+    return [taskLog, reportDesktopLog.value].filter(Boolean).join("\n\n");
+  }
+  return taskLog;
+});
+
+async function onOpenReportProblem(): Promise<void> {
+  reportDesktopLog.value = "";
+  if (isDesktop()) {
+    try {
+      const tail = await invokeCommand<string>("read_desktop_logs", {
+        maxLinesPerFile: 120,
+      });
+      if (typeof tail === "string" && tail.trim()) {
+        reportDesktopLog.value = tail.trim();
+      }
+    } catch {
+      reportDesktopLog.value = "";
+    }
+  }
+  reportProblemOpen.value = true;
+}
+
+const reportArtifactPaths = computed(() => {
+  const paths: string[] = [];
+  if (ui.artifactPath) paths.push(ui.artifactPath);
+  const plan = ui.taskPipelinePlan as Record<string, unknown> | null;
+  const artifactsDir = plan?.artifacts_dir;
+  if (typeof artifactsDir === "string" && artifactsDir.trim()) {
+    paths.push(artifactsDir.trim());
+  }
+  return paths;
+});
+
+const scenarioRunFormSnapshot = computed(() => ({
+  prompt: settings.form.prompt,
+  workspace_root: settings.form.workspace_root,
+  project_context_file: settings.form.project_context_file,
+  workspace_write: settings.form.workspace_write,
+}));
+
+const scenarioReadiness = useScenarioRunReadiness(
+  computed(() => settings.form.scenario_id),
+  scenarioRunFormSnapshot,
+);
 
 const profileOptions = computed(() =>
   settings.profilesState.profiles.value
@@ -490,6 +785,45 @@ const mediaForm = computed(() => ({
   media_license_policy: settings.form.media_license_policy,
 }));
 
+const visualProbeManifest = computed(() => {
+  const plan = ui.taskPipelinePlan as Record<string, unknown> | null;
+  const direct = plan?.visual_probe_manifest;
+  if (direct && typeof direct === "object") return direct as Record<string, unknown>;
+  const partialState = plan?.partial_state;
+  if (partialState && typeof partialState === "object") {
+    const manifest = (partialState as Record<string, unknown>).visual_probe_manifest;
+    if (manifest && typeof manifest === "object") {
+      return manifest as Record<string, unknown>;
+    }
+  }
+  return null;
+});
+
+function pickHistoryAgentText(agentName: string): string {
+  const history = ui.taskHistory as { agent?: string; message?: string }[];
+  for (const entry of history) {
+    if (entry?.agent === agentName && typeof entry.message === "string") {
+      return entry.message;
+    }
+  }
+  return "";
+}
+
+const researchSourcesText = computed(() => {
+  return (
+    pickHistoryAgentText("crole_source_reviewer") ||
+    pickHistoryAgentText("crole_web_researcher")
+  );
+});
+
+const codeReviewFindingsText = computed(() => {
+  return (
+    pickHistoryAgentText("crole_escalation_reviewer") ||
+    pickHistoryAgentText("problem_spotter") ||
+    pickHistoryAgentText("review_dev")
+  );
+});
+
 const {
   effectivePipelineSteps,
   failedStepForGraph,
@@ -499,7 +833,230 @@ const {
   completedStepsFromHistory,
   clarifyCacheProvenance,
   workspaceIdentityResolved,
+  isCustomScenario,
+  activeScenario,
 } = usePipelineGraphState(settings, ui);
+
+const scenarioPreviewId = computed(() =>
+  isCustomScenario.value ? null : settings.form.scenario_id,
+);
+
+const scenarioPreview = useScenarioPreview(scenarioPreviewId);
+
+const scenarioPreviewTitle = computed(() => {
+  const scenario = scenarioPreview.preview.value?.scenario;
+  return scenario ? scenarioTitle(scenario, t) : undefined;
+});
+
+const scenarioGraphWorkspaceWrite = computed(() => {
+  if (isCustomScenario.value) return !!settings.form.workspace_write;
+  const fromPreview = scenarioPreview.preview.value?.workspace_write;
+  if (typeof fromPreview === "boolean") return fromPreview;
+  return !!activeScenario.value?.workspace_write_default;
+});
+
+const scenarioGraphGates = computed(() => {
+  if (isCustomScenario.value) {
+    return effectivePipelineSteps.value.filter((id) => id.startsWith("human_"));
+  }
+  const fromPreview = scenarioPreview.preview.value?.default_gates;
+  if (fromPreview && fromPreview.length) return fromPreview;
+  return activeScenario.value?.default_gates ?? [];
+});
+
+const scenarioGraphTools = computed(() => {
+  if (isCustomScenario.value) return [];
+  const fromPreview = scenarioPreview.preview.value?.required_tools;
+  if (fromPreview && fromPreview.length) return fromPreview;
+  return activeScenario.value?.required_tools ?? [];
+});
+
+const scenarioGraphWarningTools = computed(() => {
+  const preview = scenarioPreview.preview.value;
+  if (!preview) return [];
+  const warnings = preview.warnings ?? [];
+  return preview.required_tools.filter((tool) =>
+    warnings.some(
+      (warning) => warning.includes(`'${tool}'`) || warning.includes(`"${tool}"`),
+    ),
+  );
+});
+
+const scenarioInputValues = computed<Record<string, string | boolean>>(() => ({
+  prompt: settings.form.prompt ?? "",
+  workspace_root: settings.form.workspace_root ?? "",
+  project_context_file: settings.form.project_context_file ?? "",
+  workspace_write: !!settings.form.workspace_write,
+}));
+
+function onScenarioInputUpdate(key: string, value: string | boolean): void {
+  if (key === "prompt" && typeof value === "string") {
+    settings.form.prompt = value;
+  } else if (key === "workspace_root" && typeof value === "string") {
+    settings.form.workspace_root = value;
+  } else if (key === "project_context_file" && typeof value === "string") {
+    settings.form.project_context_file = value;
+  } else if (key === "workspace_write" && typeof value === "boolean") {
+    settings.form.workspace_write = value;
+  }
+  settings.saveSettingsSoon();
+}
+
+function onScenarioChipSelect(scenarioId: string | null): void {
+  const next = !scenarioId || scenarioId === CUSTOM_SCENARIO_ID ? null : scenarioId;
+  settings.form.scenario_id = next;
+  if (next) {
+    settings.form.custom_scenario_id = null;
+  }
+  settings.saveSettingsSoon();
+}
+
+function dismissFirstRunScenarioPanel(): void {
+  firstRunScenarioVisible.value = false;
+  try {
+    localStorage.setItem(FIRST_RUN_SCENARIO_DISMISS_KEY, "1");
+  } catch {
+    return;
+  }
+}
+
+function onFirstRunScenarioPick(scenarioId: string): void {
+  onScenarioChipSelect(scenarioId);
+  dismissFirstRunScenarioPanel();
+}
+
+function onFirstRunScenarioSkip(): void {
+  dismissFirstRunScenarioPanel();
+}
+
+function onPromptLibraryPick(entry: PromptEntry): void {
+  settings.form.prompt = entry.body;
+  settings.saveSettingsSoon();
+}
+
+function onPromptLibrarySaveCurrent(): void {
+  const body = settings.form.prompt.trim();
+  if (!body) return;
+  const title = body.split(/\r?\n/)[0]?.trim().slice(0, 72) || "Prompt";
+  promptLibrary.add({
+    title,
+    body,
+    tags: [settings.form.scenario_id ?? "custom"],
+  });
+  promptLibrary.closePanel();
+  ux.notify(t("promptLibrary.saved"), "info", 1500);
+}
+
+function openAssetUpload(): void {
+  if (!settings.form.workspace_root.trim()) {
+    ux.notify(
+      t("assetUpload.error", { error: "workspace_root is required" }),
+      "error",
+      2500,
+    );
+    return;
+  }
+  assetUploadOpen.value = true;
+}
+
+function onAssetUploaded(relativePath: string): void {
+  const clean = relativePath.trim();
+  if (!clean) return;
+  const mention = `@${clean}`;
+  const current = settings.form.prompt.trimEnd();
+  if (!current.includes(mention)) {
+    settings.form.prompt = current ? `${current}\n${mention}` : mention;
+    settings.saveSettingsSoon();
+  }
+  assetUploadOpen.value = false;
+  ux.notify(t("assetUpload.inserted"), "info", 1500);
+}
+
+function onSudoPromptConfirm(): void {
+  sudoPromptOpen.value = false;
+  ux.notify(t("sudoPrompt.disabled"), "error", 2500);
+}
+
+function onCopyScenarioToCustom(): void {
+  const scenario = activeScenario.value;
+  if (!scenario) return;
+  settings.pipelineState.applyStepIds(scenario.pipeline_steps);
+  settings.form.scenario_id = null;
+  settings.form.custom_scenario_id = null;
+  settings.saveSettingsSoon();
+}
+
+function makeCustomScenarioId(title: string): string {
+  const base =
+    title
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{L}0-9]+/gu, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 48) || "custom_scenario";
+  const existing = new Set(settings.form.custom_scenarios.map((item) => item.id));
+  let candidate = base;
+  let index = 2;
+  while (existing.has(candidate)) {
+    candidate = `${base}_${index}`;
+    index += 1;
+  }
+  return candidate;
+}
+
+function onSelectCustomScenario(scenarioId: string): void {
+  const id = scenarioId.trim();
+  settings.form.scenario_id = null;
+  if (!id) {
+    settings.form.custom_scenario_id = null;
+    settings.saveSettingsSoon();
+    return;
+  }
+  const scenario = settings.form.custom_scenarios.find((item) => item.id === id);
+  if (!scenario) return;
+  settings.pipelineState.applyStepIds(scenario.pipeline_steps);
+  settings.form.workspace_write = scenario.workspace_write_default;
+  settings.form.custom_scenario_id = scenario.id;
+  settings.saveSettingsSoon();
+}
+
+async function onSaveCustomScenario(): Promise<void> {
+  const steps = settings.pipelineState.collectStepIds();
+  if (!steps.length) {
+    ux.notify(t("graph.saveCustomScenarioEmpty"), "warning", 2200);
+    return;
+  }
+  const activeId = settings.form.custom_scenario_id;
+  const activeScenario = activeId
+    ? settings.form.custom_scenarios.find((item) => item.id === activeId)
+    : null;
+  const title = (
+    (await ux.promptDialog({
+      title: t("graph.saveCustomScenarioTitle"),
+      message: t("graph.saveCustomScenarioMessage"),
+      value: activeScenario?.title ?? t("graph.customScenarioDefaultName"),
+    })) ?? ""
+  ).trim();
+  if (!title) return;
+
+  const id = activeScenario?.id ?? makeCustomScenarioId(title);
+  const nextScenario = {
+    id,
+    title,
+    pipeline_steps: steps,
+    workspace_write_default: !!settings.form.workspace_write,
+  };
+  const index = settings.form.custom_scenarios.findIndex((item) => item.id === id);
+  if (index >= 0) {
+    settings.form.custom_scenarios.splice(index, 1, nextScenario);
+  } else {
+    settings.form.custom_scenarios.push(nextScenario);
+  }
+  settings.form.scenario_id = null;
+  settings.form.custom_scenario_id = id;
+  settings.saveSettingsSoon();
+  ux.notify(t("graph.saveCustomScenarioSaved"), "success", 1800);
+}
 
 watch(
   () => settings.form.workspace_root,
@@ -539,6 +1096,16 @@ const ADVANCED_FORM_FIELDS = [
   "swarm_database_url",
   "swarm_database_hint",
   "swarm_database_readonly",
+  "swarm_visual_probe_enabled",
+  "swarm_visual_base_url",
+  "swarm_visual_start_command",
+  "swarm_visual_start_directory",
+  "swarm_visual_ready_path",
+  "swarm_visual_pages",
+  "swarm_visual_capture_har",
+  "swarm_visual_capture_trace",
+  "swarm_visual_multimodal_review",
+  "swarm_visual_max_review_images",
   "media_enabled",
   "media_image_provider",
   "media_image_model",
@@ -838,6 +1405,92 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.page-onboarding {
+  display: block;
+  margin: 0 0 12px;
+  width: 100%;
+}
+.sidebar-advanced-toggle {
+  display: block;
+  width: 100%;
+  margin: 8px 0 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text2, #a8b0c4);
+  background: transparent;
+  border: 1px dashed var(--border, #2a2f3e);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.02em;
+}
+.sidebar-advanced-toggle:hover {
+  color: var(--text, #f5f0e7);
+  border-color: var(--accent, #3b5bdb);
+}
+.prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.prompt-action {
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 6px;
+  background: var(--surface2, #14171f);
+  color: var(--text, #f5f0e7);
+  padding: 5px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.prompt-action:hover:not(:disabled) {
+  border-color: var(--border-focus, #3b5bdb);
+}
+.prompt-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.task-scenario-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin: 6px 0;
+  background: color-mix(in srgb, var(--accent, #3b5bdb) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #3b5bdb) 50%, transparent);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--text, #f5f0e7);
+}
+.task-scenario-badge__label {
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+.task-scenario-badge__title {
+  font-weight: 600;
+}
+.task-scenario-badge__category {
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--accent, #3b5bdb) 35%, transparent);
+  border-radius: 4px;
+  font-size: 10px;
+}
+.scenario-readiness-warning {
+  font-size: 11px;
+  color: var(--text, #f5f0e7);
+  background: color-mix(in srgb, #d99f24 18%, transparent);
+  border: 1px solid color-mix(in srgb, #d99f24 50%, transparent);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 6px 0;
+}
+.start-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .task-error-banner {
   background: color-mix(in srgb, var(--error, #d7563f) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--error, #d7563f) 40%, transparent);

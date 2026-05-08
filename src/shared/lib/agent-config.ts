@@ -29,6 +29,16 @@ export type AgentConfigForm = Pick<
   | "swarm_database_hint"
   | "swarm_database_readonly"
   | "swarm_disable_tree_sitter"
+  | "swarm_visual_probe_enabled"
+  | "swarm_visual_base_url"
+  | "swarm_visual_start_command"
+  | "swarm_visual_start_directory"
+  | "swarm_visual_ready_path"
+  | "swarm_visual_pages"
+  | "swarm_visual_capture_har"
+  | "swarm_visual_capture_trace"
+  | "swarm_visual_multimodal_review"
+  | "swarm_visual_max_review_images"
   | "mcp_servers_json"
   | "swarm_tavily_api_key"
   | "swarm_exa_api_key"
@@ -54,6 +64,9 @@ export type AgentConfigForm = Pick<
   | "workspace_root"
   | "project_context_file"
   | "workspace_write"
+  | "scenario_id"
+  | "favorite_scenarios"
+  | "scenario_overrides"
 >;
 
 export interface ProfilesStateLike {
@@ -176,6 +189,38 @@ function normalizeMcpConfig(parsed: unknown): { servers: unknown[] } | null {
   return { servers };
 }
 
+function parseVisualPages(text: string): string[] {
+  return text
+    .split(/[\n,]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function buildVisualProbeConfig(form: AgentConfigForm): Record<string, unknown> {
+  const visual: Record<string, unknown> = {};
+  if (!form.swarm_visual_probe_enabled) visual.enabled = false;
+  const baseUrl = form.swarm_visual_base_url.trim();
+  if (baseUrl) visual.base_url = baseUrl;
+  const startCommand = form.swarm_visual_start_command.trim();
+  if (startCommand) visual.start_command = startCommand;
+  const startDirectory = form.swarm_visual_start_directory.trim();
+  if (startDirectory) visual.start_directory = startDirectory;
+  const readyPath = form.swarm_visual_ready_path.trim();
+  if (readyPath && readyPath !== "/") visual.ready_path = readyPath;
+  const pages = parseVisualPages(form.swarm_visual_pages);
+  if (pages.length && !(pages.length === 1 && pages[0] === "/")) {
+    visual.pages = pages;
+  }
+  if (form.swarm_visual_capture_har) visual.capture_har = true;
+  if (form.swarm_visual_capture_trace) visual.capture_trace = true;
+  if (form.swarm_visual_multimodal_review) visual.multimodal_review = true;
+  const maxReviewImages = parseInt(form.swarm_visual_max_review_images.trim(), 10);
+  if (!isNaN(maxReviewImages) && maxReviewImages > 0 && maxReviewImages !== 4) {
+    visual.max_review_images = maxReviewImages;
+  }
+  return visual;
+}
+
 function buildProfilesConfig(
   profilesState: ProfilesStateLike,
   t: ReturnType<typeof useI18n>["t"],
@@ -245,9 +290,9 @@ function buildSwarmSection(form: AgentConfigForm): Record<string, unknown> {
   if (databaseHint) swarm.database_hint = databaseHint;
   if (!form.swarm_database_readonly) swarm.database_readonly = false;
   if (form.swarm_disable_tree_sitter) swarm.disable_tree_sitter = true;
+  const visualProbe = buildVisualProbeConfig(form);
+  if (Object.keys(visualProbe).length) swarm.visual_probe = visualProbe;
 
-  // Automation & Quality — sourced from global user settings (server merges
-  // these into the final config as well, so this is just a client-side echo).
   const automation = getGlobalAutomationSettings();
   if (automation.swarm_self_verify) swarm.self_verify = true;
   const selfVerifyProvider = automation.swarm_self_verify_provider.trim();
@@ -461,7 +506,15 @@ export function buildAgentConfig(
   if (Object.keys(swarmSection).length) config.swarm = swarmSection;
 
   const mediaSection = buildMediaSection(form);
-  if (mediaSection) config.media = mediaSection;
+  if (mediaSection) {
+    const swarmConfig =
+      config.swarm && typeof config.swarm === "object"
+        ? (config.swarm as Record<string, unknown>)
+        : {};
+    swarmConfig.media = mediaSection;
+    config.swarm = swarmConfig;
+    config.media = mediaSection;
+  }
 
   const automationForPlanner = getGlobalAutomationSettings();
   const plannerModel = automationForPlanner.swarm_planner_model.trim();

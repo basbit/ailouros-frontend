@@ -16,6 +16,9 @@ export interface HydrateResult {
   artifactPath: string | null;
   /** True when hydration used only the artifact log because Redis no longer has the task. */
   fromLogFallback: boolean;
+  scenarioId: string | null;
+  scenarioTitle: string | null;
+  scenarioCategory: string | null;
 }
 
 export async function hydrateTaskFromServer(
@@ -40,6 +43,9 @@ export async function hydrateTaskFromServer(
       agents,
       artifactPath: artifactJson,
       fromLogFallback: false,
+      scenarioId: snapshot.scenario_id ?? null,
+      scenarioTitle: snapshot.scenario_title ?? null,
+      scenarioCategory: snapshot.scenario_category ?? null,
     };
   } catch {
     /* Network / CORS */
@@ -66,6 +72,9 @@ export async function hydrateTaskFromServer(
         agents: [],
         artifactPath: artifactJson,
         fromLogFallback: true,
+        scenarioId: null,
+        scenarioTitle: null,
+        scenarioCategory: null,
       };
     }
   } catch {

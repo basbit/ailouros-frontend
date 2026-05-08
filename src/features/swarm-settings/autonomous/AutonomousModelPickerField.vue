@@ -6,6 +6,7 @@
         :value="env"
         @change="onEnvChange(($event.target as HTMLSelectElement).value)"
       >
+        <option v-if="isDesktopShell" value="local">local</option>
         <option value="ollama">ollama</option>
         <option value="lmstudio">lmstudio</option>
         <option value="cloud">cloud</option>
@@ -40,6 +41,7 @@ import {
   ensureModelChoicesForEnv,
   fetchCloudModelsFromConnection,
 } from "@/shared/lib/use-model-list";
+import { isDesktop } from "@/shared/lib/desktop-bridge";
 
 interface CloudConnection {
   remote_api_provider: string;
@@ -61,7 +63,8 @@ const emit = defineEmits<{
   "update:provider": [value: string];
 }>();
 
-const env = computed(() => props.provider || "ollama");
+const isDesktopShell = isDesktop();
+const env = computed(() => props.provider || (isDesktopShell ? "local" : "ollama"));
 const choices = ref<[string, string][]>([["__custom__", "Custom…"]]);
 const err = ref<string | null>(null);
 const sel = ref("__custom__");

@@ -19,6 +19,7 @@ import {
   FALLBACK_REMOTE_API_BASE_PRESETS,
   FALLBACK_REMOTE_PROFILE_PROVIDER_OPTS,
 } from "@/shared/lib/swarm-policy-fallbacks";
+import { apiUrl, initApiBase } from "@/shared/api/base";
 
 const LS_SWARM_DEFAULTS = "swarm_ui_defaults_v1";
 
@@ -30,6 +31,7 @@ export interface SwarmDefaults {
   remote_api_base_presets: Record<string, string>;
   remote_profile_provider_options: [string, string][];
   default_pipeline_order: string[];
+  step_dependencies: Record<string, string[]>;
   default_role_environment: string;
   default_remote_api_provider: string;
   default_swarm_provider: string;
@@ -72,6 +74,7 @@ function _hardcodedDefaults(): SwarmDefaults {
     remote_api_base_presets: { ...FALLBACK_REMOTE_API_BASE_PRESETS },
     remote_profile_provider_options: [...FALLBACK_REMOTE_PROFILE_PROVIDER_OPTS],
     default_pipeline_order: [...PIPELINE_DEFAULT_ORDER],
+    step_dependencies: {},
     default_role_environment: "ollama",
     default_remote_api_provider: "anthropic",
     default_swarm_provider: "ollama",
@@ -99,14 +102,19 @@ function _withHardcodedFallbacks(data: SwarmDefaults | null): SwarmDefaults {
     default_pipeline_order: data.default_pipeline_order?.length
       ? data.default_pipeline_order
       : fallback.default_pipeline_order,
+    step_dependencies:
+      data.step_dependencies && typeof data.step_dependencies === "object"
+        ? data.step_dependencies
+        : fallback.step_dependencies,
   };
 }
 
 const _defaults = ref<SwarmDefaults>(_withHardcodedFallbacks(_loadFromStorage()));
 let _fetchPromise: Promise<void> | null = null;
 
-async function _fetchDefaults(baseUrl: string): Promise<void> {
-  const url = `${baseUrl.replace(/\/$/, "")}/v1/defaults`;
+async function _fetchDefaults(): Promise<void> {
+  await initApiBase();
+  const url = apiUrl("/v1/defaults");
   const resp = await fetch(url, { cache: "no-store" });
   if (!resp.ok) throw new Error(`GET /v1/defaults returned ${resp.status}`);
   const data = (await resp.json()) as SwarmDefaults;
@@ -126,18 +134,12 @@ async function _fetchDefaults(baseUrl: string): Promise<void> {
   _saveToStorage(_defaults.value);
 }
 
-/**
- * Fetch (once) and return reactive swarm defaults.
- *
- * @param baseUrl  Origin of the orchestrator API, e.g. `""` (same-origin) or
- *                 `"http://localhost:8000"`.
- */
-export function useSwarmDefaults(baseUrl = "") {
+export function useSwarmDefaults(_baseUrl?: string) {
+  void _baseUrl;
   if (_fetchPromise === null) {
-    _fetchPromise = _fetchDefaults(baseUrl).catch((err) => {
-      // Non-fatal: fall back to localStorage / hardcoded constants.
+    _fetchPromise = _fetchDefaults().catch((err) => {
       console.warn("useSwarmDefaults: failed to fetch /v1/defaults —", err);
-      _fetchPromise = null; // allow retry on next call
+      _fetchPromise = null;
     });
   }
   return { defaults: readonly(_defaults) };
@@ -165,6 +167,15 @@ export function promptChoicesForRole(roleId: string): [string, string][] {
 
 export function defaultPipelineOrder(): string[] {
   return [...(getStoredSwarmDefaults().default_pipeline_order || [])];
+}
+
+export function pipelineStepDependencies(): Record<string, string[]> {
+  const raw = getStoredSwarmDefaults().step_dependencies || {};
+  const out: Record<string, string[]> = {};
+  for (const [stepId, prerequisites] of Object.entries(raw)) {
+    out[stepId] = Array.isArray(prerequisites) ? [...prerequisites] : [];
+  }
+  return out;
 }
 
 export function defaultRemoteApiProvider(): string {

@@ -37,7 +37,7 @@ export async function ensureModelChoicesForEnv(
   env: string,
 ): Promise<[string, string][]> {
   const { t } = useI18n();
-  if (env === "ollama" || env === "lmstudio") {
+  if (env === "ollama" || env === "lmstudio" || env === "local") {
     return fetchModelsForProvider(env);
   }
   throw new Error(t("errors.unknownEnv", { env }));

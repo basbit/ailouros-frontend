@@ -36,7 +36,6 @@
           </header>
 
           <form class="project-form__body" @submit.prevent="onSave">
-            <!-- ── Basics ─────────────────────────────────────── -->
             <section class="project-form__section">
               <div class="field">
                 <label class="field-label" for="pf-name">
@@ -55,13 +54,24 @@
 
               <div class="field">
                 <label class="field-label" for="pf-root">workspace_root</label>
-                <input
-                  id="pf-root"
-                  v-model="form.workspace_root"
-                  type="text"
-                  placeholder="/absolute/path/to/repo"
-                  @keydown.escape.prevent="onCancel"
-                />
+                <div class="project-form__path-row">
+                  <input
+                    id="pf-root"
+                    v-model="form.workspace_root"
+                    type="text"
+                    placeholder="/absolute/path/to/repo"
+                    @keydown.escape.prevent="onCancel"
+                  />
+                  <button
+                    v-if="isDesktopShell"
+                    type="button"
+                    class="project-form__pick-btn"
+                    :title="t('projectForm.pickFolder')"
+                    @click="onPickWorkspaceRoot"
+                  >
+                    📁
+                  </button>
+                </div>
                 <div class="hint project-form__hint">
                   {{ t("projectForm.rootHint") }}
                 </div>
@@ -114,7 +124,6 @@
               </div>
             </section>
 
-            <!-- ── Languages & docs ───────────────────────────── -->
             <details class="project-form__group">
               <summary>{{ t("projectForm.sections.languages") }}</summary>
               <div class="project-form__group-body">
@@ -162,7 +171,6 @@
               </div>
             </details>
 
-            <!-- ── Memory ─────────────────────────────────────── -->
             <details class="project-form__group">
               <summary>{{ t("projectForm.sections.memory") }}</summary>
               <div class="project-form__group-body">
@@ -212,7 +220,6 @@
               </div>
             </details>
 
-            <!-- ── MCP servers ────────────────────────────────── -->
             <details class="project-form__group">
               <summary>{{ t("projectForm.sections.mcp") }}</summary>
               <div class="project-form__group-body">
@@ -220,7 +227,6 @@
               </div>
             </details>
 
-            <!-- ── Database ───────────────────────────────────── -->
             <details class="project-form__group">
               <summary>{{ t("projectForm.sections.database") }}</summary>
               <div class="project-form__group-body">
@@ -228,7 +234,13 @@
               </div>
             </details>
 
-            <!-- ── Advanced ───────────────────────────────────── -->
+            <details class="project-form__group">
+              <summary>{{ t("projectForm.sections.visualQa") }}</summary>
+              <div class="project-form__group-body">
+                <VisualProbeSettings :form="visualSlice" @update:form="onFieldUpdate" />
+              </div>
+            </details>
+
             <details class="project-form__group">
               <summary>{{ t("projectForm.sections.advanced") }}</summary>
               <div class="project-form__group-body">
@@ -278,15 +290,16 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import { isDesktop } from "@/shared/lib/desktop-bridge";
 import McpSettings from "@/features/swarm-settings/McpSettings.vue";
 import DatabaseSettings from "@/features/swarm-settings/DatabaseSettings.vue";
+import VisualProbeSettings from "@/features/swarm-settings/VisualProbeSettings.vue";
 
 export interface ProjectFormValues {
   name: string;
   workspace_root: string;
   project_context_file: string;
   workspace_write: boolean;
-  // Advanced (project-scoped) — former Swarm / MCP / Database block.
   swarm_languages: string;
   swarm_doc_locale: string;
   swarm_documentation_sources: string;
@@ -301,6 +314,16 @@ export interface ProjectFormValues {
   swarm_database_url: string;
   swarm_database_hint: string;
   swarm_database_readonly: boolean;
+  swarm_visual_probe_enabled: boolean;
+  swarm_visual_base_url: string;
+  swarm_visual_start_command: string;
+  swarm_visual_start_directory: string;
+  swarm_visual_ready_path: string;
+  swarm_visual_pages: string;
+  swarm_visual_capture_har: boolean;
+  swarm_visual_capture_trace: boolean;
+  swarm_visual_multimodal_review: boolean;
+  swarm_visual_max_review_images: string;
 }
 
 const DEFAULT_VALUES: ProjectFormValues = {
@@ -322,6 +345,16 @@ const DEFAULT_VALUES: ProjectFormValues = {
   swarm_database_url: "",
   swarm_database_hint: "",
   swarm_database_readonly: true,
+  swarm_visual_probe_enabled: true,
+  swarm_visual_base_url: "",
+  swarm_visual_start_command: "",
+  swarm_visual_start_directory: "",
+  swarm_visual_ready_path: "/",
+  swarm_visual_pages: "/",
+  swarm_visual_capture_har: false,
+  swarm_visual_capture_trace: false,
+  swarm_visual_multimodal_review: false,
+  swarm_visual_max_review_images: "4",
 };
 
 const props = defineProps<{
@@ -340,6 +373,24 @@ const { t } = useI18n();
 
 const form = reactive<ProjectFormValues>({ ...DEFAULT_VALUES });
 const nameEl = ref<HTMLInputElement | null>(null);
+const isDesktopShell = isDesktop();
+
+async function onPickWorkspaceRoot(): Promise<void> {
+  if (!isDesktopShell) return;
+  try {
+    const dialog = await import("@tauri-apps/plugin-dialog");
+    const selected = await dialog.open({
+      directory: true,
+      multiple: false,
+      title: t("projectForm.pickFolder"),
+    });
+    if (typeof selected === "string" && selected) {
+      form.workspace_root = selected;
+    }
+  } catch (error) {
+    console.error("folder picker failed", error);
+  }
+}
 
 const title = computed(() =>
   props.mode === "create" ? t("projectForm.titleCreate") : t("projectForm.titleEdit"),
@@ -362,13 +413,28 @@ const dbSlice = computed(() => ({
   swarm_database_readonly: form.swarm_database_readonly,
 }));
 
+const visualSlice = computed(() => ({
+  swarm_visual_probe_enabled: form.swarm_visual_probe_enabled,
+  swarm_visual_base_url: form.swarm_visual_base_url,
+  swarm_visual_start_command: form.swarm_visual_start_command,
+  swarm_visual_start_directory: form.swarm_visual_start_directory,
+  swarm_visual_ready_path: form.swarm_visual_ready_path,
+  swarm_visual_pages: form.swarm_visual_pages,
+  swarm_visual_capture_har: form.swarm_visual_capture_har,
+  swarm_visual_capture_trace: form.swarm_visual_capture_trace,
+  swarm_visual_multimodal_review: form.swarm_visual_multimodal_review,
+  swarm_visual_max_review_images: form.swarm_visual_max_review_images,
+}));
+
 function onFieldUpdate(field: string, value: string): void {
-  // Sub-components emit string-coerced values. Convert booleans back for
-  // checkbox fields.
   const boolFields = new Set([
     "swarm_mcp_auto",
     "swarm_skip_mcp_tools",
     "swarm_database_readonly",
+    "swarm_visual_probe_enabled",
+    "swarm_visual_capture_har",
+    "swarm_visual_capture_trace",
+    "swarm_visual_multimodal_review",
   ]);
   if (!(field in form)) return;
   if (boolFields.has(field)) {
@@ -409,6 +475,12 @@ function onSave(): void {
     mcp_servers_json: form.mcp_servers_json,
     swarm_database_url: form.swarm_database_url.trim(),
     swarm_database_hint: form.swarm_database_hint.trim(),
+    swarm_visual_base_url: form.swarm_visual_base_url.trim(),
+    swarm_visual_start_command: form.swarm_visual_start_command.trim(),
+    swarm_visual_start_directory: form.swarm_visual_start_directory.trim(),
+    swarm_visual_ready_path: form.swarm_visual_ready_path.trim() || "/",
+    swarm_visual_pages: form.swarm_visual_pages.trim() || "/",
+    swarm_visual_max_review_images: form.swarm_visual_max_review_images.trim() || "4",
   });
 }
 </script>
@@ -490,6 +562,28 @@ function onSave(): void {
   color: var(--text3);
   margin-top: 4px;
   line-height: 1.45;
+}
+.project-form__path-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.project-form__path-row > input {
+  flex: 1;
+  min-width: 0;
+}
+.project-form__pick-btn {
+  flex: 0 0 auto;
+  padding: 0 10px;
+  font-size: 14px;
+  background: var(--surface2, #14171f);
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 6px;
+  color: var(--text, #f5f0e7);
+  cursor: pointer;
+}
+.project-form__pick-btn:hover {
+  border-color: var(--accent, #3b5bdb);
 }
 .project-form__optional {
   opacity: 0.6;

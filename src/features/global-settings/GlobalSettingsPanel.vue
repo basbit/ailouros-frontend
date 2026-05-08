@@ -67,12 +67,27 @@
       />
     </div>
   </details>
+
+  <details class="section section-global-notifications">
+    <summary>
+      {{ t("notify.summary") }}
+      <span
+        class="scope-badge scope-badge-global"
+        :title="t('globalSettings.allProjectsTitle')"
+        >{{ t("globalSettings.allProjects") }}</span
+      >
+    </summary>
+    <div class="section-body">
+      <GlobalNotificationSettings />
+    </div>
+  </details>
 </template>
 
 <script setup lang="ts">
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useI18n } from "@/shared/lib/i18n";
 import GlobalAutomationSettings from "./GlobalAutomationSettings.vue";
+import GlobalNotificationSettings from "./GlobalNotificationSettings.vue";
 
 const { t } = useI18n();
 const { state, setKey } = useGlobalSettings();

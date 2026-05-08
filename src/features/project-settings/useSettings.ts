@@ -41,6 +41,16 @@ export function useSettings() {
     swarm_database_hint: "",
     swarm_database_readonly: true,
     swarm_disable_tree_sitter: false,
+    swarm_visual_probe_enabled: true,
+    swarm_visual_base_url: "",
+    swarm_visual_start_command: "",
+    swarm_visual_start_directory: "",
+    swarm_visual_ready_path: "/",
+    swarm_visual_pages: "/",
+    swarm_visual_capture_har: false,
+    swarm_visual_capture_trace: false,
+    swarm_visual_multimodal_review: false,
+    swarm_visual_max_review_images: "4",
     mcp_servers_json: "",
     swarm_tavily_api_key: "",
     swarm_exa_api_key: "",
@@ -61,6 +71,22 @@ export function useSettings() {
     swarm_memory_namespace: "",
     swarm_pattern_memory_path: "",
     swarm_force_rerun: false,
+    scenario_id: null as string | null,
+    custom_scenario_id: null as string | null,
+    custom_scenarios: [] as {
+      id: string;
+      title: string;
+      pipeline_steps: string[];
+      workspace_write_default: boolean;
+    }[],
+    favorite_scenarios: [] as string[],
+    scenario_overrides: {} as Record<
+      string,
+      {
+        skip_gates?: string[];
+        model_profile?: Record<string, string>;
+      }
+    >,
     // Remote API (legacy single-provider fields kept for snap compatibility)
     remote_api_provider: defaultRemoteApiProvider(),
     remote_api_key: "",
@@ -151,6 +177,16 @@ export function useSettings() {
       swarm_database_hint: form.swarm_database_hint,
       swarm_database_readonly: form.swarm_database_readonly,
       swarm_disable_tree_sitter: form.swarm_disable_tree_sitter,
+      swarm_visual_probe_enabled: form.swarm_visual_probe_enabled,
+      swarm_visual_base_url: form.swarm_visual_base_url,
+      swarm_visual_start_command: form.swarm_visual_start_command,
+      swarm_visual_start_directory: form.swarm_visual_start_directory,
+      swarm_visual_ready_path: form.swarm_visual_ready_path,
+      swarm_visual_pages: form.swarm_visual_pages,
+      swarm_visual_capture_har: form.swarm_visual_capture_har,
+      swarm_visual_capture_trace: form.swarm_visual_capture_trace,
+      swarm_visual_multimodal_review: form.swarm_visual_multimodal_review,
+      swarm_visual_max_review_images: form.swarm_visual_max_review_images,
       mcp_servers_json: form.mcp_servers_json,
       swarm_tavily_api_key: form.swarm_tavily_api_key,
       swarm_exa_api_key: form.swarm_exa_api_key,
@@ -169,6 +205,11 @@ export function useSettings() {
       swarm_memory_namespace: form.swarm_memory_namespace,
       swarm_pattern_memory_path: form.swarm_pattern_memory_path,
       swarm_force_rerun: form.swarm_force_rerun,
+      scenario_id: form.scenario_id,
+      custom_scenario_id: form.custom_scenario_id,
+      custom_scenarios: JSON.parse(JSON.stringify(form.custom_scenarios)),
+      favorite_scenarios: [...form.favorite_scenarios],
+      scenario_overrides: JSON.parse(JSON.stringify(form.scenario_overrides)),
       remote_api_provider: form.remote_api_provider,
       remote_api_key: form.remote_api_key,
       remote_api_base_url: form.remote_api_base_url,
@@ -182,6 +223,7 @@ export function useSettings() {
 
   async function applySnap(snap: SettingsSnap): Promise<void> {
     if (!snap || snap.v !== 1) return;
+    const savedSettings = snap as SettingsSnap & { swarm_visual_start_cwd?: string };
     form.prompt = snap.prompt ?? "";
     form.workspace_root = snap.workspace_root ?? "";
     form.project_context_file = snap.project_context_file ?? "";
@@ -199,6 +241,17 @@ export function useSettings() {
     form.swarm_database_hint = snap.swarm_database_hint ?? "";
     form.swarm_database_readonly = snap.swarm_database_readonly ?? true;
     form.swarm_disable_tree_sitter = snap.swarm_disable_tree_sitter ?? false;
+    form.swarm_visual_probe_enabled = snap.swarm_visual_probe_enabled ?? true;
+    form.swarm_visual_base_url = snap.swarm_visual_base_url ?? "";
+    form.swarm_visual_start_command = snap.swarm_visual_start_command ?? "";
+    form.swarm_visual_start_directory =
+      snap.swarm_visual_start_directory ?? savedSettings.swarm_visual_start_cwd ?? "";
+    form.swarm_visual_ready_path = snap.swarm_visual_ready_path ?? "/";
+    form.swarm_visual_pages = snap.swarm_visual_pages ?? "/";
+    form.swarm_visual_capture_har = snap.swarm_visual_capture_har ?? false;
+    form.swarm_visual_capture_trace = snap.swarm_visual_capture_trace ?? false;
+    form.swarm_visual_multimodal_review = snap.swarm_visual_multimodal_review ?? false;
+    form.swarm_visual_max_review_images = snap.swarm_visual_max_review_images ?? "4";
     form.mcp_servers_json = snap.mcp_servers_json ?? "";
     form.swarm_tavily_api_key = snap.swarm_tavily_api_key ?? "";
     form.swarm_exa_api_key = snap.swarm_exa_api_key ?? "";
@@ -217,6 +270,31 @@ export function useSettings() {
     form.swarm_memory_namespace = snap.swarm_memory_namespace ?? "";
     form.swarm_pattern_memory_path = snap.swarm_pattern_memory_path ?? "";
     form.swarm_force_rerun = snap.swarm_force_rerun ?? false;
+    form.scenario_id = snap.scenario_id ?? null;
+    form.custom_scenario_id = snap.custom_scenario_id ?? null;
+    form.custom_scenarios = Array.isArray(snap.custom_scenarios)
+      ? snap.custom_scenarios
+          .filter(
+            (item) =>
+              item &&
+              typeof item.id === "string" &&
+              typeof item.title === "string" &&
+              Array.isArray(item.pipeline_steps),
+          )
+          .map((item) => ({
+            id: item.id,
+            title: item.title,
+            pipeline_steps: item.pipeline_steps.map((step) => String(step)),
+            workspace_write_default: !!item.workspace_write_default,
+          }))
+      : [];
+    form.favorite_scenarios = Array.isArray(snap.favorite_scenarios)
+      ? [...snap.favorite_scenarios]
+      : [];
+    form.scenario_overrides =
+      snap.scenario_overrides && typeof snap.scenario_overrides === "object"
+        ? JSON.parse(JSON.stringify(snap.scenario_overrides))
+        : {};
     form.remote_api_provider = snap.remote_api_provider ?? defaultRemoteApiProvider();
     form.remote_api_key = snap.remote_api_key ?? "";
     form.remote_api_base_url = snap.remote_api_base_url ?? "";
@@ -256,6 +334,27 @@ export function useSettings() {
       return await loadProjectSettings(trimmed);
     } catch {
       return null;
+    }
+  }
+
+  async function reloadProjectFile(): Promise<boolean> {
+    if (isBooting.value) return false;
+    const workspaceRoot = form.workspace_root.trim();
+    if (!workspaceRoot) return false;
+    const snap = await loadProjectSnap(workspaceRoot);
+    if (!snap || snap.v !== 1) return false;
+    const incoming = JSON.stringify(snap);
+    if (incoming === JSON.stringify(collectSnap())) return false;
+
+    isBooting.value = true;
+    rolesState.isBooting.value = true;
+    try {
+      await applySnap(snap);
+      projectsStore.saveSnap(snap);
+      return true;
+    } finally {
+      isBooting.value = false;
+      rolesState.isBooting.value = false;
     }
   }
 
@@ -315,6 +414,7 @@ export function useSettings() {
     flushSave,
     flushSaveAsync,
     applySnap,
+    reloadProjectFile,
     applyRemoteProviderDefaultUrl,
     ...lifecycle,
   };

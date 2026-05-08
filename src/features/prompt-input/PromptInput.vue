@@ -8,6 +8,30 @@
       @input="onInput"
       @keydown="onKeydown"
     />
+    <button
+      v-if="voice.supported.value"
+      type="button"
+      class="prompt-input-mic"
+      :class="{
+        'prompt-input-mic--active': voice.active.value,
+        'prompt-input-mic--busy': voice.transcribing.value,
+      }"
+      :disabled="voice.transcribing.value"
+      :title="
+        voice.transcribing.value
+          ? t('prompt.voice.transcribing')
+          : voice.active.value
+            ? t('prompt.voice.stop')
+            : voice.error.value
+              ? voice.error.value
+              : t('prompt.voice.start')
+      "
+      @click="onToggleVoice"
+    >
+      <span aria-hidden="true">{{
+        voice.transcribing.value ? "…" : voice.active.value ? "■" : "🎙"
+      }}</span>
+    </button>
     <div v-if="mentionActive" class="mention-dropdown" :style="dropdownStyle">
       <div v-if="loading" class="mention-state">{{ t("prompt.mention.loading") }}</div>
       <div v-else-if="loadError" class="mention-state mention-state--error">
@@ -36,6 +60,7 @@
 import { ref, watch, nextTick } from "vue";
 import { listWorkspaceFiles } from "@/shared/api/endpoints/workspace";
 import { useI18n } from "@/shared/lib/i18n";
+import { useVoiceDictation } from "./useVoiceDictation";
 
 const props = withDefaults(
   defineProps<{
@@ -158,6 +183,32 @@ function insertMention(filePath: string): void {
   });
 }
 
+const voice = useVoiceDictation({
+  onTranscript(text, isFinal) {
+    if (!isFinal) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const current = props.modelValue ?? "";
+    const separator =
+      current && !current.endsWith(" ") && !current.endsWith("\n") ? " " : "";
+    emit("update:modelValue", current + separator + trimmed);
+  },
+});
+
+function onToggleVoice(): void {
+  if (!voice.supported.value) return;
+  if (voice.active.value) {
+    void voice.stop();
+  } else {
+    const lang = (
+      typeof document !== "undefined"
+        ? (document.documentElement.getAttribute("lang") ?? "")
+        : ""
+    ).trim();
+    void voice.start(lang || undefined);
+  }
+}
+
 function onKeydown(e: KeyboardEvent): void {
   if (!mentionActive.value) return;
   if (e.key === "ArrowDown") {
@@ -184,6 +235,43 @@ function onKeydown(e: KeyboardEvent): void {
 .prompt-input-wrap textarea {
   width: 100%;
   box-sizing: border-box;
+  padding-right: 32px;
+}
+.prompt-input-mic {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 4px;
+  color: var(--text2, #a8b0c4);
+  cursor: pointer;
+  z-index: 2;
+}
+.prompt-input-mic:hover {
+  color: var(--text, #f5f0e7);
+  border-color: var(--accent, #3b5bdb);
+}
+.prompt-input-mic--active {
+  color: #fff;
+  background: color-mix(in srgb, #d7563f 70%, transparent);
+  border-color: #d7563f;
+  animation: prompt-input-mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes prompt-input-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(215, 86, 63, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(215, 86, 63, 0);
+  }
 }
 .mention-dropdown {
   position: absolute;
