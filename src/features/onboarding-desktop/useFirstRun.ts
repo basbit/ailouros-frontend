@@ -182,7 +182,7 @@ export function useFirstRun() {
     try {
       await invokeCommand<void>("mark_first_run_complete");
     } catch {
-      // ignore — user can still close; will re-run on next launch
+      return;
     }
   }
 

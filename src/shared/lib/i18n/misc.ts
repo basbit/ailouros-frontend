@@ -53,6 +53,16 @@ export const miscEn: Messages = {
   "firstRun.skipModel": "Skip default model",
   "firstRun.retryModel": "Retry download",
   "firstRun.continue": "Continue",
+  "firstRun.llmPaths.title": "Choose how to provide an LLM",
+  "firstRun.llmPaths.downloadDefault.title": "Download default GGUF (~5.3 GB)",
+  "firstRun.llmPaths.downloadDefault.detail":
+    "Run inference locally through bundled llama.cpp. Best for offline use.",
+  "firstRun.llmPaths.localServer.title": "Use a local LLM server",
+  "firstRun.llmPaths.localServer.notDetected":
+    "No Ollama or LM Studio detected on localhost.",
+  "firstRun.llmPaths.cloud.title": "Use a cloud API",
+  "firstRun.llmPaths.cloud.detail":
+    "Configure Anthropic / OpenAI / OpenRouter / Gemini in Settings after onboarding.",
   "firstRun.stage.preparingTree": "Preparing application directories",
   "firstRun.stage.fetchingPython": "Python runtime",
   "firstRun.stage.creatingVenv": "Backend Python environment",
@@ -124,6 +134,16 @@ export const miscRu: Messages = {
   "firstRun.intro":
     "Первый запуск — разворачиваем локальный рантайм и модель по умолчанию. Остальные функции приложения уже доступны.",
   "firstRun.skipModel": "Пропустить модель",
+  "firstRun.llmPaths.title": "Как подключить LLM",
+  "firstRun.llmPaths.downloadDefault.title": "Скачать GGUF по умолчанию (~5.3 ГБ)",
+  "firstRun.llmPaths.downloadDefault.detail":
+    "Локальный inference через встроенный llama.cpp. Подойдёт для оффлайна.",
+  "firstRun.llmPaths.localServer.title": "Подключить локальный LLM-сервер",
+  "firstRun.llmPaths.localServer.notDetected":
+    "Ollama или LM Studio на localhost не обнаружены.",
+  "firstRun.llmPaths.cloud.title": "Использовать облачный API",
+  "firstRun.llmPaths.cloud.detail":
+    "Настроить Anthropic / OpenAI / OpenRouter / Gemini в настройках после онбординга.",
   "firstRun.retryModel": "Повторить загрузку",
   "firstRun.continue": "Продолжить",
   "firstRun.stage.preparingTree": "Создание директорий",
