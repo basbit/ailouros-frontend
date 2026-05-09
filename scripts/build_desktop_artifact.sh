@@ -30,8 +30,10 @@ fi
 TAR_BIN=$(command -v gtar || command -v tar)
 "$TAR_BIN" -czf "$ARCHIVE_PATH" "$DIST_BUILD_DIR"
 
-if grep -arE "sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}" "$DIST_BUILD_DIR" >/dev/null 2>&1; then
+SECRET_PATTERN='sk-(proj|ant|svcacct|live|test|or-v1)-[A-Za-z0-9_-]{32,}|sk-[A-Za-z0-9]{48}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xox[bpas]-[A-Za-z0-9-]{20,}'
+if grep -arE "$SECRET_PATTERN" "$DIST_BUILD_DIR" >/dev/null 2>&1; then
   echo "build_desktop_artifact: refusing to publish — secret-shaped strings detected in dist" >&2
+  grep -arE "$SECRET_PATTERN" "$DIST_BUILD_DIR" | head -5 >&2
   rm -f "$ARCHIVE_PATH"
   exit 1
 fi
