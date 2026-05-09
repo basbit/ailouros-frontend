@@ -6,6 +6,12 @@ import {
   listenEvent,
   probeDesktop,
 } from "@/shared/lib/desktop-bridge";
+import {
+  detectLocalLlmProviders,
+  recommendOnboardingPath,
+  type LlmOnboardingPath,
+  type LocalLlmDetection,
+} from "@/shared/lib/local-llm-detect";
 import type {
   BootstrapProgress,
   BootstrapStage,
@@ -43,6 +49,8 @@ export function useFirstRun() {
   const error = ref<string | null>(null);
   const stageMap =
     reactive<Record<BootstrapStage, InternalStageState>>(emptyStageMap());
+  const detectedProviders = ref<LocalLlmDetection | null>(null);
+  const recommendedPath = ref<LlmOnboardingPath | null>(null);
 
   let unlistenProgress: (() => void) | null = null;
 
@@ -119,9 +127,22 @@ export function useFirstRun() {
     );
   }
 
+  async function refreshLocalProviderDetection(): Promise<void> {
+    try {
+      const result = await detectLocalLlmProviders();
+      detectedProviders.value = result;
+      recommendedPath.value = recommendOnboardingPath(result);
+    } catch (detectError) {
+      detectedProviders.value = null;
+      recommendedPath.value = null;
+      error.value =
+        detectError instanceof Error ? detectError.message : String(detectError);
+    }
+  }
+
   async function start(): Promise<void> {
     if (!(await ensureDesktop())) return;
-    await loadStatus();
+    await Promise.all([loadStatus(), refreshLocalProviderDetection()]);
     await subscribe();
   }
 
@@ -190,9 +211,12 @@ export function useFirstRun() {
     error: readonly(error),
     stages,
     visible,
+    detectedProviders: readonly(detectedProviders),
+    recommendedPath: readonly(recommendedPath),
     start,
     skipModel,
     retryModelDownload,
+    refreshLocalProviderDetection,
     dismiss,
     dispose,
   };

@@ -196,4 +196,31 @@ describe("useFirstRun — desktop", () => {
     expect(flow.visible.value).toBe(false);
     expect(bridge.invokeCommand).toHaveBeenCalledWith("mark_first_run_complete");
   });
+
+  it("populates detectedProviders and recommended path on start", async () => {
+    bridge.invokeCommand.mockImplementation(async () => ({
+      stages: [],
+      default_model_present: false,
+      default_model_skipped: false,
+      first_run_complete: false,
+      all_required_done: false,
+    }));
+    const fetchStub = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+      const ok = url.includes("11434") || url.includes("1234");
+      return new Response(null, { status: ok ? 200 : 404 });
+    });
+    vi.stubGlobal("fetch", fetchStub);
+
+    try {
+      const { useFirstRun } = await import("./useFirstRun");
+      const flow = useFirstRun();
+      await flow.start();
+      expect(flow.detectedProviders.value?.ollama).toBe(true);
+      expect(flow.detectedProviders.value?.lmStudio).toBe(true);
+      expect(flow.recommendedPath.value).toBe("use-local-server");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
