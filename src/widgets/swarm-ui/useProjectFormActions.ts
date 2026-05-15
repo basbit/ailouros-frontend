@@ -1,16 +1,12 @@
-/**
- * useProjectFormActions — project create/edit/rename/delete dialog logic
- * extracted from `SwarmUiPage`. Returns refs the page wires into
- * <ProjectFormDialog/>, plus AppHeader event handlers.
- */
-
 import { ref } from "vue";
 import type { Ref } from "vue";
 import { useProjectsStore } from "@/shared/store/projects";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useUxStore } from "@/shared/store/ux";
+import { useDesktopStore } from "@/shared/store/desktop";
 import { useI18n } from "@/shared/lib/i18n";
+import { initDesktopProject } from "@/shared/api/endpoints/desktop";
 import type { ProjectFormValues } from "@/features/project-settings/ProjectFormDialog.vue";
 import type { useSettings } from "@/widgets/settings/useSettings";
 
@@ -81,6 +77,7 @@ export function useProjectFormActions(
   const ui = useUiStore();
   const taskStore = useTaskStore();
   const ux = useUxStore();
+  const desktopStore = useDesktopStore();
   const { t } = useI18n();
 
   const projectFormOpen = ref(false);
@@ -157,11 +154,26 @@ export function useProjectFormActions(
     projectFormOpen.value = true;
   }
 
+  async function resolveDesktopWorkspaceRoot(
+    projectId: string,
+    requested: string,
+  ): Promise<string> {
+    if (requested.trim()) return requested;
+    const desktop = await desktopStore.ensureLoaded();
+    if (!desktop.is_desktop || !desktop.workspaces_dir) return requested;
+    const initialized = await initDesktopProject(projectId);
+    return initialized.workspace_root;
+  }
+
   async function onProjectFormSubmit(values: ProjectFormValues): Promise<void> {
     projectFormOpen.value = false;
 
     if (projectFormMode.value === "create") {
-      await settings.newProject(values.name);
+      const newId = await settings.newProject(values.name);
+      values.workspace_root = await resolveDesktopWorkspaceRoot(
+        newId,
+        values.workspace_root,
+      );
       applyAdvancedToForm(values);
       settings.saveSettingsSoon();
       refreshProjectPanels();
