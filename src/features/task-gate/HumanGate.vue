@@ -149,7 +149,7 @@ import {
   patchWorkspaceFile,
 } from "@/shared/api/endpoints/workspace";
 import { useI18n } from "@/shared/lib/i18n";
-import DiffViewer from "@/features/diff-viewer/DiffViewer.vue";
+import DiffViewer from "@/features/task-gate/DiffViewer.vue";
 
 interface ClarifyQuestion {
   index: number;

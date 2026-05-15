@@ -1,7 +1,7 @@
 import type {
   OrchestratorSseEvent,
   OrchestratorSseEventName,
-} from "@/entities/task/model/types";
+} from "@/shared/model/task-types";
 
 export interface AutoApprovedEvent {
   kind: "auto_approved";

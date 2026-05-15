@@ -26,7 +26,7 @@
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioDescription, scenarioTitle } from "./scenarioDisplay";
-import { useScenarioCatalog } from "./useScenarioCatalog";
+import { useScenarioCatalog } from "@/entities/scenario/model/useScenarioCatalog";
 import type { ScenarioSummary } from "@/shared/model/scenario-types";
 
 const props = withDefaults(

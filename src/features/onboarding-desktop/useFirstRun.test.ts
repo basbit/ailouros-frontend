@@ -207,8 +207,11 @@ describe("useFirstRun — desktop", () => {
     }));
     const fetchStub = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
-      const ok = url.includes("11434") || url.includes("1234");
-      return new Response(null, { status: ok ? 200 : 404 });
+      expect(url).toContain("/v1/onboarding/models");
+      return new Response(
+        JSON.stringify({ ollama: ["qwen"], lm_studio: ["local"], assignments: [] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
     });
     vi.stubGlobal("fetch", fetchStub);
 
@@ -219,6 +222,7 @@ describe("useFirstRun — desktop", () => {
       expect(flow.detectedProviders.value?.ollama).toBe(true);
       expect(flow.detectedProviders.value?.lmStudio).toBe(true);
       expect(flow.recommendedPath.value).toBe("use-local-server");
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     } finally {
       vi.unstubAllGlobals();
     }

@@ -39,6 +39,11 @@ export const onboardingEn: Messages = {
   "hostMetrics.cpu": "CPU",
   "hostMetrics.memory": "Memory",
   "hostMetrics.loadAverage": "Load avg",
+  "hostMetrics.chart.title": "Load timeline",
+  "hostMetrics.chart.ariaLabel": "CPU, RAM and GPU utilisation over time",
+  "hostMetrics.chart.collecting": "Collecting samples…",
+  "hostMetrics.chart.window": "last {seconds}s",
+  "hostMetrics.chart.gpu": "GPU",
 };
 
 export const onboardingRu: Messages = {
@@ -80,4 +85,9 @@ export const onboardingRu: Messages = {
   "hostMetrics.cpu": "CPU",
   "hostMetrics.memory": "Память",
   "hostMetrics.loadAverage": "Средняя нагрузка",
+  "hostMetrics.chart.title": "График нагрузки",
+  "hostMetrics.chart.ariaLabel": "Загрузка CPU, RAM и GPU во времени",
+  "hostMetrics.chart.collecting": "Сбор измерений…",
+  "hostMetrics.chart.window": "последние {seconds} с",
+  "hostMetrics.chart.gpu": "GPU",
 };

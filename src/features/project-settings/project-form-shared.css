@@ -1,0 +1,94 @@
+/* Shared layout primitives for ProjectFormDialog.vue, ProjectFormBasicSection.vue,
+ * and ProjectFormAdvancedSections.vue. Extracted from the original
+ * ProjectFormDialog.vue <style scoped> block during the §20.1.2 split so
+ * identical class selectors work across SFCs without :deep(). CSS is unchanged.
+ */
+.project-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.project-form__hint {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.project-form__path-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.project-form__path-row > input {
+  flex: 1;
+  min-width: 0;
+}
+.project-form__pick-btn {
+  flex: 0 0 auto;
+  padding: 0 10px;
+  font-size: 14px;
+  background: var(--surface2, #14171f);
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 6px;
+  color: var(--text, #f5f0e7);
+  cursor: pointer;
+}
+.project-form__pick-btn:hover {
+  border-color: var(--accent, #3b5bdb);
+}
+.project-form__optional {
+  opacity: 0.6;
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 4px;
+}
+.project-form__group {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.project-form__group > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.project-form__group > summary::-webkit-details-marker {
+  display: none;
+}
+.project-form__group > summary::before {
+  content: "›";
+  display: inline-block;
+  font-size: 14px;
+  color: var(--text3);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.project-form__group[open] > summary::before {
+  transform: rotate(90deg);
+}
+.project-form__group-body {
+  padding: 6px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.project-form__caps {
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.project-form__caps--warn {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}

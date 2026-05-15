@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { apiUrl } from "@/shared/api/base";
+import { ApiError, httpPost } from "@/shared/api/http";
 import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{
@@ -85,22 +85,25 @@ async function sendFile(file: File): Promise<void> {
   form.append("target_subdir", props.targetSubdir || "assets");
   form.append("upload", file);
   try {
-    const response = await fetch(apiUrl("/v1/assets/upload"), {
-      method: "POST",
-      body: form,
-    });
-    if (!response.ok) {
-      const detail = await response
-        .json()
-        .catch(() => ({ detail: response.statusText }));
-      throw new Error(detail.detail ?? `HTTP ${response.status}`);
-    }
-    const data = await response.json();
+    const data = await httpPost<{ relative_path?: string }>("/v1/assets/upload", form);
     lastRelativePath.value = String(data.relative_path ?? "");
     status.value = "done";
     emit("uploaded", lastRelativePath.value);
   } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : String(err);
+    if (err instanceof ApiError) {
+      let message = `HTTP ${err.status}`;
+      if (err.body) {
+        try {
+          const parsed = JSON.parse(err.body) as { detail?: string };
+          if (parsed?.detail) message = parsed.detail;
+        } catch {
+          /* keep default message */
+        }
+      }
+      errorMessage.value = message;
+    } else {
+      errorMessage.value = err instanceof Error ? err.message : String(err);
+    }
     status.value = "error";
   }
 }

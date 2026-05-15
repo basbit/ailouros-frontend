@@ -116,6 +116,15 @@ export const scenariosEn: Messages = {
   "assetUpload.uploaded": "Uploaded",
   "assetUpload.inserted": "Asset path added to prompt",
   "assetUpload.error": "Upload failed: {error}",
+  "scenarios.estimate.title": "Estimated duration",
+  "scenarios.estimate.total": "Total: {value}",
+  "scenarios.estimate.essential": "Essential only: {value}",
+  "scenarios.estimate.unknown": "unknown duration",
+  "scenarios.estimate.loading": "Loading duration…",
+  "scenarios.estimate.skipAll": "Skip non-essential stages",
+  "scenarios.estimate.stepEssential": "essential",
+  "scenarios.estimate.stepOptional": "optional",
+  "scenarios.estimate.skipStep": "Skip this stage",
 };
 
 export const scenariosRu: Messages = {
@@ -268,4 +277,13 @@ export const scenariosRu: Messages = {
   "assetUpload.uploaded": "Загружено",
   "assetUpload.inserted": "Путь к файлу добавлен в промпт",
   "assetUpload.error": "Ошибка загрузки: {error}",
+  "scenarios.estimate.title": "Оценка длительности",
+  "scenarios.estimate.total": "Всего: {value}",
+  "scenarios.estimate.essential": "Только основные: {value}",
+  "scenarios.estimate.unknown": "длительность неизвестна",
+  "scenarios.estimate.loading": "Считаем длительность…",
+  "scenarios.estimate.skipAll": "Пропустить необязательные этапы",
+  "scenarios.estimate.stepEssential": "основной",
+  "scenarios.estimate.stepOptional": "необязательный",
+  "scenarios.estimate.skipStep": "Пропустить этот этап",
 };

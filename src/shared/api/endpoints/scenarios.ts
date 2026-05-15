@@ -1,6 +1,7 @@
 import { fetchJson } from "@/shared/api/client";
 import type {
   ScenarioArtifactsResponse,
+  ScenarioEstimate,
   ScenarioPreview,
   ScenarioPreviewOverrides,
   ScenarioQualityChecksResponse,
@@ -61,6 +62,14 @@ export async function validateScenarioPayload(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+}
+
+export async function getScenarioEstimate(
+  scenarioId: string,
+): Promise<ScenarioEstimate> {
+  return fetchJson<ScenarioEstimate>(
+    `/v1/scenarios/${encodeURIComponent(scenarioId)}/estimate`,
+  );
 }
 
 export async function getScenarioArtifacts(

@@ -1,4 +1,4 @@
-import type { BootstrapStage, BootstrapProgress } from "@/features/local-models";
+import type { BootstrapStage, BootstrapProgress } from "@/shared/model/bootstrap-types";
 
 export type { BootstrapStage, BootstrapProgress };
 

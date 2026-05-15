@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import { initApiBase, getApiBaseUrl } from "@/shared/api/base";
+import { httpRequestRaw } from "@/shared/api/http";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import "@/app/styles/app.css";
 
@@ -28,8 +29,11 @@ async function probeBackendHealth(deadlineMs: number): Promise<boolean> {
     const base = getApiBaseUrl();
     if (base) {
       try {
-        const response = await fetch(`${base}/health`, { method: "GET" });
-        if (response.ok) return true;
+        // `/health` lives outside the API mount prefix, so use rawPath
+        // against the resolved base URL. httpRequestRaw throws ApiError on
+        // non-2xx, which we treat the same as a network failure (keep polling).
+        await httpRequestRaw("GET", `${base}/health`, undefined, { rawPath: true });
+        return true;
       } catch {
         /* keep polling */
       }

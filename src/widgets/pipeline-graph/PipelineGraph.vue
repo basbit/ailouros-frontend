@@ -152,6 +152,10 @@
 
       <div class="pg-host-metrics">
         <HostMetrics :metrics="hostMetrics ?? null" />
+        <HostMetricsChart
+          :samples="hostMetricsHistory ?? []"
+          :gpu-name="hostMetrics?.gpu_name ?? null"
+        />
       </div>
     </div>
   </details>
@@ -160,6 +164,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import HostMetrics from "@/shared/components/HostMetrics.vue";
+import HostMetricsChart from "@/shared/components/HostMetricsChart.vue";
 import StepCard from "@/widgets/pipeline-graph/StepCard.vue";
 import PipelineSummary from "@/widgets/pipeline-graph/PipelineSummary.vue";
 import PipelineGraphLegend from "@/widgets/pipeline-graph/PipelineGraphLegend.vue";
@@ -175,7 +180,10 @@ import {
 } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
 import type { PipeStep } from "@/shared/model/pipeline-types";
 import type { CustomScenarioSnap } from "@/shared/model/project-types";
-import type { HostMetrics as HostMetricsType } from "@/shared/store/ui";
+import type {
+  HostMetrics as HostMetricsType,
+  HostMetricsSample,
+} from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
 import { analyzePipelineStepOrder } from "@/shared/lib/step-order";
 
@@ -190,6 +198,7 @@ const props = defineProps<{
   blockedStep?: string | null;
   taskStatus?: string | null;
   hostMetrics?: HostMetricsType | null;
+  hostMetricsHistory?: HostMetricsSample[];
   editorSteps?: PipeStep[];
   editorOptions?: [string, string][];
   scenarioId?: string | null;

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import * as catalogModule from "../useScenarioCatalog";
+import * as catalogModule from "@/entities/scenario/model/useScenarioCatalog";
 import { useScenarioRunReadiness } from "../useScenarioRunReadiness";
 import type { ScenarioInputSpec, ScenarioSummary } from "@/shared/model/scenario-types";
 

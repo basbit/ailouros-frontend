@@ -86,6 +86,8 @@ export const PIPELINE_OPTIONS_BASE: [string, string][] = [
   ["app_store_optimizer", "App Store Opt"],
   ["review_app_store_optimizer", "Rev ASO"],
   ["human_app_store_optimizer", "Human ASO"],
+  ["docs_validator", "Docs Validator"],
+  ["code_validator", "Code Validator"],
 ];
 
 export const PIPELINE_DEFAULT_ORDER = PIPELINE_OPTIONS_BASE.map((x) => x[0]);

@@ -129,8 +129,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import AgentRoleRow from "./AgentRoleRow.vue";
-import MediaImageFields from "@/features/swarm-settings/MediaImageFields.vue";
-import MediaAudioFields from "@/features/swarm-settings/MediaAudioFields.vue";
+import MediaImageFields from "@/shared/components/MediaImageFields.vue";
+import MediaAudioFields from "@/shared/components/MediaAudioFields.vue";
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
 import { splitAgentModelRowsAroundDevSlot } from "@/shared/lib/swarm-constants";

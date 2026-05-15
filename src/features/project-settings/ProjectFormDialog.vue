@@ -36,239 +36,23 @@
           </header>
 
           <form class="project-form__body" @submit.prevent="onSave">
-            <section class="project-form__section">
-              <div class="field">
-                <label class="field-label" for="pf-name">
-                  {{ t("projectForm.name") }}
-                </label>
-                <input
-                  id="pf-name"
-                  ref="nameEl"
-                  v-model="form.name"
-                  type="text"
-                  :placeholder="t('projectForm.namePlaceholder')"
-                  required
-                  @keydown.escape.prevent="onCancel"
-                />
-              </div>
+            <ProjectFormBasicSection
+              :form="form"
+              :capabilities="props.capabilities"
+              :caps-warn="capsWarn"
+              @update:field="onFieldChange"
+              @cancel="onCancel"
+              @name-input-ref="(el) => (nameEl = el)"
+            />
 
-              <div class="field">
-                <label class="field-label" for="pf-root">workspace_root</label>
-                <div class="project-form__path-row">
-                  <input
-                    id="pf-root"
-                    v-model="form.workspace_root"
-                    type="text"
-                    placeholder="/absolute/path/to/repo"
-                    @keydown.escape.prevent="onCancel"
-                  />
-                  <button
-                    v-if="isDesktopShell"
-                    type="button"
-                    class="project-form__pick-btn"
-                    :title="t('projectForm.pickFolder')"
-                    @click="onPickWorkspaceRoot"
-                  >
-                    📁
-                  </button>
-                </div>
-                <div class="hint project-form__hint">
-                  {{ t("projectForm.rootHint") }}
-                </div>
-              </div>
-
-              <div class="field">
-                <label class="field-label" for="pf-ctx">
-                  project_context_file
-                  <span class="project-form__optional">
-                    ({{ t("workspace.optional") }})
-                  </span>
-                </label>
-                <input
-                  id="pf-ctx"
-                  v-model="form.project_context_file"
-                  type="text"
-                  placeholder="docs/PROJECT_CONTEXT.md"
-                  @keydown.escape.prevent="onCancel"
-                />
-              </div>
-
-              <div class="field">
-                <label class="checkbox-row">
-                  <input id="pf-write" v-model="form.workspace_write" type="checkbox" />
-                  <span class="check-label">{{ t("projectForm.writeLabel") }}</span>
-                </label>
-                <div class="hint project-form__hint">
-                  {{ t("projectForm.writeHint") }}
-                  <code>SWARM_ALLOW_WORKSPACE_WRITE=1</code>
-                </div>
-              </div>
-
-              <div
-                v-if="capabilities"
-                class="project-form__caps"
-                :class="{ 'project-form__caps--warn': capsWarn }"
-              >
-                {{ t("workspace.serverLabel") }}
-                {{
-                  capabilities.workspace_write
-                    ? t("workspace.allowed")
-                    : t("workspace.forbidden")
-                }}
-                · {{ t("workspace.shellLabel") }}
-                {{
-                  capabilities.command_exec
-                    ? t("workspace.allowed")
-                    : t("workspace.forbidden")
-                }}
-              </div>
-            </section>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.languages") }}</summary>
-              <div class="project-form__group-body">
-                <div class="field">
-                  <label class="field-label" for="pf-languages">{{
-                    t("swarm.languagesLabel")
-                  }}</label>
-                  <input
-                    id="pf-languages"
-                    v-model="form.swarm_languages"
-                    type="text"
-                    placeholder="python, go, typescript"
-                  />
-                  <div class="hint project-form__hint">
-                    {{ t("swarm.languagesHint") }}
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="pf-doc-locale">{{
-                    t("swarm.docLocaleLabel")
-                  }}</label>
-                  <input
-                    id="pf-doc-locale"
-                    v-model="form.swarm_doc_locale"
-                    type="text"
-                    placeholder="ru"
-                  />
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="pf-doc-sources">{{
-                    t("swarm.docSourcesLabel")
-                  }}</label>
-                  <textarea
-                    id="pf-doc-sources"
-                    v-model="form.swarm_documentation_sources"
-                    rows="4"
-                    placeholder="https://… one per line"
-                  ></textarea>
-                  <div class="hint project-form__hint">
-                    {{ t("swarm.docSourcesHint") }}
-                  </div>
-                </div>
-              </div>
-            </details>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.memory") }}</summary>
-              <div class="project-form__group-body">
-                <div class="field">
-                  <label class="checkbox-row">
-                    <input
-                      id="pf-pattern-memory"
-                      v-model="form.swarm_pattern_memory"
-                      type="checkbox"
-                    />
-                    <span class="check-label">{{ t("swarm.patternMemoryLabel") }}</span>
-                  </label>
-                  <div class="hint project-form__hint">
-                    {{ t("swarm.patternMemoryHint") }}
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="pf-memory-namespace">{{
-                    t("swarm.memoryNamespaceLabel")
-                  }}</label>
-                  <input
-                    id="pf-memory-namespace"
-                    v-model="form.swarm_memory_namespace"
-                    type="text"
-                    placeholder="default"
-                  />
-                  <div class="hint project-form__hint">
-                    {{ t("swarm.memoryNamespaceHint") }}
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label class="field-label" for="pf-pattern-path">{{
-                    t("swarm.patternFileLabel")
-                  }}</label>
-                  <input
-                    id="pf-pattern-path"
-                    v-model="form.swarm_pattern_memory_path"
-                    type="text"
-                    placeholder=".swarm/pattern-memory.json"
-                  />
-                  <div class="hint project-form__hint">
-                    {{ t("swarm.patternFileHint") }}
-                  </div>
-                </div>
-              </div>
-            </details>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.mcp") }}</summary>
-              <div class="project-form__group-body">
-                <McpSettings :form="mcpSlice" @update:form="onFieldUpdate" />
-              </div>
-            </details>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.database") }}</summary>
-              <div class="project-form__group-body">
-                <DatabaseSettings :form="dbSlice" @update:form="onFieldUpdate" />
-              </div>
-            </details>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.visualQa") }}</summary>
-              <div class="project-form__group-body">
-                <VisualProbeSettings :form="visualSlice" @update:form="onFieldUpdate" />
-              </div>
-            </details>
-
-            <details class="project-form__group">
-              <summary>{{ t("projectForm.sections.advanced") }}</summary>
-              <div class="project-form__group-body">
-                <div class="field">
-                  <label class="field-label" for="pf-hooks">{{
-                    t("swarm.hooksLabel")
-                  }}</label>
-                  <input
-                    id="pf-hooks"
-                    v-model="form.swarm_pipeline_hooks_module"
-                    type="text"
-                    placeholder="my_package.swarm_hooks"
-                  />
-                  <div class="hint project-form__hint">{{ t("swarm.hooksHint") }}</div>
-                </div>
-
-                <div class="field">
-                  <label class="checkbox-row">
-                    <input
-                      id="pf-disable-tree"
-                      v-model="form.swarm_disable_tree_sitter"
-                      type="checkbox"
-                    />
-                    <span class="check-label">{{ t("swarm.disableTreeLabel") }}</span>
-                  </label>
-                </div>
-              </div>
-            </details>
+            <ProjectFormAdvancedSections
+              :form="form"
+              :mcp-slice="mcpSlice"
+              :db-slice="dbSlice"
+              :visual-slice="visualSlice"
+              @update:field="onFieldChange"
+              @update:child-field="onFieldUpdate"
+            />
 
             <footer class="project-form__actions">
               <button type="button" class="btn-secondary" @click="onCancel">
@@ -287,75 +71,18 @@
   </Teleport>
 </template>
 
+<script lang="ts">
+export type { ProjectFormValues } from "./useProjectFormState";
+</script>
+
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from "vue";
+import { computed, toRef } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { isDesktop } from "@/shared/lib/desktop-bridge";
-import McpSettings from "@/features/swarm-settings/McpSettings.vue";
-import DatabaseSettings from "@/features/swarm-settings/DatabaseSettings.vue";
-import VisualProbeSettings from "@/features/swarm-settings/VisualProbeSettings.vue";
-
-export interface ProjectFormValues {
-  name: string;
-  workspace_root: string;
-  project_context_file: string;
-  workspace_write: boolean;
-  swarm_languages: string;
-  swarm_doc_locale: string;
-  swarm_documentation_sources: string;
-  swarm_pattern_memory: boolean;
-  swarm_memory_namespace: string;
-  swarm_pattern_memory_path: string;
-  swarm_pipeline_hooks_module: string;
-  swarm_disable_tree_sitter: boolean;
-  swarm_mcp_auto: boolean;
-  swarm_skip_mcp_tools: boolean;
-  mcp_servers_json: string;
-  swarm_database_url: string;
-  swarm_database_hint: string;
-  swarm_database_readonly: boolean;
-  swarm_visual_probe_enabled: boolean;
-  swarm_visual_base_url: string;
-  swarm_visual_start_command: string;
-  swarm_visual_start_directory: string;
-  swarm_visual_ready_path: string;
-  swarm_visual_pages: string;
-  swarm_visual_capture_har: boolean;
-  swarm_visual_capture_trace: boolean;
-  swarm_visual_multimodal_review: boolean;
-  swarm_visual_max_review_images: string;
-}
-
-const DEFAULT_VALUES: ProjectFormValues = {
-  name: "",
-  workspace_root: "",
-  project_context_file: "",
-  workspace_write: false,
-  swarm_languages: "",
-  swarm_doc_locale: "",
-  swarm_documentation_sources: "",
-  swarm_pattern_memory: false,
-  swarm_memory_namespace: "",
-  swarm_pattern_memory_path: "",
-  swarm_pipeline_hooks_module: "",
-  swarm_disable_tree_sitter: false,
-  swarm_mcp_auto: true,
-  swarm_skip_mcp_tools: false,
-  mcp_servers_json: "",
-  swarm_database_url: "",
-  swarm_database_hint: "",
-  swarm_database_readonly: true,
-  swarm_visual_probe_enabled: true,
-  swarm_visual_base_url: "",
-  swarm_visual_start_command: "",
-  swarm_visual_start_directory: "",
-  swarm_visual_ready_path: "/",
-  swarm_visual_pages: "/",
-  swarm_visual_capture_har: false,
-  swarm_visual_capture_trace: false,
-  swarm_visual_multimodal_review: false,
-  swarm_visual_max_review_images: "4",
-};
+import ProjectFormBasicSection from "./ProjectFormBasicSection.vue";
+import ProjectFormAdvancedSections from "./ProjectFormAdvancedSections.vue";
+import { useProjectFormState, type ProjectFormValues } from "./useProjectFormState";
+// Shared layout primitives — see project-form-shared.css for rationale.
+import "./project-form-shared.css";
 
 const props = defineProps<{
   open: boolean;
@@ -371,117 +98,37 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const form = reactive<ProjectFormValues>({ ...DEFAULT_VALUES });
-const nameEl = ref<HTMLInputElement | null>(null);
-const isDesktopShell = isDesktop();
-
-async function onPickWorkspaceRoot(): Promise<void> {
-  if (!isDesktopShell) return;
-  try {
-    const dialog = await import("@tauri-apps/plugin-dialog");
-    const selected = await dialog.open({
-      directory: true,
-      multiple: false,
-      title: t("projectForm.pickFolder"),
-    });
-    if (typeof selected === "string" && selected) {
-      form.workspace_root = selected;
-    }
-  } catch (error) {
-    console.error("folder picker failed", error);
-  }
-}
+const {
+  form,
+  nameEl,
+  capsWarn,
+  mcpSlice,
+  dbSlice,
+  visualSlice,
+  onFieldUpdate,
+  buildSubmitPayload,
+} = useProjectFormState({
+  open: toRef(props, "open"),
+  initial: toRef(props, "initial"),
+  capabilities: toRef(props, "capabilities"),
+});
 
 const title = computed(() =>
   props.mode === "create" ? t("projectForm.titleCreate") : t("projectForm.titleEdit"),
 );
 
-const capsWarn = computed(
-  () =>
-    !!props.capabilities && form.workspace_write && !props.capabilities.workspace_write,
-);
-
-const mcpSlice = computed(() => ({
-  swarm_mcp_auto: form.swarm_mcp_auto,
-  swarm_skip_mcp_tools: form.swarm_skip_mcp_tools,
-  mcp_servers_json: form.mcp_servers_json,
-}));
-
-const dbSlice = computed(() => ({
-  swarm_database_url: form.swarm_database_url,
-  swarm_database_hint: form.swarm_database_hint,
-  swarm_database_readonly: form.swarm_database_readonly,
-}));
-
-const visualSlice = computed(() => ({
-  swarm_visual_probe_enabled: form.swarm_visual_probe_enabled,
-  swarm_visual_base_url: form.swarm_visual_base_url,
-  swarm_visual_start_command: form.swarm_visual_start_command,
-  swarm_visual_start_directory: form.swarm_visual_start_directory,
-  swarm_visual_ready_path: form.swarm_visual_ready_path,
-  swarm_visual_pages: form.swarm_visual_pages,
-  swarm_visual_capture_har: form.swarm_visual_capture_har,
-  swarm_visual_capture_trace: form.swarm_visual_capture_trace,
-  swarm_visual_multimodal_review: form.swarm_visual_multimodal_review,
-  swarm_visual_max_review_images: form.swarm_visual_max_review_images,
-}));
-
-function onFieldUpdate(field: string, value: string): void {
-  const boolFields = new Set([
-    "swarm_mcp_auto",
-    "swarm_skip_mcp_tools",
-    "swarm_database_readonly",
-    "swarm_visual_probe_enabled",
-    "swarm_visual_capture_har",
-    "swarm_visual_capture_trace",
-    "swarm_visual_multimodal_review",
-  ]);
-  if (!(field in form)) return;
-  if (boolFields.has(field)) {
-    (form as Record<string, unknown>)[field] = value === "true";
-  } else {
-    (form as Record<string, unknown>)[field] = value;
-  }
+function onFieldChange(field: keyof ProjectFormValues, value: string | boolean): void {
+  (form as Record<string, unknown>)[field] = value;
 }
-
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (!isOpen) return;
-    Object.assign(form, DEFAULT_VALUES, props.initial ?? {});
-    nextTick(() => nameEl.value?.focus());
-  },
-  { immediate: true },
-);
 
 function onCancel(): void {
   emit("update:open", false);
 }
 
 function onSave(): void {
-  const name = form.name.trim();
-  if (!name) return;
-  emit("submit", {
-    ...form,
-    name,
-    workspace_root: form.workspace_root.trim(),
-    project_context_file: form.project_context_file.trim(),
-    swarm_languages: form.swarm_languages.trim(),
-    swarm_doc_locale: form.swarm_doc_locale.trim(),
-    swarm_documentation_sources: form.swarm_documentation_sources,
-    swarm_memory_namespace: form.swarm_memory_namespace.trim(),
-    swarm_pattern_memory_path: form.swarm_pattern_memory_path.trim(),
-    swarm_pipeline_hooks_module: form.swarm_pipeline_hooks_module.trim(),
-    mcp_servers_json: form.mcp_servers_json,
-    swarm_database_url: form.swarm_database_url.trim(),
-    swarm_database_hint: form.swarm_database_hint.trim(),
-    swarm_visual_base_url: form.swarm_visual_base_url.trim(),
-    swarm_visual_start_command: form.swarm_visual_start_command.trim(),
-    swarm_visual_start_directory: form.swarm_visual_start_directory.trim(),
-    swarm_visual_ready_path: form.swarm_visual_ready_path.trim() || "/",
-    swarm_visual_pages: form.swarm_visual_pages.trim() || "/",
-    swarm_visual_max_review_images: form.swarm_visual_max_review_images.trim() || "4",
-  });
+  const payload = buildSubmitPayload();
+  if (!payload) return;
+  emit("submit", payload);
 }
 </script>
 
@@ -551,95 +198,6 @@ function onSave(): void {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.project-form__section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.project-form__hint {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 4px;
-  line-height: 1.45;
-}
-.project-form__path-row {
-  display: flex;
-  gap: 6px;
-  align-items: stretch;
-}
-.project-form__path-row > input {
-  flex: 1;
-  min-width: 0;
-}
-.project-form__pick-btn {
-  flex: 0 0 auto;
-  padding: 0 10px;
-  font-size: 14px;
-  background: var(--surface2, #14171f);
-  border: 1px solid var(--border, #2a2f3e);
-  border-radius: 6px;
-  color: var(--text, #f5f0e7);
-  cursor: pointer;
-}
-.project-form__pick-btn:hover {
-  border-color: var(--accent, #3b5bdb);
-}
-.project-form__optional {
-  opacity: 0.6;
-  font-weight: 400;
-  font-size: 11px;
-  margin-left: 4px;
-}
-.project-form__group {
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-.project-form__group > summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 6px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  user-select: none;
-}
-.project-form__group > summary::-webkit-details-marker {
-  display: none;
-}
-.project-form__group > summary::before {
-  content: "›";
-  display: inline-block;
-  font-size: 14px;
-  color: var(--text3);
-  transition: transform 0.15s ease;
-  flex-shrink: 0;
-}
-.project-form__group[open] > summary::before {
-  transform: rotate(90deg);
-}
-.project-form__group-body {
-  padding: 6px 0 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.project-form__caps {
-  font-size: 11px;
-  padding: 8px 10px;
-  border-radius: var(--radius);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text2);
-}
-.project-form__caps--warn {
-  color: var(--error);
-  border-color: color-mix(in srgb, var(--error) 35%, transparent);
-  background: color-mix(in srgb, var(--error) 8%, transparent);
 }
 
 .project-form__actions {

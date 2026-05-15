@@ -1,12 +1,13 @@
 import { computed } from "vue";
-import type { useSettings } from "@/features/project-settings/useSettings";
+import type { useSettings } from "@/widgets/settings/useSettings";
 import { useScenarioCatalog } from "@/features/scenario-picker";
 import type { useUiStore } from "@/shared/store/ui";
+import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
 
 type SettingsRef = ReturnType<typeof useSettings>;
 type UiRef = ReturnType<typeof useUiStore>;
 
-export const CUSTOM_SCENARIO_ID = "__custom__";
+export { CUSTOM_SCENARIO_ID };
 
 const PIPELINE_STEP_ID_ALIASES: Record<string, string> = {
   arch: "architect",

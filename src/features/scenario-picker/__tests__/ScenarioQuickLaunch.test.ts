@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { ref } from "vue";
 
 import ScenarioQuickLaunch from "@/features/scenario-picker/ScenarioQuickLaunch.vue";
-import * as catalogModule from "@/features/scenario-picker/useScenarioCatalog";
+import * as catalogModule from "@/entities/scenario/model/useScenarioCatalog";
 import type { ScenarioSummary } from "@/shared/model/scenario-types";
 
 function buildScenario(id: string, title: string): ScenarioSummary {

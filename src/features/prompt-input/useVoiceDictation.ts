@@ -1,6 +1,7 @@
 import { computed, onBeforeUnmount, ref } from "vue";
 import type { ComputedRef, Ref } from "vue";
-import { apiUrl, initApiBase } from "@/shared/api/base";
+import { initApiBase } from "@/shared/api/base";
+import { ApiError, httpPost } from "@/shared/api/http";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 
 interface SpeechRecognitionEventLike {
@@ -124,24 +125,28 @@ export function useVoiceDictation(options: VoiceDictationOptions): VoiceDictatio
       const form = new FormData();
       form.append("audio", blob, "audio.webm");
       if (mediaLanguage) form.append("language", mediaLanguage);
-      const response = await fetch(apiUrl("/v1/voice/transcribe"), {
-        method: "POST",
-        body: form,
-      });
-      if (!response.ok) {
-        let detailMessage = `voice/transcribe HTTP ${response.status}`;
-        try {
-          const body = (await response.json()) as { detail?: { message?: string } };
-          if (body?.detail?.message) detailMessage = body.detail.message;
-        } catch {
-          /* keep default message */
+      try {
+        const data = await httpPost<{ text?: string }>("/v1/voice/transcribe", form);
+        const text = (data?.text ?? "").trim();
+        if (text) options.onTranscript(text, true);
+      } catch (caught) {
+        if (caught instanceof ApiError) {
+          let detailMessage = `voice/transcribe HTTP ${caught.status}`;
+          if (caught.body) {
+            try {
+              const body = JSON.parse(caught.body) as {
+                detail?: { message?: string };
+              };
+              if (body?.detail?.message) detailMessage = body.detail.message;
+            } catch {
+              /* keep default message */
+            }
+          }
+          error.value = detailMessage;
+          return;
         }
-        error.value = detailMessage;
-        return;
+        throw caught;
       }
-      const data = (await response.json()) as { text?: string };
-      const text = (data?.text ?? "").trim();
-      if (text) options.onTranscript(text, true);
     } catch (caught) {
       error.value = caught instanceof Error ? caught.message : String(caught);
     } finally {

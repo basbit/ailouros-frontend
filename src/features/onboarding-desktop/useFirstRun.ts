@@ -7,11 +7,11 @@ import {
   probeDesktop,
 } from "@/shared/lib/desktop-bridge";
 import {
-  detectLocalLlmProviders,
   recommendOnboardingPath,
   type LlmOnboardingPath,
   type LocalLlmDetection,
 } from "@/shared/lib/local-llm-detect";
+import { getOnboardingModels } from "@/shared/api/endpoints/onboarding";
 import type {
   BootstrapProgress,
   BootstrapStage,
@@ -129,7 +129,13 @@ export function useFirstRun() {
 
   async function refreshLocalProviderDetection(): Promise<void> {
     try {
-      const result = await detectLocalLlmProviders();
+      const models = await getOnboardingModels("");
+      const result: LocalLlmDetection = {
+        ollama: (models.ollama ?? []).length > 0,
+        lmStudio: (models.lm_studio ?? []).length > 0,
+        ollamaBaseUrl: "http://localhost:11434",
+        lmStudioBaseUrl: "http://localhost:1234",
+      };
       detectedProviders.value = result;
       recommendedPath.value = recommendOnboardingPath(result);
     } catch (detectError) {

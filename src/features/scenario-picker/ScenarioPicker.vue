@@ -144,6 +144,17 @@
           </div>
         </button>
       </div>
+
+      <ScenarioEstimatePanel
+        v-if="props.modelValue"
+        :estimate="estimate.estimate.value"
+        :loading="estimate.loading.value"
+        :error="estimate.error.value"
+        :not-implemented="estimate.notImplemented.value"
+        :skip-gates="props.skipGates"
+        :disabled="props.disabled"
+        @update:skip-gates="onSkipGatesUpdate"
+      />
     </template>
   </section>
 </template>
@@ -152,7 +163,9 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioTitle, shortScenarioDescription } from "./scenarioDisplay";
-import { useScenarioCatalog } from "./useScenarioCatalog";
+import { useScenarioEstimate } from "./useScenarioEstimate";
+import ScenarioEstimatePanel from "./ScenarioEstimatePanel.vue";
+import { useScenarioCatalog } from "@/entities/scenario/model/useScenarioCatalog";
 import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
 
 const props = withDefaults(
@@ -160,15 +173,31 @@ const props = withDefaults(
     modelValue: string | null;
     disabled?: boolean;
     favorites?: string[];
+    skipGates?: string[];
   }>(),
-  { disabled: false, favorites: () => [] },
+  { disabled: false, favorites: () => [], skipGates: () => [] },
 );
 
 const emit = defineEmits<{
   "update:modelValue": [value: string | null];
+  "update:skipGates": [value: string[]];
   select: [scenario: ScenarioSummary | null];
   "toggle-favorite": [scenarioId: string];
 }>();
+
+const estimate = useScenarioEstimate();
+
+watch(
+  () => props.modelValue,
+  (id) => {
+    void estimate.load(id);
+  },
+  { immediate: true },
+);
+
+function onSkipGatesUpdate(next: string[]): void {
+  emit("update:skipGates", next);
+}
 
 const { t } = useI18n();
 const catalog = useScenarioCatalog();

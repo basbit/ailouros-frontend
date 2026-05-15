@@ -51,12 +51,17 @@ async function collectMissingRequiredInputs(
   return missing;
 }
 
+export interface RunSwarmChatOptions {
+  signal?: AbortSignal;
+}
+
 export async function runSwarmChat(
   settings: RunSwarmChatSettings,
   onTaskId: (taskId: string) => void,
   onDone: () => void,
   sendWsSubscribe: () => void,
   onEvent?: (event: ChatStreamEvent) => void,
+  options?: RunSwarmChatOptions,
 ): Promise<void> {
   const { t } = useI18n();
   const { form, pipelineState } = settings;
@@ -148,36 +153,57 @@ export async function runSwarmChat(
   sendWsSubscribe();
 
   const reader = resp.body?.getReader();
-  if (reader) {
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (!onEvent || !value) continue;
-      buffer += decoder.decode(value, { stream: true });
-      let sep = buffer.indexOf("\n\n");
-      while (sep !== -1) {
-        const frame = buffer.slice(0, sep);
-        buffer = buffer.slice(sep + 2);
-        for (const line of frame.split("\n")) {
-          if (!line.startsWith("data:")) continue;
-          const payload = line.slice(5).trim();
-          if (!payload || payload === "[DONE]") continue;
-          try {
-            const chunk = JSON.parse(payload) as {
-              choices?: { delta?: { content?: string } }[];
-            };
-            const content = chunk.choices?.[0]?.delta?.content ?? "";
-            if (!content) continue;
-            const evt = parseChatStreamEvent(content);
-            if (evt) onEvent(evt);
-          } catch {
-            // Non-JSON data line — ignore silently.
-          }
-        }
-        sep = buffer.indexOf("\n\n");
+  const onAbort = reader
+    ? () => {
+        // When the caller aborts (unmount, navigation, explicit cancel) we
+        // close the stream reader so the underlying fetch releases its
+        // socket and stops consuming bandwidth/memory.
+        reader.cancel().catch(() => undefined);
       }
+    : undefined;
+  if (options?.signal && onAbort) {
+    if (options.signal.aborted) {
+      onAbort();
+    } else {
+      options.signal.addEventListener("abort", onAbort, { once: true });
+    }
+  }
+  try {
+    if (reader) {
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!onEvent || !value) continue;
+        buffer += decoder.decode(value, { stream: true });
+        let sep = buffer.indexOf("\n\n");
+        while (sep !== -1) {
+          const frame = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          for (const line of frame.split("\n")) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const chunk = JSON.parse(payload) as {
+                choices?: { delta?: { content?: string } }[];
+              };
+              const content = chunk.choices?.[0]?.delta?.content ?? "";
+              if (!content) continue;
+              const evt = parseChatStreamEvent(content);
+              if (evt) onEvent(evt);
+            } catch {
+              // Non-JSON data line — ignore silently.
+            }
+          }
+          sep = buffer.indexOf("\n\n");
+        }
+      }
+    }
+  } finally {
+    if (options?.signal && onAbort) {
+      options.signal.removeEventListener("abort", onAbort);
     }
   }
   onDone();

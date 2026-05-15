@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { useScenarioCatalog } from "@/features/scenario-picker/useScenarioCatalog";
+import { useScenarioCatalog } from "@/entities/scenario/model/useScenarioCatalog";
 import { useScenarioGraphIntegration } from "./useScenarioGraphIntegration";
 
 const { t } = useI18n();

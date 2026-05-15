@@ -10,6 +10,8 @@ import type {
 
 export interface OnboardingModelsResponse {
   source?: string;
+  ollama?: string[];
+  lm_studio?: string[];
   config?: {
     roles?: Record<
       string,

@@ -164,10 +164,10 @@
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
-import AutonomousSelfVerifyForm from "@/features/swarm-settings/autonomous/AutonomousSelfVerifyForm.vue";
-import AutonomousDeepPlanningForm from "@/features/swarm-settings/autonomous/AutonomousDeepPlanningForm.vue";
-import AutonomousBackgroundAgentForm from "@/features/swarm-settings/autonomous/AutonomousBackgroundAgentForm.vue";
-import AutonomousAutoPlannerForm from "@/features/swarm-settings/autonomous/AutonomousAutoPlannerForm.vue";
+import AutonomousSelfVerifyForm from "@/features/global-settings/autonomous/AutonomousSelfVerifyForm.vue";
+import AutonomousDeepPlanningForm from "@/features/global-settings/autonomous/AutonomousDeepPlanningForm.vue";
+import AutonomousBackgroundAgentForm from "@/features/global-settings/autonomous/AutonomousBackgroundAgentForm.vue";
+import AutonomousAutoPlannerForm from "@/features/global-settings/autonomous/AutonomousAutoPlannerForm.vue";
 import type { GlobalSettingsData } from "./useGlobalSettings";
 
 const { t } = useI18n();

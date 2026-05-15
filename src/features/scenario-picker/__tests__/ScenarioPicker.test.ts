@@ -6,6 +6,7 @@ const api = vi.hoisted(() => ({
   listScenarios: vi.fn(),
   getScenario: vi.fn(),
   previewScenario: vi.fn(),
+  getScenarioEstimate: vi.fn(),
 }));
 
 vi.mock("@/shared/api/endpoints/scenarios", () => api);
@@ -50,7 +51,18 @@ describe("ScenarioPicker", () => {
     setActivePinia(createPinia());
     vi.resetModules();
     api.listScenarios.mockResolvedValue({ version: 1, scenarios: sampleScenarios });
-    const { _resetScenarioCatalogForTests } = await import("../useScenarioCatalog");
+    api.getScenarioEstimate.mockResolvedValue({
+      scenario_id: "build_feature",
+      steps: [
+        { step_id: "pm", estimated_duration_sec: 60, essential: true },
+        { step_id: "dev", estimated_duration_sec: 120, essential: true },
+        { step_id: "qa", estimated_duration_sec: 90, essential: false },
+      ],
+      total_seconds: 270,
+      essential_seconds: 180,
+    });
+    const { _resetScenarioCatalogForTests } =
+      await import("@/entities/scenario/model/useScenarioCatalog");
     _resetScenarioCatalogForTests();
   });
 
@@ -101,5 +113,41 @@ describe("ScenarioPicker", () => {
     const selected = wrapper.find(".scenario-picker__card.is-selected");
     expect(selected.exists()).toBe(true);
     expect(selected.text()).toContain("Build Feature");
+  });
+
+  it("renders duration breakdown and skip toggles for non-essential steps", async () => {
+    const { default: ScenarioPicker } = await import("../ScenarioPicker.vue");
+    const wrapper = mount(ScenarioPicker, {
+      props: { modelValue: "build_feature", skipGates: [] },
+    });
+    await flushPromises();
+    const block = wrapper.find('[data-testid="scenario-estimate"]');
+    expect(block.exists()).toBe(true);
+    expect(block.text()).toContain("Total");
+    expect(block.text()).toContain("Essential only");
+    const stepRows = wrapper.findAll(".scenario-estimate__step");
+    expect(stepRows.length).toBe(3);
+    expect(api.getScenarioEstimate).toHaveBeenCalledWith("build_feature");
+    const optionalCheckbox = stepRows[2].find("input[type=checkbox]");
+    expect((optionalCheckbox.element as HTMLInputElement).disabled).toBe(false);
+    const essentialCheckbox = stepRows[0].find("input[type=checkbox]");
+    expect((essentialCheckbox.element as HTMLInputElement).disabled).toBe(true);
+    await optionalCheckbox.setValue(false);
+    const events = wrapper.emitted("update:skipGates");
+    expect(events).toBeTruthy();
+    expect(events![0]).toEqual([["qa"]]);
+  });
+
+  it("master skip toggle adds all non-essential steps to skip set", async () => {
+    const { default: ScenarioPicker } = await import("../ScenarioPicker.vue");
+    const wrapper = mount(ScenarioPicker, {
+      props: { modelValue: "build_feature", skipGates: [] },
+    });
+    await flushPromises();
+    const skipAll = wrapper.find(".scenario-estimate__skip-all input");
+    await skipAll.setValue(true);
+    const events = wrapper.emitted("update:skipGates");
+    expect(events).toBeTruthy();
+    expect(events![0]).toEqual([["qa"]]);
   });
 });

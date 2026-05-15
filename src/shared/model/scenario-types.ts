@@ -118,6 +118,19 @@ export interface ScenarioArtifactsResponse {
   summary: ScenarioArtifactSummary;
 }
 
+export interface StepEstimate {
+  step_id: string;
+  estimated_duration_sec: number | null;
+  essential: boolean;
+}
+
+export interface ScenarioEstimate {
+  scenario_id: string;
+  steps: StepEstimate[];
+  total_seconds: number | null;
+  essential_seconds: number | null;
+}
+
 export interface ScenarioQualityChecksResponse {
   task_id: string;
   scenario_id: string | null;

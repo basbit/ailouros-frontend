@@ -105,6 +105,16 @@
 
     <div class="hdr-spacer"></div>
 
+    <button
+      type="button"
+      class="theme-toggle header-plugins"
+      title="Plugins"
+      aria-label="Plugins"
+      @click="openPlugins?.()"
+    >
+      Plugins
+    </button>
+
     <div class="header-status" :class="{ 'header-status--running': isRunning }">
       <span
         class="header-status-dot"
@@ -112,6 +122,21 @@
       ></span>
       {{ isRunning ? t("header.running") : t("header.idle") }}
     </div>
+
+    <button
+      type="button"
+      class="theme-toggle header-health"
+      :class="`header-health--${healthStatus ?? 'unknown'}`"
+      :title="`System health: ${healthStatus ?? 'unknown'}`"
+      :aria-label="`System health: ${healthStatus ?? 'unknown'}`"
+      @click="emit('open-system-health')"
+    >
+      <span
+        class="header-health-dot"
+        :class="`header-health-dot--${healthStatus ?? 'unknown'}`"
+      ></span>
+      <span class="header-health-text">{{ (healthStatus ?? "—").toUpperCase() }}</span>
+    </button>
 
     <select
       class="header-locale"
@@ -198,9 +223,13 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from "vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useI18n } from "@/shared/lib/i18n";
 import ProjectSwitcher from "@/features/project-settings/ProjectSwitcher.vue";
+import { useSystemHealth } from "@/features/system-health/useSystemHealth";
+
+const openPlugins = inject<() => void>("openPlugins");
 
 defineProps<{
   taskId: string | null;
@@ -211,11 +240,10 @@ defineProps<{
   agentEditorActive?: boolean;
 }>();
 
-// Declared for parent API parity; AppHeader has no agent-editor button
-// yet, but SwarmUiPage listens for this event — keep the typed contract.
 const emit = defineEmits<{
   "toggle-agent-editor": [];
   "open-settings": [];
+  "open-system-health": [];
   "close-task": [];
   "project-change": [id: string];
   "project-new": [];
@@ -223,6 +251,10 @@ const emit = defineEmits<{
   "project-delete": [id: string];
   "project-edit": [id: string];
 }>();
+
+const systemHealth = useSystemHealth(30_000);
+void systemHealth.reload();
+const healthStatus = systemHealth.status;
 
 const preferences = usePreferencesStore();
 const { t } = useI18n();
@@ -310,6 +342,58 @@ const { t } = useI18n();
   min-width: 66px;
   padding: 6px 26px 6px 10px;
   border-radius: 999px;
+}
+
+.header-plugins {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+}
+
+.header-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+}
+.header-health-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+.header-health-dot--ok {
+  background: var(--success, #4ade80);
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
+}
+.header-health-dot--degraded {
+  background: #f0b849;
+  box-shadow: 0 0 6px rgba(240, 184, 73, 0.7);
+}
+.header-health-dot--error {
+  background: var(--danger, #f87171);
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.7);
+}
+.header-health-dot--disabled,
+.header-health-dot--unknown {
+  background: var(--text3);
+}
+.header-health-text {
+  font-size: 10px;
+  color: var(--text2);
+}
+.header-health--ok {
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.header-health--degraded {
+  border-color: rgba(240, 184, 73, 0.4);
+}
+.header-health--error {
+  border-color: rgba(248, 113, 113, 0.4);
 }
 
 .task-pill__close {

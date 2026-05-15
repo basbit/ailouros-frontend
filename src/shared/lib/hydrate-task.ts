@@ -3,6 +3,7 @@
  * from the on-disk pipeline_run.log artifact.
  */
 import { apiUrl } from "@/shared/api/base";
+import { httpRequestRaw } from "@/shared/api/http";
 import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
 
 export type TaskHistoryRow = { agent?: string; message?: string; timestamp?: string };
@@ -52,31 +53,34 @@ export async function hydrateTaskFromServer(
   }
 
   try {
-    const lr = await fetch(
-      apiUrl("/artifacts/" + encodeURIComponent(tid) + "/pipeline_run.log"),
+    // pipeline_run.log is plain text, not JSON — use httpRequestRaw so we can
+    // read the body via .text() without JSON parsing. httpRequestRaw throws
+    // ApiError on non-2xx, which the surrounding catch silently ignores
+    // (parity with the previous `if (lr.ok)` short-circuit).
+    const lr = await httpRequestRaw(
+      "GET",
+      "/artifacts/" + encodeURIComponent(tid) + "/pipeline_run.log",
     );
-    if (lr.ok) {
-      const text = await lr.text();
-      const body = text.trim() || "(empty pipeline_run.log)";
-      return {
-        taskId: tid,
-        history: [
-          {
-            agent: "pipeline_run.log",
-            message: body,
-            timestamp: new Date().toISOString(),
-          },
-        ],
-        status: "completed",
-        error: null,
-        agents: [],
-        artifactPath: artifactJson,
-        fromLogFallback: true,
-        scenarioId: null,
-        scenarioTitle: null,
-        scenarioCategory: null,
-      };
-    }
+    const text = await lr.text();
+    const body = text.trim() || "(empty pipeline_run.log)";
+    return {
+      taskId: tid,
+      history: [
+        {
+          agent: "pipeline_run.log",
+          message: body,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+      status: "completed",
+      error: null,
+      agents: [],
+      artifactPath: artifactJson,
+      fromLogFallback: true,
+      scenarioId: null,
+      scenarioTitle: null,
+      scenarioCategory: null,
+    };
   } catch {
     /* ignore */
   }

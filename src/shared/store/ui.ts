@@ -39,9 +39,38 @@ export interface HostMetrics {
   cpu_percent?: number;
   memory_percent?: number;
   memory_used_gb?: number;
+  memory_total_gb?: number;
   loadavg?: number[];
+  gpu_percent?: number;
+  gpu_memory_percent?: number;
+  gpu_memory_used_gb?: number;
+  gpu_memory_total_gb?: number;
+  gpu_name?: string;
+  gpu_count?: number;
+  gpu_source?: string;
+  timestamp_ms?: number;
   error?: string;
 }
+
+/**
+ * One sample retained for the host-load chart. Only the three numbers we
+ * actually plot are kept (cpu/ram/gpu); raw payloads are not stored to keep
+ * the ring buffer small (~120 samples × ~32 B ≈ 4 KB).
+ *
+ * `gpu` is `null` when the orchestrator host has no GPU or we couldn't
+ * sample it — the chart hides the GPU line entirely if every sample in
+ * the window has `gpu === null`.
+ */
+export interface HostMetricsSample {
+  t: number; // epoch millis
+  cpu: number | null;
+  mem: number | null;
+  gpu: number | null;
+}
+
+/** ~2 min at 1 Hz tick. Enough resolution for a step-level view without
+ *  flooding the store on long-running tasks. */
+export const HOST_METRICS_HISTORY_MAX = 120;
 
 export const useUiStore = defineStore("ui", () => {
   const taskId = ref<string | null>(null);
@@ -64,6 +93,43 @@ export const useUiStore = defineStore("ui", () => {
   const eventsViewMode = ref<"preview" | "raw">("preview");
   const capabilities = ref<ServerCapabilities | null>(null);
   const hostMetrics = ref<HostMetrics | null>(null);
+  const hostMetricsHistory = ref<HostMetricsSample[]>([]);
+
+  /**
+   * Push a tick into the ring buffer. Called from useSwarmRunTickHandler on
+   * every WS tick. We deduplicate by timestamp so a backend that double-emits
+   * (e.g. during a reconnect replay) doesn't poison the chart with vertical
+   * spikes. Non-numeric / missing fields become `null` so they create a gap
+   * in the line instead of being drawn as zero.
+   */
+  function pushHostMetricsSample(m: HostMetrics | null): void {
+    if (!m) return;
+    const t =
+      typeof m.timestamp_ms === "number" && Number.isFinite(m.timestamp_ms)
+        ? m.timestamp_ms
+        : Date.now();
+    const buf = hostMetricsHistory.value;
+    if (buf.length && buf[buf.length - 1].t === t) return;
+    const cpu =
+      typeof m.cpu_percent === "number" && Number.isFinite(m.cpu_percent)
+        ? m.cpu_percent
+        : null;
+    const mem =
+      typeof m.memory_percent === "number" && Number.isFinite(m.memory_percent)
+        ? m.memory_percent
+        : null;
+    const gpu =
+      typeof m.gpu_percent === "number" && Number.isFinite(m.gpu_percent)
+        ? m.gpu_percent
+        : null;
+    const next = buf.length >= HOST_METRICS_HISTORY_MAX ? buf.slice(1) : buf.slice();
+    next.push({ t, cpu, mem, gpu });
+    hostMetricsHistory.value = next;
+  }
+
+  function clearHostMetricsHistory(): void {
+    hostMetricsHistory.value = [];
+  }
 
   const humanGateVisible = ref(false);
   const humanGateTitle = ref("Awaiting operator input");
@@ -295,6 +361,9 @@ export const useUiStore = defineStore("ui", () => {
     eventsViewMode,
     capabilities,
     hostMetrics,
+    hostMetricsHistory,
+    pushHostMetricsSample,
+    clearHostMetricsHistory,
     humanGateVisible,
     humanGateTitle,
     humanGateFeedback,

@@ -52,7 +52,7 @@ describe("useScenarioCatalog", () => {
     });
 
     const { useScenarioCatalog, _resetScenarioCatalogForTests } =
-      await import("../useScenarioCatalog");
+      await import("@/entities/scenario/model/useScenarioCatalog");
     _resetScenarioCatalogForTests();
     const catalog = useScenarioCatalog();
     await vi.waitFor(() => {
@@ -96,7 +96,7 @@ describe("useScenarioCatalog", () => {
     });
 
     const { useScenarioCatalog, _resetScenarioCatalogForTests } =
-      await import("../useScenarioCatalog");
+      await import("@/entities/scenario/model/useScenarioCatalog");
     _resetScenarioCatalogForTests();
     const catalog = useScenarioCatalog();
     await vi.waitFor(() => {
@@ -111,7 +111,7 @@ describe("useScenarioCatalog", () => {
     api.listScenarios.mockRejectedValue(new Error("network down"));
 
     const { useScenarioCatalog, _resetScenarioCatalogForTests } =
-      await import("../useScenarioCatalog");
+      await import("@/entities/scenario/model/useScenarioCatalog");
     _resetScenarioCatalogForTests();
     const catalog = useScenarioCatalog();
     await vi.waitFor(() => {

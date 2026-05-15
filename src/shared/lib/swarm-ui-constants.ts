@@ -1,5 +1,8 @@
 /** Browser/UI-only constants. */
 
+/** Sentinel scenario id meaning "user-defined custom pipeline" (no preset). */
+export const CUSTOM_SCENARIO_ID = "__custom__";
+
 export const LS_SETTINGS = "swarm_ui_settings_v1";
 export const LS_PROJECTS = "swarm_ui_projects_v1";
 export const LS_HISTORY = "swarm_ui_history_v1";

@@ -45,7 +45,7 @@ describe("ScenarioToolbar", () => {
     });
     api.getScenario.mockResolvedValue(sampleScenarios[0]);
     const { _resetScenarioCatalogForTests } =
-      await import("@/features/scenario-picker/useScenarioCatalog");
+      await import("@/entities/scenario/model/useScenarioCatalog");
     _resetScenarioCatalogForTests();
     const { _resetScenarioGraphIntegrationForTests } =
       await import("../useScenarioGraphIntegration");

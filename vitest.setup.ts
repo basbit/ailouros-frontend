@@ -51,3 +51,10 @@ function installStorage(name: "localStorage" | "sessionStorage"): void {
 
 installStorage("localStorage");
 installStorage("sessionStorage");
+
+import { beforeEach } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+
+beforeEach(() => {
+  setActivePinia(createPinia());
+});

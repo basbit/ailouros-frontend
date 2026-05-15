@@ -19,7 +19,8 @@ import {
   FALLBACK_REMOTE_API_BASE_PRESETS,
   FALLBACK_REMOTE_PROFILE_PROVIDER_OPTS,
 } from "@/shared/lib/swarm-policy-fallbacks";
-import { apiUrl, initApiBase } from "@/shared/api/base";
+import { initApiBase } from "@/shared/api/base";
+import { httpGet } from "@/shared/api/http";
 
 const LS_SWARM_DEFAULTS = "swarm_ui_defaults_v1";
 
@@ -114,10 +115,11 @@ let _fetchPromise: Promise<void> | null = null;
 
 async function _fetchDefaults(): Promise<void> {
   await initApiBase();
-  const url = apiUrl("/v1/defaults");
-  const resp = await fetch(url, { cache: "no-store" });
-  if (!resp.ok) throw new Error(`GET /v1/defaults returned ${resp.status}`);
-  const data = (await resp.json()) as SwarmDefaults;
+  // Cache-Control: no-cache to force revalidation (parity with previous
+  // `cache: "no-store"` on the raw fetch call).
+  const data = await httpGet<SwarmDefaults>("/v1/defaults", {
+    headers: { "Cache-Control": "no-cache" },
+  });
   if (
     !data ||
     !Array.isArray(data.roles) ||
