@@ -1,1 +1,1 @@
-export type { RoleSnapshot, RoleId } from "./model/types";
+export type { RoleSnapshot } from "./model/types";

@@ -1,6 +1,6 @@
 <template>
-  <details class="section section-agent-models">
-    <summary>
+  <component :is="flat ? 'section' : 'details'" class="section section-agent-models">
+    <summary v-if="!flat">
       {{ t("agentRoles.summary") }}
       <span
         class="scope-badge scope-badge-project"
@@ -9,7 +9,7 @@
       >
     </summary>
     <div class="section-body section-body-agent-models">
-      <div class="hint" style="margin-bottom: 10px">
+      <div v-if="!flat" class="hint" style="margin-bottom: 10px">
         {{ t("agentRoles.hint") }}
       </div>
       <div class="agent-models-card">
@@ -56,6 +56,7 @@
             @model-custom-input="onModelCustomInput"
             @prompt-sel-change="onPromptSelChange"
             @prompt-custom-input="onPromptCustomInput"
+            @prompt-text-input="onPromptTextInput"
             @skill-ids-input="onSkillIdsInput"
           >
             <template #extras>
@@ -96,6 +97,7 @@
           @model-custom-input="onModelCustomInput"
           @prompt-sel-change="onPromptSelChange"
           @prompt-custom-input="onPromptCustomInput"
+          @prompt-text-input="onPromptTextInput"
           @skill-ids-input="onSkillIdsInput"
         >
           <template #extras>
@@ -123,7 +125,7 @@
         <slot name="custom-roles" />
       </div>
     </div>
-  </details>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -134,6 +136,7 @@ import MediaAudioFields from "@/shared/components/MediaAudioFields.vue";
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
 import { splitAgentModelRowsAroundDevSlot } from "@/shared/lib/swarm-constants";
+import type { AgentRoleEmitMap } from "./agent-role-events";
 
 interface MediaForm {
   media_enabled: boolean;
@@ -149,25 +152,30 @@ interface MediaForm {
   media_license_policy: string;
 }
 
-const props = defineProps<{
-  roleStates: Record<string, RoleState>;
-  profileOptions: { value: string; label: string }[];
-  workspaceRoot?: string;
-  catalogIds?: { id: string; title: string }[];
-  onAutoAssign?: () => Promise<void>;
-  mediaForm: MediaForm;
-}>();
+const props = withDefaults(
+  defineProps<{
+    roleStates: Record<string, RoleState>;
+    profileOptions: { value: string; label: string }[];
+    workspaceRoot?: string;
+    catalogIds?: { id: string; title: string }[];
+    onAutoAssign?: () => Promise<void>;
+    mediaForm: MediaForm;
+    flat?: boolean;
+  }>(),
+  {
+    workspaceRoot: "",
+    catalogIds: () => [],
+    onAutoAssign: undefined,
+    flat: false,
+  },
+);
+const flat = computed(() => props.flat);
 
-const emit = defineEmits<{
-  envChange: [roleId: string, env: string];
-  profileChange: [roleId: string, profile: string];
-  modelSelChange: [roleId: string, val: string];
-  modelCustomInput: [roleId: string, val: string];
-  promptSelChange: [roleId: string, val: string];
-  promptCustomInput: [roleId: string, val: string];
-  skillIdsInput: [roleId: string, val: string];
-  mediaUpdate: [field: string, value: string];
-}>();
+const emit = defineEmits<
+  AgentRoleEmitMap & {
+    mediaUpdate: [field: string, value: string];
+  }
+>();
 
 const mediaImageForm = computed(() => ({
   media_enabled: props.mediaForm.media_enabled,
@@ -212,6 +220,9 @@ function onPromptSelChange(roleId: string, v: string): void {
 }
 function onPromptCustomInput(roleId: string, v: string): void {
   emit("promptCustomInput", roleId, v);
+}
+function onPromptTextInput(roleId: string, v: string): void {
+  emit("promptTextInput", roleId, v);
 }
 function onSkillIdsInput(roleId: string, v: string): void {
   emit("skillIdsInput", roleId, v);

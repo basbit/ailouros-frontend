@@ -22,10 +22,10 @@ import {
   type UpdateStatusDto,
 } from "@/shared/api/endpoints/system";
 import { useI18n } from "@/shared/lib/i18n";
+import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 const { t } = useI18n();
-
-const LS_KEY = "swarm.update-banner-dismissed-ref";
 const status = ref<UpdateStatusDto>({
   checked: false,
   unknown: true,
@@ -35,7 +35,9 @@ const status = ref<UpdateStatusDto>({
   remote_ref: "",
   branch: "",
 });
-const dismissedRef = ref<string>(localStorage.getItem(LS_KEY) ?? "");
+const dismissedRef = ref<string>(
+  readRawString(STORAGE_KEYS.updateBannerDismissedRef.key) ?? "",
+);
 
 const visible = computed(() => {
   const s = status.value;
@@ -47,19 +49,17 @@ const visible = computed(() => {
 async function fetchStatus(): Promise<void> {
   try {
     status.value = await getUpdateAvailable();
-  } catch (e) {
+  } catch {
     // Best-effort; endpoint is optional. No banner on network error.
-    console.debug("[update-banner] fetch failed:", e);
   }
 }
 
 function dismiss(): void {
   dismissedRef.value = status.value.remote_ref;
-  localStorage.setItem(LS_KEY, status.value.remote_ref);
+  writeRawString(STORAGE_KEYS.updateBannerDismissedRef.key, status.value.remote_ref);
 }
 
 onMounted(() => {
-  // Wait a tick so backend lifespan startup has time to kick off the check.
   setTimeout(() => {
     void fetchStatus();
   }, 1500);

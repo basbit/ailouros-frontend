@@ -1,11 +1,10 @@
 import { ref, reactive } from "vue";
-import type { CustomRoleSnap } from "@/shared/store/projects";
+import type { CustomRoleSnap } from "@/entities/project";
 import { defaultEnvironmentForRole } from "@/shared/lib/use-swarm-defaults";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 
 export type { CustomRoleSnap };
 
-/** Per-role UI state for model selection (not persisted). */
 export interface CustomRoleUiState {
   modelChoices: [string, string][];
   modelFetchError: string | null;
@@ -64,14 +63,16 @@ export function useCustomRoles(onChangeCb: () => void) {
   }
 
   function update(idx: number, field: keyof CustomRoleSnap, value: string): void {
-    const r = customRoles.value[idx];
-    if (r) (r as Record<string, string>)[field] = value;
+    const customRole = customRoles.value[idx];
+    if (customRole) (customRole as Record<string, string>)[field] = value;
     if (field === "environment") void fetchModels(idx);
     onChangeCb();
   }
 
   function applySnap(list: CustomRoleSnap[]): void {
-    customRoles.value = Array.isArray(list) ? list.map((r) => ({ ...r })) : [];
+    customRoles.value = Array.isArray(list)
+      ? list.map((customRole) => ({ ...customRole }))
+      : [];
     uiStates.splice(0, uiStates.length);
     for (let i = 0; i < customRoles.value.length; i++) {
       _ensureUiState(i);
@@ -81,15 +82,15 @@ export function useCustomRoles(onChangeCb: () => void) {
 
   function collectSnap(): CustomRoleSnap[] {
     return customRoles.value
-      .map((r) => ({
-        ...r,
-        id: r.id
+      .map((customRole) => ({
+        ...customRole,
+        id: customRole.id
           .trim()
           .toLowerCase()
           .replace(/[^a-z0-9_]/g, "_")
           .replace(/^_+|_+$/, ""),
       }))
-      .filter((r) => r.id);
+      .filter((customRole) => customRole.id);
   }
 
   return {

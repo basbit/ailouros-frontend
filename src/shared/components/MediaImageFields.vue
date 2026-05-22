@@ -155,8 +155,9 @@
 
 <script setup lang="ts">
 import { useI18n } from "@/shared/lib/i18n";
+import "./media-fields.css";
 
-export interface MediaImageFieldsForm {
+interface MediaImageFieldsForm {
   media_enabled: boolean;
   media_image_provider: string;
   media_image_model: string;
@@ -174,23 +175,3 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 </script>
-
-<style scoped>
-.media-fields {
-  margin-top: 6px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border, #4b4138);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.media-fields fieldset {
-  margin: 0;
-  padding: 6px 8px;
-  border: 1px solid var(--border, #4b4138);
-  border-radius: var(--radius, 6px);
-}
-.media-fields fieldset[disabled] {
-  opacity: 0.55;
-}
-</style>

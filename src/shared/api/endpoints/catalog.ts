@@ -6,6 +6,12 @@ export interface PromptChoice {
   source: "overrides" | "upstream";
 }
 
+export interface PromptBody {
+  path: string;
+  source: "overrides" | "upstream";
+  body: string;
+}
+
 export interface SkillChoice {
   id: string;
   title: string;
@@ -15,6 +21,18 @@ export interface SkillChoice {
 export async function listPrompts(): Promise<PromptChoice[]> {
   const res = await fetchJson<{ prompts?: PromptChoice[] }>(`/v1/prompts/list`);
   return Array.isArray(res?.prompts) ? res.prompts : [];
+}
+
+export async function getPromptBody(path: string): Promise<PromptBody> {
+  return fetchJson<PromptBody>(`/v1/prompts/get?path=${encodeURIComponent(path)}`);
+}
+
+export async function savePromptOverride(path: string, body: string): Promise<void> {
+  await fetchJson<{ path: string; source: string; bytes: number }>(`/v1/prompts/save`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, body }),
+  });
 }
 
 export async function listSkills(workspaceRoot: string): Promise<SkillChoice[]> {

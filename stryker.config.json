@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "checkers": [],
+  "reporters": ["html", "progress", "clear-text"],
+  "htmlReporter": {
+    "fileName": "../var/artifacts/stryker/report.html"
+  },
+  "mutate": [
+    "src/features/codegen-feedback/useCodegenFeedback.ts",
+    "src/features/conversation-history/useConversationHistory.ts",
+    "src/features/local-models/useActiveModel.ts",
+    "src/features/local-models/useLocalModels.ts",
+    "src/features/onboarding-desktop/useFirstRun.ts",
+    "src/features/plugins/useInstalledPlugins.ts",
+    "src/features/plugins/usePluginSearch.ts",
+    "src/features/plugins/useRegistries.ts",
+    "src/features/scenario-picker/useScenarioCatalog.ts",
+    "src/features/scenario-picker/useScenarioEstimate.ts",
+    "src/features/scenario-picker/useScenarioPreview.ts",
+    "src/features/scenario-picker/useScenarioRunReadiness.ts",
+    "src/features/spec-editor/useSpecEditor.ts",
+    "src/features/spec-editor/useSpecValidation.ts",
+    "src/features/system-health/useSystemHealth.ts",
+    "src/shared/lib/agent-config.ts",
+    "src/shared/lib/chat-stream-events.ts",
+    "src/shared/lib/desktop-bridge.ts",
+    "src/shared/lib/hydrate-task.ts",
+    "src/shared/lib/local-llm-detect.ts",
+    "src/shared/lib/slash-commands.ts",
+    "src/shared/lib/step-order.ts",
+    "src/shared/lib/step-taxonomy.ts",
+    "src/shared/lib/task-status.ts",
+    "src/shared/lib/useHeartbeatCollapser.ts"
+  ],
+  "thresholds": {
+    "high": 95,
+    "low": 85,
+    "break": 80
+  },
+  "concurrency": 4,
+  "timeoutMS": 30000,
+  "ignoreStatic": true,
+  "incremental": true,
+  "incrementalFile": "../var/artifacts/stryker/incremental.json"
+}

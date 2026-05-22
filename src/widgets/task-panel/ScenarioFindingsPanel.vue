@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import { extractJsonBlocks } from "@/shared/lib/extract-json-blocks";
 
 type Severity = "critical" | "high" | "medium" | "low";
 
@@ -55,22 +56,6 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"];
-
-function extractJsonBlocks(text: string): unknown[] {
-  if (!text) return [];
-  const fence = /```json\s*([\s\S]*?)```/gi;
-  const blocks: unknown[] = [];
-  let match: RegExpExecArray | null = fence.exec(text);
-  while (match !== null) {
-    try {
-      blocks.push(JSON.parse(match[1].trim()));
-    } catch {
-      /* ignore */
-    }
-    match = fence.exec(text);
-  }
-  return blocks;
-}
 
 function normalizeSeverity(value: unknown): Severity {
   const lower = typeof value === "string" ? value.toLowerCase().trim() : "";

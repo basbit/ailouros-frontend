@@ -10,20 +10,11 @@ export interface UseConversationHistoryState {
   loading: Ref<boolean>;
   error: Ref<string | null>;
   sharedHistoryEnabled: Ref<boolean | null>;
-  /** Endpoint reported 404 — backend route not yet wired in. */
   notImplemented: Ref<boolean>;
   load: (taskId: string) => Promise<void>;
   reset: () => void;
 }
 
-/**
- * Loads the shared conversation history for a task.
- *
- * The backend endpoint ``GET /v1/conversation/{task_id}`` is not built yet.
- * When it returns 404 the composable degrades gracefully: ``messages`` stays
- * empty, ``notImplemented`` flips to true, and ``error`` stays ``null``.
- * Other failures populate ``error``.
- */
 export function useConversationHistory(): UseConversationHistoryState {
   const messages = ref<ConversationMessage[]>([]);
   const loading = ref(false);

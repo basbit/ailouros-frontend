@@ -1,8 +1,4 @@
-// Lucide SVG path data (MIT) — see https://lucide.dev
-// Kept inline to avoid pulling a 300KB icon package for ~15 glyphs.
-//
-// Each entry is the inner markup of a 24x24 lucide-style icon.
-// Usage: render inside <svg viewBox="0 0 24 24" ...>.
+// Lucide SVG path data (MIT) — see https://lucide.dev — inlined to avoid 300KB icon package.
 
 export type AgentIconKey =
   | "clipboard-list"

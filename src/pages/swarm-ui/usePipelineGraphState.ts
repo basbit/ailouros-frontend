@@ -1,13 +1,11 @@
 import { computed } from "vue";
-import type { useSettings } from "@/widgets/settings/useSettings";
+import type { AppSettings } from "@/entities/app-settings/contract";
 import { useScenarioCatalog } from "@/features/scenario-picker";
 import type { useUiStore } from "@/shared/store/ui";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
 
-type SettingsRef = ReturnType<typeof useSettings>;
+type SettingsRef = AppSettings;
 type UiRef = ReturnType<typeof useUiStore>;
-
-export { CUSTOM_SCENARIO_ID };
 
 const PIPELINE_STEP_ID_ALIASES: Record<string, string> = {
   arch: "architect",
@@ -62,10 +60,10 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
   const runPipelineSteps = computed(() => {
     const fromPlan = ui.taskPipelinePlan?.pipeline_steps ?? [];
     if (fromPlan.length) return fromPlan;
-    const tid = (ui.taskId ?? "").trim();
-    if (!tid) return [];
+    const taskId = (ui.taskId ?? "").trim();
+    if (!taskId) return [];
     const historyEntry = ui.historyList.find(
-      (entry) => (entry.taskId ?? "").trim() === tid,
+      (entry) => (entry.taskId ?? "").trim() === taskId,
     );
     return historyEntry?.pipeline_steps ?? [];
   });
@@ -87,8 +85,8 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
   });
 
   const isViewingTaskRun = computed(() => {
-    const tid = (ui.taskId ?? "").trim();
-    return !!tid && runPipelineSteps.value.length > 0;
+    const taskId = (ui.taskId ?? "").trim();
+    return !!taskId && runPipelineSteps.value.length > 0;
   });
 
   const effectivePipelineSteps = computed(() => {
@@ -127,60 +125,69 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
     ui.blockedStep ? normalizePipelineStepId(ui.blockedStep) : null,
   );
 
-  const completedStepsFromHistory = computed((): string[] => {
-    const steps = effectivePipelineSteps.value;
-    const active = activeStepForGraph.value || null;
-    const failed = failedStepForGraph.value ?? null;
-    if (!steps.length) return [];
-    if (ui.taskStatus === "completed" && graphShowsLastRunState.value)
-      return [...steps];
-
-    const completed = new Set<string>();
-    const visibleStepIds = new Set(
-      steps.map((stepId) => normalizePipelineStepId(stepId)),
-    );
-
-    if (failed) {
-      const idx = normalizedStepIndex(steps, failed);
-      if (idx > 0) {
-        steps
-          .slice(0, idx)
-          .forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
-      }
+  function addPredecessorsAsCompleted(
+    completed: Set<string>,
+    steps: string[],
+    anchorStepId: string | null,
+  ): void {
+    if (!anchorStepId) return;
+    const anchorIndex = normalizedStepIndex(steps, anchorStepId);
+    if (anchorIndex <= 0) return;
+    for (const stepId of steps.slice(0, anchorIndex)) {
+      completed.add(normalizePipelineStepId(stepId));
     }
-    if (active) {
-      const idx = normalizedStepIndex(steps, active);
-      if (idx > 0) {
-        steps
-          .slice(0, idx)
-          .forEach((stepId) => completed.add(normalizePipelineStepId(stepId)));
-      }
-    }
+  }
 
+  function addHistoryDerivedCompleted(
+    completed: Set<string>,
+    visibleStepIds: Set<string>,
+    activeStepId: string | null,
+    failedStepId: string | null,
+  ): void {
     for (const event of ui.taskHistory) {
       const stepId = normalizePipelineStepId(event.agent);
       if (!stepId || !visibleStepIds.has(stepId)) continue;
-      if (stepId === active || stepId === failed) continue;
+      if (stepId === activeStepId || stepId === failedStepId) continue;
       if (isNonTerminalHistoryMessage(stepId, event.message)) continue;
       completed.add(stepId);
     }
+  }
 
-    const snapshotLike = [
-      ui.taskPipelinePlan as Record<string, unknown> | null,
-      (ui.taskPipelinePlan?.partial_state as Record<string, unknown> | undefined) ??
-        null,
-    ];
-    for (const snapshot of snapshotLike) {
+  function addSnapshotDerivedCompleted(
+    completed: Set<string>,
+    visibleStepIds: Set<string>,
+  ): void {
+    const plan = ui.taskPipelinePlan;
+    const partialState =
+      (plan?.partial_state as Record<string, unknown> | undefined) ?? null;
+    const snapshots = [plan as Record<string, unknown> | null, partialState];
+    for (const snapshot of snapshots) {
       if (!snapshot) continue;
       for (const stepId of visibleStepIds) {
-        const outputKey = `${stepId}_output`;
-        const value = snapshot[outputKey];
+        const value = snapshot[`${stepId}_output`];
         if (typeof value === "string" && value.trim()) {
           completed.add(stepId);
         }
       }
     }
+  }
 
+  const completedStepsFromHistory = computed((): string[] => {
+    const steps = effectivePipelineSteps.value;
+    if (!steps.length) return [];
+    if (ui.taskStatus === "completed" && graphShowsLastRunState.value) {
+      return [...steps];
+    }
+    const activeStepId = activeStepForGraph.value || null;
+    const failedStepId = failedStepForGraph.value ?? null;
+    const visibleStepIds = new Set(
+      steps.map((stepId) => normalizePipelineStepId(stepId)),
+    );
+    const completed = new Set<string>();
+    addPredecessorsAsCompleted(completed, steps, failedStepId);
+    addPredecessorsAsCompleted(completed, steps, activeStepId);
+    addHistoryDerivedCompleted(completed, visibleStepIds, activeStepId, failedStepId);
+    addSnapshotDerivedCompleted(completed, visibleStepIds);
     return steps.filter((stepId) => completed.has(normalizePipelineStepId(stepId)));
   });
 

@@ -1,23 +1,32 @@
 <template>
   <section class="conv-history">
     <header class="conv-history__head">
-      <h3 class="conv-history__title">Conversation history</h3>
+      <h3 class="conv-history__title">
+        {{ t("history.detail.conversation.title") }}
+      </h3>
       <span
         :class="[
           'conv-history__flag',
           sharedEnabledKnown ? (sharedEnabled ? 'on' : 'off') : 'unknown',
         ]"
-        :title="sharedEnabledTooltip"
+        :title="t('history.detail.conversation.sharedHistoryTooltip')"
       >
         {{ sharedEnabledLabel }}
       </span>
     </header>
-    <div v-if="loading" class="conv-history__hint">Loading…</div>
+    <div v-if="loading" class="conv-history__hint">
+      {{ t("history.detail.conversation.loading") }}
+    </div>
     <div v-else-if="notImplemented" class="conv-history__hint">
-      Conversation API not available yet.
+      {{ t("history.detail.conversation.apiUnavailable") }}
     </div>
     <div v-else-if="error" class="conv-history__error">{{ error }}</div>
-    <div v-else-if="!messages.length" class="conv-history__hint">No messages yet.</div>
+    <div v-else-if="sharedEnabledKnown && !sharedEnabled" class="conv-history__hint">
+      {{ t("history.detail.conversation.sharedHistoryDisabled") }}
+    </div>
+    <div v-else-if="!messages.length" class="conv-history__hint">
+      {{ t("history.detail.conversation.empty") }}
+    </div>
     <ol v-else class="conv-history__list">
       <li
         v-for="msg in messages"
@@ -37,6 +46,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ConversationMessage } from "./conversation-types";
+import { useI18n } from "@/shared/lib/i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -44,7 +54,6 @@ const props = withDefaults(
     loading?: boolean;
     error?: string | null;
     notImplemented?: boolean;
-    /** ``null`` → backend has not reported a value. */
     sharedHistoryEnabled?: boolean | null;
   }>(),
   {
@@ -55,17 +64,19 @@ const props = withDefaults(
   },
 );
 
+const { t } = useI18n();
+
 const sharedEnabledKnown = computed(() => props.sharedHistoryEnabled !== null);
 const sharedEnabled = computed(() => props.sharedHistoryEnabled === true);
 
 const sharedEnabledLabel = computed(() => {
-  if (!sharedEnabledKnown.value) return "shared history: ?";
-  return sharedEnabled.value ? "shared history: on" : "shared history: off";
+  if (!sharedEnabledKnown.value) {
+    return t("history.detail.conversation.sharedHistoryUnknown");
+  }
+  return sharedEnabled.value
+    ? t("history.detail.conversation.sharedHistoryOn")
+    : t("history.detail.conversation.sharedHistoryOff");
 });
-
-const sharedEnabledTooltip = computed(
-  () => "Reflects SWARM_SHARED_HISTORY_ENABLED on the backend. Read-only.",
-);
 
 function roleClass(role: string): string {
   return role.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "unknown";

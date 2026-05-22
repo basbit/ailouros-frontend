@@ -36,37 +36,25 @@
       </div>
 
       <div v-if="favoriteScenarios.length" class="scenario-picker__section">
-        <div class="scenario-picker__section-label">
-          {{ t("scenarios.favorites") }}
-        </div>
+        <div class="scenario-picker__section-label">{{ t("scenarios.favorites") }}</div>
         <div class="scenario-picker__list">
-          <button
+          <ScenarioCard
             v-for="item in favoriteScenarios"
             :key="`fav-${item.id}`"
-            type="button"
-            class="scenario-picker__card"
-            :class="{ 'is-selected': item.id === props.modelValue }"
+            :scenario="item"
+            :title="scenarioTitle(item, t)"
+            :description="shortScenarioDescription(item, t)"
+            :selected="item.id === props.modelValue"
+            :favorite="true"
             :disabled="props.disabled"
-            @click="onPick(item)"
-          >
-            <div class="scenario-picker__card-row">
-              <span class="scenario-picker__card-title">
-                {{ scenarioTitle(item, t) }}
-              </span>
-              <button
-                type="button"
-                class="scenario-picker__star is-active"
-                :title="t('scenarios.unfavorite')"
-                :disabled="props.disabled"
-                @click="onToggleFavorite(item.id, $event)"
-              >
-                ★
-              </button>
-            </div>
-            <p class="scenario-picker__card-desc">
-              {{ shortScenarioDescription(item, t) }}
-            </p>
-          </button>
+            :selected-label="t('scenarios.selected')"
+            :favorite-label="t('scenarios.unfavorite')"
+            :write-on-label="t('scenarios.card.workspaceWriteOn')"
+            :write-off-label="t('scenarios.card.workspaceWriteOff')"
+            :steps-label="t('scenarios.card.steps', { n: item.pipeline_steps.length })"
+            @pick="onPick(item)"
+            @toggle-favorite="emit('toggle-favorite', item.id)"
+          />
         </div>
       </div>
 
@@ -84,65 +72,25 @@
           </span>
         </button>
 
-        <button
+        <ScenarioCard
           v-for="item in visibleScenarios"
           :key="item.id"
-          type="button"
-          class="scenario-picker__card"
-          :class="{ 'is-selected': item.id === props.modelValue }"
+          :scenario="item"
+          :title="scenarioTitle(item, t)"
+          :description="shortScenarioDescription(item, t)"
+          :selected="item.id === props.modelValue"
+          :favorite="isFavorite(item.id)"
           :disabled="props.disabled"
-          @click="onPick(item)"
-        >
-          <div class="scenario-picker__card-row">
-            <span class="scenario-picker__card-title">
-              {{ scenarioTitle(item, t) }}
-            </span>
-            <button
-              type="button"
-              class="scenario-picker__star"
-              :class="{ 'is-active': isFavorite(item.id) }"
-              :title="
-                isFavorite(item.id)
-                  ? t('scenarios.unfavorite')
-                  : t('scenarios.favorite')
-              "
-              :disabled="props.disabled"
-              @click="onToggleFavorite(item.id, $event)"
-            >
-              {{ isFavorite(item.id) ? "★" : "☆" }}
-            </button>
-            <span v-if="item.id === props.modelValue" class="scenario-picker__pill">
-              {{ t("scenarios.selected") }}
-            </span>
-          </div>
-          <p class="scenario-picker__card-desc">
-            {{ shortScenarioDescription(item, t) }}
-          </p>
-          <div class="scenario-picker__card-meta">
-            <span
-              class="scenario-picker__badge"
-              :class="
-                item.workspace_write_default
-                  ? 'scenario-picker__badge--write'
-                  : 'scenario-picker__badge--read'
-              "
-            >
-              {{
-                item.workspace_write_default
-                  ? t("scenarios.card.workspaceWriteOn")
-                  : t("scenarios.card.workspaceWriteOff")
-              }}
-            </span>
-            <span class="scenario-picker__badge">
-              {{ t("scenarios.card.steps", { n: item.pipeline_steps.length }) }}
-            </span>
-          </div>
-          <div v-if="item.tags.length" class="scenario-picker__tags">
-            <span v-for="tag in item.tags" :key="tag" class="scenario-picker__tag">
-              {{ tag }}
-            </span>
-          </div>
-        </button>
+          :selected-label="t('scenarios.selected')"
+          :favorite-label="
+            isFavorite(item.id) ? t('scenarios.unfavorite') : t('scenarios.favorite')
+          "
+          :write-on-label="t('scenarios.card.workspaceWriteOn')"
+          :write-off-label="t('scenarios.card.workspaceWriteOff')"
+          :steps-label="t('scenarios.card.steps', { n: item.pipeline_steps.length })"
+          @pick="onPick(item)"
+          @toggle-favorite="emit('toggle-favorite', item.id)"
+        />
       </div>
 
       <ScenarioEstimatePanel
@@ -161,21 +109,32 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import type { ScenarioCategory } from "@/shared/model/scenario-types";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioTitle, shortScenarioDescription } from "./scenarioDisplay";
 import { useScenarioEstimate } from "./useScenarioEstimate";
+import { useScenarioPickerTabs } from "./useScenarioPickerTabs";
+import { useScenarioPickerCards } from "./useScenarioPickerCards";
+import ScenarioCard from "./ScenarioCard.vue";
 import ScenarioEstimatePanel from "./ScenarioEstimatePanel.vue";
-import { useScenarioCatalog } from "@/entities/scenario/model/useScenarioCatalog";
-import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
+import { useScenarioCatalog } from "@/entities/scenario";
+import type { ScenarioSummary } from "@/shared/model/scenario-types";
+import type { CustomScenarioSnap } from "@/shared/model/project-types";
 
 const props = withDefaults(
   defineProps<{
     modelValue: string | null;
     disabled?: boolean;
     favorites?: string[];
+    customScenarios?: CustomScenarioSnap[];
     skipGates?: string[];
   }>(),
-  { disabled: false, favorites: () => [], skipGates: () => [] },
+  {
+    disabled: false,
+    favorites: () => [],
+    customScenarios: () => [],
+    skipGates: () => [],
+  },
 );
 
 const emit = defineEmits<{
@@ -185,6 +144,8 @@ const emit = defineEmits<{
   "toggle-favorite": [scenarioId: string];
 }>();
 
+const { t } = useI18n();
+const catalog = useScenarioCatalog();
 const estimate = useScenarioEstimate();
 
 watch(
@@ -199,73 +160,25 @@ function onSkipGatesUpdate(next: string[]): void {
   emit("update:skipGates", next);
 }
 
-const { t } = useI18n();
-const catalog = useScenarioCatalog();
-
-const CATEGORY_ORDER: ScenarioCategory[] = [
-  "development",
-  "research",
-  "code_quality",
-  "content",
-  "data",
-  "product",
-  "support",
-  "visual_qa",
-  "seo",
-];
-
-const categoryTabs = computed(() => {
-  const groups = catalog.byCategory.value;
-  return CATEGORY_ORDER.filter((category) => (groups[category] ?? []).length > 0).map(
-    (category) => ({
-      id: category,
-      label: t(`scenarios.tab.${category}`),
-      count: groups[category].length,
-    }),
-  );
-});
-
 const activeTab = ref<ScenarioCategory>("development");
 
-watch(
-  categoryTabs,
-  (tabs) => {
-    if (!tabs.length) return;
-    if (!tabs.some((tab) => tab.id === activeTab.value)) {
-      activeTab.value = tabs[0].id;
-    }
-  },
-  { immediate: true },
-);
+const { customSummaries, favoriteScenarios, visibleScenarios, isFavorite } =
+  useScenarioPickerCards({
+    customScenarios: computed(() => props.customScenarios),
+    favorites: computed(() => props.favorites),
+    catalogScenarios: catalog.scenarios,
+    byCategory: catalog.byCategory,
+    activeTab,
+  });
 
-watch(
-  () => props.modelValue,
-  (id) => {
-    if (!id) return;
-    const found = catalog.scenarios.value.find((scenario) => scenario.id === id);
-    if (found) activeTab.value = found.category;
-  },
-);
-
-const favoriteSet = computed(() => new Set(props.favorites));
-
-const favoriteScenarios = computed(() =>
-  catalog.scenarios.value.filter((scenario) => favoriteSet.value.has(scenario.id)),
-);
-
-const visibleScenarios = computed(() => {
-  const groups = catalog.byCategory.value;
-  return groups[activeTab.value] ?? [];
+const { categoryTabs } = useScenarioPickerTabs({
+  t,
+  byCategory: catalog.byCategory,
+  customSummaries,
+  modelValue: computed(() => props.modelValue),
+  scenarios: catalog.scenarios,
+  activeTab,
 });
-
-function isFavorite(id: string): boolean {
-  return favoriteSet.value.has(id);
-}
-
-function onToggleFavorite(id: string, event: Event): void {
-  event.stopPropagation();
-  emit("toggle-favorite", id);
-}
 
 function onPick(item: ScenarioSummary): void {
   emit("update:modelValue", item.id);
@@ -376,11 +289,11 @@ function onClear(): void {
   text-align: left;
   color: var(--text, #f5f0e7);
 }
-.scenario-picker__card:hover {
+.scenario-picker__card:hover,
+.scenario-picker__card.is-selected {
   border-color: var(--accent, #3b5bdb);
 }
 .scenario-picker__card.is-selected {
-  border-color: var(--accent, #3b5bdb);
   box-shadow: 0 0 0 1px var(--accent, #3b5bdb) inset;
 }
 .scenario-picker__card--none {
@@ -389,41 +302,9 @@ function onClear(): void {
   align-items: flex-start;
   font-style: italic;
 }
-.scenario-picker__card-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
 .scenario-picker__card-title {
   font-size: 13px;
   font-weight: 600;
-}
-.scenario-picker__card-desc {
-  margin: 0;
-  font-size: 11px;
-  color: var(--text2, #a8b0c4);
-  line-height: 1.4;
-}
-.scenario-picker__card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.scenario-picker__badge {
-  font-size: 10px;
-  padding: 2px 6px;
-  background: color-mix(in srgb, var(--text3, #6b7280) 25%, transparent);
-  border-radius: 4px;
-  color: var(--text2, #a8b0c4);
-}
-.scenario-picker__badge--write {
-  background: color-mix(in srgb, #d7563f 25%, transparent);
-  color: var(--text, #f5f0e7);
-}
-.scenario-picker__badge--read {
-  background: color-mix(in srgb, #3b5bdb 25%, transparent);
-  color: var(--text, #f5f0e7);
 }
 .scenario-picker__pill {
   font-size: 10px;
@@ -431,18 +312,6 @@ function onClear(): void {
   background: var(--accent, #3b5bdb);
   color: #fff;
   border-radius: 999px;
-}
-.scenario-picker__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-.scenario-picker__tag {
-  font-size: 10px;
-  padding: 1px 5px;
-  border: 1px solid var(--border, #2a2f3e);
-  border-radius: 4px;
-  color: var(--text3, #6b7280);
 }
 .scenario-picker__section {
   display: flex;
@@ -455,18 +324,5 @@ function onClear(): void {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text2, #a8b0c4);
-}
-.scenario-picker__star {
-  background: transparent;
-  border: none;
-  color: var(--text3, #6b7280);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-}
-.scenario-picker__star:hover,
-.scenario-picker__star.is-active {
-  color: #f5b740;
 }
 </style>

@@ -1,4 +1,6 @@
 import { computed, ref } from "vue";
+import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
+import { typedPromptLibrary } from "@/shared/lib/storage-keys";
 
 export interface PromptEntry {
   id: string;
@@ -7,36 +9,24 @@ export interface PromptEntry {
   tags: string[];
 }
 
-const STORAGE_KEY_PREFIX = "ailouros.prompt-library.";
-
-function makeStorageKey(projectId: string): string {
-  return `${STORAGE_KEY_PREFIX}${projectId}`;
-}
-
-function safeParse(raw: string | null): PromptEntry[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (item): item is Record<string, unknown> =>
-          typeof item === "object" && item !== null,
-      )
-      .map((item) => ({
-        id: String(item.id ?? ""),
-        title: String(item.title ?? "").trim(),
-        body: String(item.body ?? "").trim(),
-        tags: Array.isArray(item.tags)
-          ? ((item.tags as unknown[]).filter(
-              (tag) => typeof tag === "string",
-            ) as string[])
-          : [],
-      }))
-      .filter((entry) => entry.id && entry.title && entry.body);
-  } catch {
-    return [];
-  }
+function normalizeEntries(raw: unknown): PromptEntry[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === "object" && item !== null,
+    )
+    .map((item) => ({
+      id: String(item.id ?? ""),
+      title: String(item.title ?? "").trim(),
+      body: String(item.body ?? "").trim(),
+      tags: Array.isArray(item.tags)
+        ? ((item.tags as unknown[]).filter(
+            (tag) => typeof tag === "string",
+          ) as string[])
+        : [],
+    }))
+    .filter((entry) => entry.id && entry.title && entry.body);
 }
 
 export function usePromptLibrary(currentProjectId: () => string) {
@@ -46,23 +36,12 @@ export function usePromptLibrary(currentProjectId: () => string) {
   const entries = computed<PromptEntry[]>(() => cached.value);
 
   function reload(): void {
-    if (typeof localStorage === "undefined") {
-      cached.value = [];
-      return;
-    }
-    cached.value = safeParse(localStorage.getItem(makeStorageKey(currentProjectId())));
+    const stored = readTyped(typedPromptLibrary<unknown[]>(currentProjectId(), []));
+    cached.value = normalizeEntries(stored);
   }
 
   function persist(): void {
-    if (typeof localStorage === "undefined") return;
-    try {
-      localStorage.setItem(
-        makeStorageKey(currentProjectId()),
-        JSON.stringify(cached.value),
-      );
-    } catch {
-      /* ignore quota */
-    }
+    writeTyped(typedPromptLibrary<PromptEntry[]>(currentProjectId(), []), cached.value);
   }
 
   function openPanel(): void {

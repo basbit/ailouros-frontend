@@ -14,15 +14,13 @@ const _skills = ref<SkillChoice[]>([]);
 let _skillsWorkspace = "";
 let _skillsLoading: Promise<void> | null = null;
 
-export async function ensurePromptsLoaded(force = false): Promise<void> {
+async function ensurePromptsLoaded(force = false): Promise<void> {
   if (_promptsLoaded && !force) return;
   if (_promptsLoading) return _promptsLoading;
   _promptsLoading = (async () => {
     try {
       _prompts.value = await listPrompts();
       _promptsLoaded = true;
-    } catch {
-      _prompts.value = [];
     } finally {
       _promptsLoading = null;
     }
@@ -48,9 +46,6 @@ export async function ensureSkillsLoaded(
   _skillsLoading = (async () => {
     try {
       _skills.value = await listSkills(ws);
-      _skillsWorkspace = ws;
-    } catch {
-      _skills.value = [];
       _skillsWorkspace = ws;
     } finally {
       _skillsLoading = null;

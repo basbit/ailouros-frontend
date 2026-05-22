@@ -1,25 +1,56 @@
 <template>
   <div class="agent-editor-page">
     <ScenarioToolbar />
-    <!-- Toolbar -->
     <div class="agent-editor-page__toolbar">
       <input
         v-model="pipeline.name"
         class="agent-editor-page__name-input"
         :placeholder="t('agentEditor.pipelineNamePlaceholder')"
       />
+      <select
+        v-if="savedPipelines.length"
+        class="agent-editor-page__pipeline-select"
+        :disabled="listLoading"
+        :value="pipeline.id ?? ''"
+        @change="
+          (event) => handleLoadPipeline((event.target as HTMLSelectElement).value)
+        "
+      >
+        <option value="">{{ t("agentEditor.loadPipelinePlaceholder") }}</option>
+        <option v-for="entry in savedPipelines" :key="entry.id" :value="entry.id">
+          {{ entry.name }}
+        </option>
+      </select>
       <div class="agent-editor-page__toolbar-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          :title="t('agentEditor.goToModels')"
+          @click="goToAgentModels"
+        >
+          {{ t("agentEditor.goToModels") }}
+        </button>
         <button class="btn-primary" :disabled="saving" @click="handleSave">
           {{ saving ? t("agentEditor.saving") : t("agentEditor.save") }}
         </button>
+        <button
+          v-if="pipeline.id"
+          class="btn-danger"
+          :disabled="listLoading"
+          @click="handleDeletePipeline(pipeline.id)"
+        >
+          {{ t("agentEditor.delete") }}
+        </button>
         <span v-if="saveError" class="agent-editor-page__save-error">{{
           saveError
+        }}</span>
+        <span v-if="listError" class="agent-editor-page__save-error">{{
+          listError
         }}</span>
       </div>
     </div>
 
     <div class="agent-editor-page__body">
-      <!-- Node palette -->
       <div class="agent-editor-page__palette">
         <div class="agent-editor-page__palette-title">
           {{ t("agentEditor.nodeTypes") }}
@@ -39,7 +70,6 @@
         </div>
       </div>
 
-      <!-- Canvas -->
       <div
         ref="canvasWrapRef"
         class="agent-editor-page__canvas"
@@ -106,7 +136,6 @@
         </VueFlow>
       </div>
 
-      <!-- Config panel -->
       <div v-if="selectedNode" class="agent-editor-page__config">
         <div class="agent-editor-page__config-title">
           {{ t("agentEditor.nodeConfig") }}
@@ -118,7 +147,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { VueFlow, Handle, Position } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { MiniMap } from "@vue-flow/minimap";
@@ -133,11 +163,20 @@ import ScenarioToolbar from "@/features/agent-editor/ScenarioToolbar.vue";
 import type { PipelineNode } from "@/features/agent-editor/types";
 
 const { t } = useI18n();
+const router = useRouter();
+
+function goToAgentModels(): void {
+  void router.push("/configure/models");
+}
+
 const {
   pipeline,
   selectedNode,
   saving,
   saveError,
+  savedPipelines,
+  listLoading,
+  listError,
   addNode,
   updateNode,
   removeNode,
@@ -145,7 +184,23 @@ const {
   removeEdge,
   selectNode,
   savePipeline,
+  refreshSavedPipelines,
+  loadPipelineById,
+  deletePipelineById,
 } = useEditorStore();
+
+onMounted(() => {
+  void refreshSavedPipelines();
+});
+
+async function handleLoadPipeline(pipelineId: string): Promise<void> {
+  await loadPipelineById(pipelineId);
+}
+
+async function handleDeletePipeline(pipelineId: string): Promise<void> {
+  if (!window.confirm(t("agentEditor.confirmDelete"))) return;
+  await deletePipelineById(pipelineId);
+}
 
 const canvasWrapRef = ref<HTMLDivElement | null>(null);
 
@@ -191,7 +246,6 @@ const availableNodeTypes = [
   },
 ];
 
-// Map pipeline nodes to Vue Flow format
 const vueFlowNodes = computed(() =>
   pipeline.value.nodes.map((n) => {
     const config = n.config as Record<string, unknown>;

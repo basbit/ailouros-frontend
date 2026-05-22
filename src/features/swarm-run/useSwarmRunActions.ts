@@ -1,7 +1,3 @@
-/**
- * useSwarmRunActions — start/stop/resume/retry actions for a swarm run.
- * Extracted from useSwarmRunController.ts (plan §20.1.4) — no behaviour change.
- */
 import { nextTick } from "vue";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
@@ -9,6 +5,9 @@ import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
 import { type RunSwarmChatSettings } from "@/shared/lib/agent-config";
 import { type ChatStreamEvent } from "@/shared/lib/chat-stream-events";
 import { runSwarmChat } from "@/shared/lib/run-swarm-chat";
+import { tryParseGoalCommand } from "@/shared/lib/slash-commands";
+import { httpPost } from "@/shared/api/http";
+import type { CreateGoalPayload } from "@/entities/goal/model/goal-types";
 import {
   submitHumanResume,
   confirmShell,
@@ -49,6 +48,11 @@ export function useSwarmRunActions({
   const { t } = useI18n();
 
   async function onStartRun(): Promise<void> {
+    const goalCommand = tryParseGoalCommand(settings.form.prompt ?? "");
+    if (goalCommand) {
+      await onCreateGoalFromCommand(goalCommand);
+      return;
+    }
     currentPipelineSteps.value = [];
     lastNotifiedError.value = null;
     runBootstrapPending.value = true;
@@ -61,28 +65,24 @@ export function useSwarmRunActions({
     ui.taskScenarioId = pickedScenarioId || null;
     ui.taskScenarioTitle = null;
     ui.taskScenarioCategory = null;
-    // Show Stop button immediately — before any SSE events arrive from the backend.
     ui.taskStatus = "running";
-    // Let Vue flush the reactive update and give the browser one paint before
-    // the request setup / JSON serialization work starts.
     await nextTick();
     await waitForUiPaint();
 
     try {
-      await runSwarmChat(
-        settings,
-        (tid) => {
+      await runSwarmChat(settings, {
+        onTaskId: (taskId) => {
           runBootstrapPending.value = false;
-          ui.taskId = tid;
-          ui.persistActiveTask(tid, projectsStore.currentId);
-          taskStore.setTaskId(tid);
+          ui.taskId = taskId;
+          ui.persistActiveTask(taskId, projectsStore.currentId);
+          taskStore.setTaskId(taskId);
           sendWsSubscribe();
           ui.pushHistory(
             {
               prompt: settings.form.prompt,
               agent_config: null,
               pipeline_steps: settings.pipelineState.collectStepIds(),
-              taskId: tid,
+              taskId: taskId,
               workspace_root: settings.form.workspace_root || null,
               project_context_file: settings.form.project_context_file || null,
               workspace_write: settings.form.workspace_write,
@@ -93,12 +93,9 @@ export function useSwarmRunActions({
           );
           lastPipelinePlanLoadKey.value = "";
         },
-        () => {
-          /* stream done */
-        },
+        onDone: () => undefined,
         sendWsSubscribe,
-        (event: ChatStreamEvent) => {
-          // M-14 — surface auto_approved pipeline events as toast notifications
+        onEvent: (event: ChatStreamEvent) => {
           if (event.kind === "auto_approved") {
             const step = event.step || "step";
             const rule = event.rule ? ` (${event.rule})` : "";
@@ -119,7 +116,7 @@ export function useSwarmRunActions({
             applyOrchestratorEvent(event);
           }
         },
-      );
+      });
     } catch (err: unknown) {
       runBootstrapPending.value = false;
       const msg = err instanceof Error ? err.message : String(err);
@@ -136,31 +133,81 @@ export function useSwarmRunActions({
     }
   }
 
-  async function onStopRun(): Promise<void> {
-    const tid = ui.taskId;
-    if (!tid) return;
+  async function onCreateGoalFromCommand(
+    command: ReturnType<typeof tryParseGoalCommand>,
+  ): Promise<void> {
+    if (command === null) return;
+    const workspaceRoot = (settings.form.workspace_root ?? "").trim();
+    if (!workspaceRoot) {
+      ux.notify(t("slashCommand.goal.needsWorkspace"), "warning", 4000);
+      return;
+    }
     try {
-      await cancelTask(tid);
+      const payload: CreateGoalPayload = {
+        title: command.title,
+        description: command.description,
+        success_criteria: command.successCriteria.length
+          ? command.successCriteria
+          : [command.title],
+        workspace_root: workspaceRoot,
+      };
+      const created = await httpPost<{ id: string }>("/v1/goals", payload);
+      if (command.schedule && created?.id) {
+        await applyGoalSchedule(created.id, command.schedule);
+      }
+      ux.notify(t("slashCommand.goal.created", { title: command.title }), "info", 3500);
+      settings.form.prompt = "";
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      ux.notify(t("slashCommand.goal.failed", { error: message }), "error", 5000);
+    }
+  }
+
+  async function applyGoalSchedule(
+    goalId: string,
+    schedule: NonNullable<ReturnType<typeof tryParseGoalCommand>>["schedule"],
+  ): Promise<void> {
+    if (!schedule) return;
+    const body =
+      schedule.mode === "cron"
+        ? { cron: schedule.cron }
+        : { natural_language: schedule.naturalLanguage };
+    await httpPost(`/v1/goals/${encodeURIComponent(goalId)}/schedule`, body);
+  }
+
+  async function onStopRun(): Promise<void> {
+    const taskId = ui.taskId;
+    if (!taskId) return;
+    try {
+      await cancelTask(taskId);
     } catch {
       // ignore network error — task may already be done
     }
     ui.taskStatus = "cancelled";
   }
 
-  async function onHumanResume(): Promise<void> {
+  async function onHumanResume(feedback?: string): Promise<void> {
     if (!ui.taskId) return;
     const taskId = ui.taskId;
-    const feedback = ui.humanGateFeedback;
+    const effectiveFeedback = feedback ?? ui.humanGateFeedback;
     if (ui.humanGateSubmitting) return;
     ui.humanGateSubmitting = true;
+    ui.humanGateVisible = false;
+    ui.taskStatus = "in_progress";
+    ui.pendingApprovals = 0;
     try {
       const pending = await fetchPendingHuman(taskId);
       if (pending?.pending) {
-        await confirmHuman(taskId, true, feedback);
+        await confirmHuman(taskId, true, effectiveFeedback);
       } else {
-        await submitHumanResume(taskId, feedback, sendWsSubscribe);
+        await submitHumanResume(taskId, effectiveFeedback, sendWsSubscribe, (event) => {
+          if (event.kind === "orchestrator") applyOrchestratorEvent(event);
+        });
       }
       ui.humanGateFeedback = "";
+    } catch (err) {
+      ui.humanGateVisible = true;
+      throw err;
     } finally {
       ui.humanGateSubmitting = false;
     }

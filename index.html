@@ -6,16 +6,27 @@
     <title>AIlourOS</title>
     <style>
       :root {
-        color-scheme: dark;
+        color-scheme: light dark;
       }
       html,
       body {
         margin: 0;
         height: 100%;
-        background: #0f1019;
-        color: #f5f0e7;
+        background: #f3ece0;
+        color: #1a1612;
         font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+          "Geist",
+          "Space Grotesk",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+      }
+      html[data-theme="dark"],
+      html[data-theme="dark"] body {
+        background: #15120e;
+        color: #f3ece0;
       }
       #ailouros-bootstrap {
         position: fixed;
@@ -25,9 +36,12 @@
         align-items: center;
         justify-content: center;
         gap: 18px;
-        background: #0f1019;
+        background: #f3ece0;
         z-index: 99999;
         transition: opacity 220ms ease;
+      }
+      html[data-theme="dark"] #ailouros-bootstrap {
+        background: #15120e;
       }
       #ailouros-bootstrap[data-hidden="1"] {
         opacity: 0;
@@ -37,21 +51,24 @@
         width: 56px;
         height: 56px;
         border-radius: 14px;
-        background: linear-gradient(135deg, #f4c15d, #d97706);
+        background: linear-gradient(135deg, #e16a3a, #c84f1f);
         box-shadow:
-          0 0 0 1px rgba(244, 193, 93, 0.18),
-          0 12px 36px rgba(244, 193, 93, 0.18);
+          0 0 0 1px rgba(225, 106, 58, 0.22),
+          0 12px 36px rgba(225, 106, 58, 0.22);
       }
       .ab-title {
         font-size: 14px;
         font-weight: 600;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: #a8b0c4;
+        color: #6a5d4d;
+      }
+      html[data-theme="dark"] .ab-title {
+        color: #a89a86;
       }
       .ab-message {
         font-size: 13px;
-        color: #6b7280;
+        color: #98897a;
         min-height: 1.2em;
         text-align: center;
         padding: 0 24px;
@@ -60,8 +77,8 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        border: 2px solid rgba(244, 193, 93, 0.2);
-        border-top-color: #f4c15d;
+        border: 2px solid rgba(225, 106, 58, 0.22);
+        border-top-color: #e16a3a;
         animation: ab-spin 0.9s linear infinite;
       }
       @keyframes ab-spin {
@@ -70,6 +87,18 @@
         }
       }
     </style>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("ailouros.theme");
+          if (stored === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+          }
+        } catch (_) {
+          /* storage unavailable */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -117,5 +117,3 @@ export function useLocalModels() {
     ensureDesktopFlag,
   };
 }
-
-export type LocalModelsApi = ReturnType<typeof useLocalModels>;

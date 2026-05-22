@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
-
-const LS_LOCALE = "ailouros.locale";
-const LS_THEME = "ailouros.theme";
-const LS_SIDEBAR = "ailouros.sidebar_collapsed";
+import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 type Theme = "dark" | "light";
 type Locale = "en" | "ru";
+export type Density = "comfortable" | "compact";
 
 function detectLocale(): Locale {
   if (typeof navigator === "undefined") return "en";
@@ -14,37 +13,38 @@ function detectLocale(): Locale {
   return lang.startsWith("ru") ? "ru" : "en";
 }
 
-function readStorage(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeStorage(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // ignore storage errors
-  }
-}
-
 function applyTheme(theme: Theme): void {
   if (typeof document === "undefined") return;
-  if (theme === "light") {
-    document.documentElement.setAttribute("data-theme", "light");
+  if (theme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
   } else {
     document.documentElement.removeAttribute("data-theme");
   }
 }
 
+function applyDensity(density: Density): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.style.setProperty(
+    "--density",
+    density === "compact" ? "0.85" : "1",
+  );
+}
+
 export const usePreferencesStore = defineStore("preferences", () => {
   const locale = ref<Locale>(
-    (readStorage(LS_LOCALE) as Locale | null) ?? detectLocale(),
+    (readRawString(STORAGE_KEYS.preferenceLocale.key) as Locale | null) ??
+      detectLocale(),
   );
-  const theme = ref<Theme>((readStorage(LS_THEME) as Theme | null) ?? "dark");
-  const sidebarCollapsed = ref<boolean>(readStorage(LS_SIDEBAR) === "1");
+  const theme = ref<Theme>(
+    (readRawString(STORAGE_KEYS.preferenceTheme.key) as Theme | null) ?? "dark",
+  );
+  const sidebarCollapsed = ref<boolean>(
+    readRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key) === "1",
+  );
+  const density = ref<Density>(
+    (readRawString(STORAGE_KEYS.preferenceDensity.key) as Density | null) ??
+      "comfortable",
+  );
 
   const isDark = computed(() => theme.value === "dark");
 
@@ -64,10 +64,14 @@ export const usePreferencesStore = defineStore("preferences", () => {
     sidebarCollapsed.value = !sidebarCollapsed.value;
   }
 
+  function setDensity(next: Density): void {
+    density.value = next;
+  }
+
   watch(
     locale,
     (value) => {
-      writeStorage(LS_LOCALE, value);
+      writeRawString(STORAGE_KEYS.preferenceLocale.key, value);
       if (typeof document !== "undefined") {
         document.documentElement.lang = value;
       }
@@ -78,7 +82,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     theme,
     (value) => {
-      writeStorage(LS_THEME, value);
+      writeRawString(STORAGE_KEYS.preferenceTheme.key, value);
       applyTheme(value);
     },
     { immediate: true },
@@ -87,7 +91,16 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     sidebarCollapsed,
     (value) => {
-      writeStorage(LS_SIDEBAR, value ? "1" : "0");
+      writeRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key, value ? "1" : "0");
+    },
+    { immediate: true },
+  );
+
+  watch(
+    density,
+    (value) => {
+      writeRawString(STORAGE_KEYS.preferenceDensity.key, value);
+      applyDensity(value);
     },
     { immediate: true },
   );
@@ -97,9 +110,11 @@ export const usePreferencesStore = defineStore("preferences", () => {
     theme,
     isDark,
     sidebarCollapsed,
+    density,
     setLocale,
     setTheme,
     toggleTheme,
     toggleSidebar,
+    setDensity,
   };
 });

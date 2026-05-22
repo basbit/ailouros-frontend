@@ -1,13 +1,13 @@
 import { fetchJson } from "@/shared/api/client";
 
-export interface PipelineNodeDto {
+interface PipelineNodeDto {
   id: string;
   type: string;
   config: Record<string, unknown>;
   position: { x: number; y: number };
 }
 
-export interface PipelineEdgeDto {
+interface PipelineEdgeDto {
   id: string;
   source: string;
   target: string;

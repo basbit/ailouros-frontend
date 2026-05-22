@@ -60,11 +60,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { toRef } from "vue";
 import { apiUrl } from "@/shared/api/base";
 import { useI18n } from "@/shared/lib/i18n";
 import { getScenarioArtifacts } from "@/shared/api/endpoints/scenarios";
 import type { ScenarioArtifactsResponse } from "@/shared/model/scenario-types";
+import { useScenarioFinishedReload } from "./useScenarioFinishedReload";
 
 const props = defineProps<{
   taskId: string | null;
@@ -74,52 +75,13 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const data = ref<ScenarioArtifactsResponse | null>(null);
-const loading = ref(false);
-const error = ref<string | null>(null);
-let lastFetchedTaskId: string | null = null;
-
-const visible = computed(() => Boolean(props.taskId && props.scenarioId));
-
-const finishedStatuses = new Set([
-  "completed",
-  "completed_no_writes",
-  "failed",
-  "cancelled",
-  "awaiting_human",
-]);
-
-async function reload(taskId: string): Promise<void> {
-  loading.value = true;
-  error.value = null;
-  try {
-    data.value = await getScenarioArtifacts(taskId);
-    lastFetchedTaskId = taskId;
-  } catch (err) {
-    data.value = null;
-    error.value = err instanceof Error ? err.message : String(err);
-  } finally {
-    loading.value = false;
-  }
-}
-
-watch(
-  () => [props.taskId, props.taskStatus] as const,
-  ([taskId, status]) => {
-    if (!taskId) {
-      data.value = null;
-      error.value = null;
-      lastFetchedTaskId = null;
-      return;
-    }
-    if (!props.scenarioId) return;
-    const isFinished = finishedStatuses.has(String(status ?? ""));
-    if (!isFinished) return;
-    if (taskId === lastFetchedTaskId) return;
-    void reload(taskId);
-  },
-  { immediate: true },
-);
+const { data, loading, error, visible } =
+  useScenarioFinishedReload<ScenarioArtifactsResponse>({
+    taskId: toRef(props, "taskId"),
+    scenarioId: toRef(props, "scenarioId"),
+    taskStatus: toRef(props, "taskStatus"),
+    fetcher: getScenarioArtifacts,
+  });
 
 function resolveLink(url: string): string {
   return url.startsWith("http") ? url : apiUrl(url);

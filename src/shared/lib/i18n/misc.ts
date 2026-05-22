@@ -13,11 +13,8 @@ export const miscEn: Messages = {
   "errors.profileMissingProvider": "Provider profile is missing a provider",
   "errors.noModelsForProvider": "No models returned from provider {provider}",
   "errors.noModelsForEnv": "No models returned from {provider}",
-  "diffViewer.title": "Changes",
   "diffViewer.filesChanged": "file(s) changed",
   "diffViewer.noGit": "git unavailable — showing changed files",
-  "diffViewer.loading": "Loading diff\u2026",
-  "diffViewer.noChanges": "No file changes detected.",
   "diffViewer.editFile": "Edit",
   "diffViewer.saveFile": "Save",
   "diffViewer.cancelEdit": "Cancel",
@@ -76,7 +73,6 @@ export const miscEn: Messages = {
   "firstRun.state.done": "done",
   "firstRun.state.skipped": "skipped",
   "firstRun.state.error": "error",
-  "activeModel.label": "Active model",
   "activeModel.local": "Local",
   "activeModel.cloud": "Cloud",
   "activeModel.none": "Not selected",
@@ -96,14 +92,10 @@ export const miscRu: Messages = {
   "errors.profileMissingProvider": "У профиля не задан провайдер",
   "errors.noModelsForProvider": "Провайдер {provider} не вернул список моделей",
   "errors.noModelsForEnv": "{provider} не вернул список моделей",
-  "diffViewer.title": "\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
   "diffViewer.filesChanged":
     "\u0444\u0430\u0439\u043b(\u043e\u0432) \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u043e",
   "diffViewer.noGit":
     "git \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u2014 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u043c \u0441\u043f\u0438\u0441\u043e\u043a \u0444\u0430\u0439\u043b\u043e\u0432",
-  "diffViewer.loading": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 diff\u2026",
-  "diffViewer.noChanges":
-    "\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0439 \u0444\u0430\u0439\u043b\u043e\u0432 \u043d\u0435 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u043e.",
   "diffViewer.editFile":
     "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c",
   "diffViewer.saveFile": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
@@ -159,7 +151,6 @@ export const miscRu: Messages = {
   "firstRun.state.done": "готово",
   "firstRun.state.skipped": "пропущено",
   "firstRun.state.error": "ошибка",
-  "activeModel.label": "Активная модель",
   "activeModel.local": "Локальная",
   "activeModel.cloud": "Облако",
   "activeModel.none": "Не выбрано",

@@ -1,57 +1,43 @@
+    @import url('./tokens.css');
     @import url('./fonts/fonts.css');
+    @import url('./fonts/google.css');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Legacy aliases: components written before the AllourOS token migration
+       continue to read --surface / --text / --border / --radius etc. and now
+       resolve them through the canonical tokens defined in tokens.css. The
+       aliases work in both light (root) and dark ([data-theme="dark"]) modes
+       because they are pure var() indirections. */
     :root {
-      --bg:           #05070B;
-      --surface:      #0B1017;
-      --surface2:     #131922;
-      /* Legacy aliases for components that used --bg1 / --bg2 with hardcoded
-         dark fallbacks (bug: light theme inherited the fallback). Keep these
-         in sync with the canonical surface tokens in both themes. */
-      --bg1:          var(--surface);
-      --bg2:          var(--surface2);
-      /* Legacy alias for --text used by older gate/panel components. */
-      --text1:        var(--text);
-      --border:       #2A241E;
-      --border-hi:    #4B4138;
-      --border-focus: #F4C15D;
-      --text:         #F5F0E7;
-      --text2:        #CBBFAD;
-      --text3:        #8F8478;
-      --accent:       #F4C15D;
-      --accent-hi:    #FFBF69;
-      --accent-glow:  rgba(244,193,93,0.18);
-      --success:      #72DFB9;
-      --error:        #D7563F;
-      --warning:      #FF9D57;
-      --radius:       10px;
-      --radius-lg:    16px;
-      --font:         "Space Grotesk", "Segoe UI Variable", "Avenir Next", system-ui, sans-serif;
-      --mono:         "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-      --ease-spring:  cubic-bezier(0.22, 1, 0.36, 1);
-      --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
-      --sidebar-w:    420px;
+      --surface:        var(--card);
+      --surface2:       var(--card-soft);
+      --bg1:            var(--card);
+      --bg2:            var(--card-soft);
+      --text:           var(--ink);
+      --text1:          var(--ink);
+      --text2:          var(--ink-2);
+      --text3:          var(--ink-3);
+      --border:         var(--line);
+      --border-hi:      var(--line-strong);
+      --border-focus:   var(--accent);
+      --accent-hi:      var(--accent);
+      --success:        var(--ok);
+      --error:          #b74635;
+      --warning:        var(--warn);
+      --radius:         var(--r-md);
+      --radius-lg:      var(--r-lg);
+      --font:           var(--font-sans);
+      --mono:           var(--font-mono);
+      --ease-spring:    cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-bounce:    cubic-bezier(0.34, 1.56, 0.64, 1);
+      --sidebar-w:      420px;
       --sidebar-collapsed-w: 72px;
-      --hdr-h:        52px;
+      --hdr-h:          44px;
     }
 
-    /* ── Light theme ─────────────────────────────────────────── */
-    [data-theme="light"] {
-      --bg:           #F5F0E7;
-      --surface:      #FFF9F0;
-      --surface2:     #EFE6D8;
-      --border:       #D8C8B3;
-      --border-hi:    #C3AF96;
-      --border-focus: #F4C15D;
-      --text:         #17110C;
-      --text2:        #5D5248;
-      --text3:        #8F8478;
-      --accent:       #D7563F;
-      --accent-hi:    #F4C15D;
-      --accent-glow:  rgba(215,86,63,0.12);
-      --success:      #3FAF8A;
-      --error:        #B74635;
-      --warning:      #D9822B;
+    [data-theme="dark"] {
+      --error:          #d7563f;
     }
 
     html, body { height: 100%; overflow: hidden; }
@@ -68,9 +54,11 @@
     }
 
     /* ── Scrollbars ───────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar { width: 12px; height: 12px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--border-hi) 75%, var(--text2) 25%); }
+    * { scrollbar-width: auto; }
 
     /* ── Header ───────────────────────────────────────────── */
     .app-header {

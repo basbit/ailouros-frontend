@@ -1,11 +1,15 @@
 import { fetchJson } from "@/shared/api/client";
 
+type MemoryEntrySource = "note" | "pattern_memory" | "qdrant";
+
 export interface MemoryEntry {
   text: string;
   namespace?: string;
   key?: string;
-  source?: string;
+  source?: MemoryEntrySource;
   timestamp?: string;
+  score?: number;
+  payload?: Record<string, unknown>;
 }
 
 export async function listMemoryNotes(): Promise<{
@@ -35,5 +39,17 @@ export async function consolidateMemoryNotes(): Promise<{
   return fetchJson<{ status?: string; entries_processed?: number; error?: string }>(
     "/v1/memory/consolidate",
     { method: "POST" },
+  );
+}
+
+export async function listQdrantEntries(
+  collection?: string,
+  limit = 100,
+): Promise<{ entries: MemoryEntry[]; collections: string[] }> {
+  const params = new URLSearchParams();
+  if (collection) params.set("collection", collection);
+  params.set("limit", String(limit));
+  return fetchJson<{ entries: MemoryEntry[]; collections: string[] }>(
+    `/v1/memory/qdrant?${params.toString()}`,
   );
 }

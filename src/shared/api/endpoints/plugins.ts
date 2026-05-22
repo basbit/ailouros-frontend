@@ -30,15 +30,15 @@ export interface SearchHit {
   homepage?: string;
 }
 
-export interface InstalledPluginsResponse {
+interface InstalledPluginsResponse {
   plugins: PluginManifest[];
 }
 
-export interface RegistriesResponse {
+interface RegistriesResponse {
   registries: RegistryEntry[];
 }
 
-export interface SearchResponse {
+interface SearchResponse {
   hits: SearchHit[];
 }
 

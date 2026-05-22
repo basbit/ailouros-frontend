@@ -1,23 +1,11 @@
-/**
- * useTopologyConnections — SVG overlay for ring/mesh topology connections.
- *
- * Draws SVG path connections between StepCard elements:
- * - ring: back-arc from last card to first card
- * - mesh: faint lines between all cards (all-to-all)
- *
- * Uses ResizeObserver to auto-update on layout changes.
- */
 import { ref, onMounted, onUnmounted, watch, nextTick, type Ref } from "vue";
 
 export interface ConnectionLine {
   id: string;
-  d: string; // SVG path d attribute
+  d: string;
   cssClass: string;
 }
 
-/**
- * Compute center coordinates of an element relative to a container.
- */
 function centerOf(el: Element, container: Element): { x: number; y: number } {
   const er = el.getBoundingClientRect();
   const cr = container.getBoundingClientRect();
@@ -27,9 +15,6 @@ function centerOf(el: Element, container: Element): { x: number; y: number } {
   };
 }
 
-/**
- * Build an SVG arc path from (x1,y1) to (x2,y2) with a curve offset.
- */
 function arcPath(
   x1: number,
   y1: number,
@@ -42,9 +27,6 @@ function arcPath(
   return `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`;
 }
 
-/**
- * Build a straight line path.
- */
 function linePath(x1: number, y1: number, x2: number, y2: number): string {
   return `M ${x1} ${y1} L ${x2} ${y2}`;
 }
@@ -81,7 +63,6 @@ export function useTopologyConnections(
     const result: ConnectionLine[] = [];
 
     if (topo === "ring") {
-      // Back-arc from last to first
       const first = centers[0];
       const last = centers[centers.length - 1];
       const offset = Math.max(40, Math.abs(last.x - first.x) * 0.3);
@@ -91,7 +72,6 @@ export function useTopologyConnections(
         cssClass: "topo-conn-ring",
       });
     } else if (topo === "mesh") {
-      // All-to-all faint connections
       for (let i = 0; i < centers.length; i++) {
         for (let j = i + 1; j < centers.length; j++) {
           result.push({

@@ -1,14 +1,26 @@
 <template>
   <div class="autonomous-settings-fields">
-    <AutonomousSelfVerifyForm
+    <AutonomousToggleWithPicker
       :enabled="state.swarm_self_verify"
       :model="state.swarm_self_verify_model"
       :provider="state.swarm_self_verify_provider"
       :connection="connection"
+      toggle-field="swarm_self_verify"
+      :toggle-label="t('auto.selfVerifyLabel')"
+      :toggle-hint="t('auto.selfVerifyHint')"
+      :model-label="t('auto.selfVerifyModelLabel')"
+      model-field="swarm_self_verify_model"
+      provider-field="swarm_self_verify_provider"
+      :model-custom-placeholder="t('auto.modelIdPlaceholder')"
+      model-env-code="SWARM_SELF_VERIFY_MODEL"
       @update:form="onUpdate"
-    />
+    >
+      <template #hint>
+        {{ t("auto.selfVerifyHint") }}
+        <code>SWARM_SELF_VERIFY</code>.
+      </template>
+    </AutonomousToggleWithPicker>
 
-    <!-- Auto-Approve -->
     <div class="field">
       <label class="field-label" for="global_swarm_auto_approve">{{
         t("auto.autoApproveLabel")
@@ -50,7 +62,6 @@
       </div>
     </div>
 
-    <!-- Auto-Retry on NEEDS_WORK -->
     <div class="field">
       <label class="checkbox-row">
         <input
@@ -89,13 +100,26 @@
       <div class="hint">Env: <code>SWARM_MAX_STEP_RETRIES</code></div>
     </div>
 
-    <AutonomousDeepPlanningForm
+    <AutonomousToggleWithPicker
       :enabled="state.swarm_deep_planning"
       :model="state.swarm_deep_planning_model"
       :provider="state.swarm_deep_planning_provider"
       :connection="connection"
+      toggle-field="swarm_deep_planning"
+      :toggle-label="t('auto.deepPlanningLabel')"
+      :toggle-hint="t('auto.deepPlanningHint')"
+      :model-label="t('auto.deepPlanningModelLabel')"
+      model-field="swarm_deep_planning_model"
+      provider-field="swarm_deep_planning_provider"
+      :model-custom-placeholder="t('auto.modelIdPlaceholder')"
+      model-env-code="SWARM_DEEP_PLANNING_MODEL"
       @update:form="onUpdate"
-    />
+    >
+      <template #hint>
+        {{ t("auto.deepPlanningHint") }}
+        Env: <code>SWARM_DEEP_PLANNING</code>
+      </template>
+    </AutonomousToggleWithPicker>
 
     <AutonomousBackgroundAgentForm
       :enabled="state.swarm_background_agent"
@@ -106,7 +130,6 @@
       @update:form="onUpdate"
     />
 
-    <!-- Memory Consolidation -->
     <div class="field">
       <label class="checkbox-row">
         <input
@@ -128,7 +151,6 @@
       </div>
     </div>
 
-    <!-- Quality Gate -->
     <div class="field">
       <label class="checkbox-row">
         <input
@@ -150,11 +172,19 @@
       </div>
     </div>
 
-    <AutonomousAutoPlannerForm
+    <AutonomousToggleWithPicker
       :enabled="state.swarm_auto_plan"
       :model="state.swarm_planner_model"
       :provider="state.swarm_planner_provider"
       :connection="connection"
+      toggle-field="swarm_auto_plan"
+      :toggle-label="t('auto.autoPlanLabel')"
+      :toggle-hint="t('auto.autoPlanHint')"
+      :model-label="t('auto.plannerModelLabel')"
+      model-field="swarm_planner_model"
+      provider-field="swarm_planner_provider"
+      model-custom-placeholder="deepseek-r1:14b"
+      :show-picker-only-when-enabled="true"
       @update:form="onUpdate"
     />
   </div>
@@ -164,10 +194,8 @@
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
-import AutonomousSelfVerifyForm from "@/features/global-settings/autonomous/AutonomousSelfVerifyForm.vue";
-import AutonomousDeepPlanningForm from "@/features/global-settings/autonomous/AutonomousDeepPlanningForm.vue";
+import AutonomousToggleWithPicker from "@/features/global-settings/autonomous/AutonomousToggleWithPicker.vue";
 import AutonomousBackgroundAgentForm from "@/features/global-settings/autonomous/AutonomousBackgroundAgentForm.vue";
-import AutonomousAutoPlannerForm from "@/features/global-settings/autonomous/AutonomousAutoPlannerForm.vue";
 import type { GlobalSettingsData } from "./useGlobalSettings";
 
 const { t } = useI18n();

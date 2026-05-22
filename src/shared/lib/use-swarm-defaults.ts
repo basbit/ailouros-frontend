@@ -21,10 +21,10 @@ import {
 } from "@/shared/lib/swarm-policy-fallbacks";
 import { initApiBase } from "@/shared/api/base";
 import { httpGet } from "@/shared/api/http";
+import { typedSwarmDefaults } from "@/shared/lib/storage-keys";
+import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
 
-const LS_SWARM_DEFAULTS = "swarm_ui_defaults_v1";
-
-export interface SwarmDefaults {
+interface SwarmDefaults {
   roles: string[];
   model_defaults: Record<string, Record<string, string>>;
   prompt_defaults: Record<string, string>;
@@ -39,21 +39,11 @@ export interface SwarmDefaults {
 }
 
 function _loadFromStorage(): SwarmDefaults | null {
-  try {
-    const raw = localStorage.getItem(LS_SWARM_DEFAULTS);
-    if (!raw) return null;
-    return JSON.parse(raw) as SwarmDefaults;
-  } catch {
-    return null;
-  }
+  return readTyped(typedSwarmDefaults<SwarmDefaults>());
 }
 
 function _saveToStorage(data: SwarmDefaults): void {
-  try {
-    localStorage.setItem(LS_SWARM_DEFAULTS, JSON.stringify(data));
-  } catch {
-    // storage quota exceeded — ignore
-  }
+  writeTyped(typedSwarmDefaults<SwarmDefaults>(), data);
 }
 
 function _hardcodedDefaults(): SwarmDefaults {
@@ -136,18 +126,17 @@ async function _fetchDefaults(): Promise<void> {
   _saveToStorage(_defaults.value);
 }
 
-export function useSwarmDefaults(_baseUrl?: string) {
-  void _baseUrl;
+export function useSwarmDefaults() {
   if (_fetchPromise === null) {
-    _fetchPromise = _fetchDefaults().catch((err) => {
-      console.warn("useSwarmDefaults: failed to fetch /v1/defaults —", err);
+    _fetchPromise = _fetchDefaults();
+    _fetchPromise.finally(() => {
       _fetchPromise = null;
     });
   }
   return { defaults: readonly(_defaults) };
 }
 
-export function getStoredSwarmDefaults(): SwarmDefaults {
+function getStoredSwarmDefaults(): SwarmDefaults {
   return _defaults.value;
 }
 
@@ -190,8 +179,4 @@ export function defaultRemoteApiBaseUrl(provider: string): string {
 
 export function remoteProfileProviderOptions(): [string, string][] {
   return [...getStoredSwarmDefaults().remote_profile_provider_options];
-}
-
-export function defaultSwarmProvider(): string {
-  return getStoredSwarmDefaults().default_swarm_provider || "ollama";
 }

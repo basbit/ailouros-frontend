@@ -4,7 +4,6 @@
       {{ node.type }}
     </div>
 
-    <!-- Agent config -->
     <template v-if="node.type === 'agent'">
       <label class="node-config__label">{{ t("agentEditor.config.name") }}</label>
       <input
@@ -21,10 +20,38 @@
       />
 
       <label class="node-config__label">{{ t("agentEditor.config.role") }}</label>
+      <input
+        class="node-config__input"
+        :value="agentCfg.role"
+        :placeholder="t('agentEditor.config.rolePlaceholder')"
+        @input="patch('role', inputVal($event))"
+      />
+
+      <label class="node-config__label">{{ t("agentEditor.config.promptPath") }}</label>
+      <div class="node-config__prompt-row">
+        <PromptPathPicker
+          :model-value="agentCfg.promptPath ?? ''"
+          @update:model-value="(value) => patch('promptPath', value)"
+        />
+        <button
+          type="button"
+          class="node-config__edit-prompt"
+          :title="t('promptEditor.openLabel')"
+          :aria-label="t('promptEditor.openLabel')"
+          @click="openPromptEditor"
+        >
+          {{ t("promptEditor.openLabel") }}
+        </button>
+      </div>
+
+      <label class="node-config__label">{{
+        t("agentEditor.config.promptInline")
+      }}</label>
       <textarea
         class="node-config__textarea"
-        :value="agentCfg.role"
-        @input="patch('role', inputVal($event))"
+        :value="agentCfg.promptInline ?? ''"
+        :placeholder="t('agentEditor.config.promptInlinePlaceholder')"
+        @input="patch('promptInline', inputVal($event))"
       />
 
       <label class="node-config__label">{{ t("agentEditor.config.maxSteps") }}</label>
@@ -38,7 +65,6 @@
       />
     </template>
 
-    <!-- Trigger config -->
     <template v-else-if="node.type === 'trigger'">
       <label class="node-config__label">{{
         t("agentEditor.config.triggerType")
@@ -62,7 +88,6 @@
       </template>
     </template>
 
-    <!-- Condition config -->
     <template v-else-if="node.type === 'condition'">
       <label class="node-config__label">{{ t("agentEditor.config.fieldPath") }}</label>
       <input
@@ -94,11 +119,19 @@
       {{ t("agentEditor.config.noConfig") }}
     </div>
   </div>
+  <PromptEditorDialog
+    :open="promptEditorOpen"
+    :initial-path="agentCfg.promptPath ?? ''"
+    @close="promptEditorOpen = false"
+    @saved="onPromptSaved"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import PromptPathPicker from "@/shared/components/PromptPathPicker.vue";
+import PromptEditorDialog from "@/shared/components/PromptEditorDialog.vue";
 import type {
   PipelineNode,
   AgentConfig,
@@ -131,6 +164,17 @@ function inputVal(event: Event): string {
 
 function patch(key: string, value: unknown): void {
   emit("update", { config: { ...props.node.config, [key]: value } });
+}
+
+const promptEditorOpen = ref(false);
+
+function openPromptEditor(): void {
+  promptEditorOpen.value = true;
+}
+
+function onPromptSaved(path: string): void {
+  patch("promptPath", path);
+  promptEditorOpen.value = false;
 }
 </script>
 
@@ -183,5 +227,20 @@ function patch(key: string, value: unknown): void {
   font-size: 11px;
   color: var(--text2, #9dadd0);
   font-style: italic;
+}
+.node-config__prompt-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.node-config__edit-prompt {
+  background: var(--accent, #3b5bdb);
+  color: #fff;
+  border: 1px solid var(--accent, #3b5bdb);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 </style>

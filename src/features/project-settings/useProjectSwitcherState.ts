@@ -1,7 +1,3 @@
-/**
- * useProjectSwitcherState — popover open state, search, keyboard, kebab menu position.
- * Extracted from ProjectSwitcher.vue (plan §20.1.3) — no behaviour change.
- */
 import { computed, nextTick, ref, watch, type Ref } from "vue";
 
 interface SwitcherProject {
@@ -74,8 +70,6 @@ export function useProjectSwitcherState(opts: UseProjectSwitcherStateOptions) {
     const kebab = (e?.currentTarget as HTMLElement | undefined) ?? null;
     if (kebab) {
       const rect = kebab.getBoundingClientRect();
-      // Anchor menu below-right of the kebab; menu is 140px wide, offset so its
-      // right edge aligns with the kebab's right edge for a tidy popover.
       const menuWidth = 140;
       const top = rect.bottom + 4;
       const left = Math.max(8, rect.right - menuWidth);
@@ -105,7 +99,6 @@ export function useProjectSwitcherState(opts: UseProjectSwitcherStateOptions) {
   }
 
   function onGlobalKeydown(e: KeyboardEvent): void {
-    // Cmd+P / Ctrl+P — toggle switcher
     if (
       (e.metaKey || e.ctrlKey) &&
       e.key.toLowerCase() === "p" &&
@@ -143,7 +136,6 @@ export function useProjectSwitcherState(opts: UseProjectSwitcherStateOptions) {
     if (!open.value) return;
     const target = e.target as HTMLElement | null;
     if (!target) return;
-    // Teleported menu lives under <body>, not under rootEl — don't close on its clicks.
     if (target.closest(".project-switcher__menu--floating")) return;
     if (rootEl.value && !rootEl.value.contains(target)) close();
   }

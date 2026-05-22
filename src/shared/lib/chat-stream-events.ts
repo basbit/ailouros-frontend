@@ -3,7 +3,7 @@ import type {
   OrchestratorSseEventName,
 } from "@/shared/model/task-types";
 
-export interface AutoApprovedEvent {
+interface AutoApprovedEvent {
   kind: "auto_approved";
   step: string;
   rule?: string | null;
@@ -21,7 +21,7 @@ export interface OrchestratorStreamEvent {
   reason: string | null;
 }
 
-export interface McpStatusEvent {
+interface McpStatusEvent {
   kind: "mcp_status";
   step: string | null;
   code: string | null;

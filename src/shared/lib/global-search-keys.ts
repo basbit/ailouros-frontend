@@ -4,15 +4,29 @@ import {
   putUserSettings,
   type UserSettingsDto,
 } from "@/shared/api/endpoints/user-settings";
-import { LS_GLOBAL_SETTINGS } from "@/shared/lib/swarm-ui-constants";
+import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
+import { typedGlobalSettings } from "@/shared/lib/storage-keys";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
+
+const SECRET_KEYS = new Set<string>([
+  "tavily_api_key",
+  "exa_api_key",
+  "scrapingdog_api_key",
+  "github_token",
+  "swarm_notify_webhook_token",
+  "swarm_notify_smtp_password",
+  "swarm_notify_telegram_bot_token",
+  "swarm_notify_slack_webhook_url",
+  "swarm_notify_discord_webhook_url",
+]);
+const MASKED_SECRET = "***";
 
 export interface GlobalSearchKeysState {
-  // Secret API keys
   tavily_api_key: string;
   exa_api_key: string;
   scrapingdog_api_key: string;
+  github_token: string;
 
-  // Automation & Quality (moved from project scope)
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
   swarm_self_verify_provider: string;
@@ -55,6 +69,7 @@ const _DEFAULTS: GlobalSearchKeysState = {
   tavily_api_key: "",
   exa_api_key: "",
   scrapingdog_api_key: "",
+  github_token: "",
   swarm_self_verify: false,
   swarm_self_verify_model: "",
   swarm_self_verify_provider: "",
@@ -104,31 +119,21 @@ function isBoolKey(key: StateKey): boolean {
 }
 
 function loadFromStorage(): void {
-  try {
-    const raw = localStorage.getItem(LS_GLOBAL_SETTINGS);
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as Partial<GlobalSearchKeysState>;
-    if (!parsed || typeof parsed !== "object") return;
-    for (const key of Object.keys(_DEFAULTS) as StateKey[]) {
-      const value = parsed[key];
-      if (value === undefined) continue;
-      if (isBoolKey(key)) {
-        (state as Record<StateKey, unknown>)[key] = Boolean(value);
-      } else {
-        (state as Record<StateKey, unknown>)[key] = String(value);
-      }
+  const parsed = readTyped(typedGlobalSettings<Partial<GlobalSearchKeysState>>());
+  if (!parsed || typeof parsed !== "object") return;
+  for (const key of Object.keys(_DEFAULTS) as StateKey[]) {
+    const value = parsed[key];
+    if (value === undefined) continue;
+    if (isBoolKey(key)) {
+      (state as Record<StateKey, unknown>)[key] = Boolean(value);
+    } else {
+      (state as Record<StateKey, unknown>)[key] = String(value);
     }
-  } catch {
-    // Storage is best-effort only.
   }
 }
 
 function saveToStorage(): void {
-  try {
-    localStorage.setItem(LS_GLOBAL_SETTINGS, JSON.stringify(state));
-  } catch {
-    // Storage quota is non-fatal here.
-  }
+  writeTyped(typedGlobalSettings<GlobalSearchKeysState>(), state);
 }
 
 function ensureInitialized(): void {
@@ -190,43 +195,41 @@ export function useGlobalSearchKeys() {
     syncTimer = setTimeout(() => {
       syncTimer = null;
       saveToStorage();
-      void putUserSettings(buildSyncPayload()).catch(() => {});
+      void putUserSettings(buildSyncPayload()).catch((error) => {
+        frontendLogger.warn("user settings sync failed", error);
+      });
     }, 400);
   }
 
   async function loadFromBackend(): Promise<void> {
+    let data: Awaited<ReturnType<typeof getUserSettings>>;
     try {
-      const data = await getUserSettings();
-      let changed = false;
-      for (const key of Object.keys(_DEFAULTS) as StateKey[]) {
-        if (!(key in data)) continue;
-        const value = (data as Record<string, unknown>)[key];
-        if (value === undefined) continue;
-        // Secret keys come back masked ("***") — keep the local user-entered
-        // value in that case instead of clobbering with mask.
-        const isSecret =
-          key === "tavily_api_key" ||
-          key === "exa_api_key" ||
-          key === "scrapingdog_api_key";
-        if (isSecret && value === "***") continue;
-        if (isBoolKey(key)) {
-          const next = Boolean(value);
-          if (state[key] !== next) {
-            (state as Record<StateKey, unknown>)[key] = next;
-            changed = true;
-          }
-        } else {
-          const next = String(value ?? "");
-          if (state[key] !== next) {
-            (state as Record<StateKey, unknown>)[key] = next;
-            changed = true;
-          }
+      data = await getUserSettings();
+    } catch (error) {
+      frontendLogger.warn("user settings load failed", error);
+      return;
+    }
+    let changed = false;
+    for (const key of Object.keys(_DEFAULTS) as StateKey[]) {
+      if (!(key in data)) continue;
+      const value = (data as Record<string, unknown>)[key];
+      if (value === undefined) continue;
+      if (SECRET_KEYS.has(key) && value === MASKED_SECRET) continue;
+      if (isBoolKey(key)) {
+        const next = Boolean(value);
+        if (state[key] !== next) {
+          (state as Record<StateKey, unknown>)[key] = next;
+          changed = true;
+        }
+      } else {
+        const next = String(value ?? "");
+        if (state[key] !== next) {
+          (state as Record<StateKey, unknown>)[key] = next;
+          changed = true;
         }
       }
-      if (changed) saveToStorage();
-    } catch {
-      // Backend sync is optional; local state stays authoritative for the UI.
     }
+    if (changed) saveToStorage();
   }
 
   return { state, setKey, loadFromBackend };

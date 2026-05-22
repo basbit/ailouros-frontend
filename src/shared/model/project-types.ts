@@ -11,6 +11,7 @@ export interface RoleSnapshot {
   environment: string;
   model: string;
   prompt_path: string;
+  prompt_text?: string;
   skill_ids?: string;
   remote_profile?: string;
 }
@@ -46,11 +47,11 @@ export interface CustomScenarioSnap {
   workspace_write_default: boolean;
 }
 
-export interface SettingsSnap {
-  v: 1;
+// Flat default-valued fields shared across SettingsSnap (project store) and
+// SettingsForm (UI form). Optional/loose snap typing for media keys is layered
+// on in SettingsSnap below.
+export interface BaseSettingsFields {
   prompt: string;
-  pipeline: { id: string }[];
-  pipeline_stages?: string[][];
   workspace_root: string;
   project_context_file: string;
   workspace_write: boolean;
@@ -78,6 +79,18 @@ export interface SettingsSnap {
   swarm_visual_multimodal_review: boolean;
   swarm_visual_max_review_images: string;
   mcp_servers_json: string;
+  swarm_memory_namespace: string;
+  swarm_pattern_memory_path: string;
+  swarm_force_rerun: boolean;
+  remote_api_provider: string;
+  remote_api_key: string;
+  remote_api_base_url: string;
+}
+
+export interface SettingsSnap extends BaseSettingsFields {
+  v: 1;
+  pipeline: { id: string }[];
+  pipeline_stages?: string[][];
   swarm_tavily_api_key?: string;
   swarm_exa_api_key?: string;
   swarm_scrapingdog_api_key?: string;
@@ -92,19 +105,11 @@ export interface SettingsSnap {
   media_budget_max_cost_usd?: string;
   media_budget_max_attempts?: string;
   media_license_policy?: string;
-  // Automation & Quality fields live in global settings (var/user_settings.json).
-  // Only the per-run force-rerun and project-specific memory paths remain here.
-  swarm_memory_namespace: string;
-  swarm_pattern_memory_path: string;
-  swarm_force_rerun: boolean;
   scenario_id: string | null;
   custom_scenario_id?: string | null;
   custom_scenarios?: CustomScenarioSnap[];
   favorite_scenarios: string[];
   scenario_overrides: Record<string, ScenarioProjectOverride>;
-  remote_api_provider: string;
-  remote_api_key: string;
-  remote_api_base_url: string;
   remote_api_profile_rows: RemoteProfileRow[];
   custom_roles: CustomRoleSnap[];
   dev_roles: DevRoleSnap[];

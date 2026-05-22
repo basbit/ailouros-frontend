@@ -92,7 +92,7 @@
 import { computed } from "vue";
 import { getRemoteProfileProviderOptions } from "@/features/remote-api/useRemoteApiProfiles";
 import { useI18n } from "@/shared/lib/i18n";
-import type { RemoteProfileRow } from "@/shared/store/projects";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 const { t } = useI18n();
 const providerOptions = computed(() => getRemoteProfileProviderOptions());

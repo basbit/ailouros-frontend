@@ -1,18 +1,3 @@
-/**
- * Pipeline step taxonomy — the single source of truth for classifying a
- * step id into a node type (agent / reviewer / human_gate / …).
- *
- * Kept separate from StepCard.vue so:
- *   * the breakdown widget can count reviewers/human_gates without
- *     depending on a Vue component,
- *   * regression tests can assert classification rules without mounting DOM,
- *   * the backend is free to send any step id — the UI still renders.
- *
- * Review-rules §10.6 (UI↔Backend contract integrity): when the wire
- * carries `review_pm` in `pipeline_steps` but the user thinks it isn't
- * there, the breakdown widget lets them see the disconnect at a glance.
- */
-
 export type NodeType =
   | "agent"
   | "reviewer"
@@ -21,9 +6,7 @@ export type NodeType =
   | "tool_preflight"
   | "join_branch";
 
-/** Exact id → node type. Prefix fallback below picks up unknown ids. */
 const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
-  // Agents (do the work)
   pm: "agent",
   ba: "agent",
   architect: "agent",
@@ -50,7 +33,6 @@ const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
   ai_citation_strategist: "agent",
   app_store_optimizer: "agent",
   ba_arch_debate: "agent",
-  // Reviewers
   review_pm: "reviewer",
   review_ba: "reviewer",
   review_arch: "reviewer",
@@ -67,14 +49,12 @@ const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
   review_ai_citation_strategist: "reviewer",
   review_app_store_optimizer: "reviewer",
   stack_review: "reviewer",
-  // Verification
   verification_layer: "verification",
   dev_retry_gate: "verification",
   qa_retry_gate: "verification",
   visual_probe: "verification",
   finalize_pipeline: "verification",
   visual_design_review: "reviewer",
-  // Human gates
   human_pm: "human_gate",
   human_ba: "human_gate",
   human_arch: "human_gate",
@@ -91,7 +71,6 @@ const NODE_TYPE_MAP: Readonly<Record<string, NodeType>> = {
   human_seo_specialist: "human_gate",
   human_ai_citation_strategist: "human_gate",
   human_app_store_optimizer: "human_gate",
-  // Tools / join
   analyze_code: "tool_preflight",
   spec_merge: "join_branch",
 };
@@ -110,7 +89,6 @@ export function classifyStep(stepId: string): NodeType {
   return "agent";
 }
 
-/** @internal — type contract for `summarizeSteps`, not imported by other modules. */
 export interface StepBreakdown {
   total: number;
   agent: number;

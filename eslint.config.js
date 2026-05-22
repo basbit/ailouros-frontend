@@ -5,6 +5,8 @@ import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 import vueParser from "vue-eslint-parser";
 import pluginBoundaries from "eslint-plugin-boundaries";
+import pluginSonarjs from "eslint-plugin-sonarjs";
+import pluginNoSecrets from "eslint-plugin-no-secrets";
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -16,18 +18,12 @@ export default tseslint.config(
       "dist/**",
       "test-results/**",
       "playwright-report/**",
+      ".stryker-tmp/**",
+      "mutants/**",
       "../orchestrator/static/bundle/**",
       "public/ui.js",
     ],
   },
-  // ── FSD layer boundaries ────────────────────────────────────────────────────
-  // Layers (top → bottom): app → pages → widgets → features → entities → shared.
-  // A layer may only import from layers BELOW it. The primary FSD doctrine —
-  // features must NEVER cross-import other features — is enforced strictly.
-  // For widgets, entities, and pages we permit same-layer composition (a
-  // widget can compose sibling widgets, an entity can reference sibling
-  // entities), which matches mainstream FSD practice; cross-feature isolation
-  // is what really keeps the architecture clean.
   {
     files: ["src/**/*.{ts,tsx,vue}"],
     plugins: {
@@ -43,6 +39,7 @@ export default tseslint.config(
         node: true,
       },
       "boundaries/elements": [
+        { type: "app-providers", pattern: "src/app/providers/**" },
         { type: "app", pattern: "src/app/**" },
         { type: "pages", pattern: "src/pages/**" },
         { type: "widgets", pattern: "src/widgets/*", mode: "folder" },
@@ -58,18 +55,60 @@ export default tseslint.config(
           default: "disallow",
           rules: [
             {
+              from: { type: "app-providers" },
+              allow: {
+                to: {
+                  type: [
+                    "app-providers",
+                    "features",
+                    "entities",
+                    "shared",
+                  ],
+                },
+              },
+            },
+            {
               from: { type: "app" },
               allow: {
-                to: { type: ["app", "pages", "widgets", "features", "entities", "shared"] },
+                to: {
+                  type: [
+                    "app-providers",
+                    "app",
+                    "pages",
+                    "widgets",
+                    "features",
+                    "entities",
+                    "shared",
+                  ],
+                },
               },
             },
             {
               from: { type: "pages" },
-              allow: { to: { type: ["pages", "widgets", "features", "entities", "shared"] } },
+              allow: {
+                to: {
+                  type: [
+                    "app-providers",
+                    "pages",
+                    "widgets",
+                    "features",
+                    "entities",
+                    "shared",
+                  ],
+                },
+              },
             },
             {
               from: { type: "widgets" },
-              allow: { to: { type: ["widgets", "features", "entities", "shared"] } },
+              allow: {
+                to: {
+                  type: [
+                    "features",
+                    "entities",
+                    "shared",
+                  ],
+                },
+              },
             },
             {
               from: { type: "features" },
@@ -95,6 +134,19 @@ export default tseslint.config(
     },
   },
   {
+    files: ["scripts/**/*.{mjs,js}", "*.cjs", "*.config.{js,ts,mjs,cjs}"],
+    languageOptions: {
+      globals: { ...globals.node },
+      sourceType: "module",
+    },
+  },
+  {
+    files: ["*.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+    },
+  },
+  {
     files: ["**/*.vue"],
     languageOptions: {
       parser: vueParser,
@@ -102,6 +154,36 @@ export default tseslint.config(
         parser: tseslint.parser,
         extraFileExtensions: [".vue"],
       },
+    },
+  },
+  // Complexity gate (frontend ceiling, intentionally looser than Python backend at 12).
+  // Backend numbers stay in wiki/architecture/toolchain.md.
+  // Placed before eslintConfigPrettier so Prettier's sweep can still neutralise
+  // any formatting rules; none of these are formatting rules so there is no clash.
+  {
+    files: ["src/**/*.{ts,tsx,vue}"],
+    ignores: [
+      "src/shared/api/openapi-types.ts",
+      "src/shared/lib/i18n/**",
+    ],
+    plugins: {
+      sonarjs: pluginSonarjs,
+      "no-secrets": pluginNoSecrets,
+    },
+    rules: {
+      "no-secrets/no-secrets": [
+        "error",
+        { tolerance: 4.5, ignoreContent: "^[a-z][a-zA-Z0-9_]*$" },
+      ],
+      "sonarjs/cognitive-complexity": ["error", 20],
+      complexity: ["error", { max: 20 }],
+      "max-depth": ["error", 4],
+      "max-params": ["error", 5],
+      "max-nested-callbacks": ["error", 4],
+      "max-lines-per-function": [
+        "error",
+        { max: 230, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
     },
   },
   eslintConfigPrettier,

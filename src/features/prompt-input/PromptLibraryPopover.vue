@@ -49,7 +49,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 
-export interface PromptEntry {
+interface PromptEntry {
   id: string;
   title: string;
   body: string;

@@ -3,7 +3,7 @@ interface BackendInfo {
   port: number;
 }
 
-export function isDesktopMode(): boolean {
+function isDesktopMode(): boolean {
   return (
     typeof window !== "undefined" &&
     ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
@@ -33,13 +33,6 @@ export async function resolveApiBaseUrl(): Promise<string> {
     }
     const fallback = await invokeGetBackendUrl();
     if (fallback?.url) return fallback.url;
-  }
-  return import.meta.env.VITE_API_BASE_URL ?? "";
-}
-
-export function resolveApiBaseUrlSync(): string {
-  if (isDesktopMode()) {
-    return `http://127.0.0.1:${import.meta.env.VITE_DESKTOP_BACKEND_PORT ?? 8000}`;
   }
   return import.meta.env.VITE_API_BASE_URL ?? "";
 }

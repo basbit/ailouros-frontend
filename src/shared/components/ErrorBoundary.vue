@@ -1,20 +1,4 @@
 <script setup lang="ts">
-/**
- * Vue 3 error boundary (plan §20.5.4).
- *
- * Vue does not provide a built-in error boundary; an uncaught error in
- * a deeply nested component takes down the parent route. Wrapping
- * critical regions of `SwarmUiPage` / `AgentEditorPage` etc. in
- * `<ErrorBoundary>` lets the page render a fallback panel while keeping
- * the rest of the UI interactive.
- *
- *   <ErrorBoundary @captured="onError">
- *     <SwarmUiPanel />
- *     <template #fallback="{ error, retry }">
- *       <ErrorPanel :error="error" @retry="retry" />
- *     </template>
- *   </ErrorBoundary>
- */
 import { onErrorCaptured, ref } from "vue";
 
 const emit = defineEmits<{
@@ -28,8 +12,6 @@ onErrorCaptured((error, _instance, info) => {
   capturedError.value = error;
   capturedInfo.value = info;
   emit("captured", error, info);
-  // Returning false prevents the error from propagating further up
-  // the Vue component tree.
   return false;
 });
 

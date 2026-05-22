@@ -16,7 +16,6 @@
       :viewBox="`0 0 ${width} ${height}`"
       preserveAspectRatio="none"
     >
-      <!-- 25/50/75% guides -->
       <line
         v-for="g in guides"
         :key="g.y"
@@ -71,22 +70,6 @@
 </template>
 
 <script setup lang="ts">
-/**
- * HostMetricsChart — inline sparkline of CPU / RAM / GPU utilisation across
- * the lifetime of the current task.
- *
- * Why SVG and not a chart library: this widget plots ≤ 3 lines × ≤ 120
- * points, refreshes once per second, and lives next to other 11-px-font
- * orchestrator widgets. A 50 KB chart library (chart.js, ECharts, …) is
- * overkill — manual path strings are ~30 LoC and render at 60 fps with
- * zero allocation churn.
- *
- * The component is fully reactive: it reads `ui.hostMetricsHistory` (ring
- * buffer maintained in the store on every WS tick) and recomputes paths
- * on change. The GPU line is hidden entirely if every sample in the
- * current window has `gpu === null` — Macs / hosts without an NVIDIA card
- * see a clean CPU+RAM chart instead of a confusing flat zero line.
- */
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import type { HostMetricsSample } from "@/shared/store/ui";
@@ -95,7 +78,6 @@ const props = withDefaults(
   defineProps<{
     samples: HostMetricsSample[];
     gpuName?: string | null;
-    /** Px — fixed width works because we letterbox via preserveAspectRatio. */
     width?: number;
     height?: number;
   }>(),
@@ -135,11 +117,6 @@ const guides = computed(() =>
   })),
 );
 
-/**
- * Build an SVG path with explicit M/L segments. We never bridge across
- * `null` samples — a missing reading breaks the line so the user can
- * tell "collector was down" from "load actually dropped to zero".
- */
 function buildPath(values: (number | null)[]): string {
   const n = values.length;
   if (n < 2) return "";

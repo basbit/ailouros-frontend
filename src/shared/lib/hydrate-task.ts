@@ -1,12 +1,8 @@
-/**
- * Hydrate task state for the UI from Redis (/tasks/:id) or, as a fallback,
- * from the on-disk pipeline_run.log artifact.
- */
 import { apiUrl } from "@/shared/api/base";
 import { httpRequestRaw } from "@/shared/api/http";
 import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
 
-export type TaskHistoryRow = { agent?: string; message?: string; timestamp?: string };
+type TaskHistoryRow = { agent?: string; message?: string; timestamp?: string };
 
 export interface HydrateResult {
   taskId: string;
@@ -15,7 +11,6 @@ export interface HydrateResult {
   error: unknown;
   agents: string[];
   artifactPath: string | null;
-  /** True when hydration used only the artifact log because Redis no longer has the task. */
   fromLogFallback: boolean;
   scenarioId: string | null;
   scenarioTitle: string | null;
@@ -23,21 +18,21 @@ export interface HydrateResult {
 }
 
 export async function hydrateTaskFromServer(
-  taskId: string,
+  taskIdInput: string,
 ): Promise<HydrateResult | null> {
-  const tid = taskId.trim();
-  if (!tid) return null;
+  const taskId = taskIdInput.trim();
+  if (!taskId) return null;
 
   const artifactJson = apiUrl(
-    "/artifacts/" + encodeURIComponent(tid) + "/pipeline.json",
+    "/artifacts/" + encodeURIComponent(taskId) + "/pipeline.json",
   );
 
   try {
-    const snapshot = await getLegacyTaskSnapshot(tid);
+    const snapshot = await getLegacyTaskSnapshot(taskId);
     const history = snapshot.history ?? [];
     const agents = snapshot.agents ?? [];
     return {
-      taskId: tid,
+      taskId: taskId,
       history,
       status: typeof snapshot.status === "string" ? snapshot.status : null,
       error: snapshot.error ?? null,
@@ -53,18 +48,14 @@ export async function hydrateTaskFromServer(
   }
 
   try {
-    // pipeline_run.log is plain text, not JSON — use httpRequestRaw so we can
-    // read the body via .text() without JSON parsing. httpRequestRaw throws
-    // ApiError on non-2xx, which the surrounding catch silently ignores
-    // (parity with the previous `if (lr.ok)` short-circuit).
     const lr = await httpRequestRaw(
       "GET",
-      "/artifacts/" + encodeURIComponent(tid) + "/pipeline_run.log",
+      "/artifacts/" + encodeURIComponent(taskId) + "/pipeline_run.log",
     );
     const text = await lr.text();
     const body = text.trim() || "(empty pipeline_run.log)";
     return {
-      taskId: tid,
+      taskId: taskId,
       history: [
         {
           agent: "pipeline_run.log",

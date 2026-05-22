@@ -64,17 +64,12 @@
         <label class="field-label" for="pf-visual-start-directory">
           {{ t("visual.startDirectoryLabel") }}
         </label>
-        <input
-          id="pf-visual-start-directory"
-          :value="form.swarm_visual_start_directory"
-          type="text"
+        <FilePathPicker
+          :model-value="form.swarm_visual_start_directory"
           placeholder="frontend"
-          @input="
-            emit(
-              'update:form',
-              'swarm_visual_start_directory',
-              ($event.target as HTMLInputElement).value,
-            )
+          :directory="true"
+          @update:model-value="
+            (value) => emit('update:form', 'swarm_visual_start_directory', value)
           "
         />
       </fieldset>
@@ -204,6 +199,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "@/shared/lib/i18n";
+import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 
 defineProps<{
   form: {

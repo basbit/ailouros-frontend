@@ -4,7 +4,7 @@ import { mount } from "@vue/test-utils";
 import type { SpecValidationResult } from "./spec-types";
 
 const http = vi.hoisted(() => ({
-  httpGet: vi.fn<(path: string) => Promise<unknown>>(),
+  httpPost: vi.fn<(path: string, body?: unknown) => Promise<unknown>>(),
   ApiError: class ApiError extends Error {
     status: number;
     body?: string;
@@ -63,7 +63,7 @@ describe("SpecValidator rendering", () => {
 
 describe("useSpecValidation composable", () => {
   beforeEach(() => {
-    http.httpGet.mockReset();
+    http.httpPost.mockReset();
   });
 
   it("hydrates result on success", async () => {
@@ -71,18 +71,28 @@ describe("useSpecValidation composable", () => {
       ok: true,
       findings: [{ code: "I-1", severity: "info", message: "looks good" }],
     };
-    http.httpGet.mockResolvedValue(payload);
+    http.httpPost.mockResolvedValue(payload);
     const { useSpecValidation } = await import("./useSpecValidation");
     const state = useSpecValidation();
-    await state.load("spec-1");
-    expect(http.httpGet).toHaveBeenCalledWith("/v1/spec/spec-1/validate");
+    await state.load("spec-1", "/tmp/ws");
+    expect(http.httpPost).toHaveBeenCalledWith("/v1/spec/spec-1/validate", {
+      workspace_root: "/tmp/ws",
+    });
     expect(state.result.value).toEqual(payload);
     expect(state.error.value).toBeNull();
     expect(state.notImplemented.value).toBe(false);
   });
 
+  it("omits workspace_root from payload when not provided", async () => {
+    http.httpPost.mockResolvedValue({ ok: true, findings: [] });
+    const { useSpecValidation } = await import("./useSpecValidation");
+    const state = useSpecValidation();
+    await state.load("spec-1");
+    expect(http.httpPost).toHaveBeenCalledWith("/v1/spec/spec-1/validate", {});
+  });
+
   it("flips notImplemented on 404", async () => {
-    http.httpGet.mockRejectedValue(new http.ApiError("HTTP 404", 404));
+    http.httpPost.mockRejectedValue(new http.ApiError("HTTP 404", 404));
     const { useSpecValidation } = await import("./useSpecValidation");
     const state = useSpecValidation();
     await state.load("spec-x");
@@ -92,7 +102,7 @@ describe("useSpecValidation composable", () => {
   });
 
   it("surfaces other errors as an error message", async () => {
-    http.httpGet.mockRejectedValue(new Error("boom"));
+    http.httpPost.mockRejectedValue(new Error("boom"));
     const { useSpecValidation } = await import("./useSpecValidation");
     const state = useSpecValidation();
     await state.load("spec-x");
@@ -104,11 +114,11 @@ describe("useSpecValidation composable", () => {
     const { useSpecValidation } = await import("./useSpecValidation");
     const state = useSpecValidation();
     await state.load("");
-    expect(http.httpGet).not.toHaveBeenCalled();
+    expect(http.httpPost).not.toHaveBeenCalled();
   });
 
   it("reset clears state", async () => {
-    http.httpGet.mockResolvedValue({ ok: true, findings: [] });
+    http.httpPost.mockResolvedValue({ ok: true, findings: [] });
     const { useSpecValidation } = await import("./useSpecValidation");
     const state = useSpecValidation();
     await state.load("spec-1");

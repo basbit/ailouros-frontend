@@ -35,29 +35,12 @@
                 t("settingsDrawer.scope")
               }}</span>
             </div>
-            <button
-              type="button"
-              class="settings-drawer-close"
+            <CloseIconButton
+              :label="t('settingsDrawer.close')"
               :title="t('settingsDrawer.close')"
-              :aria-label="t('settingsDrawer.close')"
+              extra-class="settings-drawer-close"
               @click="close"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+            />
           </header>
           <div class="settings-drawer-body">
             <slot />
@@ -71,6 +54,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import CloseIconButton from "@/shared/components/CloseIconButton.vue";
 
 const props = defineProps<{
   open: boolean;

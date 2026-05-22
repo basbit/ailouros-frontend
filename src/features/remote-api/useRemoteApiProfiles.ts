@@ -1,11 +1,5 @@
-/**
- * useRemoteApiProfiles — manages remote API provider profiles.
- *
- * Authoritative persistence is project-scoped via SettingsSnap / `.swarm/settings.json`.
- * `loadGlobal()` remains only as a legacy localStorage migration path.
- */
 import { ref } from "vue";
-import type { RemoteProfileRow } from "@/shared/store/projects";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 import {
   defaultRemoteApiBaseUrl,
   defaultRemoteApiProvider,
@@ -36,10 +30,6 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     profiles.value = [];
   }
 
-  function saveGlobal(): void {
-    // Project-scoped persistence is handled by useSettings → collectSnap().
-  }
-
   function addProfile(data: Partial<RemoteProfileRow> = {}): void {
     const prov = data.provider ?? defaultRemoteApiProvider();
     const baseUrl = data.base_url ?? defaultRemoteApiBaseUrl(prov);
@@ -50,13 +40,11 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
       base_url: baseUrl,
     });
     onChangeCb();
-    saveGlobal();
   }
 
   function removeProfile(idx: number): void {
     profiles.value.splice(idx, 1);
     onChangeCb();
-    saveGlobal();
   }
 
   function updateProfile(
@@ -67,14 +55,12 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     const p = profiles.value[idx];
     if (!p) return;
     if (field === "provider") {
-      // Auto-fill base_url when provider changes and url is empty
       if (!p.base_url.trim()) {
         p.base_url = defaultRemoteApiBaseUrl(value);
       }
     }
     (p as Record<string, string>)[field] = value;
     onChangeCb();
-    saveGlobal();
   }
 
   function applyFromArray(arr: RemoteProfileRow[]): void {
@@ -123,7 +109,6 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     return row?.provider ?? defaultRemoteApiProvider();
   }
 
-  /** Migrate old JSON string format to rows (legacy compat). */
   function migrateJsonStringToRows(jsonStr: string): void {
     let obj: unknown;
     try {
@@ -151,7 +136,6 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
   return {
     profiles,
     loadGlobal,
-    saveGlobal,
     addProfile,
     removeProfile,
     updateProfile,

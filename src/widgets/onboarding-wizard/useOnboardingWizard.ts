@@ -16,12 +16,6 @@ import type {
   ModelAssignment,
 } from "@/shared/model/onboarding-types";
 
-export interface OnboardingWizardEmits {
-  applied: () => void;
-  dismissed: () => void;
-  "model-assignments": (assignments: ModelAssignment[]) => void;
-}
-
 export interface SearchApiKeys {
   tavily_api_key?: string;
   exa_api_key?: string;
@@ -37,7 +31,6 @@ export function useOnboardingWizard(
   },
   getSearchKeys?: () => SearchApiKeys,
 ) {
-  // ── State ──────────────────────────────────────────────────────────────────
   const step = ref<1 | 2 | 3>(1);
   const localRoot = ref(workspaceRoot() || "");
   const scanning = ref(false);
@@ -60,7 +53,6 @@ export function useOnboardingWizard(
   const shouldShow = computed(() => true);
   const hasPreflight = computed(() => Object.keys(mcpPreflight.value).length > 0);
 
-  // ── Watch workspace root prop ──────────────────────────────────────────────
   watch(
     workspaceRoot,
     async (root) => {
@@ -71,7 +63,6 @@ export function useOnboardingWizard(
     { immediate: true },
   );
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   async function checkContextFile(root: string): Promise<void> {
     try {
       const data: ScanResult = await scanOnboardingWorkspace(root);
@@ -80,7 +71,7 @@ export function useOnboardingWizard(
         isCollapsed.value = true;
       }
     } catch {
-      // ignore — show wizard by default
+      /* show wizard by default */
     }
   }
 
@@ -125,7 +116,6 @@ export function useOnboardingWizard(
     return servers;
   }
 
-  // ── Actions ────────────────────────────────────────────────────────────────
   async function runScan(): Promise<void> {
     scanning.value = true;
     scanError.value = "";
@@ -246,7 +236,6 @@ export function useOnboardingWizard(
   }
 
   return {
-    // state
     step,
     localRoot,
     scanning,
@@ -265,10 +254,8 @@ export function useOnboardingWizard(
     scanError,
     applyError,
     contextFileExists,
-    // computed
     shouldShow,
     hasPreflight,
-    // actions
     runScan,
     runAiPreconfigure,
     applyConfig,

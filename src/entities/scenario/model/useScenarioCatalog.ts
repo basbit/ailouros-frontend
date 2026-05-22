@@ -122,6 +122,7 @@ export function useScenarioCatalog(): ScenarioCatalogApi {
       support: [],
       visual_qa: [],
       seo: [],
+      custom: [],
     };
     for (const item of scenarios.value) {
       const bucket = groups[item.category];

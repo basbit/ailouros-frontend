@@ -1,11 +1,7 @@
-/**
- * Model list fetching for local and cloud providers.
- * No fallbacks — throws on any failure so the caller can show the error.
- */
 import { ApiError, httpGet, httpPost } from "@/shared/api/http";
 import { useI18n } from "@/shared/lib/i18n";
 import { defaultRemoteApiBaseUrl } from "@/shared/lib/use-swarm-defaults";
-import type { RemoteProfileRow } from "@/shared/store/projects";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 interface ModelListResponse {
   ok?: boolean;
@@ -13,10 +9,6 @@ interface ModelListResponse {
   error?: string;
 }
 
-/**
- * Attempt to parse an error response body as JSON to recover the `error`
- * field that backend endpoints attach to failure responses.
- */
 function extractErrorMessage(err: unknown): string | null {
   if (!(err instanceof ApiError) || !err.body) return null;
   try {
@@ -66,7 +58,6 @@ export async function ensureModelChoicesForEnv(
   throw new Error(t("errors.unknownEnv", { env }));
 }
 
-/** Fetch models for a cloud profile from the backend. Throws on any error. */
 export async function fetchCloudModelsFromConnection(
   source: CloudModelSource,
 ): Promise<[string, string][]> {
@@ -97,7 +88,6 @@ export async function fetchCloudModelsFromConnection(
   return pairs;
 }
 
-/** Fetch models for a cloud profile from the backend. Throws on any error. */
 export async function fetchCloudModelsForProfile(
   profile: RemoteProfileRow,
 ): Promise<[string, string][]> {

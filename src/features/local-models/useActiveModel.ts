@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { invokeCommand, isDesktop, probeDesktop } from "@/shared/lib/desktop-bridge";
 import type { AvailableModelView } from "./types";
 
-export type ActiveModelKind = "local" | "cloud" | "none";
+type ActiveModelKind = "local" | "cloud" | "none";
 
 export interface ActiveModelView {
   kind: ActiveModelKind;
@@ -61,5 +61,3 @@ export function useActiveModel() {
 
   return { view, refresh };
 }
-
-export type ActiveModelApi = ReturnType<typeof useActiveModel>;

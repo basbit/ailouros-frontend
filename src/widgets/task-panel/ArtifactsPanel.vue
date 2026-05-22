@@ -53,7 +53,7 @@ import ScenarioSourcesPanel from "@/widgets/task-panel/ScenarioSourcesPanel.vue"
 import ScenarioFindingsPanel from "@/widgets/task-panel/ScenarioFindingsPanel.vue";
 import ScenarioScreenshotGalleryPanel from "@/widgets/task-panel/ScenarioScreenshotGalleryPanel.vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { TaskStatus } from "@/shared/model/task-types";
+import type { TaskStatus } from "@/entities/task";
 
 defineProps<{
   open: boolean;

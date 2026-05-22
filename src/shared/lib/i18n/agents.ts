@@ -38,6 +38,8 @@ export const agentsEn: Messages = {
   "agentRoleRow.toolCalling": "Requires tool calling / function calling support",
   "agentRoleRow.modelIdPlaceholder": "model id",
   "agentRoleRow.promptPathPlaceholder": "relative to prompts/",
+  "agentRoleRow.promptTextLabel": "Custom system prompt (overrides file)",
+  "agentRoleRow.promptTextPlaceholder": "Leave empty to use the selected prompt file.",
   "agentRoleRow.skillIdsLabel": "Skill ids",
   "agentRoleRow.skillIdsPlaceholder": "my_skill, other_skill",
   "devRoles.namePlaceholder": "backend / frontend / mobile",
@@ -58,9 +60,12 @@ export const agentsEn: Messages = {
   "skillsCatalog.titleLabel": "Title",
   "skillsCatalog.pathLabel": "Path from workspace root",
   "skillsCatalog.add": "+ Add skill to catalog",
-  "agentEditor.title": "Agent Editor",
   "agentEditor.save": "Save",
   "agentEditor.saving": "Saving\u2026",
+  "agentEditor.delete": "Delete",
+  "agentEditor.goToModels": "Open agent models",
+  "agentEditor.loadPipelinePlaceholder": "Load saved pipeline\u2026",
+  "agentEditor.confirmDelete": "Delete this pipeline?",
   "agentEditor.pipelineNamePlaceholder": "Pipeline name\u2026",
   "agentEditor.nodeTypes": "Node types",
   "agentEditor.nodeConfig": "Node config",
@@ -72,7 +77,12 @@ export const agentsEn: Messages = {
   "agentEditor.nodeType.output": "Output",
   "agentEditor.config.name": "Name",
   "agentEditor.config.model": "Model",
-  "agentEditor.config.role": "System prompt",
+  "agentEditor.config.role": "Role id",
+  "agentEditor.config.rolePlaceholder": "e.g. pm, ba, my_custom_role",
+  "agentEditor.config.promptPath": "Prompt file",
+  "agentEditor.config.promptInline": "Inline prompt (overrides file)",
+  "agentEditor.config.promptInlinePlaceholder":
+    "Leave empty to use the selected prompt file.",
   "agentEditor.config.maxSteps": "Max steps",
   "agentEditor.config.triggerType": "Trigger type",
   "agentEditor.config.cronExpr": "Cron expression",
@@ -120,6 +130,9 @@ export const agentsRu: Messages = {
   "agentRoleRow.toolCalling": "Требует поддержки tool calling / function calling",
   "agentRoleRow.modelIdPlaceholder": "model id",
   "agentRoleRow.promptPathPlaceholder": "relative to prompts/",
+  "agentRoleRow.promptTextLabel": "Свой system prompt (переопределяет файл)",
+  "agentRoleRow.promptTextPlaceholder":
+    "Оставьте пустым, чтобы использовать выбранный файл промпта.",
   "agentRoleRow.skillIdsLabel": "Skill ids",
   "agentRoleRow.skillIdsPlaceholder": "my_skill, other_skill",
   "devRoles.namePlaceholder": "backend / frontend / mobile",
@@ -140,10 +153,15 @@ export const agentsRu: Messages = {
   "skillsCatalog.titleLabel": "Название",
   "skillsCatalog.pathLabel": "Путь от workspace root",
   "skillsCatalog.add": "+ Add skill to catalog",
-  "agentEditor.title":
-    "\u0420\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
   "agentEditor.save": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
   "agentEditor.saving": "\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u043c\u2026",
+  "agentEditor.delete": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c",
+  "agentEditor.goToModels":
+    "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u043e\u0434\u0435\u043b\u0438 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
+  "agentEditor.loadPipelinePlaceholder":
+    "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d\u2026",
+  "agentEditor.confirmDelete":
+    "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e\u0442 \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d?",
   "agentEditor.pipelineNamePlaceholder":
     "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d\u0430\u2026",
   "agentEditor.nodeTypes": "\u0422\u0438\u043f\u044b \u0443\u0437\u043b\u043e\u0432",
@@ -160,8 +178,15 @@ export const agentsRu: Messages = {
     "\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442",
   "agentEditor.config.name": "\u0418\u043c\u044f",
   "agentEditor.config.model": "\u041c\u043e\u0434\u0435\u043b\u044c",
-  "agentEditor.config.role":
-    "\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0439 \u043f\u0440\u043e\u043c\u043f\u0442",
+  "agentEditor.config.role": "ID \u0440\u043e\u043b\u0438",
+  "agentEditor.config.rolePlaceholder":
+    "\u043d\u0430\u043f\u0440\u0438\u043c\u0435\u0440, pm, ba, my_custom_role",
+  "agentEditor.config.promptPath":
+    "\u0424\u0430\u0439\u043b \u043f\u0440\u043e\u043c\u043f\u0442\u0430",
+  "agentEditor.config.promptInline":
+    "Inline \u043f\u0440\u043e\u043c\u043f\u0442 (\u043f\u0435\u0440\u0435\u043e\u043f\u0440\u0435\u0434\u0435\u043b\u044f\u0435\u0442 \u0444\u0430\u0439\u043b)",
+  "agentEditor.config.promptInlinePlaceholder":
+    "\u041e\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u043f\u0443\u0441\u0442\u044b\u043c, \u0447\u0442\u043e\u0431\u044b \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0439 \u0444\u0430\u0439\u043b \u043f\u0440\u043e\u043c\u043f\u0442\u0430.",
   "agentEditor.config.maxSteps":
     "\u041c\u0430\u043a\u0441. \u0448\u0430\u0433\u043e\u0432",
   "agentEditor.config.triggerType":

@@ -70,6 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
 const availableChannels: ActivityChannel[] = [
   "mcp_calls",
   "web_searches",
+  "page_fetches",
   "qdrant_ops",
   "rag_hits",
 ];
@@ -87,6 +88,8 @@ function channelLabel(channel: ActivityChannel): string {
       return "MCP";
     case "web_searches":
       return "Web";
+    case "page_fetches":
+      return "Fetch";
     case "qdrant_ops":
       return "Qdrant";
     case "rag_hits":
@@ -125,6 +128,11 @@ function summariseEntry(entry: ActivityEntry): string {
     const collection = String(entry.collection ?? "?");
     const hits = entry.hit_count !== undefined ? ` ${entry.hit_count} hits` : "";
     return `${op} ${collection}${hits}`;
+  }
+  if (entry.channel === "page_fetches") {
+    const status = String(entry.status ?? "ok");
+    const bytes = entry.bytes !== undefined ? ` ${entry.bytes}b` : "";
+    return `${String(entry.url ?? "")} → ${status}${bytes}`;
   }
   return JSON.stringify(entry);
 }

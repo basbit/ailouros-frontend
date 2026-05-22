@@ -44,7 +44,6 @@
       />
 
       <template v-if="steps.length">
-        <!-- LINEAR -->
         <div
           v-if="topo === 'linear'"
           ref="sortableContainer"
@@ -63,7 +62,6 @@
           />
         </div>
 
-        <!-- PARALLEL -->
         <div
           v-else-if="topo === 'parallel'"
           ref="sortableContainer"
@@ -85,44 +83,18 @@
           </div>
         </div>
 
-        <!-- RING -->
         <div
-          v-else-if="topo === 'ring'"
+          v-else-if="topo === 'ring' || topo === 'mesh'"
           ref="sortableContainer"
-          class="step-flow step-flow--ring"
+          class="step-flow"
+          :class="`step-flow--${topo}`"
           style="position: relative"
         >
           <PipelineGraphEdges
             :lines="topoLines"
             :width="svgWidth"
             :height="svgHeight"
-            variant="ring"
-          />
-          <StepCard
-            v-for="step in stepRefs"
-            :key="stepKey(step)"
-            :step-id="step.id"
-            :status="stepStatus(step.id)"
-            :editable="!!editorSteps"
-            :options="editorOptions"
-            :order-violation="orderViolationFor(step)"
-            @remove="$emit('editor:remove', step.index)"
-            @change="(v) => $emit('editor:change', step.index, v)"
-          />
-        </div>
-
-        <!-- MESH -->
-        <div
-          v-else-if="topo === 'mesh'"
-          ref="sortableContainer"
-          class="step-flow step-flow--mesh"
-          style="position: relative"
-        >
-          <PipelineGraphEdges
-            :lines="topoLines"
-            :width="svgWidth"
-            :height="svgHeight"
-            variant="mesh"
+            :variant="topo === 'ring' ? 'ring' : 'mesh'"
           />
           <StepCard
             v-for="step in stepRefs"
@@ -173,11 +145,8 @@ import PipelineGraphHeader from "@/widgets/pipeline-graph/PipelineGraphHeader.vu
 import PipelineGraphEdges from "@/widgets/pipeline-graph/PipelineGraphEdges.vue";
 import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConnections";
 import { usePipelineGraphInteractions } from "@/widgets/pipeline-graph/usePipelineGraphInteractions";
-import { recommendedStepsForTopology } from "@/shared/lib/pipeline-topology";
-import {
-  usePipelineGraphLayout,
-  type GraphStepRef,
-} from "@/widgets/pipeline-graph/usePipelineGraphLayout";
+import { usePipelineGraphLayout } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
+import { usePipelineGraphEditor } from "@/widgets/pipeline-graph/usePipelineGraphEditor";
 import type { PipeStep } from "@/shared/model/pipeline-types";
 import type { CustomScenarioSnap } from "@/shared/model/project-types";
 import type {
@@ -185,7 +154,6 @@ import type {
   HostMetricsSample,
 } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
-import { analyzePipelineStepOrder } from "@/shared/lib/step-order";
 
 const props = defineProps<{
   steps: string[];
@@ -231,48 +199,24 @@ const emit = defineEmits<{
 const open = ref(true);
 const sortableContainer = ref<HTMLElement | null>(null);
 
-const topo = computed(() => {
-  const value = (props.topology ?? "").trim();
-  return ["parallel", "ring", "mesh"].includes(value) ? value : "linear";
+const {
+  topo,
+  recommendedCount,
+  editorStepIds,
+  editorEnabled,
+  stepSignal,
+  stepKey,
+  orderViolationFor,
+} = usePipelineGraphEditor({
+  steps: computed(() => props.steps),
+  editorSteps: computed(() => props.editorSteps),
+  topology: computed(() => props.topology),
+  t,
 });
-
-const recommendedCount = computed(() => recommendedStepsForTopology(topo.value).length);
-
-// When editorSteps is provided the SortableJS container must render from those
-// ids so that oldIndex/newIndex in onEnd always match the configured array —
-// not the historical run steps that effectivePipelineSteps may carry.
-const editorStepIds = computed<string[]>(() =>
-  props.editorSteps?.length ? props.editorSteps.map((s) => s.id) : [],
-);
 
 const { stepRefs, parallelStages, stepStatus } = usePipelineGraphLayout(
   props,
   editorStepIds,
-);
-
-function stepKey(step: GraphStepRef): string {
-  return props.editorSteps?.[step.index]?.uid ?? `${step.id}:${step.index}`;
-}
-
-const orderViolationsByIndex = computed<Record<number, string>>(() => {
-  if (!props.editorSteps?.length) return {};
-  const report = analyzePipelineStepOrder(editorStepIds.value);
-  const out: Record<number, string> = {};
-  for (const violation of report.violations) {
-    out[violation.stepIndex] = t("pipelineSteps.orderWarningTooltip", {
-      prerequisite: violation.missingPrerequisite,
-    });
-  }
-  return out;
-});
-
-function orderViolationFor(step: GraphStepRef): string | undefined {
-  return orderViolationsByIndex.value[step.index];
-}
-
-const editorEnabled = computed(() => !!props.editorSteps);
-const stepSignal = computed(() =>
-  (editorStepIds.value.length ? editorStepIds.value : props.steps).join("\u0000"),
 );
 
 usePipelineGraphInteractions({
@@ -293,16 +237,23 @@ const {
 </script>
 
 <style scoped>
-/* LINEAR */
-.step-flow--linear {
+.step-flow--linear,
+.step-flow--ring {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   align-items: center;
   padding: 4px 0 8px;
 }
-.step-flow--linear :deep(.step-card:not(:last-child))::after {
-  content: "\2192"; /* → */
+.step-flow--ring {
+  padding: 8px;
+  border: 1px dashed rgba(77, 171, 247, 0.3);
+  border-radius: 12px;
+}
+.step-flow--linear :deep(.step-card:not(:last-child))::after,
+.step-flow--ring :deep(.step-card:not(:last-child))::after,
+.step-stage:not(:last-child)::after {
+  content: "\2192";
   position: absolute;
   right: -16px;
   top: 50%;
@@ -311,8 +262,10 @@ const {
   font-size: 14px;
   pointer-events: none;
 }
+.step-stage:not(:last-child)::after {
+  right: -18px;
+}
 
-/* PARALLEL */
 .step-flow--parallel {
   display: flex;
   flex-wrap: wrap;
@@ -327,40 +280,7 @@ const {
   align-items: center;
   position: relative;
 }
-.step-stage:not(:last-child)::after {
-  content: "\2192";
-  position: absolute;
-  right: -18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text3, #666);
-  font-size: 14px;
-  pointer-events: none;
-}
 
-/* RING */
-.step-flow--ring {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: center;
-  padding: 8px;
-  border: 1px dashed rgba(77, 171, 247, 0.3);
-  border-radius: 12px;
-  position: relative;
-}
-.step-flow--ring :deep(.step-card:not(:last-child))::after {
-  content: "\2192";
-  position: absolute;
-  right: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text3, #666);
-  font-size: 14px;
-  pointer-events: none;
-}
-
-/* MESH */
 .step-flow--mesh {
   display: grid;
   grid-template-columns: repeat(3, auto);
@@ -369,9 +289,6 @@ const {
   padding: 4px 0 8px;
 }
 
-/* SortableJS drag feedback — classes are applied to StepCard root at
-   drag time, so they live here (alongside the flow containers) rather
-   than inside StepCard.vue. */
 :deep(.step-sortable-ghost) {
   opacity: 0.3;
 }
@@ -385,7 +302,6 @@ const {
   padding: 6px 0 0;
   flex-wrap: wrap;
 }
-
 .pg-status-badge {
   font-size: 10px;
   padding: 1px 6px;
@@ -407,7 +323,6 @@ const {
   background: rgba(59, 91, 219, 0.18);
   color: #74c0fc;
 }
-
 .pg-empty {
   padding: 6px 0;
 }

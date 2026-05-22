@@ -89,11 +89,21 @@
         </div>
         <div class="field" style="grid-column: 1/-1">
           <label class="field-label">{{ t("customRoles.promptFileLabel") }}</label>
-          <PromptPathPicker
-            :model-value="role.prompt_path"
-            :placeholder="t('customRoles.promptFilePlaceholder')"
-            @update:model-value="update(idx, 'prompt_path', $event)"
-          />
+          <div class="cr-prompt-row">
+            <PromptPathPicker
+              :model-value="role.prompt_path"
+              :placeholder="t('customRoles.promptFilePlaceholder')"
+              @update:model-value="update(idx, 'prompt_path', $event)"
+            />
+            <button
+              type="button"
+              class="cr-prompt-edit"
+              :title="t('promptEditor.openLabel')"
+              @click="openPromptEditor(idx)"
+            >
+              {{ t("promptEditor.openLabel") }}
+            </button>
+          </div>
         </div>
       </div>
       <div class="field">
@@ -127,16 +137,32 @@
     <button type="button" class="btn-secondary" style="margin-top: 6px" @click="add">
       {{ t("customRoles.add") }}
     </button>
+    <PromptEditorDialog
+      :open="promptEditorIndex !== null"
+      :initial-path="
+        promptEditorIndex !== null
+          ? (props.customRoles[promptEditorIndex]?.prompt_path ?? '')
+          : ''
+      "
+      @close="promptEditorIndex = null"
+      @saved="onPromptSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import type {
   CustomRoleSnap,
   CustomRoleUiState,
 } from "@/features/custom-roles/useCustomRoles";
 import { useI18n } from "@/shared/lib/i18n";
+import {
+  pickModelSelectValue,
+  resolveModelChange,
+} from "@/shared/lib/role-model-choice";
 import PromptPathPicker from "@/shared/components/PromptPathPicker.vue";
+import PromptEditorDialog from "@/shared/components/PromptEditorDialog.vue";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
 
 const { t } = useI18n();
@@ -162,19 +188,12 @@ function uiState(idx: number): CustomRoleUiState {
 function modelSelValue(idx: number): string {
   const role = props.customRoles[idx];
   if (!role) return "";
-  const choices = uiState(idx).modelChoices;
-  if (!choices.length) return role.model ?? "";
-  const hit = choices.find(([v]) => v === role.model);
-  return hit ? hit[0] : "__custom__";
+  return pickModelSelectValue(role.model, uiState(idx).modelChoices);
 }
 
 function onModelChange(idx: number, value: string): void {
-  if (value === "__custom__") {
-    const current = props.customRoles[idx]?.model ?? "";
-    emit("update", idx, "model", current);
-  } else {
-    emit("update", idx, "model", value);
-  }
+  const next = resolveModelChange(value, props.customRoles[idx]?.model);
+  emit("update", idx, "model", next);
 }
 
 function add(): void {
@@ -186,6 +205,19 @@ function remove(idx: number): void {
 function update(idx: number, field: keyof CustomRoleSnap, value: string): void {
   emit("update", idx, field, value);
 }
+
+const promptEditorIndex = ref<number | null>(null);
+
+function openPromptEditor(idx: number): void {
+  promptEditorIndex.value = idx;
+}
+
+function onPromptSaved(path: string): void {
+  if (promptEditorIndex.value !== null) {
+    emit("update", promptEditorIndex.value, "prompt_path", path);
+  }
+  promptEditorIndex.value = null;
+}
 </script>
 
 <style scoped>
@@ -195,6 +227,25 @@ function update(idx: number, field: keyof CustomRoleSnap, value: string): void {
   width: 100%;
   min-width: 0;
   font-size: 12px;
+}
+.cr-prompt-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.cr-prompt-row :deep(.prompt-path-picker) {
+  flex: 1;
+  min-width: 0;
+}
+.cr-prompt-edit {
+  background: var(--accent, #3b5bdb);
+  color: #fff;
+  border: 1px solid var(--accent, #3b5bdb);
+  border-radius: 4px;
+  padding: 2px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .model-fetch-error {
   font-size: 10px;

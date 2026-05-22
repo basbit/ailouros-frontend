@@ -20,7 +20,6 @@
       </template>
     </div>
 
-    <!-- allowlist extension notice -->
     <div v-if="(needsAllowlist ?? []).length" class="shell-gate__notice">
       {{ t("shellGate.needsAllowlist") }}:
       <code

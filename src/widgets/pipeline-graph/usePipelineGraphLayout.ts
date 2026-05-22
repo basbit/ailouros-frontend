@@ -36,13 +36,6 @@ export type StepStatus =
   | "retrying"
   | "blocked";
 
-/**
- * @param props       - reactive display props (steps = effectivePipelineSteps)
- * @param stepsOverride - when provided, used instead of props.steps for rendering
- *                        and index calculations (e.g. editorSteps ids so that
- *                        drag indices always match the configured array, not the
- *                        historical run steps shown for status decoration).
- */
 export function usePipelineGraphLayout(
   props: LayoutProps,
   stepsOverride?: Ref<string[]>,

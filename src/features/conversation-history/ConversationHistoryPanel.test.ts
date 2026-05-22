@@ -44,7 +44,14 @@ describe("ConversationHistoryPanel", () => {
     const wrapper = mount(ConversationHistoryPanel, {
       props: { messages: [], notImplemented: true },
     });
-    expect(wrapper.text()).toContain("not available yet");
+    expect(wrapper.text()).toContain("not available");
+  });
+
+  it("shows disabled hint when shared history is off and feature flag is false", () => {
+    const wrapper = mount(ConversationHistoryPanel, {
+      props: { messages: [], sharedHistoryEnabled: false },
+    });
+    expect(wrapper.text()).toContain("Shared history is disabled");
   });
 
   it("shows error when error prop is non-null", () => {

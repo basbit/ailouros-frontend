@@ -58,13 +58,55 @@
         type="search"
         placeholder="filter by title or kind"
       />
+      <button
+        type="button"
+        class="spec-graph-panel__refresh"
+        :disabled="driftLoading"
+        @click="onDriftClick"
+      >
+        {{ driftLoading ? "Checking…" : "Detect drift" }}
+      </button>
+      <button
+        v-if="selectedSpecId"
+        type="button"
+        class="spec-graph-panel__refresh"
+        :disabled="codegenLoading"
+        @click="onCodegenClick"
+      >
+        {{ codegenLoading ? "Generating…" : "Generate code" }}
+      </button>
+    </div>
+
+    <div v-if="drift" class="spec-graph-panel__drift">
+      <div
+        v-if="driftError"
+        class="spec-graph-panel__state spec-graph-panel__state--error"
+      >
+        {{ driftError }}
+      </div>
+      <div v-else class="spec-graph-panel__drift-summary">
+        Stale code: {{ drift.stale_code.length }} · Stale specs:
+        {{ drift.stale_specs.length }} · Aged keep regions:
+        {{ drift.aged_keep_regions.length }}
+      </div>
+    </div>
+
+    <div v-if="codegenResult" class="spec-graph-panel__drift-summary">
+      Generated {{ codegenResult.written_files.length }} file(s) from
+      {{ codegenResult.spec_id }} (retries: {{ codegenResult.retry_count }}).
+    </div>
+    <div
+      v-if="codegenError"
+      class="spec-graph-panel__state spec-graph-panel__state--error"
+    >
+      {{ codegenError }}
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import GraphCanvas from "@/widgets/wiki-graph-panel/GraphCanvas.vue";
+import GraphCanvas from "@/entities/wiki/GraphCanvas.vue";
 import { SPEC_NODE_PALETTE, useSpecGraph } from "./useSpecGraph";
 
 const props = withDefaults(
@@ -78,8 +120,34 @@ const props = withDefaults(
 
 const emit = defineEmits<{ nodeClick: [nodeId: string] }>();
 
-const { nodes, edges, data, loading, error, notImplemented, load } = useSpecGraph();
+const {
+  nodes,
+  edges,
+  data,
+  loading,
+  error,
+  notImplemented,
+  drift,
+  driftLoading,
+  driftError,
+  codegenResult,
+  codegenLoading,
+  codegenError,
+  load,
+  loadDrift,
+  runCodegen,
+} = useSpecGraph();
 const search = ref("");
+const selectedSpecId = ref<string | null>(null);
+
+async function onDriftClick(): Promise<void> {
+  await loadDrift(props.workspaceRoot);
+}
+
+async function onCodegenClick(): Promise<void> {
+  if (!selectedSpecId.value) return;
+  await runCodegen(selectedSpecId.value);
+}
 
 const legendEntries = computed(() =>
   Object.entries(SPEC_NODE_PALETTE).map(([kind, color]) => ({ kind, color })),
@@ -90,6 +158,8 @@ async function reload(): Promise<void> {
 }
 
 function onNodeClick(nodeId: string): void {
+  const node = nodes.value.find((entry) => entry.id === nodeId);
+  selectedSpecId.value = node && node.kind === "spec" ? node.id : null;
   emit("nodeClick", nodeId);
 }
 
@@ -202,5 +272,13 @@ watch(
   font-size: 12px;
   background: var(--bg, transparent);
   color: inherit;
+}
+.spec-graph-panel__drift {
+  font-size: 12px;
+  color: var(--text2, #888);
+}
+.spec-graph-panel__drift-summary {
+  font-size: 12px;
+  color: var(--text2, #888);
 }
 </style>

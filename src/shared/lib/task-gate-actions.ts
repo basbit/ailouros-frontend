@@ -1,5 +1,7 @@
 import { ApiError } from "@/shared/api/client";
 import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
+import type { ChatStreamEvent } from "@/shared/lib/chat-stream-events";
+import { consumeSseStream } from "@/shared/lib/swarm-chat-stream";
 import {
   getPendingHuman,
   getPendingManualShell,
@@ -11,6 +13,7 @@ import {
   postRetryStream,
 } from "@/shared/api/endpoints/task-gates";
 import { buildAgentConfig, type AgentConfigSettings } from "@/shared/lib/agent-config";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUxStore } from "@/shared/store/ux";
 
@@ -24,9 +27,14 @@ function noTaskIdMessage(): string {
 
 async function drainStream(
   body: ReadableStream<Uint8Array> | null | undefined,
+  onEvent?: (event: ChatStreamEvent) => void,
 ): Promise<void> {
   const reader = body?.getReader();
   if (!reader) return;
+  if (onEvent) {
+    await consumeSseStream(reader, onEvent);
+    return;
+  }
   while (true) {
     const { done } = await reader.read();
     if (done) break;
@@ -37,18 +45,19 @@ export async function submitHumanResume(
   taskId: string,
   feedback: string,
   sendWsSubscribe: () => void,
+  onEvent?: (event: ChatStreamEvent) => void,
 ): Promise<void> {
   if (!taskId) {
     notifyError(noTaskIdMessage());
     return;
   }
-  const resp = await postHumanResumeStream(taskId, feedback);
-  if (!resp.ok) {
-    notifyError("human-resume HTTP " + resp.status);
+  const response = await postHumanResumeStream(taskId, feedback);
+  if (!response.ok) {
+    notifyError("human-resume HTTP " + response.status);
     return;
   }
   sendWsSubscribe();
-  await drainStream(resp.body);
+  await drainStream(response.body, onEvent);
 }
 
 export async function confirmShell(taskId: string, approved: boolean): Promise<void> {
@@ -76,7 +85,10 @@ export async function fetchPendingManualShell(
     if (!data) return empty;
     return { commands: data.commands ?? [], reason: data.reason ?? "" };
   } catch (error) {
-    console.warn(`fetchPendingManualShell: network error for task ${taskId}:`, error);
+    frontendLogger.warn(
+      `fetchPendingManualShell: network error for task ${taskId}`,
+      error,
+    );
     return empty;
   }
 }
@@ -123,7 +135,7 @@ export async function fetchPendingHuman(
   try {
     return await getPendingHuman(taskId);
   } catch (error) {
-    console.warn(`fetchPendingHuman: network error for task ${taskId}:`, error);
+    frontendLogger.warn(`fetchPendingHuman: network error for task ${taskId}`, error);
     return null;
   }
 }
@@ -151,7 +163,10 @@ export async function fetchPendingShellCommands(
       already_allowed: data.already_allowed ?? [],
     };
   } catch (error) {
-    console.warn(`fetchPendingShellCommands: network error for task ${taskId}:`, error);
+    frontendLogger.warn(
+      `fetchPendingShellCommands: network error for task ${taskId}`,
+      error,
+    );
     return empty;
   }
 }
@@ -159,9 +174,14 @@ export async function fetchPendingShellCommands(
 export async function fetchFailedStep(taskId: string): Promise<string> {
   try {
     const data = await getTaskPipelinePlan(taskId);
-    return typeof data.failed_step === "string" ? data.failed_step : "";
+    const explicit =
+      typeof data.failed_step === "string" ? data.failed_step.trim() : "";
+    if (explicit && explicit !== "graph") return explicit;
+    const current =
+      typeof data.current_step === "string" ? data.current_step.trim() : "";
+    return current;
   } catch (error) {
-    console.warn(`fetchFailedStep: network error for task ${taskId}:`, error);
+    frontendLogger.warn(`fetchFailedStep: network error for task ${taskId}`, error);
     return "";
   }
 }
@@ -171,7 +191,10 @@ export async function fetchCurrentPipelineSteps(taskId: string): Promise<string[
     const data = await getTaskPipelinePlan(taskId);
     return Array.isArray(data.pipeline_steps) ? data.pipeline_steps : [];
   } catch (error) {
-    console.warn(`fetchCurrentPipelineSteps: network error for task ${taskId}:`, error);
+    frontendLogger.warn(
+      `fetchCurrentPipelineSteps: network error for task ${taskId}`,
+      error,
+    );
     return [];
   }
 }
@@ -206,13 +229,13 @@ export async function submitContinuePipeline(
     pipeline_steps: mergedSteps,
   };
 
-  const resp = await postRetryStream(taskId, body);
-  if (!resp.ok) {
-    notifyError("continue-pipeline HTTP " + resp.status);
+  const response = await postRetryStream(taskId, body);
+  if (!response.ok) {
+    notifyError("continue-pipeline HTTP " + response.status);
     return;
   }
   sendWsSubscribe();
-  await drainStream(resp.body);
+  await drainStream(response.body);
 }
 
 export async function submitRetry(
@@ -235,18 +258,18 @@ export async function submitRetry(
       const steps = pipelineSnapshot.pipeline_steps;
       if (steps && steps.length) body.from_step = steps[0];
     } catch (error) {
-      console.warn(
-        `submitRetry: could not read pipeline.json for task ${taskId}:`,
+      frontendLogger.warn(
+        `submitRetry: could not read pipeline.json for task ${taskId}`,
         error,
       );
     }
   }
 
-  const resp = await postRetryStream(taskId, body);
-  if (!resp.ok) {
-    notifyError("retry HTTP " + resp.status);
+  const response = await postRetryStream(taskId, body);
+  if (!response.ok) {
+    notifyError("retry HTTP " + response.status);
     return;
   }
   sendWsSubscribe();
-  await drainStream(resp.body);
+  await drainStream(response.body);
 }

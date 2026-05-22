@@ -17,13 +17,13 @@ export interface SpecGraphDto {
   edges?: SpecGraphEdgeDto[];
 }
 
-export interface SpecDriftStaleEntry {
+interface SpecDriftStaleEntry {
   spec_id?: string;
   path?: string;
   reason?: string;
 }
 
-export interface SpecDriftAgedKeepRegion {
+interface SpecDriftAgedKeepRegion {
   path?: string;
   line?: number;
   age_days?: number;

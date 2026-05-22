@@ -1,80 +1,21 @@
 <template>
   <header class="app-header">
-    <button
-      type="button"
-      class="sidebar-toggle"
-      :title="
-        preferences.sidebarCollapsed
-          ? t('header.sidebar.open')
-          : t('header.sidebar.close')
-      "
-      @click="preferences.toggleSidebar()"
-    >
-      <!-- Hamburger / Close -->
-      <svg
-        v-if="preferences.sidebarCollapsed"
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
-      </svg>
-      <svg
-        v-else
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-    </button>
+    <AppHeaderLogo :name="t('app.title')" />
 
-    <div class="app-logo">
-      <!-- AllourOS cat icon -->
-      <div class="app-logo-icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 32 32"
-          width="18"
-          height="18"
-          fill="none"
-        >
-          <circle cx="13" cy="19" r="9" fill="#13100b" />
-          <polygon points="5.5,15 3.5,7.5 10.5,12" fill="#13100b" />
-          <polygon points="20.5,15 22.5,7.5 15.5,12" fill="#13100b" />
-          <polygon points="6.2,14 5.2,9 9.5,11.5" fill="rgba(240,176,73,0.38)" />
-          <polygon points="19.8,14 20.8,9 16.5,11.5" fill="rgba(240,176,73,0.38)" />
-          <ellipse cx="9.5" cy="18.5" rx="1.5" ry="1.7" fill="#f0b849" />
-          <ellipse cx="16.5" cy="18.5" rx="1.5" ry="1.7" fill="#f0b849" />
-          <ellipse cx="9.5" cy="18.5" rx="0.45" ry="1.4" fill="#0a0806" />
-          <ellipse cx="16.5" cy="18.5" rx="0.45" ry="1.4" fill="#0a0806" />
-          <polygon points="13,21 11.7,22.4 14.3,22.4" fill="#e87d3e" opacity="0.9" />
-          <path
-            d="M 20 23 C 29 21 30.5 13 26 8 C 23.5 4.5 20 7.5 22.5 11"
-            stroke="#f0b849"
-            stroke-width="2.2"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </div>
-      <span class="app-logo-name">{{ t("app.title") }}</span>
-    </div>
+    <div class="hdr-sep"></div>
+
+    <nav class="hdr-tabs" :aria-label="t('header.tabs.run')">
+      <button
+        v-for="tab in topTabs"
+        :key="tab.key"
+        type="button"
+        class="hdr-tab"
+        :class="{ 'hdr-tab--active': activeTopTab === tab.key }"
+        @click="navigateToTab(tab.target)"
+      >
+        {{ tab.label }}
+      </button>
+    </nav>
 
     <div class="hdr-sep"></div>
 
@@ -88,9 +29,22 @@
       @edit="emit('project-edit', $event)"
     />
 
-    <div class="task-pill" :class="{ running: isRunning }">
+    <div
+      class="task-pill"
+      :class="{ running: isRunning, 'task-pill--clickable': taskId && isRunning }"
+    >
       <span class="dot"></span>
-      <span>{{ taskId ?? t("header.noTask") }}</span>
+      <button
+        v-if="taskId && isRunning"
+        type="button"
+        class="task-pill__resume"
+        :title="t('header.resumeRun')"
+        :aria-label="t('header.resumeRun')"
+        @click="emit('resume-run')"
+      >
+        {{ taskId }}
+      </button>
+      <span v-else>{{ taskId ?? t("header.noTask") }}</span>
       <button
         v-if="taskId && !isRunning"
         type="button"
@@ -105,16 +59,6 @@
 
     <div class="hdr-spacer"></div>
 
-    <button
-      type="button"
-      class="theme-toggle header-plugins"
-      title="Plugins"
-      aria-label="Plugins"
-      @click="openPlugins?.()"
-    >
-      Plugins
-    </button>
-
     <div class="header-status" :class="{ 'header-status--running': isRunning }">
       <span
         class="header-status-dot"
@@ -123,20 +67,7 @@
       {{ isRunning ? t("header.running") : t("header.idle") }}
     </div>
 
-    <button
-      type="button"
-      class="theme-toggle header-health"
-      :class="`header-health--${healthStatus ?? 'unknown'}`"
-      :title="`System health: ${healthStatus ?? 'unknown'}`"
-      :aria-label="`System health: ${healthStatus ?? 'unknown'}`"
-      @click="emit('open-system-health')"
-    >
-      <span
-        class="header-health-dot"
-        :class="`header-health-dot--${healthStatus ?? 'unknown'}`"
-      ></span>
-      <span class="header-health-text">{{ (healthStatus ?? "—").toUpperCase() }}</span>
-    </button>
+    <AppHeaderHealthBadge :status="healthStatus" @open="emit('open-system-health')" />
 
     <select
       class="header-locale"
@@ -152,41 +83,15 @@
 
     <button
       type="button"
-      class="theme-toggle settings-toggle"
-      :title="t('header.settings.open')"
-      :aria-label="t('header.settings.open')"
-      @click="emit('open-settings')"
+      class="report-problem-button"
+      :title="t('header.reportProblem')"
+      :aria-label="t('header.reportProblem')"
+      @click="emit('open-report-problem')"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path
-          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-        />
-      </svg>
-    </button>
-
-    <button
-      class="theme-toggle"
-      :title="preferences.isDark ? t('header.theme.light') : t('header.theme.dark')"
-      @click="preferences.toggleTheme()"
-    >
-      <!-- Sun / Moon icons -->
-      <svg
-        v-if="preferences.isDark"
-        xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -194,42 +99,27 @@
         stroke-linecap="round"
         stroke-linejoin="round"
       >
-        <circle cx="12" cy="12" r="5" />
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" />
-        <line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-      </svg>
-      <svg
-        v-else
-        xmlns="http://www.w3.org/2000/svg"
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        <rect x="8" y="6" width="8" height="14" rx="4" />
+        <path d="M9 3l1 3" />
+        <path d="M15 3l-1 3" />
+        <path d="M4 11h4" />
+        <path d="M16 11h4" />
+        <path d="M4 17h4" />
+        <path d="M16 17h4" />
+        <path d="M12 10v8" />
       </svg>
     </button>
   </header>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useI18n } from "@/shared/lib/i18n";
 import ProjectSwitcher from "@/features/project-settings/ProjectSwitcher.vue";
+import AppHeaderLogo from "./AppHeaderLogo.vue";
+import AppHeaderHealthBadge from "./AppHeaderHealthBadge.vue";
+import { useAppHeaderTabs } from "./useAppHeaderTabs";
 import { useSystemHealth } from "@/features/system-health/useSystemHealth";
-
-const openPlugins = inject<() => void>("openPlugins");
 
 defineProps<{
   taskId: string | null;
@@ -237,14 +127,13 @@ defineProps<{
   projectName?: string | null;
   currentProjectId: string;
   projectList: { id: string; name: string }[];
-  agentEditorActive?: boolean;
 }>();
 
 const emit = defineEmits<{
-  "toggle-agent-editor": [];
-  "open-settings": [];
   "open-system-health": [];
   "close-task": [];
+  "open-report-problem": [];
+  "resume-run": [];
   "project-change": [id: string];
   "project-new": [];
   "project-rename": [id: string];
@@ -258,6 +147,8 @@ const healthStatus = systemHealth.status;
 
 const preferences = usePreferencesStore();
 const { t } = useI18n();
+
+const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
 </script>
 
 <style scoped>
@@ -265,27 +156,43 @@ const { t } = useI18n();
   flex: 1;
 }
 
-.app-logo-icon {
-  display: flex;
+.hdr-tabs {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: linear-gradient(145deg, #1c140d, #100c08);
-  border: 1px solid rgba(240, 180, 73, 0.22);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  flex-shrink: 0;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--card-soft);
+  border: 1px solid var(--line);
 }
 
-.app-logo-name {
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: -0.025em;
+.hdr-tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background 0.16s,
+    color 0.16s;
 }
 
-.sidebar-toggle,
-.theme-toggle {
+.hdr-tab:hover {
+  color: var(--ink);
+}
+
+.hdr-tab--active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.report-problem-button {
   background: none;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -302,8 +209,7 @@ const { t } = useI18n();
     color 0.18s,
     box-shadow 0.18s;
 }
-.sidebar-toggle:hover,
-.theme-toggle:hover {
+.report-problem-button:hover {
   background: var(--surface2);
   border-color: var(--border-hi);
   color: var(--text);
@@ -344,58 +250,6 @@ const { t } = useI18n();
   border-radius: 999px;
 }
 
-.header-plugins {
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 6px 12px;
-}
-
-.header-health {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 6px 10px;
-}
-.header-health-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text3);
-}
-.header-health-dot--ok {
-  background: var(--success, #4ade80);
-  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
-}
-.header-health-dot--degraded {
-  background: #f0b849;
-  box-shadow: 0 0 6px rgba(240, 184, 73, 0.7);
-}
-.header-health-dot--error {
-  background: var(--danger, #f87171);
-  box-shadow: 0 0 6px rgba(248, 113, 113, 0.7);
-}
-.header-health-dot--disabled,
-.header-health-dot--unknown {
-  background: var(--text3);
-}
-.header-health-text {
-  font-size: 10px;
-  color: var(--text2);
-}
-.header-health--ok {
-  border-color: rgba(74, 222, 128, 0.4);
-}
-.header-health--degraded {
-  border-color: rgba(240, 184, 73, 0.4);
-}
-.header-health--error {
-  border-color: rgba(248, 113, 113, 0.4);
-}
-
 .task-pill__close {
   background: transparent;
   border: none;
@@ -410,6 +264,21 @@ const { t } = useI18n();
 }
 .task-pill__close:hover {
   opacity: 1;
+}
+
+.task-pill__resume {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.task-pill__resume:hover {
+  color: var(--success);
 }
 
 @media (max-width: 900px) {

@@ -1,7 +1,3 @@
-/**
- * useSwarmRunState — shared run-lifecycle refs, hydration, and history bookkeeping.
- * Extracted from useSwarmRunController.ts (plan §20.1.4) — no behaviour change.
- */
 import { computed, ref } from "vue";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
@@ -67,8 +63,8 @@ export function useSwarmRunState() {
   }
 
   function updateRunHistory(status: string | null, error: unknown): void {
-    const tid = ui.taskId?.trim();
-    if (!tid) return;
+    const taskId = ui.taskId?.trim();
+    if (!taskId) return;
     const historyStatus = (status ?? null) as
       | "pending"
       | "running"
@@ -83,7 +79,7 @@ export function useSwarmRunState() {
       | "awaiting_manual_shell"
       | "cancelled"
       | null;
-    const entry = ui.historyList.find((item) => (item.taskId ?? "").trim() === tid);
+    const entry = ui.historyList.find((item) => (item.taskId ?? "").trim() === taskId);
     const startedAt = entry?.startedAt ?? entry?.at ?? Date.now();
     const isTerminal =
       status === "completed" ||
@@ -94,7 +90,7 @@ export function useSwarmRunState() {
       status === "cancelled";
     const finishedAt = isTerminal ? Date.now() : null;
     ui.updateHistoryResult(
-      tid,
+      taskId,
       {
         status: historyStatus,
         error: error ? String(error) : null,
@@ -105,7 +101,7 @@ export function useSwarmRunState() {
       projectsStore.currentId,
     );
     if (isTerminal) {
-      void emitTerminalDesktopNotification(historyStatus, tid, error);
+      void emitTerminalDesktopNotification(historyStatus, taskId, error);
     }
   }
 

@@ -1,5 +1,5 @@
 <template>
-  <section v-if="quickPicks.length" class="scenario-quick">
+  <section v-if="quickPicks.length || selectedSummary" class="scenario-quick">
     <span class="scenario-quick__label">{{ t("scenarios.quickLaunch") }}</span>
     <button
       v-for="entry in quickPicks"
@@ -19,6 +19,18 @@
         >★</span
       >
     </button>
+    <span
+      v-if="selectedSummary && !quickContainsSelected"
+      class="scenario-quick__current"
+      :title="scenarioDescription(selectedSummary, t)"
+    >
+      <span class="scenario-quick__current-label">{{
+        t("scenarios.currentlySelected")
+      }}</span>
+      <span class="scenario-quick__current-title">{{
+        scenarioTitle(selectedSummary, t)
+      }}</span>
+    </span>
   </section>
 </template>
 
@@ -26,18 +38,38 @@
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioDescription, scenarioTitle } from "./scenarioDisplay";
-import { useScenarioCatalog } from "@/entities/scenario/model/useScenarioCatalog";
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
+import { useScenarioCatalog } from "@/entities/scenario";
+import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
+import type { CustomScenarioSnap } from "@/shared/model/project-types";
 
 const props = withDefaults(
   defineProps<{
     modelValue: string | null;
     favorites?: string[];
+    customScenarios?: CustomScenarioSnap[];
     disabled?: boolean;
     maxItems?: number;
   }>(),
-  { favorites: () => [], disabled: false, maxItems: 5 },
+  { favorites: () => [], customScenarios: () => [], disabled: false, maxItems: 5 },
 );
+
+function customToSummary(scenario: CustomScenarioSnap): ScenarioSummary {
+  return {
+    id: scenario.id,
+    title: scenario.title,
+    category: "custom" as ScenarioCategory,
+    description: "",
+    pipeline_steps: scenario.pipeline_steps,
+    default_gates: [],
+    expected_artifacts: [],
+    required_tools: [],
+    recommended_models: {},
+    workspace_write_default: scenario.workspace_write_default,
+    tags: [],
+    quality_checks: [],
+    inputs: [],
+  };
+}
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
@@ -57,10 +89,20 @@ const SHORTCUT_PRIORITY: string[] = [
   "data_analysis",
 ];
 
+const customSummaries = computed<ScenarioSummary[]>(() =>
+  props.customScenarios.map(customToSummary),
+);
+
+const summariesById = computed<Map<string, ScenarioSummary>>(() => {
+  const map = new Map<string, ScenarioSummary>();
+  for (const entry of catalog.scenarios.value) map.set(entry.id, entry);
+  for (const entry of customSummaries.value) map.set(entry.id, entry);
+  return map;
+});
+
 const quickPicks = computed<ScenarioSummary[]>(() => {
-  const all = catalog.scenarios.value;
-  if (!all.length) return [];
-  const byId = new Map(all.map((scenario) => [scenario.id, scenario]));
+  const byId = summariesById.value;
+  if (!byId.size) return [];
   const picked: ScenarioSummary[] = [];
   const seen = new Set<string>();
 
@@ -81,6 +123,16 @@ const quickPicks = computed<ScenarioSummary[]>(() => {
     if (picked.length >= props.maxItems) break;
   }
   return picked.slice(0, props.maxItems);
+});
+
+const selectedSummary = computed<ScenarioSummary | null>(() => {
+  if (!props.modelValue) return null;
+  return summariesById.value.get(props.modelValue) ?? null;
+});
+
+const quickContainsSelected = computed<boolean>(() => {
+  if (!props.modelValue) return true;
+  return quickPicks.value.some((entry) => entry.id === props.modelValue);
 });
 
 function onPick(id: string): void {
@@ -134,5 +186,25 @@ function onPick(id: string): void {
 .scenario-quick__star {
   color: #f5b740;
   font-size: 12px;
+}
+.scenario-quick__current {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--accent, #3b5bdb);
+  background: color-mix(in srgb, var(--accent, #3b5bdb) 12%, transparent);
+  color: var(--text, #f5f0e7);
+}
+.scenario-quick__current-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text2, #a8b0c4);
+}
+.scenario-quick__current-title {
+  font-size: 11px;
+  font-weight: 600;
 }
 </style>

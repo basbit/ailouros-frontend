@@ -2,7 +2,6 @@ import { ref, type Ref } from "vue";
 import {
   submitCodegenFeedback,
   type CodegenFeedbackPayload,
-  type FeedbackVerdict,
 } from "@/shared/api/endpoints/feedback";
 
 export interface UseCodegenFeedbackState {
@@ -34,5 +33,3 @@ export function useCodegenFeedback(): UseCodegenFeedbackState {
 
   return { loading, lastSubmissionId, error, submit };
 }
-
-export type { CodegenFeedbackPayload, FeedbackVerdict };

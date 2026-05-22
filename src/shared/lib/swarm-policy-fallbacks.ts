@@ -1,18 +1,5 @@
 import type { RoleId } from "@/shared/lib/pipeline-schema";
 
-export interface SwarmPolicyDefaultsFallback {
-  roles: readonly RoleId[];
-  model_defaults: Record<RoleId, Record<string, string>>;
-  prompt_defaults: Record<RoleId, string>;
-  prompt_choices: Record<RoleId, [string, string][]>;
-  remote_api_base_presets: Record<string, string>;
-  remote_profile_provider_options: [string, string][];
-  default_pipeline_order: string[];
-  default_role_environment: string;
-  default_remote_api_provider: string;
-  default_swarm_provider: string;
-}
-
 export const FALLBACK_MODEL_DEFAULTS: Record<RoleId, Record<string, string>> = {
   pm: {
     ollama: "qwen3-coder:30b",

@@ -25,16 +25,21 @@
           v-for="entry in filteredEntries"
           :key="entry.key ?? entry.timestamp ?? entry.text"
           class="memory-chip-wrap"
+          :class="{
+            'memory-chip-wrap--pattern': entry.source === 'pattern_memory',
+            'memory-chip-wrap--qdrant': entry.source === 'qdrant',
+          }"
         >
           <button
             type="button"
             class="memory-chip"
-            :title="entry.text"
+            :title="chipTooltip(entry)"
             @click="onChipClick(entry.text)"
           >
             {{ truncate(entry.text, 55) }}
           </button>
           <button
+            v-if="isDeletable(entry)"
             type="button"
             class="memory-chip-del"
             title="Delete this note"
@@ -73,9 +78,11 @@ import {
   consolidateMemoryNotes,
   deleteMemoryNote,
   listMemoryNotes,
+  listQdrantEntries,
   type MemoryEntry,
 } from "@/shared/api/endpoints/memory";
 import { useI18n } from "@/shared/lib/i18n";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 const emit = defineEmits<{
   appendToPrompt: [text: string];
@@ -109,8 +116,15 @@ async function loadEntries(): Promise<void> {
     const data = await listMemoryNotes();
     if (data.error) {
       error.value = data.error;
+      entries.value = [];
     } else {
       entries.value = data.entries ?? [];
+    }
+    try {
+      const qdrant = await listQdrantEntries(undefined, 200);
+      entries.value = [...entries.value, ...qdrant.entries];
+    } catch (qdrantErr) {
+      frontendLogger.warn("memory: qdrant entries unavailable", qdrantErr);
     }
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : String(e);
@@ -143,12 +157,31 @@ function onChipClick(text: string): void {
   emit("appendToPrompt", text);
 }
 
+function isDeletable(entry: MemoryEntry): boolean {
+  return entry.source !== "pattern_memory" && entry.source !== "qdrant";
+}
+
+function chipTooltip(entry: MemoryEntry): string {
+  if (entry.source === "pattern_memory" || entry.source === "qdrant") {
+    const ns = entry.namespace ? `${entry.namespace} / ` : "";
+    const scorePart =
+      entry.source === "qdrant" && typeof entry.score === "number"
+        ? `  score=${entry.score.toFixed(3)}`
+        : "";
+    return `${ns}${entry.key ?? ""}${scorePart}\n\n${entry.text}`;
+  }
+  return entry.text;
+}
+
 async function deleteEntry(entry: MemoryEntry): Promise<void> {
-  const idx = entries.value.findIndex((item) => item === entry);
-  if (idx < 0) return;
+  if (!isDeletable(entry)) return;
+  const deletableEntries = entries.value.filter(isDeletable);
+  const deletableIdx = deletableEntries.findIndex((item) => item === entry);
+  if (deletableIdx < 0) return;
   try {
-    await deleteMemoryNote(idx);
-    entries.value.splice(idx, 1);
+    await deleteMemoryNote(deletableIdx);
+    const absoluteIdx = entries.value.findIndex((item) => item === entry);
+    if (absoluteIdx >= 0) entries.value.splice(absoluteIdx, 1);
   } catch (e: unknown) {
     error.value =
       e instanceof ApiError
@@ -222,6 +255,14 @@ function truncate(text: string, maxLen: number): string {
 }
 .memory-chip-wrap:hover {
   border-color: #4a6a8a;
+}
+.memory-chip-wrap--pattern {
+  background: #2a3a3a;
+  border-color: #3a5a5a;
+}
+.memory-chip-wrap--qdrant {
+  background: #3a2a3a;
+  border-color: #5a3a5a;
 }
 .memory-chip {
   background: transparent;

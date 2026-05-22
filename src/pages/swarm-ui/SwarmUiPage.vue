@@ -11,8 +11,6 @@
       :project-name="currentProjectName"
       :current-project-id="projectsStore.currentId"
       :project-list="projectsStore.projectList"
-      :agent-editor-active="activeView === 'agent-editor'"
-      @toggle-agent-editor="toggleAgentEditor()"
       @open-settings="settingsDrawerOpen = true"
       @close-task="onCloseLoadedTask"
       @project-change="projectForm.onProjectChange"
@@ -22,7 +20,7 @@
       @project-edit="projectForm.onEditProjectById"
     />
 
-    <SwarmUiModals
+    <SwarmUiModalsPanel
       :project-form-open="projectForm.projectFormOpen.value"
       :project-form-mode="projectForm.projectFormMode.value"
       :project-form-initial="projectForm.projectFormInitial.value"
@@ -36,14 +34,6 @@
       :prompt-library-entries="dialogs.promptLibraryEntries.value"
       :asset-upload-open="dialogs.assetUploadOpen.value"
       :workspace-root="settings.form.workspace_root"
-      :report-problem-open="dialogs.reportProblemOpen.value"
-      :task-id="ui.taskId"
-      :task-scenario-id="ui.taskScenarioId"
-      :task-scenario-title="ui.taskScenarioTitle"
-      :task-status="ui.taskStatus ?? null"
-      :task-error="ui.taskError"
-      :report-recent-log="dialogs.reportRecentLog.value"
-      :report-artifact-paths="dialogs.reportArtifactPaths.value"
       :sudo-prompt-open="dialogs.sudoPromptOpen.value"
       :manual-sudo-command="dialogs.manualSudoCommand.value"
       @update:project-form-open="projectForm.projectFormOpen.value = $event"
@@ -58,7 +48,6 @@
       @prompt-library-close="dialogs.promptLibrary.closePanel"
       @asset-uploaded="dialogs.onAssetUploaded"
       @asset-upload-close="dialogs.assetUploadOpen.value = false"
-      @report-problem-close="dialogs.reportProblemOpen.value = false"
       @sudo-prompt-confirm="dialogs.onSudoPromptConfirm"
       @sudo-prompt-cancel="dialogs.sudoPromptOpen.value = false"
     />
@@ -66,7 +55,7 @@
     <div class="app-body">
       <aside class="sidebar">
         <div class="sidebar-scroll">
-          <SwarmUiSidebarPrompt
+          <SwarmUiSidebarPromptPanel
             :settings="settings"
             :scenario-inputs="scenarioPreview.preview.value?.scenario.inputs ?? []"
             :scenario-input-values="scenarioActions.scenarioInputValues.value"
@@ -97,7 +86,7 @@
             @continue-pipeline="onContinuePipeline"
           />
 
-          <SwarmUiSidebarRoles
+          <SwarmUiSidebarRolesPanel
             :settings="settings"
             :profile-options="profileOptions"
             :skills-catalog-ids="skillsCatalogIds"
@@ -109,13 +98,14 @@
             @role-model-custom-input="roleHandlers.onRoleModelCustomInput"
             @role-prompt-sel-change="roleHandlers.onRolePromptSelChange"
             @role-prompt-custom-input="roleHandlers.onRolePromptCustomInput"
+            @role-prompt-text-input="roleHandlers.onRolePromptTextInput"
             @role-skill-ids-input="roleHandlers.onRoleSkillIdsInput"
             @swarm-form-update="roleHandlers.onSwarmFormUpdate"
           />
         </div>
       </aside>
 
-      <SwarmUiMain
+      <SwarmUiMainPanel
         :settings="settings"
         :global-settings="globalSettings"
         :first-run-scenario-panel-visible="firstRunScenarioPanelVisible"
@@ -153,56 +143,49 @@
         @clear-history="onClearHistory"
         @use-history-as-context="onUseHistoryAsContext"
         @view-history-run="onViewHistoryRun"
+        @open-local-models="settingsDrawerOpen = true"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
-import type { Ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useProjectsStore } from "@/shared/store/projects";
 import { useUiStore } from "@/shared/store/ui";
-import { useTaskStore } from "@/shared/store/task";
-import { useSettings } from "@/widgets/settings/useSettings";
-import { useSwarmRunController } from "@/features/swarm-run/useSwarmRunController";
 import { usePreferencesStore } from "@/shared/store/preferences";
-import { useSettingsHotReload } from "@/shared/lib/use-settings-hot-reload";
-import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
+import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run/swarmRunContext";
+import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
+import { useInjectedProjectFormActions } from "@/entities/project-form";
 import { usePipelineGraphState } from "@/pages/swarm-ui/usePipelineGraphState";
 
 import AppHeader from "@/widgets/header/AppHeader.vue";
 import { FirstRunGate } from "@/features/onboarding-desktop";
-import SwarmUiModals from "@/widgets/swarm-ui/SwarmUiModals.vue";
-import SwarmUiSidebarPrompt from "@/widgets/swarm-ui/SwarmUiSidebarPrompt.vue";
-import SwarmUiSidebarRoles from "@/widgets/swarm-ui/SwarmUiSidebarRoles.vue";
-import SwarmUiMain from "@/widgets/swarm-ui/SwarmUiMain.vue";
+import SwarmUiModalsPanel from "@/pages/swarm-ui/SwarmUiModalsPanel.vue";
+import SwarmUiSidebarPromptPanel from "@/pages/swarm-ui/SwarmUiSidebarPromptPanel.vue";
+import SwarmUiSidebarRolesPanel from "@/pages/swarm-ui/SwarmUiSidebarRolesPanel.vue";
+import SwarmUiMainPanel from "@/pages/swarm-ui/SwarmUiMainPanel.vue";
 import { useScenarioRunReadiness } from "@/features/scenario-picker";
-import { useSwarmUiDialogs } from "@/widgets/swarm-ui/useSwarmUiDialogs";
-import { useScenarioActions } from "@/widgets/swarm-ui/useScenarioActions";
-import { useRoleHandlers } from "@/widgets/swarm-ui/useRoleHandlers";
-import { useProjectFormActions } from "@/widgets/swarm-ui/useProjectFormActions";
-import { useArtifactsPanelState } from "@/widgets/swarm-ui/useArtifactsPanelState";
-import { useScenarioGraphData } from "@/widgets/swarm-ui/useScenarioGraphData";
-import { useSwarmUiDerived } from "@/widgets/swarm-ui/useSwarmUiDerived";
-import { useSwarmUiHandlers } from "@/widgets/swarm-ui/useSwarmUiHandlers";
+import { useSwarmUiDialogs } from "@/pages/swarm-ui/useSwarmUiDialogs";
+import { useScenarioActions } from "@/pages/swarm-ui/useScenarioActions";
+import { useRoleHandlers } from "@/pages/swarm-ui/useRoleHandlers";
+import { useArtifactsPanelState } from "@/pages/swarm-ui/useArtifactsPanelState";
+import { useScenarioGraphData } from "@/pages/swarm-ui/useScenarioGraphData";
+import { useSwarmUiDerived } from "@/pages/swarm-ui/useSwarmUiDerived";
+import { useSwarmUiHandlers } from "@/pages/swarm-ui/useSwarmUiHandlers";
 
-// Page navigation — injected from App.vue. "wiki-graph" is no longer a separate
-// view — it renders inline as `WikiGraphPanel` between Pipeline and Events
-// (see review-rules §10.6: surface inline, not hidden behind nav).
-const _activeView = inject<Ref<"main" | "agent-editor" | "plugins">>(
-  "activeView",
-  ref("main"),
-);
-const activeView = computed(() => _activeView.value);
-const toggleAgentEditor = inject<() => void>("toggleAgentEditor", () => {});
-const setWorkspaceRoot = inject<(value: string) => void>("setWorkspaceRoot", () => {});
+const settings = inject(APP_SETTINGS_KEY);
+const controller = inject(SWARM_RUN_CONTROLLER_KEY);
+const globalSettings = inject(GLOBAL_SETTINGS_KEY);
+if (!settings || !controller || !globalSettings) {
+  throw new Error(
+    "SwarmUiPage requires APP_SETTINGS_KEY, SWARM_RUN_CONTROLLER_KEY, GLOBAL_SETTINGS_KEY",
+  );
+}
 
 const projectsStore = useProjectsStore();
 const ui = useUiStore();
-const taskStore = useTaskStore();
-const settings = useSettings();
-const globalSettings = useGlobalSettings();
 const settingsDrawerOpen = ref(false);
 const preferences = usePreferencesStore();
 
@@ -221,18 +204,7 @@ const {
   onConfirmManualShell,
   onRetry,
   onContinuePipeline,
-} = useSwarmRunController(settings);
-
-useSettingsHotReload({
-  intervalMs: 7000,
-  enabled: () =>
-    !settings.isBooting.value &&
-    !isRunning.value &&
-    (typeof document === "undefined" || document.visibilityState === "visible"),
-  fetcher: async () => {
-    await settings.reloadProjectFile();
-  },
-});
+} = controller;
 
 const currentProjectName = computed(() => {
   const pdata = projectsStore.data;
@@ -292,10 +264,7 @@ const {
 const scenarioActions = useScenarioActions(settings, activeScenario);
 const roleHandlers = useRoleHandlers(settings);
 
-const projectForm = useProjectFormActions(settings, {
-  syncTaskFromServer,
-  sendWsSubscribe,
-});
+const projectForm = useInjectedProjectFormActions();
 
 const firstRunScenarioPanelVisible = computed(
   () =>
@@ -316,33 +285,4 @@ const {
   onCloseLoadedTask,
   onViewHistoryRun,
 } = useSwarmUiHandlers(settings, { syncTaskFromServer, sendWsSubscribe });
-
-watch(
-  () => settings.form.workspace_root,
-  (workspaceRoot) => {
-    setWorkspaceRoot(workspaceRoot);
-  },
-  { immediate: true },
-);
-
-onMounted(async () => {
-  void globalSettings.loadFromBackend();
-  await settings.init();
-
-  ui.loadEventsView(projectsStore.currentId);
-  ui.loadHistory(projectsStore.currentId);
-
-  const tid = ui.restoreActiveTask(projectsStore.currentId);
-  ui.taskId = tid;
-  if (tid) {
-    taskStore.setTaskId(tid);
-    void syncTaskFromServer(tid);
-  }
-
-  window.addEventListener("beforeunload", settings.flushSave);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("beforeunload", settings.flushSave);
-});
 </script>

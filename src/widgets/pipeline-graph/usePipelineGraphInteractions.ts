@@ -2,7 +2,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, type Ref } from "vue";
 import Sortable from "sortablejs";
 import type { GraphStepRef } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
 
-export interface ReorderEmit {
+interface ReorderEmit {
   (oldIdx: number, newIdx: number, count: number): void;
 }
 
@@ -11,20 +11,10 @@ export interface PipelineGraphInteractionsOptions {
   topology: Ref<string>;
   parallelStages: Ref<GraphStepRef[][]>;
   editorEnabled: Ref<boolean>;
-  /** Joined-key signal that changes when the visible step list changes. */
   stepSignal: Ref<string>;
   onReorder: ReorderEmit;
 }
 
-/**
- * Encapsulates SortableJS lifecycle for the pipeline graph. Keeps
- * drag-and-drop reorder translation (parallel stages vs flat cards) in one
- * place so the parent component stays focused on layout.
- *
- * Behaviour is identical to the inline version that used to live inside
- * PipelineGraph.vue — see commit history for the detailed reasoning about
- * pre-removal indices on forward moves.
- */
 export function usePipelineGraphInteractions(
   options: PipelineGraphInteractionsOptions,
 ) {

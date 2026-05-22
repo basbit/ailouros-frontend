@@ -2,7 +2,7 @@ import type { BootstrapStage, BootstrapProgress } from "@/shared/model/bootstrap
 
 export type { BootstrapStage, BootstrapProgress };
 
-export interface StageStatus {
+interface StageStatus {
   stage: BootstrapStage;
   done: boolean;
 }

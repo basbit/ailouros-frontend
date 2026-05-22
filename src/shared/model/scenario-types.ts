@@ -7,11 +7,12 @@ export type ScenarioCategory =
   | "product"
   | "support"
   | "visual_qa"
-  | "seo";
+  | "seo"
+  | "custom";
 
-export type QualityCheckSeverity = "error" | "warning" | "info";
+type QualityCheckSeverity = "error" | "warning" | "info";
 
-export interface QualityCheckSpec {
+interface QualityCheckSpec {
   id: string;
   type: string;
   severity: QualityCheckSeverity;
@@ -19,7 +20,7 @@ export interface QualityCheckSpec {
   config: Record<string, unknown>;
 }
 
-export interface QualityCheckResult {
+interface QualityCheckResult {
   id: string;
   type: string;
   passed: boolean;
@@ -29,7 +30,7 @@ export interface QualityCheckResult {
   detail?: Record<string, unknown>;
 }
 
-export interface QualityCheckSummary {
+interface QualityCheckSummary {
   total: number;
   passed: number;
   failed: number;
@@ -92,9 +93,7 @@ export interface ScenarioProjectOverride {
   model_profile?: Record<string, string>;
 }
 
-export type ScenarioOverridesMap = Record<string, ScenarioProjectOverride>;
-
-export interface ScenarioArtifactEntry {
+interface ScenarioArtifactEntry {
   path: string;
   present: boolean;
   size: number | null;
@@ -102,7 +101,7 @@ export interface ScenarioArtifactEntry {
   url: string | null;
 }
 
-export interface ScenarioArtifactSummary {
+interface ScenarioArtifactSummary {
   present: number;
   missing: number;
   total: number;
@@ -118,7 +117,7 @@ export interface ScenarioArtifactsResponse {
   summary: ScenarioArtifactSummary;
 }
 
-export interface StepEstimate {
+interface StepEstimate {
   step_id: string;
   estimated_duration_sec: number | null;
   essential: boolean;

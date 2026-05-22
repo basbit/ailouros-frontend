@@ -104,6 +104,10 @@
 <script setup lang="ts">
 import type { DevRoleSnap, DevRoleUiState } from "@/features/dev-roles/useDevRoles";
 import { useI18n } from "@/shared/lib/i18n";
+import {
+  pickModelSelectValue,
+  resolveModelChange,
+} from "@/shared/lib/role-model-choice";
 
 const { t } = useI18n();
 
@@ -126,21 +130,14 @@ function uiState(idx: number): DevRoleUiState {
 function modelSelValue(idx: number): string {
   const role = props.devRoles[idx];
   if (!role) return "";
-  const choices = uiState(idx).modelChoices;
-  if (!choices.length) return role.model ?? "";
-  const hit = choices.find(([v]) => v === role.model);
-  return hit ? hit[0] : "__custom__";
+  return pickModelSelectValue(role.model ?? undefined, uiState(idx).modelChoices);
 }
 
 function onModelChange(idx: number, value: string): void {
-  if (value === "__custom__") {
-    // Preserve the current custom id if any; otherwise leave blank so the
-    // "custom model id" input appears for editing.
-    const current = props.devRoles[idx]?.model ?? "";
-    emit("update", idx, "model", current);
-  } else {
-    emit("update", idx, "model", value);
-  }
+  // "__custom__" preserves the current custom id so the "custom model id" input
+  // appears for editing rather than emitting a sentinel value.
+  const next = resolveModelChange(value, props.devRoles[idx]?.model ?? "");
+  emit("update", idx, "model", next);
 }
 
 function add(): void {

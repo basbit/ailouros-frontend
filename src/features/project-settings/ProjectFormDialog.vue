@@ -12,27 +12,13 @@
         <div class="project-form__dialog" @mousedown.stop>
           <header class="project-form__header">
             <h2 class="project-form__title">{{ title }}</h2>
-            <button
-              type="button"
-              class="project-form__close"
-              :aria-label="t('dialogs.cancel')"
+            <CloseIconButton
+              :label="t('dialogs.cancel')"
+              :size="14"
+              :stroke-width="2.2"
+              extra-class="project-form__close"
               @click="onCancel"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+            />
           </header>
 
           <form class="project-form__body" @submit.prevent="onSave">
@@ -71,15 +57,12 @@
   </Teleport>
 </template>
 
-<script lang="ts">
-export type { ProjectFormValues } from "./useProjectFormState";
-</script>
-
 <script setup lang="ts">
 import { computed, toRef } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import ProjectFormBasicSection from "./ProjectFormBasicSection.vue";
 import ProjectFormAdvancedSections from "./ProjectFormAdvancedSections.vue";
+import CloseIconButton from "@/shared/components/CloseIconButton.vue";
 import { useProjectFormState, type ProjectFormValues } from "./useProjectFormState";
 // Shared layout primitives — see project-form-shared.css for rationale.
 import "./project-form-shared.css";

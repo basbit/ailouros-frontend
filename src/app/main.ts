@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
+import { router } from "./router";
 import { initApiBase, getApiBaseUrl } from "@/shared/api/base";
 import { httpRequestRaw } from "@/shared/api/http";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
@@ -58,7 +59,7 @@ async function bootstrap(): Promise<void> {
     initApiBase();
   }
 
-  createApp(App).use(createPinia()).mount("#app");
+  createApp(App).use(createPinia()).use(router).mount("#app");
   hideBootstrap();
 }
 

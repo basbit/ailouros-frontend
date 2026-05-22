@@ -87,12 +87,14 @@
         <label class="field-label" for="pf-pattern-path">{{
           t("swarm.patternFileLabel")
         }}</label>
-        <input
-          id="pf-pattern-path"
-          :value="form.swarm_pattern_memory_path"
-          type="text"
+        <FilePathPicker
+          :model-value="form.swarm_pattern_memory_path"
           placeholder=".swarm/pattern-memory.json"
-          @input="onTextInput('swarm_pattern_memory_path', $event)"
+          :file-extensions="['json', 'jsonl']"
+          :default-path="form.workspace_root"
+          @update:model-value="
+            (value) => emit('update:field', 'swarm_pattern_memory_path', value)
+          "
         />
         <div class="hint project-form__hint">
           {{ t("swarm.patternFileHint") }}
@@ -157,6 +159,7 @@ import { useI18n } from "@/shared/lib/i18n";
 import McpSettings from "@/features/project-settings/McpSettings.vue";
 import DatabaseSettings from "@/features/project-settings/DatabaseSettings.vue";
 import VisualProbeSettings from "@/features/project-settings/VisualProbeSettings.vue";
+import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 import type { ProjectFormValues } from "./useProjectFormState";
 
 defineProps<{

@@ -1,0 +1,61 @@
+export interface ProjectFormValues {
+  name: string;
+  workspace_root: string;
+  project_context_file: string;
+  workspace_write: boolean;
+  swarm_languages: string;
+  swarm_doc_locale: string;
+  swarm_documentation_sources: string;
+  swarm_pattern_memory: boolean;
+  swarm_memory_namespace: string;
+  swarm_pattern_memory_path: string;
+  swarm_pipeline_hooks_module: string;
+  swarm_disable_tree_sitter: boolean;
+  swarm_mcp_auto: boolean;
+  swarm_skip_mcp_tools: boolean;
+  mcp_servers_json: string;
+  swarm_database_url: string;
+  swarm_database_hint: string;
+  swarm_database_readonly: boolean;
+  swarm_visual_probe_enabled: boolean;
+  swarm_visual_base_url: string;
+  swarm_visual_start_command: string;
+  swarm_visual_start_directory: string;
+  swarm_visual_ready_path: string;
+  swarm_visual_pages: string;
+  swarm_visual_capture_har: boolean;
+  swarm_visual_capture_trace: boolean;
+  swarm_visual_multimodal_review: boolean;
+  swarm_visual_max_review_images: string;
+}
+
+export const DEFAULT_PROJECT_FORM_VALUES: ProjectFormValues = {
+  name: "",
+  workspace_root: "",
+  project_context_file: "",
+  workspace_write: false,
+  swarm_languages: "",
+  swarm_doc_locale: "",
+  swarm_documentation_sources: "",
+  swarm_pattern_memory: false,
+  swarm_memory_namespace: "",
+  swarm_pattern_memory_path: "",
+  swarm_pipeline_hooks_module: "",
+  swarm_disable_tree_sitter: false,
+  swarm_mcp_auto: true,
+  swarm_skip_mcp_tools: false,
+  mcp_servers_json: "",
+  swarm_database_url: "",
+  swarm_database_hint: "",
+  swarm_database_readonly: true,
+  swarm_visual_probe_enabled: true,
+  swarm_visual_base_url: "",
+  swarm_visual_start_command: "",
+  swarm_visual_start_directory: "",
+  swarm_visual_ready_path: "/",
+  swarm_visual_pages: "/",
+  swarm_visual_capture_har: false,
+  swarm_visual_capture_trace: false,
+  swarm_visual_multimodal_review: false,
+  swarm_visual_max_review_images: "4",
+};

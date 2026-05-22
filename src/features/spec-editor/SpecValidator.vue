@@ -48,8 +48,8 @@ import { useSpecValidation } from "./useSpecValidation";
 
 const props = defineProps<{
   specId?: string | null;
+  workspaceRoot?: string | null;
   initial?: SpecValidationResult | null;
-  /** When false, skips the fetch — useful for tests and storybook. */
   autoFetch?: boolean;
 }>();
 
@@ -60,15 +60,15 @@ const { result, loading, error, notImplemented, load } = useSpecValidation(
 onMounted(() => {
   if (props.autoFetch === false) return;
   if (!props.specId) return;
-  void load(props.specId);
+  void load(props.specId, props.workspaceRoot ?? null);
 });
 
 watch(
-  () => props.specId,
-  (next) => {
+  () => [props.specId, props.workspaceRoot],
+  ([nextId]) => {
     if (props.autoFetch === false) return;
-    if (!next) return;
-    void load(next);
+    if (!nextId) return;
+    void load(String(nextId), props.workspaceRoot ?? null);
   },
 );
 </script>

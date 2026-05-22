@@ -1,5 +1,5 @@
 import { apiUrl } from "@/shared/api/base";
-import { ApiError, fetchJson } from "@/shared/api/client";
+import { fetchJson } from "@/shared/api/client";
 import type {
   MCPServerSpec,
   ModelAssignment,
@@ -117,15 +117,4 @@ export async function startSwarmChatStream(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-}
-
-export async function getOnboardingAssignmentsOrThrow(
-  workspaceRoot: string,
-): Promise<ModelAssignment[]> {
-  const response = await getOnboardingModels(workspaceRoot);
-  const assignments = await getLiveOnboardingAssignments(workspaceRoot);
-  if (!assignments.length && response.source === "saved" && !response.config?.roles) {
-    throw new ApiError("onboarding models missing assignments", 500);
-  }
-  return assignments;
 }

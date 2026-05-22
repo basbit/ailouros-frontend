@@ -1,6 +1,6 @@
 import { fetchJson } from "@/shared/api/client";
 
-export interface ObservabilityRunSummary {
+interface ObservabilityRunSummary {
   task_id: string;
   project: string;
   scenario_id: string | null;
@@ -13,13 +13,13 @@ export interface ObservabilityRunSummary {
   finished_at: number | null;
 }
 
-export interface ObservabilitySeries {
+interface ObservabilitySeries {
   days: string[];
   runs: number[];
   avg_score: Array<number | null>;
 }
 
-export interface ObservabilityAggregate {
+interface ObservabilityAggregate {
   total: number;
   by_status: Record<string, number>;
   by_scenario: Record<string, number>;

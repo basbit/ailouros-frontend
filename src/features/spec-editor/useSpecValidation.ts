@@ -1,22 +1,16 @@
 import { ref, type Ref } from "vue";
-import { ApiError, httpGet } from "@/shared/api/http";
+import { ApiError, httpPost } from "@/shared/api/http";
 import type { SpecValidationResult } from "./spec-types";
 
 export interface UseSpecValidationState {
   result: Ref<SpecValidationResult | null>;
   loading: Ref<boolean>;
   error: Ref<string | null>;
-  /** Endpoint reported 404 — backend route not yet wired in. */
   notImplemented: Ref<boolean>;
-  load: (specId: string) => Promise<void>;
+  load: (specId: string, workspaceRoot?: string | null) => Promise<void>;
   reset: () => void;
 }
 
-/**
- * Loads a ``SpecValidationResult`` from
- * ``GET /v1/spec/{id}/validate``. The endpoint is not yet implemented
- * on the backend; this composable degrades to ``notImplemented`` on 404.
- */
 export function useSpecValidation(
   initial: SpecValidationResult | null = null,
 ): UseSpecValidationState {
@@ -25,14 +19,17 @@ export function useSpecValidation(
   const error = ref<string | null>(null);
   const notImplemented = ref(false);
 
-  async function load(specId: string): Promise<void> {
+  async function load(specId: string, workspaceRoot?: string | null): Promise<void> {
     if (!specId) return;
     loading.value = true;
     error.value = null;
     notImplemented.value = false;
     try {
-      const data = await httpGet<SpecValidationResult>(
+      const payload: Record<string, unknown> = {};
+      if (workspaceRoot) payload.workspace_root = workspaceRoot;
+      const data = await httpPost<SpecValidationResult>(
         `/v1/spec/${encodeURIComponent(specId)}/validate`,
+        payload,
       );
       result.value = data;
     } catch (err) {

@@ -1,6 +1,6 @@
 import { fetchJson, fetchText } from "@/shared/api/client";
 
-export interface WikiGraphNodeDto {
+interface WikiGraphNodeDto {
   id: string;
   title: string;
   tags: string[];
@@ -14,7 +14,7 @@ export interface WikiGraphNodeDto {
   fy?: number | null;
 }
 
-export interface WikiGraphEdgeDto {
+interface WikiGraphEdgeDto {
   id: string;
   source: string | WikiGraphNodeDto;
   target: string | WikiGraphNodeDto;

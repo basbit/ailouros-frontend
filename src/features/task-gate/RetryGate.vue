@@ -51,7 +51,6 @@
       </span>
     </div>
 
-    <!-- Continue pipeline panel -->
     <div v-if="showContinuePanel" class="retry-gate__continue-panel">
       <div class="retry-gate__continue-hint">
         {{ t("retryGate.selectAdditional") }}

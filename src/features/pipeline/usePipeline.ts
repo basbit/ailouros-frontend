@@ -1,12 +1,8 @@
-/**
- * usePipeline — reactive state for pipeline steps.
- * Mirrors createPipeRow, pipeRenderFromSnap, pipeReset, collectPipelineRowsSnap, etc.
- */
 import { ref } from "vue";
 import { PIPELINE_OPTIONS_BASE } from "@/shared/lib/pipeline-schema";
 import { defaultPipelineOrder } from "@/shared/lib/use-swarm-defaults";
 import type { PipeStep } from "@/shared/model/pipeline-types";
-import type { CustomRoleSnap } from "@/shared/store/projects";
+import type { CustomRoleSnap } from "@/entities/project";
 
 type StageGroup = string[];
 
@@ -108,7 +104,6 @@ export function usePipeline(
 
   function updateStep(idx: number, id: string): void {
     if (!steps.value[idx]) return;
-    // Replace the element so Vue's reactivity tracks the array mutation.
     const arr = steps.value.slice();
     arr[idx] = { ...arr[idx], id };
     steps.value = arr;
@@ -126,7 +121,6 @@ export function usePipeline(
     _rebuildDefaultStages();
   }
 
-  /** Replace step list with *ids* (used by "Reset to recommended for topology"). */
   function applyStepIds(ids: ReadonlyArray<string>): void {
     steps.value = ids.map((id) => createStep(id));
     _rebuildDefaultStages();
@@ -141,18 +135,6 @@ export function usePipeline(
     return steps.value.map((s) => s.id);
   }
 
-  /**
-   * Move a contiguous range of *count* steps from *oldIdx* to *newIdx*.
-   *
-   * ``count === 1`` is the single-card case. ``count > 1`` is the grouped
-   * parallel-stage case where multiple cards are dragged as one unit —
-   * **all** cards must move together, not just the first one
-   * (bug: dropping a 2-card parallel stage previously moved only the
-   * first card, leaving the second orphaned in the old slot).
-   *
-   * *newIdx* is the pre-removal destination index (i.e. the index the
-   * caller sees in the flattened list before the range is extracted).
-   */
   function reorder(oldIdx: number, newIdx: number, count = 1): void {
     const total = steps.value.length;
     if (count < 1) return;
@@ -162,7 +144,6 @@ export function usePipeline(
     const arr = steps.value.slice();
     const moved = arr.splice(oldIdx, count);
     if (!moved.length) return;
-    // Adjust destination when removing *before* the insertion point shifts it left.
     const insertAt = newIdx > oldIdx ? newIdx - count : newIdx;
     arr.splice(insertAt, 0, ...moved);
     steps.value = arr;
@@ -170,20 +151,15 @@ export function usePipeline(
     onChangeCb();
   }
 
-  // ── Stages (parallel groups) ──────────────────────────────────────────────
-  // stages[i] = array of step UIDs that run in parallel.
-  // Default: each step is its own sequential stage.
   function _rebuildDefaultStages(): void {
     stageGroups.value = defaultStageGroups(steps.value);
   }
 
-  /** Group two steps into a parallel stage. */
   function groupSteps(idxA: number, idxB: number): void {
     if (idxA === idxB) return;
     const uidA = steps.value[idxA]?.uid;
     const uidB = steps.value[idxB]?.uid;
     if (!uidA || !uidB) return;
-    // Find which stages contain these steps.
     let stageA = -1;
     let stageB = -1;
     for (let si = 0; si < stageGroups.value.length; si++) {
@@ -191,17 +167,14 @@ export function usePipeline(
       if (stageGroups.value[si].includes(uidB)) stageB = si;
     }
     if (stageA === -1 || stageB === -1 || stageA === stageB) return;
-    // Merge stageB into stageA
     const merged = [...stageGroups.value[stageA], ...stageGroups.value[stageB]];
     const newGroups = stageGroups.value.filter((_, i) => i !== stageA && i !== stageB);
-    // Insert merged group at the earlier position
     const insertAt = Math.min(stageA, stageB);
     newGroups.splice(insertAt, 0, merged);
     normalizeStageGroups(newGroups);
     onChangeCb();
   }
 
-  /** Ungroup a step from its parallel stage back to its own sequential stage. */
   function ungroupStep(stepIdx: number): void {
     const uid = steps.value[stepIdx]?.uid;
     if (!uid) return;
@@ -209,8 +182,7 @@ export function usePipeline(
       const group = stageGroups.value[si];
       const pos = group.indexOf(uid);
       if (pos === -1) continue;
-      if (group.length <= 1) return; // already alone
-      // Remove from current group and create a new single-step stage after it
+      if (group.length <= 1) return;
       const newGroup = group.filter((_, i) => i !== pos);
       const newGroups = [...stageGroups.value];
       newGroups[si] = newGroup;
@@ -221,9 +193,6 @@ export function usePipeline(
     }
   }
 
-  /** Collect pipeline_stages (string[][]) for the API.
-   *  Uses stageGroups if configured; otherwise wraps each step as a single-step stage.
-   */
   function collectStages(): string[][] {
     if (!steps.value.length) return [];
     const idsByUid = new Map(steps.value.map((step) => [step.uid, step.id]));
@@ -235,7 +204,6 @@ export function usePipeline(
     return stages.length ? stages : steps.value.map((step) => [step.id]);
   }
 
-  /** Apply a stages snapshot from saved settings. */
   function applyStagesSnap(stages: string[][]): void {
     const flat = stages
       .flat()
@@ -246,7 +214,6 @@ export function usePipeline(
       reset();
       return;
     }
-    // Rebuild stage groups from the stages structure.
     let offset = 0;
     stageGroups.value = stages.map((stage) => {
       const group = flat.slice(offset, offset + stage.length).map((step) => step.uid);

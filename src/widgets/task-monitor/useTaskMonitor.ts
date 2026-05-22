@@ -3,14 +3,13 @@ import { useTaskStore } from "@/shared/store/task";
 import { deskSlotForAgent, walkerEmojiForAgent } from "@/shared/lib/agent-emoji";
 import { useI18n } from "@/shared/lib/i18n";
 
-/** Office desk metadata. Mirrors OFFICE_DESKS in ui.js. */
 export interface OfficeDeskMeta {
   slot: number;
   short: string;
   hint: string;
 }
 
-export const OFFICE_DESKS: OfficeDeskMeta[] = [
+const OFFICE_DESKS: OfficeDeskMeta[] = [
   { slot: 0, short: "Hall", hint: "Entrance / pause" },
   { slot: 1, short: "PM", hint: "Planning" },
   { slot: 2, short: "BA", hint: "Requirements" },
@@ -23,15 +22,13 @@ export const OFFICE_DESKS: OfficeDeskMeta[] = [
   { slot: 9, short: "X", hint: "Custom role" },
 ];
 
-/** Compute the horizontal percentage position for a given slot. */
-export function officePercentForSlot(slot: number): { xPct: number; yPct: number } {
+function officePercentForSlot(slot: number): { xPct: number; yPct: number } {
   const n = OFFICE_DESKS.length;
   const clamped = Math.max(0, Math.min(n - 1, slot));
   const xPct = 6 + clamped * (88 / (n - 1));
   return { xPct, yPct: 72 };
 }
 
-/** Derived scene state for TaskMonitor.vue to consume. */
 export interface OfficeSceneState {
   slot: number;
   xPct: number;
@@ -48,17 +45,10 @@ export interface OfficeSceneState {
   activeSlot: number;
 }
 
-/**
- * Task monitor composable.
- *
- * Derives reactive office-scene state from the Pinia task store. Does not
- * touch the DOM — all presentation logic lives in TaskMonitor.vue.
- */
 export function useTaskMonitor() {
   const taskStore = useTaskStore();
   const { t } = useI18n();
 
-  /** Previous X percent tracked separately so computed stays pure. */
   const prevXPct = ref<number | null>(null);
   const facingLeft = ref(false);
   const desks = computed<OfficeDeskMeta[]>(() =>
@@ -108,7 +98,6 @@ export function useTaskMonitor() {
       const ag = last?.agent ? String(last.agent) : "";
       label = ag || "—";
       slot = deskSlotForAgent(ag);
-      // Log lines live in Events feed — floor stays visual-only.
       if (status === "awaiting_human") {
         statusLine = t("taskMonitor.awaitingHuman");
       } else if (status === "awaiting_shell_confirm") {
@@ -141,7 +130,6 @@ export function useTaskMonitor() {
     };
   });
 
-  // Update direction tracking as a side-effectful watch, separate from computed.
   watch(sceneState, (next, prev) => {
     if (prev === undefined) {
       prevXPct.value = next.xPct;

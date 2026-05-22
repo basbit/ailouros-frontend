@@ -75,6 +75,8 @@
 import { computed, ref } from "vue";
 import type { HistoryEntry } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
+import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 const props = defineProps<{ historyList: HistoryEntry[] }>();
 const emit = defineEmits<{
@@ -86,13 +88,12 @@ const { t } = useI18n();
 const searchQuery = ref("");
 const statusFilter = ref<"all" | "running" | "completed" | "failed">("all");
 
-const LS_HISTORY_OPEN_KEY = "swarm.history-panel-open";
-const open = ref<boolean>(localStorage.getItem(LS_HISTORY_OPEN_KEY) !== "0");
+const open = ref<boolean>(readRawString(STORAGE_KEYS.historyPanelOpen.key) !== "0");
 
 function onToggle(event: Event): void {
   const target = event.target as HTMLDetailsElement;
   open.value = target.open;
-  localStorage.setItem(LS_HISTORY_OPEN_KEY, target.open ? "1" : "0");
+  writeRawString(STORAGE_KEYS.historyPanelOpen.key, target.open ? "1" : "0");
 }
 
 const filteredHistory = computed(() => {

@@ -2,6 +2,10 @@ import { computed } from "vue";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import type { Locale, Messages } from "./types";
 import { commonEn, commonRu } from "./common";
+import { headerEn, headerRu } from "./header";
+import { runEn, runRu } from "./run";
+import { historyEn, historyRu } from "./history";
+import { settingsEn, settingsRu } from "./settings";
 import { projectEn, projectRu } from "./project";
 import { pipelineEn, pipelineRu } from "./pipeline";
 import { swarmEn, swarmRu } from "./swarm";
@@ -15,6 +19,10 @@ import { scenariosEn, scenariosRu } from "./scenarios";
 const messages: Record<Locale, Messages> = {
   en: {
     ...commonEn,
+    ...headerEn,
+    ...runEn,
+    ...historyEn,
+    ...settingsEn,
     ...projectEn,
     ...pipelineEn,
     ...swarmEn,
@@ -27,6 +35,10 @@ const messages: Record<Locale, Messages> = {
   },
   ru: {
     ...commonRu,
+    ...headerRu,
+    ...runRu,
+    ...historyRu,
+    ...settingsRu,
     ...projectRu,
     ...pipelineRu,
     ...swarmRu,

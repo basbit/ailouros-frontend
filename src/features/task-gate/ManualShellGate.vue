@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "@/shared/lib/i18n";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 import { useUxStore } from "@/shared/store/ux";
 
 defineProps<{
@@ -71,7 +72,7 @@ async function copyCommand(cmd: string): Promise<void> {
     await navigator.clipboard.writeText(cmd);
     ux.notify(t("manualShellGate.copied"), "info", 1500);
   } catch (error) {
-    console.warn("manualShellGate.copy: clipboard write failed:", error);
+    frontendLogger.warn("manualShellGate.copy: clipboard write failed", error);
     ux.notify(t("manualShellGate.copyFailed"), "error", 2500);
   }
 }

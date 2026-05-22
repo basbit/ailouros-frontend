@@ -9,15 +9,13 @@
 </template>
 
 <script setup lang="ts">
-import { inject, type Ref } from "vue";
+import { useRouter } from "vue-router";
 import PluginsMarketplacePanel from "@/widgets/plugins-marketplace/PluginsMarketplacePanel.vue";
 
-type AppView = "main" | "agent-editor" | "plugins";
-
-const activeView = inject<Ref<AppView>>("activeView");
+const router = useRouter();
 
 function goBack(): void {
-  if (activeView) activeView.value = "main";
+  void router.push("/run");
 }
 </script>
 

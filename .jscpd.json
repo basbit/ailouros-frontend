@@ -1,0 +1,22 @@
+{
+  "threshold": 1.0,
+  "reporters": ["console", "html"],
+  "absolute": true,
+  "gitignore": true,
+  "minLines": 8,
+  "minTokens": 80,
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/test-results/**",
+    "**/playwright-report/**",
+    "../backend/UI/Web/**",
+    "src-tauri/**",
+    "src/shared/lib/i18n/**",
+    "src/shared/api/openapi-types.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "format": ["typescript", "vue"],
+  "output": "../var/artifacts/jscpd"
+}

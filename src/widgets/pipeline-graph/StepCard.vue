@@ -15,7 +15,6 @@
     >
       ×
     </button>
-    <!-- Node type indicator (shape accent) -->
     <span
       class="step-type-pip"
       :class="`step-type-pip--${nodeType}`"
@@ -72,14 +71,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AgentIcon from "@/shared/ui/AgentIcon.vue";
-import RolePickerPopover from "@/features/agent-roles/RolePickerPopover.vue";
+import RolePickerPopover from "@/shared/ui/RolePickerPopover.vue";
 import { useI18n } from "@/shared/lib/i18n";
 // §10.5: single source of truth for node taxonomy — shared with
 // PipelineSummary.vue and step-summarisation utilities. Do NOT duplicate
-// the map here; prior duplication led to drift when new step ids landed.
 import { classifyStep, type NodeType } from "@/shared/lib/step-taxonomy";
-
-export type { NodeType };
 
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
   agent: "Agent",
@@ -110,7 +106,6 @@ const label = computed(() =>
   props.stepId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
 );
 
-/** Resolve node type via shared taxonomy (see step-taxonomy.ts). */
 const nodeType = computed((): NodeType => classifyStep(props.stepId));
 
 const nodeTypeLabel = computed(() => NODE_TYPE_LABELS[nodeType.value]);

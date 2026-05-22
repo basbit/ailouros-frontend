@@ -10,14 +10,8 @@ export const useWsStore = defineStore("ws", () => {
   const connectionState = ref<WsConnectionState>("disconnected");
   const lastError = ref<string | null>(null);
 
-  /** Subscribers registered via subscribe(). Cleared on disconnect. */
   const subscribers = new Set<WsMessageHandler>();
 
-  /**
-   * Open a WebSocket connection to `url`. Replaces any existing connection.
-   * Reconnect-with-backoff logic lives in the `useWs` composable; this store
-   * only tracks the raw instance and its lifecycle state.
-   */
   function connect(url: string): WebSocket {
     _closeExisting();
     connectionState.value = "connecting";
@@ -35,7 +29,7 @@ export const useWsStore = defineStore("ws", () => {
         const data: unknown = JSON.parse(ev.data as string);
         subscribers.forEach((fn) => fn(data));
       } catch {
-        // Non-JSON frames — ignore silently.
+        /* non-JSON frames */
       }
     });
 
@@ -50,14 +44,13 @@ export const useWsStore = defineStore("ws", () => {
       try {
         socket.close();
       } catch {
-        // already closed
+        /* already closed */
       }
     });
 
     return socket;
   }
 
-  /** Close the current connection and clear state. */
   function disconnect(): void {
     _closeExisting();
     connectionState.value = "disconnected";
@@ -65,16 +58,11 @@ export const useWsStore = defineStore("ws", () => {
     subscribers.clear();
   }
 
-  /**
-   * Register a handler that will be called for every incoming message.
-   * Returns an unsubscribe function.
-   */
   function subscribe(handler: WsMessageHandler): () => void {
     subscribers.add(handler);
     return () => subscribers.delete(handler);
   }
 
-  /** Send a raw JSON-serialisable payload. Throws if the socket is not open. */
   function send(payload: unknown): void {
     if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
       throw new Error("WebSocket is not open");
@@ -88,7 +76,7 @@ export const useWsStore = defineStore("ws", () => {
       try {
         prev.close();
       } catch {
-        // ignore
+        /* ignore */
       }
     }
   }

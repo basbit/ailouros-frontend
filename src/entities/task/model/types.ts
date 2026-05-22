@@ -1,7 +1,1 @@
-export type {
-  TaskStatus,
-  OrchestratorSseEventName,
-  OrchestratorSseEvent,
-  TaskHistoryEntry,
-  TaskSnapshot,
-} from "@/shared/model/task-types";
+export type { TaskStatus } from "@/shared/model/task-types";

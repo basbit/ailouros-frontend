@@ -10,7 +10,11 @@ import type {
 } from "./types";
 import {
   createPipelineDefinition,
+  deletePipelineDefinition,
+  getPipelineDefinition,
+  listPipelineDefinitions,
   type PipelineDefinitionDto,
+  type PipelineListItemDto,
   updatePipelineDefinition,
 } from "@/shared/api/endpoints/pipelines-admin";
 
@@ -22,6 +26,9 @@ const pipeline = ref<PipelineDefinition>({
 const selectedNodeId = ref<string | null>(null);
 const saving = ref(false);
 const saveError = ref<string | null>(null);
+const savedPipelines = ref<PipelineListItemDto[]>([]);
+const listLoading = ref(false);
+const listError = ref<string | null>(null);
 
 export function useEditorStore() {
   const selectedNode = computed(
@@ -113,12 +120,58 @@ export function useEditorStore() {
     }
   }
 
+  async function refreshSavedPipelines(): Promise<void> {
+    listLoading.value = true;
+    listError.value = null;
+    try {
+      savedPipelines.value = await listPipelineDefinitions();
+    } catch (e) {
+      listError.value = e instanceof Error ? e.message : String(e);
+    } finally {
+      listLoading.value = false;
+    }
+  }
+
+  async function loadPipelineById(
+    pipelineId: string,
+  ): Promise<PipelineDefinition | null> {
+    listError.value = null;
+    try {
+      const dto = await getPipelineDefinition(pipelineId);
+      const normalized = fromDto(dto);
+      loadPipeline(normalized);
+      return normalized;
+    } catch (e) {
+      listError.value = e instanceof Error ? e.message : String(e);
+      return null;
+    }
+  }
+
+  async function deletePipelineById(pipelineId: string): Promise<boolean> {
+    listError.value = null;
+    try {
+      await deletePipelineDefinition(pipelineId);
+      savedPipelines.value = savedPipelines.value.filter((p) => p.id !== pipelineId);
+      if (pipeline.value.id === pipelineId) {
+        pipeline.value = { name: "New Pipeline", nodes: [], edges: [] };
+        selectedNodeId.value = null;
+      }
+      return true;
+    } catch (e) {
+      listError.value = e instanceof Error ? e.message : String(e);
+      return false;
+    }
+  }
+
   return {
     pipeline,
     selectedNode,
     selectedNodeId,
     saving,
     saveError,
+    savedPipelines,
+    listLoading,
+    listError,
     addNode,
     updateNode,
     removeNode,
@@ -127,6 +180,9 @@ export function useEditorStore() {
     selectNode,
     loadPipeline,
     savePipeline,
+    refreshSavedPipelines,
+    loadPipelineById,
+    deletePipelineById,
   };
 }
 

@@ -1,14 +1,3 @@
-/**
- * useSwarmRunController — run-lifecycle logic extracted from SwarmUiPage.
- * Handles start, stop, human-resume, retry, WS tick processing, and server sync.
- *
- * Composed of three single-responsibility composables (plan §20.1.4):
- *   - useSwarmRunState         — refs + hydration + history bookkeeping
- *   - useSwarmRunTickHandler   — WS tick + orchestrator events + pipeline-plan loader
- *   - useSwarmRunActions       — start/stop/resume/retry actions
- *
- * Public API (return shape) is unchanged so callers (SwarmUiPage) need no edits.
- */
 import { useWs } from "@/shared/lib/use-ws";
 import { type RunSwarmChatSettings } from "@/shared/lib/agent-config";
 import { useSwarmRunState } from "./useSwarmRunState";
@@ -19,10 +8,6 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
   const state = useSwarmRunState();
   const tickHandler = useSwarmRunTickHandler(state);
 
-  // ── WS ────────────────────────────────────────────────────────────────────
-  // The WS subscribe callback is shared by the controller, the action handlers,
-  // and the WS onOpen hook. We hoist a mutable reference so callers (e.g.
-  // run-start) re-subscribe with the latest task id once the backend assigns it.
   let wsSendSubscribeFn = () => {};
 
   function sendWsSubscribe(): void {

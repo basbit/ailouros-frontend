@@ -16,14 +16,8 @@ import {
   defaultRemoteApiProvider,
 } from "@/shared/lib/use-swarm-defaults";
 
-// Domain types live in entities; re-exported here for backward compatibility.
 export type {
-  RemoteProfileRow,
-  RoleSnapshot,
-  CustomRoleSnap,
-  DevRoleSnap,
   SkillCatalogSnap,
-  CustomScenarioSnap,
   SettingsSnap,
   ProjectEntry,
   ProjectsData,
@@ -37,23 +31,45 @@ import type {
 
 function buildEmptyRoleSnapshots(): Record<string, RoleSnapshot> {
   const roles: Record<string, RoleSnapshot> = {};
-  for (const r of ROLES) {
+  for (const roleId of ROLES) {
     const environment = defaultEnvironmentForRole();
-    roles[r] = {
+    roles[roleId] = {
       environment,
-      model: defaultModelForRole(r, environment),
-      prompt_path: defaultPromptPathForRole(r),
+      model: defaultModelForRole(roleId, environment),
+      prompt_path: defaultPromptPathForRole(roleId),
       skill_ids: "",
     };
   }
   return roles;
 }
 
-export function buildEmptySnap(): SettingsSnap {
+import type { BaseSettingsFields } from "@/shared/model/project-types";
+
+// Concrete default values for all flat (non-collection) settings keys. Optional
+// snap fields (media_*, swarm_*_api_key, custom_scenario_id) are filled in too
+// so SettingsForm gets non-undefined types.
+export interface BaseSettingsDefaults extends BaseSettingsFields {
+  swarm_tavily_api_key: string;
+  swarm_exa_api_key: string;
+  swarm_scrapingdog_api_key: string;
+  media_enabled: boolean;
+  media_image_provider: string;
+  media_image_model: string;
+  media_image_api_key: string;
+  media_audio_provider: string;
+  media_audio_model: string;
+  media_audio_api_key: string;
+  media_audio_voice: string;
+  media_budget_max_cost_usd: string;
+  media_budget_max_attempts: string;
+  media_license_policy: string;
+  scenario_id: string | null;
+  custom_scenario_id: string | null;
+}
+
+export function baseSettingsDefaults(): BaseSettingsDefaults {
   return {
-    v: 1,
     prompt: "",
-    pipeline: defaultPipelineOrder().map((s) => ({ id: s })),
     workspace_root: "",
     project_context_file: "",
     workspace_write: true,
@@ -100,12 +116,20 @@ export function buildEmptySnap(): SettingsSnap {
     swarm_force_rerun: false,
     scenario_id: null,
     custom_scenario_id: null,
-    custom_scenarios: [],
-    favorite_scenarios: [],
-    scenario_overrides: {},
     remote_api_provider: defaultRemoteApiProvider(),
     remote_api_key: "",
     remote_api_base_url: "",
+  };
+}
+
+export function buildEmptySnap(): SettingsSnap {
+  return {
+    ...baseSettingsDefaults(),
+    v: 1,
+    pipeline: defaultPipelineOrder().map((stepId) => ({ id: stepId })),
+    custom_scenarios: [],
+    favorite_scenarios: [],
+    scenario_overrides: {},
     remote_api_profile_rows: [],
     custom_roles: [],
     dev_roles: [],
@@ -232,7 +256,6 @@ export const useProjectsStore = defineStore("projects", () => {
     if (!data.value) return null;
     const ids = Object.keys(data.value.projects);
     if (ids.length <= 1) return null;
-    // Clean per-project localStorage keys
     try {
       localStorage.removeItem(LS_HISTORY + "_" + id);
       localStorage.removeItem(LS_ACTIVE_TASK + "_" + id);

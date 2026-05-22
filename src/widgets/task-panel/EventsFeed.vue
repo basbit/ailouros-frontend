@@ -1,6 +1,12 @@
 <template>
-  <details class="panel content-panel--events" :open="open" @toggle="onToggle">
-    <summary class="panel-header">
+  <component
+    :is="flat ? 'section' : 'details'"
+    class="panel content-panel--events"
+    :class="{ 'content-panel--events-flat': flat }"
+    :open="flat ? undefined : open"
+    @toggle="flat ? undefined : onToggle"
+  >
+    <summary v-if="!flat" class="panel-header">
       <span class="panel-title">{{ t("events.title") }}</span>
       <span v-if="events.length" class="hint" style="margin-left: 6px">
         ({{ events.length }})
@@ -68,11 +74,11 @@
         />
       </article>
     </div>
-  </details>
+  </component>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { createMemoryNote } from "@/shared/api/endpoints/memory";
@@ -80,6 +86,8 @@ import { unwrapMarkdownFence } from "@/shared/lib/markdown";
 import SafeHtmlBlock from "@/shared/components/SafeHtmlBlock";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUxStore } from "@/shared/store/ux";
+import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 interface EventRow {
   id?: string;
@@ -89,25 +97,30 @@ interface EventRow {
   status?: string;
 }
 
-defineProps<{
-  events: EventRow[];
-  viewMode: "preview" | "raw";
-}>();
+const props = withDefaults(
+  defineProps<{
+    events: EventRow[];
+    viewMode: "preview" | "raw";
+    flat?: boolean;
+  }>(),
+  { flat: false },
+);
 const emit = defineEmits<{
   "update:viewMode": [mode: "preview" | "raw"];
 }>();
 
-const LS_EVENTS_OPEN_KEY = "swarm.events-feed-open";
-
 const saveStates = ref<Record<string, "idle" | "pending" | "success" | "error">>({});
 const { t } = useI18n();
 const ux = useUxStore();
-const open = ref<boolean>(localStorage.getItem(LS_EVENTS_OPEN_KEY) !== "0");
+const flat = computed(() => props.flat);
+const open = ref<boolean>(
+  props.flat || readRawString(STORAGE_KEYS.eventsFeedOpen.key) !== "0",
+);
 
 function onToggle(event: Event): void {
   const target = event.target as HTMLDetailsElement;
   open.value = target.open;
-  localStorage.setItem(LS_EVENTS_OPEN_KEY, target.open ? "1" : "0");
+  writeRawString(STORAGE_KEYS.eventsFeedOpen.key, target.open ? "1" : "0");
 }
 
 async function saveToMemory(key: string, text: string): Promise<void> {
@@ -157,21 +170,16 @@ function saveButtonTitle(key: string): string {
 }
 
 function formatTimestamp(iso: string): string {
-  try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleString(undefined, {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-  } catch {
-    return iso;
-  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const pad = (value: number): string => value.toString().padStart(2, "0");
+  const day = pad(date.getDate());
+  const month = pad(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+  return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
 }
 
 function renderMarkdown(md: string): string {

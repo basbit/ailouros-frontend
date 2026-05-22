@@ -1,17 +1,14 @@
 import type { Messages } from "./types";
 
 export const mediaEn: Messages = {
-  "media.summary": "Media generation (image / audio)",
   "media.enabledLabel": "Enable media generation",
   "media.enabledHint":
     "Routes image/audio asset requests from upstream roles and the §23 parser to the media_generator node.",
-  "media.imageSectionLabel": "Image",
   "media.imageProviderLabel": "Image provider",
   "media.imageModelLabel": "Image model (optional)",
   "media.imageModelPlaceholder": "gpt-image-1 / stable-diffusion-xl",
   "media.imageApiKeyLabel": "Image API key",
   "media.imageApiKeyPlaceholder": "sk-…",
-  "media.audioSectionLabel": "Audio",
   "media.audioProviderLabel": "Audio provider",
   "media.audioModelLabel": "Audio model (optional)",
   "media.audioModelPlaceholder": "eleven_multilingual_v2",
@@ -34,17 +31,14 @@ export const mediaEn: Messages = {
 };
 
 export const mediaRu: Messages = {
-  "media.summary": "Генерация медиа (изображения / аудио)",
   "media.enabledLabel": "Включить генерацию медиа",
   "media.enabledHint":
     "Направляет запросы на изображения/аудио от upstream-ролей и парсера §23 в ноду media_generator.",
-  "media.imageSectionLabel": "Изображения",
   "media.imageProviderLabel": "Провайдер изображений",
   "media.imageModelLabel": "Модель изображений (необязательно)",
   "media.imageModelPlaceholder": "gpt-image-1 / stable-diffusion-xl",
   "media.imageApiKeyLabel": "API-ключ (изображения)",
   "media.imageApiKeyPlaceholder": "sk-…",
-  "media.audioSectionLabel": "Аудио",
   "media.audioProviderLabel": "Провайдер аудио",
   "media.audioModelLabel": "Модель аудио (необязательно)",
   "media.audioModelPlaceholder": "eleven_multilingual_v2",

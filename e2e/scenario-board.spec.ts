@@ -87,7 +87,7 @@ test.describe("Scenario board", () => {
       });
     });
 
-    await page.goto("/");
+    await page.goto("/#/legacy");
 
     await expect(page.getByRole("main")).toBeVisible({ timeout: 10_000 });
 

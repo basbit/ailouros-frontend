@@ -1,13 +1,4 @@
-/**
- * Conversation history types for the frontend skeleton.
- *
- * Mirrors ``ConversationMessage`` in
- * ``backend/App/integrations/infrastructure/conversation_store.py``. Once an
- * entity for shared chat messages exists, these can move under
- * ``src/entities/conversation``.
- */
-
-export type ConversationRole = "user" | "assistant" | "system" | string;
+type ConversationRole = "user" | "assistant" | "system" | string;
 
 export interface ConversationMessage {
   id: string;

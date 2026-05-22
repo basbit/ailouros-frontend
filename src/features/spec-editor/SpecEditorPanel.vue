@@ -51,6 +51,7 @@
         <slot name="validator">
           <SpecValidator
             :spec-id="specId"
+            :workspace-root="workspaceRoot"
             :initial="initialValidation"
             :auto-fetch="autoFetchValidation"
           />
@@ -85,6 +86,7 @@ type EditorTab = "editor" | "graph" | "drift";
 withDefaults(
   defineProps<{
     specId?: string | null;
+    workspaceRoot?: string | null;
     requirements?: Requirement[];
     decisions?: DesignDecision[];
     tasks?: SpecTask[];
@@ -93,6 +95,7 @@ withDefaults(
   }>(),
   {
     specId: null,
+    workspaceRoot: null,
     requirements: () => [],
     decisions: () => [],
     tasks: () => [],

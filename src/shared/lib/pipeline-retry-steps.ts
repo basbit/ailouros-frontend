@@ -5,5 +5,3 @@ export const ALL_PIPELINE_STEPS = [
   "qa",
   "review_qa",
 ] as const;
-
-export type PipelineStep = (typeof ALL_PIPELINE_STEPS)[number];

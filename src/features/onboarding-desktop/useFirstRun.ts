@@ -227,5 +227,3 @@ export function useFirstRun() {
     dispose,
   };
 }
-
-export type FirstRunApi = ReturnType<typeof useFirstRun>;

@@ -6,7 +6,6 @@
       'state-error': scene.isError,
     }"
   >
-    <!-- Desk labels row -->
     <div class="office-labels" role="list" :aria-label="t('taskMonitor.desksAria')">
       <div
         v-for="desk in desks"
@@ -21,7 +20,6 @@
       </div>
     </div>
 
-    <!-- Walker / avatar -->
     <div
       class="office-walker-wrap"
       :class="{
@@ -46,7 +44,6 @@
       </div>
     </div>
 
-    <!-- Caption below the scene -->
     <div class="office-caption">
       <template v-if="!taskStore.taskId">
         <strong>{{ t("taskMonitor.idleTitle") }}</strong> —
@@ -75,7 +72,8 @@ const { taskStore, sceneState: scene, desks } = useTaskMonitor();
 <style scoped>
 .office-scene {
   position: relative;
-  min-height: 120px;
+  min-height: 88px;
+  padding-bottom: 4px;
 }
 
 .office-labels {
@@ -146,10 +144,10 @@ const { taskStore, sceneState: scene, desks } = useTaskMonitor();
 }
 
 .office-caption {
-  margin-top: 52px;
+  margin-top: 28px;
   font-size: 12px;
   line-height: 1.4;
-  min-height: 2.8em;
+  min-height: 1.6em;
 }
 
 .office-caption__status {

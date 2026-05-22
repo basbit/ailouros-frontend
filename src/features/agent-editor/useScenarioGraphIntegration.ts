@@ -9,7 +9,7 @@ const CUSTOM_STEP_PREFIX = "crole_";
 const NODE_X_STEP = 220;
 const NODE_Y_BASE = 120;
 
-export type ScenarioEditorMode = "official" | "custom" | "imported";
+type ScenarioEditorMode = "official" | "custom" | "imported";
 
 export interface ScenarioGraphConversion {
   loadScenarioIntoEditor(id: string): Promise<void>;
@@ -27,13 +27,11 @@ const loadedScenarioMode = ref<ScenarioEditorMode | null>(null);
 const loadError = ref<string | null>(null);
 const importError = ref<string | null>(null);
 
-export function isCustomStepId(stepId: string): boolean {
+function isCustomStepId(stepId: string): boolean {
   return stepId.startsWith(CUSTOM_STEP_PREFIX);
 }
 
-export function scenarioToPipelineDefinition(
-  scenario: ScenarioSummary,
-): PipelineDefinition {
+function scenarioToPipelineDefinition(scenario: ScenarioSummary): PipelineDefinition {
   const nodes: PipelineNode[] = scenario.pipeline_steps.map((step, index) => ({
     id: step,
     type: isCustomStepId(step) ? "tool" : "agent",
@@ -57,7 +55,7 @@ export function scenarioToPipelineDefinition(
   };
 }
 
-export function pipelineToScenarioJson(
+function pipelineToScenarioJson(
   pipeline: PipelineDefinition,
   scenarioId: string,
 ): string {

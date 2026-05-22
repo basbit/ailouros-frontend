@@ -18,25 +18,13 @@
 
     <div class="field">
       <label class="field-label" for="pf-root">workspace_root</label>
-      <div class="project-form__path-row">
-        <input
-          id="pf-root"
-          :value="form.workspace_root"
-          type="text"
-          placeholder="/absolute/path/to/repo"
-          @input="onTextInput('workspace_root', $event)"
-          @keydown.escape.prevent="$emit('cancel')"
-        />
-        <button
-          v-if="isDesktopShell"
-          type="button"
-          class="project-form__pick-btn"
-          :title="t('projectForm.pickFolder')"
-          @click="onPickWorkspaceRoot"
-        >
-          📁
-        </button>
-      </div>
+      <FilePathPicker
+        :model-value="form.workspace_root"
+        placeholder="/absolute/path/to/repo"
+        :directory="true"
+        :picker-title="t('projectForm.pickFolder')"
+        @update:model-value="(value) => emit('update:field', 'workspace_root', value)"
+      />
       <div class="hint project-form__hint">
         {{ t("projectForm.rootHint") }}
       </div>
@@ -47,13 +35,14 @@
         project_context_file
         <span class="project-form__optional"> ({{ t("workspace.optional") }}) </span>
       </label>
-      <input
-        id="pf-ctx"
-        :value="form.project_context_file"
-        type="text"
+      <FilePathPicker
+        :model-value="form.project_context_file"
         placeholder="docs/PROJECT_CONTEXT.md"
-        @input="onTextInput('project_context_file', $event)"
-        @keydown.escape.prevent="$emit('cancel')"
+        :file-extensions="['md', 'markdown', 'txt']"
+        :default-path="form.workspace_root"
+        @update:model-value="
+          (value) => emit('update:field', 'project_context_file', value)
+        "
       />
     </div>
 
@@ -93,7 +82,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { isDesktop } from "@/shared/lib/desktop-bridge";
+import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 import type { ProjectFormValues } from "./useProjectFormState";
 
 const props = defineProps<{
@@ -109,7 +98,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const isDesktopShell = isDesktop();
 const nameRef = ref<HTMLInputElement | null>(null);
 
 watch(
@@ -130,23 +118,5 @@ function onBoolInput(field: keyof ProjectFormValues, ev: Event): void {
   emit("update:field", field, target.checked);
 }
 
-async function onPickWorkspaceRoot(): Promise<void> {
-  if (!isDesktopShell) return;
-  try {
-    const dialog = await import("@tauri-apps/plugin-dialog");
-    const selected = await dialog.open({
-      directory: true,
-      multiple: false,
-      title: t("projectForm.pickFolder"),
-    });
-    if (typeof selected === "string" && selected) {
-      emit("update:field", "workspace_root", selected);
-    }
-  } catch (error) {
-    console.error("folder picker failed", error);
-  }
-}
-
-// Silence unused-prop lint warnings — these are used in the template.
 void props;
 </script>

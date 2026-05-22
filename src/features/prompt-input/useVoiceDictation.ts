@@ -3,6 +3,13 @@ import type { ComputedRef, Ref } from "vue";
 import { initApiBase } from "@/shared/api/base";
 import { ApiError, httpPost } from "@/shared/api/http";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
+
+function logTeardownFailure(operation: string, error: unknown): void {
+  frontendLogger.warn(`voice-dictation: ${operation} rejected during teardown`, {
+    error: error instanceof Error ? error.message : String(error),
+  });
+}
 
 interface SpeechRecognitionEventLike {
   resultIndex: number;
@@ -107,14 +114,33 @@ export function useVoiceDictation(options: VoiceDictationOptions): VoiceDictatio
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       try {
         mediaRecorder.stop();
-      } catch {
-        /* ignore */
+      } catch (caught) {
+        logTeardownFailure("MediaRecorder.stop", caught);
       }
     }
     if (mediaStream) {
       for (const track of mediaStream.getTracks()) track.stop();
       mediaStream = null;
     }
+  }
+
+  function extractTranscribeDetailMessage(
+    body: string | null | undefined,
+  ): string | null {
+    if (!body) return null;
+    try {
+      const parsed = JSON.parse(body) as { detail?: { message?: string } };
+      return typeof parsed?.detail?.message === "string" ? parsed.detail.message : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function describeTranscribeApiError(apiError: ApiError): string {
+    return (
+      extractTranscribeDetailMessage(apiError.body) ??
+      `voice/transcribe HTTP ${apiError.status}`
+    );
   }
 
   async function transcribeBlob(blob: Blob): Promise<void> {
@@ -131,18 +157,7 @@ export function useVoiceDictation(options: VoiceDictationOptions): VoiceDictatio
         if (text) options.onTranscript(text, true);
       } catch (caught) {
         if (caught instanceof ApiError) {
-          let detailMessage = `voice/transcribe HTTP ${caught.status}`;
-          if (caught.body) {
-            try {
-              const body = JSON.parse(caught.body) as {
-                detail?: { message?: string };
-              };
-              if (body?.detail?.message) detailMessage = body.detail.message;
-            } catch {
-              /* keep default message */
-            }
-          }
-          error.value = detailMessage;
+          error.value = describeTranscribeApiError(caught);
           return;
         }
         throw caught;
@@ -213,8 +228,8 @@ export function useVoiceDictation(options: VoiceDictationOptions): VoiceDictatio
     if (browserSupported && speechInstance) {
       try {
         speechInstance.stop();
-      } catch {
-        /* ignore */
+      } catch (caught) {
+        logTeardownFailure("SpeechRecognition.stop", caught);
       }
       active.value = false;
       return;
@@ -229,8 +244,8 @@ export function useVoiceDictation(options: VoiceDictationOptions): VoiceDictatio
     if (speechInstance) {
       try {
         speechInstance.abort();
-      } catch {
-        /* ignore */
+      } catch (caught) {
+        logTeardownFailure("SpeechRecognition.abort", caught);
       }
       speechInstance.onresult = null;
       speechInstance.onerror = null;

@@ -31,12 +31,6 @@ export const pipelineEn: Messages = {
   "graph.badges.steps": "{n} steps",
   "graph.badges.toolWarn":
     "This tool is required by the scenario but not currently configured.",
-  "pipelineSteps.dragToReorder": "Drag to reorder",
-  "pipelineSteps.remove": "Remove step",
-  "pipelineSteps.hint":
-    "Reorder with the left handle (SortableJS). The dev step uses Dev Roles below when they are configured.",
-  "pipelineSteps.add": "+ Add step",
-  "pipelineSteps.reset": "Reset to default",
   "pipelineSteps.orderWarningTitle": "Pipeline step order looks broken",
   "pipelineSteps.orderWarningPrompt": "Run anyway?",
   "pipelineSteps.orderWarningCancelled":
@@ -85,12 +79,6 @@ export const pipelineRu: Messages = {
   "graph.badges.readonly": "только чтение",
   "graph.badges.steps": "{n} шагов",
   "graph.badges.toolWarn": "Этот инструмент требуется сценарию, но не настроен.",
-  "pipelineSteps.dragToReorder": "Перетащить для изменения порядка",
-  "pipelineSteps.remove": "Удалить шаг",
-  "pipelineSteps.hint":
-    "Порядок меняется через левый drag-handle (SortableJS). Шаг dev использует Dev Roles ниже, если они заданы.",
-  "pipelineSteps.add": "+ Add step",
-  "pipelineSteps.reset": "Reset to default",
   "pipelineSteps.orderWarningTitle": "Похоже, порядок шагов сломан",
   "pipelineSteps.orderWarningPrompt": "Всё равно запустить?",
   "pipelineSteps.orderWarningCancelled":

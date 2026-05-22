@@ -18,12 +18,3 @@ export interface SystemHealth {
 export async function getHealth(signal?: AbortSignal): Promise<SystemHealth> {
   return httpGet<SystemHealth>("/v1/health", { signal });
 }
-
-export async function getSubsystemHealth(
-  subsystem: string,
-  signal?: AbortSignal,
-): Promise<SubsystemHealth> {
-  return httpGet<SubsystemHealth>(`/v1/health/${encodeURIComponent(subsystem)}`, {
-    signal,
-  });
-}

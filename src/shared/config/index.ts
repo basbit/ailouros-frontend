@@ -1,4 +1,3 @@
-/** Public API prefix; empty keeps relative paths like production behind the orchestrator. */
 export const SWARM_PUBLIC_API_BASE: string = (
   import.meta.env.VITE_API_BASE_URL ?? ""
 ).replace(/\/$/, "");

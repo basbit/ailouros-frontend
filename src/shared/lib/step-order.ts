@@ -1,6 +1,6 @@
 import { pipelineStepDependencies } from "@/shared/lib/use-swarm-defaults";
 
-export interface StepOrderViolation {
+interface StepOrderViolation {
   stepId: string;
   stepIndex: number;
   missingPrerequisite: string;

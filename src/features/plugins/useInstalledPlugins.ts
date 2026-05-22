@@ -1,6 +1,7 @@
 import { ref, type Ref } from "vue";
 import { ApiError } from "@/shared/api/http";
 import { getInstalledPlugins, uninstallPlugin } from "@/shared/api/endpoints/plugins";
+import { describeApiError } from "@/shared/lib/describe-api-error";
 import type { PluginManifest } from "./plugin-types";
 
 export interface UseInstalledPluginsState {
@@ -12,15 +13,6 @@ export interface UseInstalledPluginsState {
   load: () => Promise<void>;
   uninstall: (id: string) => Promise<void>;
   reset: () => void;
-}
-
-function describeError(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) {
-    if (err.body && err.body.trim()) return err.body;
-    return err.message;
-  }
-  if (err instanceof Error) return err.message;
-  return fallback;
 }
 
 export function useInstalledPlugins(): UseInstalledPluginsState {
@@ -42,7 +34,7 @@ export function useInstalledPlugins(): UseInstalledPluginsState {
         installedPlugins.value = [];
         return;
       }
-      error.value = describeError(err, "Failed to load installed plugins.");
+      error.value = describeApiError(err, "Failed to load installed plugins.");
     } finally {
       loading.value = false;
     }
@@ -56,7 +48,7 @@ export function useInstalledPlugins(): UseInstalledPluginsState {
       await uninstallPlugin(id);
       installedPlugins.value = installedPlugins.value.filter((p) => p.id !== id);
     } catch (err) {
-      error.value = describeError(err, `Failed to uninstall ${id}.`);
+      error.value = describeApiError(err, `Failed to uninstall ${id}.`);
     } finally {
       const next = { ...uninstalling.value };
       delete next[id];

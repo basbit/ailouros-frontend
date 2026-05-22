@@ -1,10 +1,4 @@
-export type NodeType =
-  | "trigger"
-  | "agent"
-  | "tool"
-  | "condition"
-  | "aggregator"
-  | "output";
+type NodeType = "trigger" | "agent" | "tool" | "condition" | "aggregator" | "output";
 
 export interface TriggerConfig {
   triggerType: "manual" | "webhook" | "cron";
@@ -20,6 +14,8 @@ export interface AgentConfig {
   maxSteps: number;
   temperature: number;
   memoryNamespace: string;
+  promptPath?: string;
+  promptInline?: string;
 }
 
 export interface ConditionConfig {
@@ -32,7 +28,7 @@ export interface ToolConfig {
   toolName: string;
 }
 
-export type NodeConfig =
+type NodeConfig =
   | TriggerConfig
   | AgentConfig
   | ConditionConfig

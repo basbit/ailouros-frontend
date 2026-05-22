@@ -1,6 +1,6 @@
 import { fetchJson } from "@/shared/api/client";
 
-export interface CapabilityProbe {
+interface CapabilityProbe {
   name: string;
   ready: boolean;
   detail: string;

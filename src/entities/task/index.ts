@@ -1,1 +1,1 @@
-export type { TaskHistoryEntry, TaskSnapshot, TaskStatus } from "./model/types";
+export type { TaskStatus } from "./model/types";

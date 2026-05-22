@@ -2,7 +2,6 @@
   <div v-if="visible" class="human-gate">
     <div class="human-gate-title">&#9646; {{ title }}</div>
 
-    <!-- Diff viewer -->
     <DiffViewer
       v-if="diffData"
       :diff-text="diffData.diffText"
@@ -12,7 +11,6 @@
       :task-id="props.taskId"
     />
 
-    <!-- Inline file editor (H-11) — appears only when diff has file_list -->
     <div v-if="diffData && diffData.files.length > 0" class="file-editor">
       <div class="file-editor__header">
         <select
@@ -47,14 +45,11 @@
       />
     </div>
 
-    <!-- Fetch error -->
     <div v-if="fetchError" class="clarify-error">{{ fetchError }}</div>
 
-    <!-- Clarify mode: chips or free-text per question -->
     <div v-if="clarifyQuestions.length" class="clarify-form">
       <div v-for="q in clarifyQuestions" :key="q.index" class="clarify-q">
         <p class="clarify-q__text">{{ q.index }}. {{ q.text }}</p>
-        <!-- Questions with predefined options → chip buttons -->
         <template v-if="q.options.length > 0">
           <div class="clarify-q__options">
             <button
@@ -92,7 +87,6 @@
             @input="comments[q.index] = ($event.target as HTMLInputElement).value"
           />
         </template>
-        <!-- Questions without options → direct text input -->
         <template v-else>
           <input
             :value="customAnswers[q.index] ?? ''"
@@ -113,7 +107,6 @@
       </button>
     </div>
 
-    <!-- Fallback: textarea -->
     <div v-else>
       <textarea
         :value="feedback"
@@ -127,7 +120,7 @@
         class="btn-primary"
         style="margin-top: 8px"
         :disabled="submitting"
-        @click="emit('submit')"
+        @click="emit('submit', feedback)"
       >
         {{ submitting ? t("humanGate.submitting") : t("humanGate.submit") }}
       </button>
@@ -140,22 +133,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { ApiError } from "@/shared/api/client";
-import {
-  getClarifyQuestions,
-  getWorkspaceDiff,
-  getWorkspaceFile,
-  patchWorkspaceFile,
-} from "@/shared/api/endpoints/workspace";
+import { toRef, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import DiffViewer from "@/features/task-gate/DiffViewer.vue";
-
-interface ClarifyQuestion {
-  index: number;
-  text: string;
-  options: string[];
-}
+import { useHumanGateWorkspace } from "./useHumanGateWorkspace";
+import { useHumanGateActions } from "./useHumanGateActions";
 
 const props = defineProps<{
   visible: boolean;
@@ -166,141 +148,47 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  submit: [];
+  submit: [feedback: string];
   "update:feedback": [val: string];
 }>();
 const { t } = useI18n();
 
-const clarifyQuestions = ref<ClarifyQuestion[]>([]);
-const answers = ref<Record<number, string>>({});
-const customMode = ref<Record<number, boolean>>({});
-const customAnswers = ref<Record<number, string>>({});
-const comments = ref<Record<number, string>>({});
-const fetchError = ref<string | null>(null);
+const {
+  clarifyQuestions,
+  fetchError,
+  diffData,
+  selectedEditPath,
+  editContent,
+  editOriginal,
+  editLoading,
+  editSaving,
+  editError,
+  onEditPathChange,
+  saveEditedFile,
+  resetEditState,
+  fetchWorkspaceDiff,
+  fetchClarifyQuestions,
+  clearDiff,
+} = useHumanGateWorkspace(toRef(props, "taskId"));
 
-// diff viewer state
-const diffData = ref<{
-  diffText: string;
-  files: string[];
-  stats: { added: number; removed: number; files: number };
-  source: "git" | "file_list" | "none";
-} | null>(null);
-
-// H-11 inline file editor state
-const selectedEditPath = ref<string>("");
-const editContent = ref<string>("");
-const editOriginal = ref<string>("");
-const editLoading = ref<boolean>(false);
-const editSaving = ref<boolean>(false);
-const editError = ref<string | null>(null);
-
-async function loadEditFile(path: string): Promise<void> {
-  if (!props.taskId || !path) return;
-  editLoading.value = true;
-  editError.value = null;
-  editContent.value = "";
-  editOriginal.value = "";
-  try {
-    const data = await getWorkspaceFile(props.taskId, path);
-    editContent.value = data.content ?? "";
-    editOriginal.value = data.content ?? "";
-  } catch (e) {
-    editError.value =
-      e instanceof ApiError
-        ? `${t("humanGate.editLoadError")} (HTTP ${e.status})`
-        : e instanceof Error
-          ? e.message
-          : String(e);
-  } finally {
-    editLoading.value = false;
-  }
-}
-
-function onEditPathChange(): void {
-  void loadEditFile(selectedEditPath.value);
-}
-
-async function saveEditedFile(): Promise<void> {
-  if (!props.taskId || !selectedEditPath.value) return;
-  editSaving.value = true;
-  editError.value = null;
-  try {
-    await patchWorkspaceFile(props.taskId, selectedEditPath.value, editContent.value);
-    editOriginal.value = editContent.value;
-    // Refetch diff so the viewer reflects manual edits
-    void fetchWorkspaceDiff();
-  } catch (e) {
-    editError.value =
-      e instanceof ApiError
-        ? `${t("humanGate.editSaveError")} (HTTP ${e.status})`
-        : e instanceof Error
-          ? e.message
-          : String(e);
-  } finally {
-    editSaving.value = false;
-  }
-}
-
-function resetEditState(): void {
-  selectedEditPath.value = "";
-  editContent.value = "";
-  editOriginal.value = "";
-  editError.value = null;
-  editLoading.value = false;
-  editSaving.value = false;
-}
-
-async function fetchWorkspaceDiff(): Promise<void> {
-  if (!props.taskId) return;
-  try {
-    const data = await getWorkspaceDiff(props.taskId);
-    // Only show diff if there are actually changed files
-    if (Array.isArray(data.files_changed) && data.files_changed.length > 0) {
-      const stats = data.stats ?? {};
-      const source =
-        data.source === "git" || data.source === "file_list" || data.source === "none"
-          ? data.source
-          : "file_list";
-      diffData.value = {
-        diffText: data.diff_text ?? "",
-        files: data.files_changed,
-        stats: {
-          added: stats.added ?? 0,
-          removed: stats.removed ?? 0,
-          files: stats.files ?? (data.files_changed as string[]).length,
-        },
-        source,
-      };
-    }
-  } catch (e) {
-    // Diff viewer is a display enhancement; log but do not block the gate UI
-    console.warn("[HumanGate] workspace-diff fetch failed:", e);
-  }
-}
-
-async function fetchClarifyQuestions(): Promise<void> {
-  if (!props.taskId) return;
-  fetchError.value = null;
-  try {
-    const data = await getClarifyQuestions(props.taskId);
-    const qs: ClarifyQuestion[] = Array.isArray(data.questions) ? data.questions : [];
-    clarifyQuestions.value = qs;
-  } catch (e) {
-    fetchError.value =
-      e instanceof ApiError
-        ? `${t("humanGate.fetchError")} (HTTP ${e.status})`
-        : e instanceof Error
-          ? e.message
-          : String(e);
-    clarifyQuestions.value = [];
-  }
-}
+const {
+  answers,
+  customMode,
+  customAnswers,
+  comments,
+  selectAnswer,
+  enableCustom,
+  resetClarifyAnswers,
+  allAnswered,
+  submitAnswers,
+} = useHumanGateActions(
+  clarifyQuestions,
+  (val) => emit("update:feedback", val),
+  (feedback) => emit("submit", feedback),
+);
 
 function resetClarifyFormState(): void {
-  answers.value = {};
-  customMode.value = {};
-  customAnswers.value = {};
-  comments.value = {};
+  resetClarifyAnswers();
   clarifyQuestions.value = [];
   fetchError.value = null;
   resetEditState();
@@ -320,7 +208,7 @@ watch(
       void fetchClarifyQuestions();
       void fetchWorkspaceDiff();
     } else {
-      diffData.value = null;
+      clearDiff();
     }
   },
   { immediate: true },
@@ -330,51 +218,9 @@ watch(clarifyQuestions, (newQuestions, oldQuestions) => {
   const newKey = newQuestions.map((q) => `${q.index}|${q.text}`).join("\n");
   const oldKey = (oldQuestions ?? []).map((q) => `${q.index}|${q.text}`).join("\n");
   if (newKey !== oldKey && newQuestions.length > 0) {
-    answers.value = {};
-    customMode.value = {};
-    customAnswers.value = {};
-    comments.value = {};
+    resetClarifyAnswers();
   }
 });
-
-function selectAnswer(idx: number, opt: string): void {
-  answers.value[idx] = opt;
-  customMode.value[idx] = false;
-}
-
-function enableCustom(idx: number): void {
-  customMode.value[idx] = true;
-  answers.value[idx] = "";
-}
-
-const allAnswered = computed(() =>
-  clarifyQuestions.value.every((q) => {
-    // Questions without options use customAnswers directly (free-text input)
-    if (q.options.length === 0)
-      return (customAnswers.value[q.index] ?? "").trim() !== "";
-    if (customMode.value[q.index])
-      return (customAnswers.value[q.index] ?? "").trim() !== "";
-    return (answers.value[q.index] ?? "") !== "";
-  }),
-);
-
-function submitAnswers(): void {
-  const lines = clarifyQuestions.value.map((q) => {
-    const mainAns =
-      q.options.length === 0
-        ? (customAnswers.value[q.index] ?? "").trim()
-        : customMode.value[q.index]
-          ? (customAnswers.value[q.index] ?? "").trim()
-          : (answers.value[q.index] ?? "").trim();
-    const comment = (comments.value[q.index] ?? "").trim();
-    if (comment) {
-      return `Q${q.index}: ${mainAns} | ${t("humanGate.commentLabel")}: ${comment}`;
-    }
-    return `Q${q.index}: ${mainAns}`;
-  });
-  emit("update:feedback", lines.join("\n"));
-  emit("submit");
-}
 </script>
 
 <style scoped>

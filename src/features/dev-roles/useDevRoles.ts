@@ -1,11 +1,10 @@
 import { ref, reactive } from "vue";
-import type { DevRoleSnap } from "@/shared/store/projects";
+import type { DevRoleSnap } from "@/entities/project";
 import { defaultEnvironmentForRole } from "@/shared/lib/use-swarm-defaults";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 
 export type { DevRoleSnap };
 
-/** Per-role UI state for model selection (not persisted). */
 export interface DevRoleUiState {
   modelChoices: [string, string][];
   modelFetchError: string | null;
@@ -13,7 +12,6 @@ export interface DevRoleUiState {
 
 export function useDevRoles(onChangeCb: () => void) {
   const devRoles = ref<DevRoleSnap[]>([]);
-  /** Parallel array of UI state (model choices, errors) per dev role. */
   const uiStates = reactive<DevRoleUiState[]>([]);
 
   function _ensureUiState(idx: number): DevRoleUiState {

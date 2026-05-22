@@ -1,7 +1,3 @@
-/**
- * Desktop bootstrap progress types — shared between the local-models feature
- * (which emits them) and the onboarding-desktop feature (which consumes them).
- */
 export type BootstrapStage =
   | "preparing-tree"
   | "fetching-python"

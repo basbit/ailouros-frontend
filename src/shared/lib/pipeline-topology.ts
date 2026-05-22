@@ -54,7 +54,7 @@ export function recommendedStepsForTopology(
   return preset ? preset.recommendedSteps : TOPOLOGY_PRESETS.linear.recommendedSteps;
 }
 
-export function deriveStagesFromPreset(
+function deriveStagesFromPreset(
   stepIds: ReadonlyArray<string>,
   preset: TopologyPreset,
 ): string[][] {

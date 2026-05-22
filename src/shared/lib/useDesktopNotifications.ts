@@ -16,16 +16,11 @@ async function loadTauriNotificationApi(): Promise<void> {
   if (cachedSendNotification && cachedRequestPermission && cachedIsPermissionGranted) {
     return;
   }
-  const moduleId = "@tauri-apps/plugin-notification";
-  const dynamicImport = (path: string) =>
-    (Function("p", "return import(p)") as (p: string) => Promise<unknown>)(path);
   try {
-    const tauri = (await dynamicImport(moduleId)) as {
-      sendNotification: (payload: { title: string; body: string }) => Promise<void>;
-      requestPermission: () => Promise<string>;
-      isPermissionGranted: () => Promise<boolean>;
+    const tauri = await import("@tauri-apps/plugin-notification");
+    cachedSendNotification = async (payload) => {
+      await tauri.sendNotification(payload);
     };
-    cachedSendNotification = tauri.sendNotification;
     cachedRequestPermission = tauri.requestPermission;
     cachedIsPermissionGranted = tauri.isPermissionGranted;
   } catch (caught) {
@@ -80,14 +75,4 @@ export async function sendDesktopNotification(
     }
   }
   return await sendBrowserNotification(payload);
-}
-
-export function useDesktopNotifications(): {
-  send(payload: DesktopNotificationPayload): Promise<boolean>;
-} {
-  return {
-    async send(payload) {
-      return sendDesktopNotification(payload);
-    },
-  };
 }

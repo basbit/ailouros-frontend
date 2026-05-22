@@ -1,12 +1,11 @@
 import { fetchJson } from "@/shared/api/client";
 
 export interface UserSettingsDto {
-  // Secret API keys (masked on GET, stored in env)
   tavily_api_key: string;
   exa_api_key: string;
   scrapingdog_api_key: string;
+  github_token: string;
 
-  // Global Automation & Quality settings (persisted in var/user_settings.json)
   swarm_self_verify: boolean;
   swarm_self_verify_model: string;
   swarm_self_verify_provider: string;
@@ -26,6 +25,23 @@ export interface UserSettingsDto {
   swarm_auto_plan: boolean;
   swarm_planner_model: string;
   swarm_planner_provider: string;
+
+  swarm_notify_enabled: boolean;
+  swarm_notify_min_severity: string;
+  swarm_notify_rate_limit_per_min: string;
+  swarm_notify_webhook_url: string;
+  swarm_notify_webhook_token: string;
+  swarm_notify_email_sender: string;
+  swarm_notify_email_recipients: string;
+  swarm_notify_smtp_host: string;
+  swarm_notify_smtp_port: string;
+  swarm_notify_smtp_tls: boolean;
+  swarm_notify_smtp_user: string;
+  swarm_notify_smtp_password: string;
+  swarm_notify_telegram_bot_token: string;
+  swarm_notify_telegram_chat_id: string;
+  swarm_notify_slack_webhook_url: string;
+  swarm_notify_discord_webhook_url: string;
 }
 
 export async function getUserSettings(): Promise<Partial<UserSettingsDto>> {

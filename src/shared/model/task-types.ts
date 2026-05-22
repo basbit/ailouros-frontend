@@ -1,4 +1,3 @@
-/** Shared task snapshot fragments from WS / HTTP. */
 export type TaskStatus =
   | "pending"
   | "running"

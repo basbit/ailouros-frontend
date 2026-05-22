@@ -21,18 +21,18 @@ export function useSkillsCatalog(onChangeCb: () => void) {
   }
 
   function update(idx: number, field: keyof SkillCatalogSnap, value: string): void {
-    const s = skills.value[idx];
-    if (s) (s as Record<string, string>)[field] = value;
+    const skill = skills.value[idx];
+    if (skill) (skill as Record<string, string>)[field] = value;
     onChangeCb();
   }
 
   function applySnap(list: SkillCatalogSnap[]): void {
-    skills.value = Array.isArray(list) ? list.map((s) => ({ ...s })) : [];
+    skills.value = Array.isArray(list) ? list.map((skill) => ({ ...skill })) : [];
   }
 
   function collectSnap(): SkillCatalogSnap[] {
-    return skills.value.filter((s) => {
-      const id = s.id
+    return skills.value.filter((skill) => {
+      const id = skill.id
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9_-]+/g, "_")
@@ -44,20 +44,20 @@ export function useSkillsCatalog(onChangeCb: () => void) {
 
   function collectForApi(): Record<string, { path: string; title?: string }> {
     const out: Record<string, { path: string; title?: string }> = {};
-    for (const s of skills.value) {
-      const id = s.id
+    for (const skill of skills.value) {
+      const id = skill.id
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9_-]+/g, "_")
         .replace(/^_+|_+$/, "")
         .slice(0, 64);
       if (!id || !/^[a-z][a-z0-9_-]{0,63}$/.test(id)) continue;
-      const path = s.path.trim();
+      const path = skill.path.trim();
       if (!path) continue;
-      const ent: { path: string; title?: string } = { path };
-      const t = s.title.trim();
-      if (t) ent.title = t;
-      out[id] = ent;
+      const entry: { path: string; title?: string } = { path };
+      const title = skill.title.trim();
+      if (title) entry.title = title;
+      out[id] = entry;
     }
     return out;
   }

@@ -18,7 +18,7 @@ test.describe("App smoke", () => {
   });
 
   test("sidebar collapse persists and project dialog flow works", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/#/legacy");
     // Wait for app to be ready
     await expect(page.getByRole("main")).toBeVisible({ timeout: 10_000 });
 
@@ -81,7 +81,7 @@ test.describe("App smoke", () => {
       });
     });
 
-    await page.goto("/");
+    await page.goto("/#/legacy");
 
     await expect(page.locator(".status-line")).toContainText(/Failed|Ошибка/i);
     await expect(page.locator(".status-line")).toContainText("pipeline.json");
@@ -133,7 +133,7 @@ test.describe("App smoke", () => {
       },
     );
 
-    await page.goto("/");
+    await page.goto("/#/legacy");
 
     await expect(page.locator('.step-card[data-step-id="pm"]')).toHaveClass(
       /step-card--completed/,
@@ -212,7 +212,7 @@ test.describe("App smoke", () => {
       },
     );
 
-    await page.goto("/");
+    await page.goto("/#/legacy");
 
     await page.locator(".history-search").fill("billing");
     await expect(page.locator(".history-item")).toHaveCount(1);

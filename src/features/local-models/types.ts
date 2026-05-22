@@ -1,11 +1,11 @@
-export type QuantKind = "Q3KM" | "Q4KM" | "Q5KM" | "Q8_0" | "BF16" | "OTHER";
+type QuantKind = "Q3KM" | "Q4KM" | "Q5KM" | "Q8_0" | "BF16" | "OTHER";
 
-export interface ModelSource {
+interface ModelSource {
   url: string;
   sha256?: string | null;
 }
 
-export interface ModelEntry {
+interface ModelEntry {
   id: string;
   label: string;
   family: string;
@@ -30,4 +30,4 @@ export interface LocalModelView {
   absolute_path: string;
 }
 
-export type { BootstrapStage, BootstrapProgress } from "@/shared/model/bootstrap-types";
+export type { BootstrapProgress } from "@/shared/model/bootstrap-types";

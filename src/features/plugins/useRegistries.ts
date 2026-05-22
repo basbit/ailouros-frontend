@@ -5,6 +5,7 @@ import {
   getRegistries,
   refreshRegistry,
 } from "@/shared/api/endpoints/plugins";
+import { describeApiError } from "@/shared/lib/describe-api-error";
 import type { RegistryEntry } from "./plugin-types";
 
 export interface UseRegistriesState {
@@ -18,15 +19,6 @@ export interface UseRegistriesState {
   add: (url: string, name: string) => Promise<RegistryEntry | null>;
   refresh: (name: string) => Promise<void>;
   reset: () => void;
-}
-
-function describeError(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) {
-    if (err.body && err.body.trim()) return err.body;
-    return err.message;
-  }
-  if (err instanceof Error) return err.message;
-  return fallback;
 }
 
 export function useRegistries(): UseRegistriesState {
@@ -49,7 +41,7 @@ export function useRegistries(): UseRegistriesState {
         registries.value = [];
         return;
       }
-      error.value = describeError(err, "Failed to load registries.");
+      error.value = describeApiError(err, "Failed to load registries.");
     } finally {
       loading.value = false;
     }
@@ -70,7 +62,7 @@ export function useRegistries(): UseRegistriesState {
       registries.value = [...next, entry];
       return entry;
     } catch (err) {
-      error.value = describeError(err, "Failed to add registry.");
+      error.value = describeApiError(err, "Failed to add registry.");
       return null;
     } finally {
       adding.value = false;
@@ -87,7 +79,7 @@ export function useRegistries(): UseRegistriesState {
         r.name === name ? { ...r, ...updated } : r,
       );
     } catch (err) {
-      error.value = describeError(err, `Failed to refresh ${name}.`);
+      error.value = describeApiError(err, `Failed to refresh ${name}.`);
     } finally {
       const next = { ...refreshing.value };
       delete next[name];

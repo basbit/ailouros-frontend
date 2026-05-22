@@ -76,6 +76,23 @@ async function onDrop(event: DragEvent): Promise<void> {
   await sendFile(file);
 }
 
+function extractDetailFromApiErrorBody(body: string | null | undefined): string | null {
+  if (!body) return null;
+  try {
+    const parsed = JSON.parse(body) as { detail?: string };
+    return typeof parsed?.detail === "string" ? parsed.detail : null;
+  } catch {
+    return null;
+  }
+}
+
+function describeUploadError(err: unknown): string {
+  if (err instanceof ApiError) {
+    return extractDetailFromApiErrorBody(err.body) ?? `HTTP ${err.status}`;
+  }
+  return err instanceof Error ? err.message : String(err);
+}
+
 async function sendFile(file: File): Promise<void> {
   fileName.value = file.name;
   status.value = "uploading";
@@ -90,20 +107,7 @@ async function sendFile(file: File): Promise<void> {
     status.value = "done";
     emit("uploaded", lastRelativePath.value);
   } catch (err) {
-    if (err instanceof ApiError) {
-      let message = `HTTP ${err.status}`;
-      if (err.body) {
-        try {
-          const parsed = JSON.parse(err.body) as { detail?: string };
-          if (parsed?.detail) message = parsed.detail;
-        } catch {
-          /* keep default message */
-        }
-      }
-      errorMessage.value = message;
-    } else {
-      errorMessage.value = err instanceof Error ? err.message : String(err);
-    }
+    errorMessage.value = describeUploadError(err);
     status.value = "error";
   }
 }

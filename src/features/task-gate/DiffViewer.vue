@@ -15,7 +15,6 @@
 
     <div v-if="diffText" class="diff-viewer__content">
       <div v-for="(block, bi) in parsedBlocks" :key="bi" class="diff-block">
-        <!-- File header row: click to collapse, edit button on right -->
         <div class="diff-block__filename" @click="toggleCollapse(bi)">
           <span class="diff-block__collapse-icon">{{ collapsed[bi] ? "▶" : "▼" }}</span>
           <span class="diff-block__name">{{ block.filename }}</span>
@@ -30,7 +29,6 @@
           </button>
         </div>
 
-        <!-- Edit mode: textarea + save -->
         <div v-if="editMode[bi]" class="diff-block__editor">
           <textarea
             class="diff-block__textarea"
@@ -56,28 +54,14 @@
           </div>
         </div>
 
-        <!-- Diff lines (hidden when collapsed or in edit mode) -->
         <div v-if="!collapsed[bi] && !editMode[bi]" class="diff-block__lines">
           <div
             v-for="(line, li) in block.lines"
             :key="li"
             class="diff-line"
-            :class="{
-              'diff-line--added': line.type === 'added',
-              'diff-line--removed': line.type === 'removed',
-              'diff-line--hunk': line.type === 'hunk',
-              'diff-line--context': line.type === 'context',
-            }"
+            :class="`diff-line--${line.type}`"
           >
-            <span class="diff-line__gutter">{{
-              line.type === "added"
-                ? "+"
-                : line.type === "removed"
-                  ? "-"
-                  : line.type === "hunk"
-                    ? "@@"
-                    : " "
-            }}</span>
+            <span class="diff-line__gutter">{{ gutterFor(line.type) }}</span>
             <span class="diff-line__content">{{ line.content }}</span>
           </div>
         </div>
@@ -93,28 +77,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { ApiError } from "@/shared/api/client";
-import {
-  patchWorkspaceFile,
-  tryGetWorkspaceFile,
-} from "@/shared/api/endpoints/workspace";
+import { useDiffViewerState, type DiffLine } from "./useDiffViewerState";
 
 interface DiffStats {
   added: number;
   removed: number;
   files: number;
-}
-
-interface DiffLine {
-  type: "added" | "removed" | "hunk" | "context" | "meta";
-  content: string;
-}
-
-interface DiffBlock {
-  filename: string;
-  lines: DiffLine[];
 }
 
 const props = defineProps<{
@@ -127,129 +97,29 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-// Per-file UI state
-const collapsed = reactive<Record<number, boolean>>({});
-const editMode = reactive<Record<number, boolean>>({});
-const editContent = reactive<Record<number, string>>({});
-const saving = reactive<Record<number, boolean>>({});
-const saveError = reactive<Record<number, string>>({});
-const saveOk = reactive<Record<number, boolean>>({});
+const {
+  collapsed,
+  editMode,
+  editContent,
+  saving,
+  saveError,
+  saveOk,
+  parsedBlocks,
+  toggleCollapse,
+  toggleEdit,
+  closeEdit,
+  saveFile,
+} = useDiffViewerState({
+  diffText: computed(() => props.diffText),
+  taskId: computed(() => props.taskId),
+});
 
-function toggleCollapse(bi: number): void {
-  collapsed[bi] = !collapsed[bi];
+function gutterFor(type: DiffLine["type"]): string {
+  if (type === "added") return "+";
+  if (type === "removed") return "-";
+  if (type === "hunk") return "@@";
+  return " ";
 }
-
-async function toggleEdit(bi: number, filename: string): Promise<void> {
-  if (editMode[bi]) {
-    closeEdit(bi);
-    return;
-  }
-  saveError[bi] = "";
-  saveOk[bi] = false;
-
-  // Try to fetch current file content from backend
-  if (props.taskId) {
-    try {
-      const data = await tryGetWorkspaceFile(props.taskId, filename);
-      if (data) {
-        editContent[bi] = typeof data.content === "string" ? data.content : "";
-      } else {
-        // Fall back to reconstructing from diff
-        editContent[bi] = reconstructFromDiff(bi);
-      }
-    } catch {
-      editContent[bi] = reconstructFromDiff(bi);
-    }
-  } else {
-    editContent[bi] = reconstructFromDiff(bi);
-  }
-
-  editMode[bi] = true;
-}
-
-function closeEdit(bi: number): void {
-  editMode[bi] = false;
-  saveError[bi] = "";
-  saveOk[bi] = false;
-}
-
-function reconstructFromDiff(bi: number): string {
-  // Build file content from context + added lines in the diff block
-  const block = parsedBlocks.value[bi];
-  if (!block) return "";
-  return block.lines
-    .filter((l) => l.type === "context" || l.type === "added")
-    .map((l) => l.content)
-    .join("\n");
-}
-
-async function saveFile(bi: number, filename: string): Promise<void> {
-  if (!props.taskId) return;
-  saving[bi] = true;
-  saveError[bi] = "";
-  saveOk[bi] = false;
-  try {
-    await patchWorkspaceFile(props.taskId, filename, editContent[bi] ?? "");
-    saveOk[bi] = true;
-    setTimeout(() => {
-      closeEdit(bi);
-    }, 1200);
-  } catch (e) {
-    saveError[bi] =
-      e instanceof ApiError
-        ? e.body || `HTTP ${e.status}`
-        : e instanceof Error
-          ? e.message
-          : String(e);
-  } finally {
-    saving[bi] = false;
-  }
-}
-
-function parseDiff(text: string): DiffBlock[] {
-  const blocks: DiffBlock[] = [];
-  let current: DiffBlock | null = null;
-
-  for (const raw of text.split("\n")) {
-    if (raw.startsWith("diff --git")) {
-      if (current) blocks.push(current);
-      const m = raw.match(/diff --git a\/(.+) b\//);
-      const filename = m ? m[1] : raw;
-      current = { filename, lines: [] };
-      continue;
-    }
-    if (!current) {
-      current = { filename: "(unknown)", lines: [] };
-    }
-    if (
-      raw.startsWith("+++") ||
-      raw.startsWith("---") ||
-      raw.startsWith("index ") ||
-      raw.startsWith("new file") ||
-      raw.startsWith("deleted file")
-    ) {
-      continue;
-    }
-    if (raw.startsWith("@@")) {
-      current.lines.push({ type: "hunk", content: raw });
-      continue;
-    }
-    if (raw.startsWith("+")) {
-      current.lines.push({ type: "added", content: raw.slice(1) });
-    } else if (raw.startsWith("-")) {
-      current.lines.push({ type: "removed", content: raw.slice(1) });
-    } else {
-      current.lines.push({ type: "context", content: raw.slice(1) });
-    }
-  }
-
-  if (current) blocks.push(current);
-  return blocks;
-}
-
-const parsedBlocks = computed<DiffBlock[]>(() =>
-  props.diffText ? parseDiff(props.diffText) : [],
-);
 </script>
 
 <style scoped>
@@ -335,9 +205,6 @@ const parsedBlocks = computed<DiffBlock[]>(() =>
   cursor: pointer;
   font-size: 10px;
   padding: 2px 7px;
-  transition:
-    background 0.15s,
-    color 0.15s;
   flex-shrink: 0;
 }
 .diff-block__edit-btn:hover,
@@ -378,7 +245,6 @@ const parsedBlocks = computed<DiffBlock[]>(() =>
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  transition: opacity 0.15s;
 }
 .diff-block__save-btn:disabled {
   opacity: 0.55;

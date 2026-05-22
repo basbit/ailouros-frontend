@@ -26,13 +26,11 @@
         </div>
         <div class="field" style="grid-column: 1/-1">
           <label class="field-label">{{ t("skillsCatalog.pathLabel") }}</label>
-          <input
-            type="text"
-            class="sk-path"
+          <FilePathPicker
+            :model-value="skill.path"
             placeholder=".cursor/skills/foo/SKILL.md"
-            autocomplete="off"
-            :value="skill.path"
-            @input="update(idx, 'path', ($event.target as HTMLInputElement).value)"
+            :file-extensions="['md', 'markdown']"
+            @update:model-value="update(idx, 'path', $event)"
           />
         </div>
       </div>
@@ -51,6 +49,7 @@
 <script setup lang="ts">
 import type { SkillCatalogSnap } from "@/features/skills-catalog/useSkillsCatalog";
 import { useI18n } from "@/shared/lib/i18n";
+import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 
 const { t } = useI18n();
 
