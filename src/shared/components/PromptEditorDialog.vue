@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import { getPromptBody, savePromptOverride } from "@/shared/api/endpoints/catalog";
 
 const props = defineProps<{

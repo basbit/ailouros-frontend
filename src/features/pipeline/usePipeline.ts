@@ -84,7 +84,10 @@ export function usePipeline(
   }
 
   function addStep(): void {
-    const nextStep = createStep("pm");
+    const order = defaultPipelineOrder();
+    const firstStepId = order[0];
+    if (!firstStepId) return;
+    const nextStep = createStep(firstStepId);
     steps.value = [...steps.value, nextStep];
     normalizeStageGroups([...stageGroups.value, [nextStep.uid]]);
     onChangeCb();

@@ -106,7 +106,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import GraphCanvas from "@/entities/wiki/GraphCanvas.vue";
+import { GraphCanvas } from "@/features/graph-canvas";
 import { SPEC_NODE_PALETTE, useSpecGraph } from "./useSpecGraph";
 
 const props = withDefaults(

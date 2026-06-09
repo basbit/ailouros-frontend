@@ -4,7 +4,7 @@ export const pipelineEn: Messages = {
   "graph.title": "Pipeline",
   "graph.layout": "Layout",
   "graph.layoutHelp":
-    "Topology shapes both the layout and how steps run: parallel groups BA∥Architect into a concurrent stage; mesh runs Dev subtasks in parallel; linear and ring keep steps sequential. If you manually grouped steps in the editor, that grouping wins.",
+    "Topology shapes both the layout and how steps run: ring re-runs the pipeline while blocking defects remain (bounded by SWARM_RING_MAX_RESTARTS); mesh additionally runs QA subtasks in parallel. If you manually grouped steps in the editor, that grouping wins.",
   "graph.empty": "No steps configured",
   "graph.add": "Add step",
   "graph.reset": "Reset to default",
@@ -53,7 +53,7 @@ export const pipelineRu: Messages = {
   "graph.title": "Пайплайн",
   "graph.layout": "Вид",
   "graph.layoutHelp":
-    "Топология задаёт и вид, и то как шаги реально исполняются: parallel объединяет BA∥Architect в параллельный этап; mesh параллелит Dev-подзадачи; linear и ring идут последовательно. Если вы вручную сгруппировали шаги в редакторе — ваша группировка важнее пресета.",
+    "Топология задаёт и вид, и то как шаги реально исполняются: ring перезапускает пайплайн, пока остаются блокирующие дефекты (ограничено SWARM_RING_MAX_RESTARTS); mesh дополнительно параллелит QA-подзадачи. Если вы вручную сгруппировали шаги в редакторе — ваша группировка важнее пресета.",
   "graph.empty": "Шаги не настроены",
   "graph.add": "Добавить шаг",
   "graph.reset": "Сбросить к умолчанию",

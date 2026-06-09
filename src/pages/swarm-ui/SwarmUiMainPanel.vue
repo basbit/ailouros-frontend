@@ -108,7 +108,7 @@ import PipelineGraph from "@/widgets/pipeline-graph/PipelineGraph.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import ActiveModelBadge from "@/features/local-models/ActiveModelBadge.vue";
 import BackgroundRecommendations from "@/widgets/background-agent/BackgroundRecommendations.vue";
-import WikiGraphPanel from "@/entities/wiki/WikiGraphPanel.vue";
+import { WikiGraphPanel } from "@/widgets/wiki-graph";
 import EventsFeed from "@/widgets/task-panel/EventsFeed.vue";
 import HistoryPanel from "@/widgets/task-panel/HistoryPanel.vue";
 import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";

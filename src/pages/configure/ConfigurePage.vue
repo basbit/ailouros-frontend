@@ -22,11 +22,11 @@ import AppShell from "@/widgets/app-shell/AppShell.vue";
 import SubNav, { type SubNavEntry } from "@/widgets/app-shell/SubNav.vue";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import ProjectPane from "./panes/ProjectPane.vue";
-import PipelinePane from "./panes/PipelinePane.vue";
 import ModelsPane from "./panes/ModelsPane.vue";
 import MemoryPane from "./panes/MemoryPane.vue";
 import McpPane from "./panes/McpPane.vue";
 import VisualQaPane from "./panes/VisualQaPane.vue";
+import CodeGraphPane from "./panes/CodeGraphPane.vue";
 import AdvancedPane from "./panes/AdvancedPane.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -39,11 +39,11 @@ const { t } = useI18n();
 
 const PANES = {
   project: ProjectPane,
-  pipeline: PipelinePane,
   models: ModelsPane,
   memory: MemoryPane,
   mcp: McpPane,
   "visual-qa": VisualQaPane,
+  "code-graph": CodeGraphPane,
   advanced: AdvancedPane,
 } as const;
 
@@ -51,21 +51,21 @@ type PaneKey = keyof typeof PANES;
 
 const PANE_ORDER: PaneKey[] = [
   "project",
-  "pipeline",
   "models",
   "memory",
   "mcp",
   "visual-qa",
+  "code-graph",
   "advanced",
 ];
 
 const SUBNAV_LABELS: Record<PaneKey, string> = {
   project: "configure.subnav.project",
-  pipeline: "configure.subnav.pipeline",
   models: "configure.subnav.models",
   memory: "configure.subnav.memory",
   mcp: "configure.subnav.mcp",
   "visual-qa": "configure.subnav.visualQa",
+  "code-graph": "configure.subnav.codeGraph",
   advanced: "configure.subnav.advanced",
 };
 

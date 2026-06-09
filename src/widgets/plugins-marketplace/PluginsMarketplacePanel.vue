@@ -2,21 +2,23 @@
   <div class="plugins-marketplace">
     <aside class="plugins-marketplace__rail">
       <header class="plugins-marketplace__rail-head">
-        <h3 class="plugins-marketplace__title">Registries</h3>
+        <h3 class="plugins-marketplace__title">
+          {{ t("pluginsMarketplace.title.registries") }}
+        </h3>
       </header>
 
       <form class="plugins-marketplace__add" @submit.prevent="onAddRegistry">
         <input
           v-model="newRegistryName"
           type="text"
-          placeholder="name"
+          :placeholder="t('pluginsMarketplace.input.registryName')"
           class="plugins-marketplace__input"
           :disabled="registriesState.adding.value"
         />
         <input
           v-model="newRegistryUrl"
           type="url"
-          placeholder="https://registry.example.com"
+          :placeholder="t('pluginsMarketplace.input.registryUrl')"
           class="plugins-marketplace__input"
           :disabled="registriesState.adding.value"
         />
@@ -25,18 +27,22 @@
           class="plugins-marketplace__btn"
           :disabled="registriesState.adding.value"
         >
-          {{ registriesState.adding.value ? "Adding…" : "Add registry" }}
+          {{
+            registriesState.adding.value
+              ? t("pluginsMarketplace.btn.adding")
+              : t("pluginsMarketplace.btn.addRegistry")
+          }}
         </button>
       </form>
 
       <div v-if="registriesState.loading.value" class="plugins-marketplace__hint">
-        Loading registries…
+        {{ t("pluginsMarketplace.state.loadingRegistries") }}
       </div>
       <div
         v-else-if="registriesState.notImplemented.value"
         class="plugins-marketplace__hint"
       >
-        Plugins API not available yet (endpoint not available).
+        {{ t("pluginsMarketplace.state.registriesUnavailable") }}
       </div>
       <div v-else-if="registriesState.error.value" class="plugins-marketplace__error">
         {{ registriesState.error.value }}
@@ -60,8 +66,8 @@
             >
               {{
                 registriesState.refreshing.value[registry.name]
-                  ? "Refreshing…"
-                  : "Refresh"
+                  ? t("pluginsMarketplace.btn.refreshing")
+                  : t("pluginsMarketplace.btn.refresh")
               }}
             </button>
           </div>
@@ -71,7 +77,9 @@
           </div>
           <div v-else class="plugins-marketplace__meta">
             <span v-if="typeof registry.plugin_count === 'number'">
-              {{ registry.plugin_count }} plugins
+              {{
+                t("pluginsMarketplace.state.pluginCount", { n: registry.plugin_count })
+              }}
             </span>
             <span v-if="registry.last_refreshed">
               · {{ formatTimestamp(registry.last_refreshed) }}
@@ -79,7 +87,9 @@
           </div>
         </li>
       </ul>
-      <div v-else class="plugins-marketplace__hint">No registries configured.</div>
+      <div v-else class="plugins-marketplace__hint">
+        {{ t("pluginsMarketplace.state.noRegistries") }}
+      </div>
     </aside>
 
     <section class="plugins-marketplace__center">
@@ -87,7 +97,7 @@
         <input
           v-model="searchState.query.value"
           type="search"
-          placeholder="Search plugins…"
+          :placeholder="t('pluginsMarketplace.input.searchPlaceholder')"
           class="plugins-marketplace__input plugins-marketplace__input--grow"
         />
         <button
@@ -95,18 +105,22 @@
           class="plugins-marketplace__btn"
           :disabled="searchState.loading.value"
         >
-          {{ searchState.loading.value ? "Searching…" : "Search" }}
+          {{
+            searchState.loading.value
+              ? t("pluginsMarketplace.btn.searching")
+              : t("pluginsMarketplace.btn.search")
+          }}
         </button>
       </form>
 
       <div v-if="searchState.loading.value" class="plugins-marketplace__hint">
-        Searching…
+        {{ t("pluginsMarketplace.state.searching") }}
       </div>
       <div
         v-else-if="searchState.notImplemented.value"
         class="plugins-marketplace__hint"
       >
-        Plugin search not available yet (endpoint not available).
+        {{ t("pluginsMarketplace.state.searchUnavailable") }}
       </div>
       <div v-else-if="searchState.error.value" class="plugins-marketplace__error">
         {{ searchState.error.value }}
@@ -131,7 +145,11 @@
               :disabled="!!searchState.installing.value.get(hit.id)"
               @click="onInstall(hit)"
             >
-              {{ searchState.installing.value.get(hit.id) ? "Installing…" : "Install" }}
+              {{
+                searchState.installing.value.get(hit.id)
+                  ? t("pluginsMarketplace.btn.installing")
+                  : t("pluginsMarketplace.btn.install")
+              }}
             </button>
           </div>
           <div v-if="hit.description" class="plugins-marketplace__desc">
@@ -144,30 +162,40 @@
         </li>
       </ul>
       <div v-else class="plugins-marketplace__hint">
-        {{ searchTriggered ? "No plugins matched." : "Enter a query to search." }}
+        {{
+          searchTriggered
+            ? t("pluginsMarketplace.state.noResults")
+            : t("pluginsMarketplace.state.searchPrompt")
+        }}
       </div>
     </section>
 
     <aside class="plugins-marketplace__rail">
       <header class="plugins-marketplace__rail-head">
-        <h3 class="plugins-marketplace__title">Installed</h3>
+        <h3 class="plugins-marketplace__title">
+          {{ t("pluginsMarketplace.title.installed") }}
+        </h3>
         <button
           type="button"
           class="plugins-marketplace__btn plugins-marketplace__btn--ghost"
           :disabled="installedState.loading.value"
           @click="installedState.load()"
         >
-          {{ installedState.loading.value ? "Reloading…" : "Reload" }}
+          {{
+            installedState.loading.value
+              ? t("pluginsMarketplace.btn.reloading")
+              : t("pluginsMarketplace.btn.reload")
+          }}
         </button>
       </header>
       <div v-if="installedState.loading.value" class="plugins-marketplace__hint">
-        Loading installed plugins…
+        {{ t("pluginsMarketplace.state.loadingInstalled") }}
       </div>
       <div
         v-else-if="installedState.notImplemented.value"
         class="plugins-marketplace__hint"
       >
-        Installed plugins endpoint not available yet (endpoint not available).
+        {{ t("pluginsMarketplace.state.installedUnavailable") }}
       </div>
       <div v-else-if="installedState.error.value" class="plugins-marketplace__error">
         {{ installedState.error.value }}
@@ -193,7 +221,9 @@
               @click="installedState.uninstall(plugin.id)"
             >
               {{
-                installedState.uninstalling.value[plugin.id] ? "Removing…" : "Uninstall"
+                installedState.uninstalling.value[plugin.id]
+                  ? t("pluginsMarketplace.btn.removing")
+                  : t("pluginsMarketplace.btn.uninstall")
               }}
             </button>
           </div>
@@ -206,7 +236,9 @@
           </div>
         </li>
       </ul>
-      <div v-else class="plugins-marketplace__hint">No plugins installed.</div>
+      <div v-else class="plugins-marketplace__hint">
+        {{ t("pluginsMarketplace.state.noInstalled") }}
+      </div>
     </aside>
   </div>
 </template>
@@ -217,6 +249,9 @@ import { useInstalledPlugins } from "@/features/plugins/useInstalledPlugins";
 import { useRegistries } from "@/features/plugins/useRegistries";
 import { usePluginSearch } from "@/features/plugins/usePluginSearch";
 import type { SearchHit } from "@/features/plugins/plugin-types";
+import { useI18n } from "@/shared/lib/i18n";
+
+const { t } = useI18n();
 
 const installedState = useInstalledPlugins();
 const registriesState = useRegistries();

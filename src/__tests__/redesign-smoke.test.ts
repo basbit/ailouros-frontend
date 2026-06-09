@@ -5,11 +5,11 @@ import { createRouter, createMemoryHistory } from "vue-router";
 import { defineComponent, h, provide, ref } from "vue";
 
 import { useSettings } from "@/app/providers/useSettings";
-import { useSwarmRunController } from "@/features/swarm-run/useSwarmRunController";
+import { useSwarmRunController } from "@/features/swarm-run";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useProjectFormActions } from "@/entities/project-form";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
-import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run/swarmRunContext";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
 import { PROJECT_FORM_ACTIONS_KEY } from "@/entities/project-form";
 
@@ -25,7 +25,7 @@ vi.mock("@/shared/api/endpoints/scenarios", () => ({
   listScenarios: vi.fn().mockResolvedValue({ scenarios: [] }),
 }));
 vi.mock("@/shared/api/endpoints/project-settings", () => ({
-  loadProjectSettings: vi.fn().mockResolvedValue(null),
+  getProjectSettings: vi.fn().mockResolvedValue(null),
   saveProjectSettings: vi.fn().mockResolvedValue({}),
 }));
 vi.mock("@/shared/api/endpoints/runtime", () => ({
@@ -207,12 +207,11 @@ describe("redesign smoke", () => {
     wrapper.unmount();
   });
 
-  it("PipelinePane renders steps and exposes add/remove controls", async () => {
+  it("ConfigurePage redirects the removed pipeline pane to project", async () => {
     const { wrapper, router } = await mountAt("/configure/pipeline", ConfigurePage);
     await flushPromises();
     await flushPromises();
-    expect(router.currentRoute.value.path).toBe("/configure/pipeline");
-    expect(wrapper.html()).toContain("pipeline-pane");
+    expect(router.currentRoute.value.path).toBe("/configure/project");
     wrapper.unmount();
   });
 

@@ -15,6 +15,7 @@ import { taskMonitorEn, taskMonitorRu } from "./task-monitor";
 import { agentsEn, agentsRu } from "./agents";
 import { miscEn, miscRu } from "./misc";
 import { scenariosEn, scenariosRu } from "./scenarios";
+import { featureFlagsEn, featureFlagsRu } from "./feature-flags";
 
 const messages: Record<Locale, Messages> = {
   en: {
@@ -32,6 +33,7 @@ const messages: Record<Locale, Messages> = {
     ...agentsEn,
     ...miscEn,
     ...scenariosEn,
+    ...featureFlagsEn,
   },
   ru: {
     ...commonRu,
@@ -48,6 +50,7 @@ const messages: Record<Locale, Messages> = {
     ...agentsRu,
     ...miscRu,
     ...scenariosRu,
+    ...featureFlagsRu,
   },
 };
 

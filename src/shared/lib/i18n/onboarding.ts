@@ -44,6 +44,7 @@ export const onboardingEn: Messages = {
   "hostMetrics.chart.collecting": "Collecting samples…",
   "hostMetrics.chart.window": "last {seconds}s",
   "hostMetrics.chart.gpu": "GPU",
+  "hostMetrics.chart.gpuMem": "GPU mem",
 };
 
 export const onboardingRu: Messages = {
@@ -90,4 +91,5 @@ export const onboardingRu: Messages = {
   "hostMetrics.chart.collecting": "Сбор измерений…",
   "hostMetrics.chart.window": "последние {seconds} с",
   "hostMetrics.chart.gpu": "GPU",
+  "hostMetrics.chart.gpuMem": "GPU память",
 };

@@ -2,12 +2,20 @@ import { nextTick } from "vue";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
 import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
-import { type RunSwarmChatSettings } from "@/shared/lib/agent-config";
+import {
+  agentConfigErrorMessage,
+  type RunSwarmChatSettings,
+} from "@/shared/lib/agent-config";
 import { type ChatStreamEvent } from "@/shared/lib/chat-stream-events";
 import { runSwarmChat } from "@/shared/lib/run-swarm-chat";
+import { useSwarmRunPreflight } from "./useSwarmRunPreflight";
 import { tryParseGoalCommand } from "@/shared/lib/slash-commands";
 import { httpPost } from "@/shared/api/http";
 import type { CreateGoalPayload } from "@/entities/goal/model/goal-types";
+import {
+  recordRetrievalDone,
+  resetRetrievalEvents as resetStreamingRagCard,
+} from "@/shared/lib/streaming-rag-events";
 import {
   submitHumanResume,
   confirmShell,
@@ -46,6 +54,10 @@ export function useSwarmRunActions({
   const { applyOrchestratorEvent } = tickHandler;
   const ux = useUxStore();
   const { t } = useI18n();
+  const { resolveScenario, surfacePreflightFailure } = useSwarmRunPreflight(
+    state,
+    settings,
+  );
 
   async function onStartRun(): Promise<void> {
     const goalCommand = tryParseGoalCommand(settings.form.prompt ?? "");
@@ -55,9 +67,11 @@ export function useSwarmRunActions({
     }
     currentPipelineSteps.value = [];
     lastNotifiedError.value = null;
+    agentConfigErrorMessage.value = null;
     runBootstrapPending.value = true;
     ui.persistActiveTask(null, projectsStore.currentId);
     ui.resetTaskView();
+    resetStreamingRagCard();
     lastPipelinePlanLoadKey.value = "";
     taskStore.resetTask();
     sendWsSubscribe();
@@ -70,53 +84,64 @@ export function useSwarmRunActions({
     await waitForUiPaint();
 
     try {
-      await runSwarmChat(settings, {
-        onTaskId: (taskId) => {
-          runBootstrapPending.value = false;
-          ui.taskId = taskId;
-          ui.persistActiveTask(taskId, projectsStore.currentId);
-          taskStore.setTaskId(taskId);
-          sendWsSubscribe();
-          ui.pushHistory(
-            {
-              prompt: settings.form.prompt,
-              agent_config: null,
-              pipeline_steps: settings.pipelineState.collectStepIds(),
-              taskId: taskId,
-              workspace_root: settings.form.workspace_root || null,
-              project_context_file: settings.form.project_context_file || null,
-              workspace_write: settings.form.workspace_write,
-              status: "running",
-              startedAt: Date.now(),
-            },
-            projectsStore.currentId,
-          );
-          lastPipelinePlanLoadKey.value = "";
-        },
-        onDone: () => undefined,
-        sendWsSubscribe,
-        onEvent: (event: ChatStreamEvent) => {
-          if (event.kind === "auto_approved") {
-            const step = event.step || "step";
-            const rule = event.rule ? ` (${event.rule})` : "";
-            ux.notify(`${t("toast.autoApproved", { step })}${rule}`, "info", 3500);
-            return;
-          }
-          if (event.kind === "mcp_status") {
-            const step = event.step || "step";
-            const code = event.code ? ` [${event.code}]` : "";
-            ux.notify(
-              `MCP ${step}${code}: ${event.reason || event.message}`,
-              event.explicitFallback ? "info" : "warning",
-              4500,
+      await runSwarmChat(
+        settings,
+        {
+          onTaskId: (taskId) => {
+            runBootstrapPending.value = false;
+            ui.taskId = taskId;
+            ui.persistActiveTask(taskId, projectsStore.currentId);
+            taskStore.setTaskId(taskId);
+            sendWsSubscribe();
+            ui.pushHistory(
+              {
+                prompt: settings.form.prompt,
+                agent_config: null,
+                pipeline_steps: settings.pipelineState.collectStepIds(),
+                taskId: taskId,
+                workspace_root: settings.form.workspace_root || null,
+                project_context_file: settings.form.project_context_file || null,
+                workspace_write: settings.form.workspace_write,
+                status: "running",
+                startedAt: Date.now(),
+              },
+              projectsStore.currentId,
             );
-            return;
-          }
-          if (event.kind === "orchestrator") {
-            applyOrchestratorEvent(event);
-          }
+            lastPipelinePlanLoadKey.value = "";
+          },
+          onDone: () => undefined,
+          sendWsSubscribe,
+          onEvent: (event: ChatStreamEvent) => {
+            if (event.kind === "auto_approved") {
+              const step = event.step || "step";
+              const rule = event.rule ? ` (${event.rule})` : "";
+              ux.notify(`${t("toast.autoApproved", { step })}${rule}`, "info", 3500);
+              return;
+            }
+            if (event.kind === "mcp_status") {
+              const step = event.step || "step";
+              const code = event.code ? ` [${event.code}]` : "";
+              ux.notify(
+                `MCP ${step}${code}: ${event.reason || event.message}`,
+                event.explicitFallback ? "info" : "warning",
+                4500,
+              );
+              return;
+            }
+            if (event.kind === "orchestrator") {
+              applyOrchestratorEvent(event);
+              return;
+            }
+            if (event.kind === "retrieval_done") {
+              recordRetrievalDone(event.event);
+            }
+          },
         },
-      });
+        { resolveScenario },
+      );
+      if (!ui.taskId) {
+        surfacePreflightFailure();
+      }
     } catch (err: unknown) {
       runBootstrapPending.value = false;
       const msg = err instanceof Error ? err.message : String(err);

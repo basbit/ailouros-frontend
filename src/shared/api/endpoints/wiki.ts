@@ -1,4 +1,4 @@
-import { fetchJson, fetchText } from "@/shared/api/client";
+import { httpGet, httpGetText } from "@/shared/api/http";
 
 interface WikiGraphNodeDto {
   id: string;
@@ -33,7 +33,7 @@ export async function getWikiFileContent(
   if (workspaceRoot?.trim()) {
     params.set("workspace_root", workspaceRoot.trim());
   }
-  return fetchText(`/api/wiki/file?${params.toString()}`);
+  return httpGetText(`/v1/wiki/file?${params.toString()}`);
 }
 
 export async function getWikiGraph(
@@ -47,6 +47,6 @@ export async function getWikiGraph(
   if (force) {
     search.set("force", "true");
   }
-  const path = search.size ? `/api/wiki/graph?${search.toString()}` : "/api/wiki/graph";
-  return fetchJson<WikiGraphDto>(path);
+  const path = search.size ? `/v1/wiki/graph?${search.toString()}` : "/v1/wiki/graph";
+  return httpGet<WikiGraphDto>(path);
 }

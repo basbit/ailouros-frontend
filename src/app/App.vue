@@ -10,6 +10,7 @@
   <CommandPalette />
   <AppDialogHost />
   <AppToastStack />
+  <DesktopBackendBanner />
 </template>
 
 <script setup lang="ts">
@@ -17,10 +18,10 @@ import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { LS_PROJECTS, LS_SETTINGS } from "@/shared/lib/swarm-ui-constants";
 import { loadJSON } from "@/shared/lib/storage-utils";
-import AppDialogHost from "@/widgets/feedback/AppDialogHost.vue";
-import AppToastStack from "@/widgets/feedback/AppToastStack.vue";
+import { AppDialogHost, AppToastStack } from "@/widgets/notifier";
 import UpdateBanner from "@/widgets/update-banner/UpdateBanner.vue";
 import CommandPalette from "@/widgets/command-palette/CommandPalette.vue";
+import { DesktopBackendBanner } from "@/features/desktop-backend-status";
 import ErrorBoundary from "@/shared/components/ErrorBoundary.vue";
 import { useCommandPaletteStore } from "@/shared/store/command-palette";
 import {

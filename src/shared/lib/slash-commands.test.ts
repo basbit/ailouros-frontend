@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { SLASH_COMMANDS, tryParseGoalCommand } from "./slash-commands";
+import {
+  SLASH_COMMANDS,
+  parseQuickFixPayload,
+  tryParseDispatchOrQuick,
+  tryParseGoalCommand,
+} from "./slash-commands";
 
 describe("slash-commands registry", () => {
   it("exposes the /goal command", () => {
@@ -165,6 +170,59 @@ describe("tryParseGoalCommand — schedule", () => {
     expect(parsed?.successCriteria).toEqual(["criterion"]);
     expect(parsed?.description).toBe("body");
     expect(parsed?.schedule).toEqual({ mode: "cron", cron: "0 0 * * *" });
+  });
+});
+
+describe("tryParseDispatchOrQuick", () => {
+  it("returns null for non-slash text", () => {
+    expect(tryParseDispatchOrQuick("hello world")).toBeNull();
+    expect(tryParseDispatchOrQuick("/other foo")).toBeNull();
+  });
+
+  it("parses /dispatch with payload", () => {
+    const intent = tryParseDispatchOrQuick("/dispatch add a Vue page");
+    expect(intent?.kind).toBe("dispatch");
+    expect(intent?.payload).toBe("add a Vue page");
+  });
+
+  it("parses /quick with pipe payload", () => {
+    const intent = tryParseDispatchOrQuick("/quick rename function | src/util.py | 5");
+    expect(intent?.kind).toBe("quick");
+    expect(intent?.payload).toBe("rename function | src/util.py | 5");
+  });
+
+  it("is case-insensitive on the command name", () => {
+    expect(tryParseDispatchOrQuick("/DISPATCH x")?.kind).toBe("dispatch");
+    expect(tryParseDispatchOrQuick("/Quick x | y | 1")?.kind).toBe("quick");
+  });
+});
+
+describe("parseQuickFixPayload", () => {
+  it("splits description, files, and loc", () => {
+    const parsed = parseQuickFixPayload(
+      "rename function | src/util.py, src/other.py | 12",
+    );
+    expect(parsed.description).toBe("rename function");
+    expect(parsed.targetFiles).toEqual(["src/util.py", "src/other.py"]);
+    expect(parsed.estimatedLoc).toBe(12);
+  });
+
+  it("defaults loc to zero when missing or invalid", () => {
+    expect(parseQuickFixPayload("desc | a.py").estimatedLoc).toBe(0);
+    expect(parseQuickFixPayload("desc | a.py | abc").estimatedLoc).toBe(0);
+  });
+
+  it("drops blank file entries", () => {
+    const parsed = parseQuickFixPayload("desc | a.py, , b.py | 1");
+    expect(parsed.targetFiles).toEqual(["a.py", "b.py"]);
+  });
+});
+
+describe("SLASH_COMMANDS contains new commands", () => {
+  it("registers /dispatch and /quick", () => {
+    const triggers = SLASH_COMMANDS.map((entry) => entry.trigger);
+    expect(triggers).toContain("/dispatch");
+    expect(triggers).toContain("/quick");
   });
 });
 

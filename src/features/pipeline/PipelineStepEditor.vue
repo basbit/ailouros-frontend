@@ -72,7 +72,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import RolePickerPopover, { type RoleSummary } from "@/shared/ui/RolePickerPopover.vue";
+import RolePickerPopover, {
+  type RoleSummary,
+} from "@/entities/role/ui/RolePickerPopover.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
 export interface PipelineStepRow {

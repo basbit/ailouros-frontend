@@ -22,6 +22,7 @@
       :remote-api-provider="remoteApiProvider"
       :remote-api-key="remoteApiKey"
       :remote-api-base-url="remoteApiBaseUrl"
+      :workspace-root="workspaceRoot"
     />
     <LocalModels />
   </SettingsDrawer>

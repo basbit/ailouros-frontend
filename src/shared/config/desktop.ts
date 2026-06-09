@@ -21,7 +21,11 @@ async function invokeGetBackendUrl(): Promise<BackendInfo | null> {
 }
 
 const POLL_INTERVAL_MS = 500;
-const POLL_MAX_MS = 60_000;
+// Matches BACKEND_READY_DEADLINE_DEFAULT_SECS in desktop/shell/src/interface/tauri_commands.rs.
+// On a fresh first-run install the Python sidecar may need 2-4 minutes to create the venv
+// and install wheels before /health responds; the previous 60s budget timed out users into a
+// permanent blank screen.
+const POLL_MAX_MS = 300_000;
 
 export async function resolveApiBaseUrl(): Promise<string> {
   if (isDesktopMode()) {

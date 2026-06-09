@@ -32,8 +32,6 @@
 
 <script setup lang="ts">
 const TOPOLOGIES = [
-  { id: "linear", icon: "⟶" },
-  { id: "parallel", icon: "∥" },
   { id: "ring", icon: "↺" },
   { id: "mesh", icon: "⬡" },
 ] as const;

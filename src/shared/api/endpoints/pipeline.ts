@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet } from "@/shared/api/http";
 
 export interface PipelinePlanSnapshot {
   pipeline_steps?: string[];
@@ -16,7 +16,7 @@ export interface PipelinePlanSnapshot {
 export async function getTaskPipelinePlan(
   taskId: string,
 ): Promise<PipelinePlanSnapshot> {
-  return fetchJson<PipelinePlanSnapshot>(
+  return httpGet<PipelinePlanSnapshot>(
     `/artifacts/${encodeURIComponent(taskId)}/pipeline.json`,
   );
 }

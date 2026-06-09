@@ -6,3 +6,4 @@ src/pages/swarm-ui/body.html
 public/ui.js
 src/app/styles/app.css
 test-results
+src/shared/api/openapi-types.ts

@@ -10,7 +10,7 @@ vi.mock("@/shared/api/endpoints/scenarios", () => ({
   listScenarios: vi.fn().mockResolvedValue({ scenarios: [] }),
 }));
 vi.mock("@/shared/api/endpoints/project-settings", () => ({
-  loadProjectSettings: vi.fn().mockResolvedValue(null),
+  getProjectSettings: vi.fn().mockResolvedValue(null),
   saveProjectSettings: vi.fn().mockResolvedValue({}),
 }));
 vi.mock("@/shared/api/endpoints/runtime", () => ({

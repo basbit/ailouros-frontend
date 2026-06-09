@@ -62,6 +62,9 @@ export const projectEn: Messages = {
   "projectForm.writeLabel": "Allow swarm to write files & run shell commands",
   "projectForm.writeHint":
     "Enables <swarm_file>, <swarm_patch> and <swarm_shell>. Also requires server-side",
+  "projectForm.allowServerWriteLabel": "Grant server permission (global)",
+  "projectForm.allowServerWriteHint":
+    "Sets SWARM_ALLOW_WORKSPACE_WRITE=1 and SWARM_ALLOW_COMMAND_EXEC=1 on the orchestrator. Applies to all projects on this server.",
   "projectForm.create": "Create project",
   "projectForm.save": "Save changes",
   "projectForm.sections.languages": "Languages & docs",
@@ -70,6 +73,8 @@ export const projectEn: Messages = {
   "projectForm.sections.database": "Database",
   "projectForm.sections.visualQa": "Visual QA",
   "projectForm.sections.advanced": "Advanced",
+  "projectForm.sections.movedNote":
+    "Memory, MCP, Visual QA, and Advanced settings now live in Settings → Project. Database and Languages & docs moved there too.",
   "visual.enabledLabel": "Run visual probe",
   "visual.enabledHint":
     "Launch or connect to the browser UI when the visual_probe step is in the pipeline.",
@@ -177,6 +182,9 @@ export const projectRu: Messages = {
   "projectForm.writeLabel": "Разрешить swarm запись файлов и shell-команды",
   "projectForm.writeHint":
     "Включает <swarm_file>, <swarm_patch> и <swarm_shell>. Также требует на сервере",
+  "projectForm.allowServerWriteLabel": "Выдать разрешение на сервере (глобально)",
+  "projectForm.allowServerWriteHint":
+    "Устанавливает SWARM_ALLOW_WORKSPACE_WRITE=1 и SWARM_ALLOW_COMMAND_EXEC=1 на оркестраторе. Действует для всех проектов на этом сервере.",
   "projectForm.create": "Создать проект",
   "projectForm.save": "Сохранить",
   "projectForm.sections.languages": "Языки и документация",
@@ -185,6 +193,8 @@ export const projectRu: Messages = {
   "projectForm.sections.database": "База данных",
   "projectForm.sections.visualQa": "Visual QA",
   "projectForm.sections.advanced": "Расширенные",
+  "projectForm.sections.movedNote":
+    "Память, MCP, Visual QA и Расширенные переехали в «Настройки → Проект». Базу данных и Языки и документацию тоже перенесли туда.",
   "visual.enabledLabel": "Запускать visual probe",
   "visual.enabledHint":
     "Поднимать или подключать браузерный UI, когда шаг visual_probe есть в пайплайне.",

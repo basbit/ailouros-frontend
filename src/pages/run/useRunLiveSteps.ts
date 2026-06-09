@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref } from "vue";
 import type { useUiStore } from "@/shared/store/ui";
-import type { useInjectedSwarmRunController } from "@/features/swarm-run/swarmRunContext";
+import type { useInjectedSwarmRunController } from "@/features/swarm-run";
 
 export type StepState = "active" | "completed" | "failed" | "pending";
 export type LogFilter = "all" | "errors" | "files";

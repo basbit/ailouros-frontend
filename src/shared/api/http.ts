@@ -1,5 +1,15 @@
 import { apiUrl } from "@/shared/api/base";
-import { ApiError } from "@/shared/api/client";
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body?: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 export interface HttpRequestOptions {
   signal?: AbortSignal;
@@ -99,12 +109,38 @@ export async function httpPost<T = unknown>(
   return parseJsonBody<T>(response);
 }
 
+export async function httpPut<T = unknown>(
+  path: string,
+  body?: unknown,
+  options?: HttpRequestOptions,
+): Promise<T> {
+  const response = await performRequest("PUT", path, body, options);
+  return parseJsonBody<T>(response);
+}
+
+export async function httpPatch<T = unknown>(
+  path: string,
+  body?: unknown,
+  options?: HttpRequestOptions,
+): Promise<T> {
+  const response = await performRequest("PATCH", path, body, options);
+  return parseJsonBody<T>(response);
+}
+
 export async function httpDelete<T = unknown>(
   path: string,
   options?: HttpRequestOptions,
 ): Promise<T> {
   const response = await performRequest("DELETE", path, undefined, options);
   return parseJsonBody<T>(response);
+}
+
+export async function httpGetText(
+  path: string,
+  options?: HttpRequestOptions,
+): Promise<string> {
+  const response = await performRequest("GET", path, undefined, options);
+  return response.text();
 }
 
 export async function httpRequestRaw(
@@ -115,5 +151,3 @@ export async function httpRequestRaw(
 ): Promise<Response> {
   return performRequest(method, path, body, options);
 }
-
-export { ApiError };

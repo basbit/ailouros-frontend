@@ -51,28 +51,8 @@
               :format-date="formatDate"
               :format-duration="formatDuration"
             />
-            <StepsTab
-              v-else-if="activeTab === 'steps'"
-              :step-rows="stepRows"
-              :can-rollback="canRollback"
-              :rollback-busy="rollbackBusy"
-              :format-duration="formatDuration"
-              @rollback="onRollbackTo"
-            />
-            <LogsTab
-              v-else-if="activeTab === 'logs'"
-              :events="remoteEvents"
-              :loading="remoteEventsLoading"
-              :error-message="remoteEventsError"
-              :view-mode="eventsViewMode"
-              @update:view-mode="eventsViewMode = $event"
-            />
-            <ArtifactsTab
-              v-else-if="activeTab === 'artifacts'"
-              :task-id="entry.taskId"
-            />
-            <ActivityTab
-              v-else-if="activeTab === 'activity'"
+            <TokensTab
+              v-else-if="activeTab === 'tokens'"
               :task-id="entry.taskId ?? null"
             />
             <ConversationTab
@@ -128,10 +108,7 @@ import HistoryDetailHeaderActions from "./HistoryDetailHeaderActions.vue";
 import RunTab from "@/pages/history/tabs/RunTab.vue";
 import GraphTab from "@/pages/history/tabs/GraphTab.vue";
 import OverviewTab from "@/pages/history/tabs/OverviewTab.vue";
-import StepsTab from "@/pages/history/tabs/StepsTab.vue";
-import LogsTab from "@/pages/history/tabs/LogsTab.vue";
-import ArtifactsTab from "@/pages/history/tabs/ArtifactsTab.vue";
-import ActivityTab from "@/pages/history/tabs/ActivityTab.vue";
+import TokensTab from "@/pages/history/tabs/TokensTab.vue";
 import ConversationTab from "@/pages/history/tabs/ConversationTab.vue";
 import SpecTab from "@/pages/history/tabs/SpecTab.vue";
 import { useConversationHistory } from "@/features/conversation-history/useConversationHistory";
@@ -169,10 +146,6 @@ const workspaceRootForRun = computed<string>(() =>
   (entry.value?.workspace_root ?? "").trim(),
 );
 
-const canRollback = computed<boolean>(
-  () => Boolean(entry.value?.taskId) && Boolean(workspaceRootForRun.value),
-);
-
 const canShowResume = computed<boolean>(() => {
   if (!entry.value?.taskId) return false;
   const status = (entry.value.status ?? "").toString().toLowerCase();
@@ -189,12 +162,10 @@ const canShowResume = computed<boolean>(() => {
 });
 
 const {
-  rollbackBusy,
   resumeBusy,
   resumeAvailable,
   resumeStepId,
   loadResumeOptions,
-  onRollbackTo,
   onResumeFromFailedStep,
 } = useHistoryDetailActions({
   ux,
@@ -206,13 +177,7 @@ const {
 const { activeTab, tabs, selectedSpecId, specEditing, onSpecNodeClick } =
   useHistoryDetailTabs(t, workspaceRootForRun);
 
-const {
-  remoteEvents,
-  remoteEventsLoading,
-  remoteEventsError,
-  eventsViewMode,
-  stepRows,
-} = useHistoryDetailLoad({
+useHistoryDetailLoad({
   entry,
   conversationState,
   resumeAvailable,

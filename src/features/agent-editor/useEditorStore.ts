@@ -204,7 +204,7 @@ function defaultConfig(type: PipelineNode["type"]): PipelineNode["config"] {
     case "agent":
       return {
         name: "Agent",
-        model: "qwen2.5-coder:14b",
+        model: "",
         role: "",
         tools: [],
         maxSteps: 10,

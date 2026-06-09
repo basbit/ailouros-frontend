@@ -33,7 +33,7 @@ async function fetchModelsForProvider(provider: string): Promise<[string, string
   let j: ModelListResponse;
   try {
     j = await httpGet<ModelListResponse>(
-      "/ui/models?provider=" + encodeURIComponent(provider),
+      "/v1/ui/models?provider=" + encodeURIComponent(provider),
     );
   } catch (err) {
     const backendError = extractErrorMessage(err);
@@ -69,7 +69,7 @@ export async function fetchCloudModelsFromConnection(
 
   let j: ModelListResponse;
   try {
-    j = await httpPost<ModelListResponse>("/ui/remote-models", {
+    j = await httpPost<ModelListResponse>("/v1/ui/remote-models", {
       provider: prov,
       base_url: baseUrl,
       api_key: apiKey,

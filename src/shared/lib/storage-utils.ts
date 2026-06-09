@@ -37,3 +37,7 @@ export function readRawString(key: string): string | null {
 export function writeRawString(key: string, value: string): void {
   requireLocalStorage().setItem(key, value);
 }
+
+export function removeKey(key: string): void {
+  requireLocalStorage().removeItem(key);
+}

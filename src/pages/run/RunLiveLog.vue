@@ -25,7 +25,7 @@
         <span class="run-live-log__agent">
           {{ event.agent ?? "—" }}
         </span>
-        <span class="run-live-log__message">{{ event.message ?? "" }}</span>
+        <CitationText class="run-live-log__message" :text="event.message ?? ''" />
       </li>
     </ol>
     <p v-else class="run-live-log__empty">{{ emptyText }}</p>
@@ -33,6 +33,8 @@
 </template>
 
 <script setup lang="ts">
+import CitationText from "@/features/inline-citations/CitationText.vue";
+
 import type { EventRow, LogClass, LogFilter } from "./useRunLiveSteps";
 
 defineProps<{

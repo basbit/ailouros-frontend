@@ -1,24 +1,4 @@
-/**
- * useSwarmDefaults — fetches model defaults and role-group mappings from the
- * backend `GET /v1/defaults` endpoint.
- *
- * Falls back to localStorage-cached values on network failure so that the UI
- * remains functional without a backend connection on initial load.
- *
- * The hardcoded constants in swarm-constants.ts are intentionally kept as a
- * fallback; this composable overlays them with server-authoritative values.
- */
-
 import { ref, readonly } from "vue";
-import { PIPELINE_DEFAULT_ORDER, ROLES } from "@/shared/lib/pipeline-schema";
-import type { RoleId } from "@/shared/lib/pipeline-schema";
-import {
-  FALLBACK_MODEL_DEFAULTS,
-  FALLBACK_PROMPT_CHOICES,
-  FALLBACK_PROMPT_DEFAULTS,
-  FALLBACK_REMOTE_API_BASE_PRESETS,
-  FALLBACK_REMOTE_PROFILE_PROVIDER_OPTS,
-} from "@/shared/lib/swarm-policy-fallbacks";
 import { initApiBase } from "@/shared/api/base";
 import { httpGet } from "@/shared/api/http";
 import { typedSwarmDefaults } from "@/shared/lib/storage-keys";
@@ -46,67 +26,63 @@ function _saveToStorage(data: SwarmDefaults): void {
   writeTyped(typedSwarmDefaults<SwarmDefaults>(), data);
 }
 
-function _hardcodedDefaults(): SwarmDefaults {
+function _emptyDefaults(): SwarmDefaults {
   return {
-    roles: [...ROLES],
-    model_defaults: Object.fromEntries(
-      (ROLES as readonly string[]).map((r) => [
-        r,
-        (FALLBACK_MODEL_DEFAULTS[r as RoleId] ?? {}) as Record<string, string>,
-      ]),
-    ),
-    prompt_defaults: { ...FALLBACK_PROMPT_DEFAULTS },
-    prompt_choices: Object.fromEntries(
-      (ROLES as readonly string[]).map((r) => [
-        r,
-        (FALLBACK_PROMPT_CHOICES[r as RoleId] ?? []) as [string, string][],
-      ]),
-    ),
-    remote_api_base_presets: { ...FALLBACK_REMOTE_API_BASE_PRESETS },
-    remote_profile_provider_options: [...FALLBACK_REMOTE_PROFILE_PROVIDER_OPTS],
-    default_pipeline_order: [...PIPELINE_DEFAULT_ORDER],
+    roles: [],
+    model_defaults: {},
+    prompt_defaults: {},
+    prompt_choices: {},
+    remote_api_base_presets: {},
+    remote_profile_provider_options: [],
+    default_pipeline_order: [],
     step_dependencies: {},
-    default_role_environment: "ollama",
-    default_remote_api_provider: "anthropic",
-    default_swarm_provider: "ollama",
+    default_role_environment: "",
+    default_remote_api_provider: "",
+    default_swarm_provider: "",
   };
 }
 
-function _withHardcodedFallbacks(data: SwarmDefaults | null): SwarmDefaults {
-  const fallback = _hardcodedDefaults();
-  if (!data) return fallback;
-  const roles = Array.from(new Set([...fallback.roles, ...(data.roles ?? [])]));
+function _normalize(data: SwarmDefaults | null): SwarmDefaults {
+  if (!data) return _emptyDefaults();
+  const empty = _emptyDefaults();
   return {
-    ...fallback,
+    ...empty,
     ...data,
-    roles,
-    model_defaults: { ...fallback.model_defaults, ...(data.model_defaults ?? {}) },
-    prompt_defaults: { ...fallback.prompt_defaults, ...(data.prompt_defaults ?? {}) },
-    prompt_choices: { ...fallback.prompt_choices, ...(data.prompt_choices ?? {}) },
-    remote_api_base_presets: {
-      ...fallback.remote_api_base_presets,
-      ...(data.remote_api_base_presets ?? {}),
-    },
-    remote_profile_provider_options: data.remote_profile_provider_options?.length
+    roles: Array.isArray(data.roles) ? data.roles : [],
+    model_defaults:
+      data.model_defaults && typeof data.model_defaults === "object"
+        ? data.model_defaults
+        : {},
+    prompt_defaults:
+      data.prompt_defaults && typeof data.prompt_defaults === "object"
+        ? data.prompt_defaults
+        : {},
+    prompt_choices:
+      data.prompt_choices && typeof data.prompt_choices === "object"
+        ? data.prompt_choices
+        : {},
+    remote_api_base_presets:
+      data.remote_api_base_presets && typeof data.remote_api_base_presets === "object"
+        ? data.remote_api_base_presets
+        : {},
+    remote_profile_provider_options: Array.isArray(data.remote_profile_provider_options)
       ? data.remote_profile_provider_options
-      : fallback.remote_profile_provider_options,
-    default_pipeline_order: data.default_pipeline_order?.length
+      : [],
+    default_pipeline_order: Array.isArray(data.default_pipeline_order)
       ? data.default_pipeline_order
-      : fallback.default_pipeline_order,
+      : [],
     step_dependencies:
       data.step_dependencies && typeof data.step_dependencies === "object"
         ? data.step_dependencies
-        : fallback.step_dependencies,
+        : {},
   };
 }
 
-const _defaults = ref<SwarmDefaults>(_withHardcodedFallbacks(_loadFromStorage()));
+const _defaults = ref<SwarmDefaults>(_normalize(_loadFromStorage()));
 let _fetchPromise: Promise<void> | null = null;
 
 async function _fetchDefaults(): Promise<void> {
   await initApiBase();
-  // Cache-Control: no-cache to force revalidation (parity with previous
-  // `cache: "no-store"` on the raw fetch call).
   const data = await httpGet<SwarmDefaults>("/v1/defaults", {
     headers: { "Cache-Control": "no-cache" },
   });
@@ -122,7 +98,7 @@ async function _fetchDefaults(): Promise<void> {
   ) {
     throw new Error("Malformed /v1/defaults response");
   }
-  _defaults.value = _withHardcodedFallbacks(data);
+  _defaults.value = _normalize(data);
   _saveToStorage(_defaults.value);
 }
 
@@ -141,7 +117,7 @@ function getStoredSwarmDefaults(): SwarmDefaults {
 }
 
 export function defaultEnvironmentForRole(): string {
-  return getStoredSwarmDefaults().default_role_environment || "ollama";
+  return getStoredSwarmDefaults().default_role_environment;
 }
 
 export function defaultModelForRole(roleId: string, environment: string): string {
@@ -170,7 +146,7 @@ export function pipelineStepDependencies(): Record<string, string[]> {
 }
 
 export function defaultRemoteApiProvider(): string {
-  return getStoredSwarmDefaults().default_remote_api_provider || "anthropic";
+  return getStoredSwarmDefaults().default_remote_api_provider;
 }
 
 export function defaultRemoteApiBaseUrl(provider: string): string {

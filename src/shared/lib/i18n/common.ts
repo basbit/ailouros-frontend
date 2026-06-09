@@ -5,6 +5,9 @@ export const commonEn: Messages = {
   "filePicker.pickDirectory": "Browse folder…",
   "filePicker.appendPath": "+ Browse",
   "filePicker.filterLabel": "Files",
+  "promptPicker.placeholder": "— select a prompt —",
+  "promptPicker.custom": "Custom…",
+  "promptPicker.customPlaceholder": "path/to/prompt.md",
   "slashCommand.goal.needsWorkspace":
     "Open a project first — goals require a workspace root.",
   "slashCommand.goal.created": "Goal created: {title}",
@@ -98,6 +101,9 @@ export const commonRu: Messages = {
   "filePicker.pickDirectory": "Выбрать папку…",
   "filePicker.appendPath": "+ Обзор",
   "filePicker.filterLabel": "Файлы",
+  "promptPicker.placeholder": "— выберите промпт —",
+  "promptPicker.custom": "Свой путь…",
+  "promptPicker.customPlaceholder": "path/to/prompt.md",
   "slashCommand.goal.needsWorkspace":
     "Сначала откройте проект — целям нужен рабочий каталог.",
   "slashCommand.goal.created": "Цель создана: {title}",

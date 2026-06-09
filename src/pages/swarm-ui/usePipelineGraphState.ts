@@ -81,7 +81,13 @@ export function usePipelineGraphState(settings: SettingsRef, ui: UiRef) {
 
   const scenarioPreviewSteps = computed(() => {
     const scenario = activeScenario.value;
-    return scenario ? scenario.pipeline_steps : [];
+    if (scenario) return scenario.pipeline_steps;
+    const id = (settings.form.scenario_id ?? "").trim();
+    if (!id || id === CUSTOM_SCENARIO_ID) return [];
+    const custom = (settings.form.custom_scenarios ?? []).find(
+      (entry) => entry.id === id,
+    );
+    return custom ? custom.pipeline_steps : [];
   });
 
   const isViewingTaskRun = computed(() => {

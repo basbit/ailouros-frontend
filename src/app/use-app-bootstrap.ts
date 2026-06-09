@@ -1,11 +1,11 @@
 import { onMounted, onUnmounted, watch } from "vue";
 import { useSettings } from "@/app/providers/useSettings";
 import { APP_SETTINGS_KEY, type AppSettings } from "@/app/providers/settingsContext";
-import { useSwarmRunController } from "@/features/swarm-run/useSwarmRunController";
 import {
+  useSwarmRunController,
   SWARM_RUN_CONTROLLER_KEY,
   type SwarmRunController,
-} from "@/features/swarm-run/swarmRunContext";
+} from "@/features/swarm-run";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import {
   GLOBAL_SETTINGS_KEY,

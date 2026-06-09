@@ -5,19 +5,19 @@
       :value="selectValue"
       @change="onSelect(($event.target as HTMLSelectElement).value)"
     >
-      <option value="">{{ placeholder ?? "— выберите промпт —" }}</option>
+      <option value="">{{ placeholder ?? t("promptPicker.placeholder") }}</option>
       <optgroup v-for="group in groupedOptions" :key="group.label" :label="group.label">
         <option v-for="opt in group.options" :key="opt.path" :value="opt.path">
           {{ opt.title }}
         </option>
       </optgroup>
-      <option value="__custom__">Custom…</option>
+      <option value="__custom__">{{ t("promptPicker.custom") }}</option>
     </select>
     <input
       v-if="isCustom"
       type="text"
       class="prompt-path-picker__input"
-      placeholder="path/to/prompt.md"
+      :placeholder="t('promptPicker.customPlaceholder')"
       autocomplete="off"
       :value="modelValue"
       @input="onInput(($event.target as HTMLInputElement).value)"
@@ -28,7 +28,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { usePromptsCatalog } from "@/shared/lib/use-catalog";
+import { useI18n } from "@/shared/lib/i18n";
 import type { PromptChoice } from "@/shared/api/endpoints/catalog";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   modelValue: string;

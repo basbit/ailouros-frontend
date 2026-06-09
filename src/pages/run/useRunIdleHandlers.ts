@@ -3,10 +3,14 @@ import { useRouter } from "vue-router";
 import type { HistoryGlimpseEntry } from "@/widgets/run-idle/HistoryGlimpse.vue";
 import { useAppHeaderBindings } from "@/widgets/header/useAppHeaderBindings";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
+import { useSlashCommandRunner } from "@/features/slash-commands/useSlashCommandRunner";
 import { useUiStore } from "@/shared/store/ui";
+import { useScenarioCatalog } from "@/entities/scenario";
+import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
 import { useI18n } from "@/shared/lib/i18n";
 import { formatDurationShort, formatRelativeShort } from "@/shared/lib/format-relative";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
+import { tryParseDispatchOrQuick } from "@/shared/lib/slash-commands";
 
 const AWAITING_STATUSES = new Set<string>([
   "awaiting_human",
@@ -53,7 +57,25 @@ export function useRunIdleHandlers(
   const header = useAppHeaderBindings();
   const { t } = useI18n();
 
+  const scenarioCatalog = useScenarioCatalog();
+
   const pipelineSteps = computed<string[]>(() => {
+    const scenarioId = (settings.form.scenario_id ?? "").trim();
+    if (scenarioId && scenarioId !== CUSTOM_SCENARIO_ID) {
+      const fromCatalog = scenarioCatalog.scenarios.value.find(
+        (entry) => entry.id === scenarioId,
+      );
+      if (fromCatalog) return fromCatalog.pipeline_steps;
+      const custom = (
+        settings.form.custom_scenarios as Array<{
+          id?: string;
+          pipeline_steps?: string[];
+        }>
+      ).find((entry) => entry?.id === scenarioId);
+      if (custom && Array.isArray(custom.pipeline_steps)) {
+        return custom.pipeline_steps;
+      }
+    }
     const fromState = settings.pipelineState.steps.value;
     if (!Array.isArray(fromState)) return [];
     return fromState.map((step) => step.id);
@@ -104,10 +126,6 @@ export function useRunIdleHandlers(
   function onOpenScenarioSettings(): void {
     scenarioPickerOpen.value = false;
     void router.push("/settings/scenarios");
-  }
-
-  function onOpenConfigure(): void {
-    void router.push("/configure/pipeline");
   }
 
   function onOpenActiveRun(): void {
@@ -182,10 +200,23 @@ export function useRunIdleHandlers(
     })),
   );
 
+  const slashRunner = useSlashCommandRunner();
+
   async function onStart(): Promise<void> {
     if (!canRun.value || header.isRunning.value || isStarting.value) return;
     isStarting.value = true;
     try {
+      const slashIntent = tryParseDispatchOrQuick(settings.form.prompt);
+      if (slashIntent) {
+        try {
+          await slashRunner.tryRun(settings.form.prompt, {
+            scenario: settings.form.scenario_id ?? "default",
+          });
+        } catch (slashError: unknown) {
+          frontendLogger.warn("slash command failed", slashError);
+        }
+        return;
+      }
       await settings.flushSaveAsync();
       controller.onStartRun().catch((err) => {
         frontendLogger.warn("controller.onStartRun failed", err);
@@ -234,12 +265,12 @@ export function useRunIdleHandlers(
     onScenarioFavoriteToggle,
     onOpenScenarioLibrary,
     onOpenScenarioSettings,
-    onOpenConfigure,
     onOpenActiveRun,
     onOpenHistory,
     onSelectHistoryRun,
     onApplyPatternHint,
     onDismissPatternHint,
     onStart,
+    slashRunner,
   };
 }

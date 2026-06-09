@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import WikiGraphPanel from "@/entities/wiki/WikiGraphPanel.vue";
+import { WikiGraphPanel } from "@/widgets/wiki-graph";
 </script>
 
 <style scoped>

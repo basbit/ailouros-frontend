@@ -25,6 +25,7 @@ interface PersistedCustomScenario {
   title: string;
   pipeline_steps: string[];
   workspace_write_default: boolean;
+  topology?: string;
 }
 
 export type SettingsForm = ReturnType<typeof createSettingsForm>;
@@ -113,6 +114,7 @@ function normalizeCustomScenarios(raw: unknown): PersistedCustomScenario[] {
       title: item.title,
       pipeline_steps: item.pipeline_steps.map((step) => String(step)),
       workspace_write_default: Boolean(item.workspace_write_default),
+      topology: typeof item.topology === "string" ? item.topology : "",
     }));
 }
 

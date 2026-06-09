@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet } from "@/shared/api/http";
 
 export interface LegacyTaskHistoryRow {
   agent?: string;
@@ -20,5 +20,5 @@ export interface LegacyTaskSnapshot {
 export async function getLegacyTaskSnapshot(
   taskId: string,
 ): Promise<LegacyTaskSnapshot> {
-  return fetchJson<LegacyTaskSnapshot>(`/tasks/${encodeURIComponent(taskId)}`);
+  return httpGet<LegacyTaskSnapshot>(`/v1/tasks/${encodeURIComponent(taskId)}`);
 }

@@ -12,7 +12,7 @@ module.exports = {
       name: "no-orphans",
       severity: "warn",
       comment:
-        "Orphan files have no consumer and are dead code per review-rules.md §10.5.",
+        "Orphan files have no consumer and are dead code per CODE_REVIEW_CHECKLIST.md §10.5.",
       from: {
         orphan: true,
         pathNot: [

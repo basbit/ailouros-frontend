@@ -1,0 +1,93 @@
+import type { Messages } from "./types";
+
+export const featureFlagsReasoningEfficiencyEn: Messages = {
+  "featureFlags.field.swarm_reasoning_prm.label": "Process reward model",
+  "featureFlags.field.swarm_reasoning_prm.hint":
+    "Per-step LLM judge that scores reasoning quality.",
+  "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
+  "featureFlags.field.swarm_reasoning_verifier.hint":
+    "Second-opinion pass that may revise or abstain.",
+  "featureFlags.field.swarm_memory_tier_routing.label": "Memory tier routing",
+  "featureFlags.field.swarm_memory_tier_routing.hint":
+    "Classify writes into semantic / episodic / procedural memory.",
+  "featureFlags.field.swarm_reasoning_flare.label": "FLARE",
+  "featureFlags.field.swarm_reasoning_flare.hint":
+    "FLARE — active retrieval during generation triggered by low token confidence. Needs a logprob-capable model.",
+  "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
+  "featureFlags.field.swarm_reflexion.hint":
+    "Reflexion — the agent self-critiques and revises its own answer before finalizing (extra LLM pass).",
+  "featureFlags.field.swarm_reasoning_self_consistency_samples.label":
+    "Self-consistency samples",
+  "featureFlags.field.swarm_reasoning_self_consistency_samples.hint":
+    "Samples for self-consistency majority voting (1 = off).",
+  "featureFlags.field.swarm_reasoning_verifier_model.label": "Verifier model",
+  "featureFlags.field.swarm_reasoning_verifier_model.hint":
+    "Model id for the second-opinion verifier pass.",
+  "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
+  "featureFlags.field.swarm_reasoning_prm_model.hint":
+    "Model id for the process-reward-model per-step scoring.",
+  "featureFlags.field.swarm_memory_tier_model.label": "Memory-tier model",
+  "featureFlags.field.swarm_memory_tier_model.hint":
+    "Model for LLM memory-tier classification. Empty = heuristic.",
+  "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
+  "featureFlags.field.swarm_prompt_cache.hint":
+    "Reuse provider prompt-cache markers across requests.",
+  "featureFlags.field.swarm_delta_prompting.label": "Delta prompting",
+  "featureFlags.field.swarm_delta_prompting.hint":
+    "Send only the diff against the previous prompt when supported.",
+  "featureFlags.field.swarm_output_compression.label": "Output compression",
+  "featureFlags.field.swarm_output_compression.hint":
+    "Compress agent outputs before storing them in memory.",
+  "featureFlags.field.swarm_efficiency_semantic_cache.label": "Semantic LLM cache",
+  "featureFlags.field.swarm_efficiency_semantic_cache.hint":
+    "Cache LLM responses keyed by embedding similarity.",
+  "featureFlags.field.swarm_efficiency_batch_inference.label": "Batch inference",
+  "featureFlags.field.swarm_efficiency_batch_inference.hint":
+    "Group concurrent LLM calls into a single batch where supported.",
+};
+
+export const featureFlagsReasoningEfficiencyRu: Messages = {
+  "featureFlags.field.swarm_reasoning_prm.label": "Process reward model",
+  "featureFlags.field.swarm_reasoning_prm.hint":
+    "Пошаговый LLM-судья качества рассуждений.",
+  "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
+  "featureFlags.field.swarm_reasoning_verifier.hint":
+    "Second-opinion проход с возможной правкой или абстейном.",
+  "featureFlags.field.swarm_memory_tier_routing.label": "Маршрутизация memory-тиров",
+  "featureFlags.field.swarm_memory_tier_routing.hint":
+    "Классифицировать запись в semantic / episodic / procedural память.",
+  "featureFlags.field.swarm_reasoning_flare.label": "FLARE",
+  "featureFlags.field.swarm_reasoning_flare.hint":
+    "FLARE — активный retrieval во время генерации, запускаемый при низкой уверенности токенов. Нужна модель с logprob.",
+  "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
+  "featureFlags.field.swarm_reflexion.hint":
+    "Reflexion — агент сам критикует и правит свой ответ перед финализацией (доп. LLM-проход).",
+  "featureFlags.field.swarm_reasoning_self_consistency_samples.label":
+    "Сэмплы self-consistency",
+  "featureFlags.field.swarm_reasoning_self_consistency_samples.hint":
+    "Сколько сэмплов для голосования self-consistency (1 = выключено).",
+  "featureFlags.field.swarm_reasoning_verifier_model.label": "Verifier model",
+  "featureFlags.field.swarm_reasoning_verifier_model.hint":
+    "Идентификатор модели для second-opinion verifier-прохода.",
+  "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
+  "featureFlags.field.swarm_reasoning_prm_model.hint":
+    "Идентификатор модели для пошагового скоринга process-reward-model.",
+  "featureFlags.field.swarm_memory_tier_model.label": "Модель memory-тиров",
+  "featureFlags.field.swarm_memory_tier_model.hint":
+    "Модель для LLM-классификации memory-тиров. Пусто = эвристика.",
+  "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
+  "featureFlags.field.swarm_prompt_cache.hint":
+    "Переиспользовать prompt-cache маркеры провайдера между запросами.",
+  "featureFlags.field.swarm_delta_prompting.label": "Delta prompting",
+  "featureFlags.field.swarm_delta_prompting.hint":
+    "Отправлять только diff предыдущего промпта, если провайдер поддерживает.",
+  "featureFlags.field.swarm_output_compression.label": "Сжатие выводов",
+  "featureFlags.field.swarm_output_compression.hint":
+    "Сжимать выводы агентов перед сохранением в память.",
+  "featureFlags.field.swarm_efficiency_semantic_cache.label": "Семантический LLM-кэш",
+  "featureFlags.field.swarm_efficiency_semantic_cache.hint":
+    "Кэш LLM-ответов по embedding-сходству.",
+  "featureFlags.field.swarm_efficiency_batch_inference.label": "Batch inference",
+  "featureFlags.field.swarm_efficiency_batch_inference.hint":
+    "Группировать одновременные LLM-вызовы в батч, если поддерживается.",
+};

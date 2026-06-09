@@ -45,6 +45,7 @@ export interface CustomScenarioSnap {
   title: string;
   pipeline_steps: string[];
   workspace_write_default: boolean;
+  topology?: string;
 }
 
 // Flat default-valued fields shared across SettingsSnap (project store) and

@@ -15,3 +15,5 @@ coverage/
 src-tauri/
 /.stryker-tmp/
 .stryker-tmp/
+# openapi drift checker temp output (see scripts/check-openapi-drift.mjs)
+src/shared/api/*.regenerated

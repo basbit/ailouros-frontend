@@ -75,7 +75,26 @@
         />
       </div>
 
-      <div class="run-live-body__layout">
+      <nav
+        class="run-live-body__tabs"
+        :aria-label="t('runLive.tabsAria')"
+        role="tablist"
+      >
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          type="button"
+          role="tab"
+          class="run-live-body__tab"
+          :class="{ 'run-live-body__tab--active': activeTab === tab.key }"
+          :aria-selected="activeTab === tab.key"
+          @click="setActiveTab(tab.key)"
+        >
+          {{ tab.label }}
+        </button>
+      </nav>
+
+      <div v-if="activeTab === 'steps'" class="run-live-body__layout">
         <RunLiveStepList
           :heading="t('runLive.stepsHeading')"
           :steps="stepRows"
@@ -91,6 +110,13 @@
           @update:filter="logFilter = $event"
         />
       </div>
+
+      <ToolActivityPanel
+        v-else-if="activeTab === 'activity'"
+        :task-id="ui.taskId ?? null"
+      />
+
+      <RunArtifactsTab v-else-if="activeTab === 'artifacts'" />
     </template>
 
     <div v-else class="run-live-body__idle">
@@ -112,9 +138,12 @@ import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
 import RetryGate from "@/features/task-gate/RetryGate.vue";
 import RunLiveStepList from "./RunLiveStepList.vue";
 import RunLiveLog from "./RunLiveLog.vue";
+import RunArtifactsTab from "./RunArtifactsTab.vue";
+import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
 import { useRunLiveSteps, type LogFilter, type StepState } from "./useRunLiveSteps";
+import { useRunLiveTabs } from "./useRunLiveTabs";
 import { useUiStore } from "@/shared/store/ui";
-import { useInjectedSwarmRunController } from "@/features/swarm-run/swarmRunContext";
+import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useI18n } from "@/shared/lib/i18n";
 
 withDefaults(
@@ -129,6 +158,7 @@ const controller = useInjectedSwarmRunController();
 const { t } = useI18n();
 
 const logFilter = ref<LogFilter>("all");
+const { activeTab, tabs, setActiveTab } = useRunLiveTabs(t);
 
 const isRunning = computed(() => controller.isRunning.value);
 const hasActiveTask = computed(() => !!ui.taskId || isRunning.value);
@@ -295,6 +325,34 @@ function onRestart(): void {
 .run-live-body__stop:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.run-live-body__tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-top: 4px;
+}
+
+.run-live-body__tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.run-live-body__tab:hover {
+  color: var(--ink);
+}
+
+.run-live-body__tab--active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
 }
 
 .run-live-body__layout {

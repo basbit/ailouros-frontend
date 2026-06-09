@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet, httpPost } from "@/shared/api/http";
 import type {
   ScenarioArtifactsResponse,
   ScenarioEstimate,
@@ -14,11 +14,11 @@ export interface ScenariosListResponse {
 }
 
 export async function listScenarios(): Promise<ScenariosListResponse> {
-  return fetchJson<ScenariosListResponse>("/v1/scenarios");
+  return httpGet<ScenariosListResponse>("/v1/scenarios");
 }
 
 export async function getScenario(id: string): Promise<ScenarioSummary> {
-  return fetchJson<ScenarioSummary>(`/v1/scenarios/${encodeURIComponent(id)}`);
+  return httpGet<ScenarioSummary>(`/v1/scenarios/${encodeURIComponent(id)}`);
 }
 
 export async function previewScenario(
@@ -41,11 +41,7 @@ export async function previewScenario(
   if (overrides.model_profile !== undefined) {
     body.model_profile = overrides.model_profile;
   }
-  return fetchJson<ScenarioPreview>("/v1/scenarios/preview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return httpPost<ScenarioPreview>("/v1/scenarios/preview", body);
 }
 
 export interface ScenarioValidateResponse {
@@ -57,17 +53,13 @@ export interface ScenarioValidateResponse {
 export async function validateScenarioPayload(
   payload: Record<string, unknown>,
 ): Promise<ScenarioValidateResponse> {
-  return fetchJson<ScenarioValidateResponse>("/v1/scenarios/validate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  return httpPost<ScenarioValidateResponse>("/v1/scenarios/validate", payload);
 }
 
 export async function getScenarioEstimate(
   scenarioId: string,
 ): Promise<ScenarioEstimate> {
-  return fetchJson<ScenarioEstimate>(
+  return httpGet<ScenarioEstimate>(
     `/v1/scenarios/${encodeURIComponent(scenarioId)}/estimate`,
   );
 }
@@ -75,7 +67,7 @@ export async function getScenarioEstimate(
 export async function getScenarioArtifacts(
   taskId: string,
 ): Promise<ScenarioArtifactsResponse> {
-  return fetchJson<ScenarioArtifactsResponse>(
+  return httpGet<ScenarioArtifactsResponse>(
     `/v1/tasks/${encodeURIComponent(taskId)}/scenario-artifacts`,
   );
 }
@@ -83,7 +75,7 @@ export async function getScenarioArtifacts(
 export async function getScenarioQualityChecks(
   taskId: string,
 ): Promise<ScenarioQualityChecksResponse> {
-  return fetchJson<ScenarioQualityChecksResponse>(
+  return httpGet<ScenarioQualityChecksResponse>(
     `/v1/tasks/${encodeURIComponent(taskId)}/scenario-quality-checks`,
   );
 }

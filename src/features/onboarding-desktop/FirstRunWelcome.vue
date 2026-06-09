@@ -12,82 +12,66 @@
           <p class="first-run-card__intro">{{ t("firstRun.intro") }}</p>
         </header>
 
-        <ul class="first-run-stages">
-          <li
-            v-for="entry in state.stages.value"
-            :key="entry.stage"
-            class="first-run-stage"
-            :class="`first-run-stage--${entry.state}`"
-          >
-            <div class="first-run-stage__head">
-              <span class="first-run-stage__icon" aria-hidden="true">{{
-                stageIcon(entry.state)
-              }}</span>
-              <span class="first-run-stage__label">{{
-                t(stageLabelKey(entry.stage))
-              }}</span>
-              <span class="first-run-stage__state">{{
-                t(stageStateKey(entry.state))
-              }}</span>
-            </div>
-            <progress
-              v-if="entry.state === 'active'"
-              :value="entry.fraction"
-              max="1"
-              class="first-run-stage__progress"
-            />
-            <p v-if="entry.message" class="first-run-stage__message">
-              {{ entry.message }}
-            </p>
-          </li>
-        </ul>
+        <FirstRunStageList :stages="state.stages.value" />
 
-        <section class="first-run-llm-paths">
-          <h3 class="first-run-llm-paths__title">
-            {{ t("firstRun.llmPaths.title") }}
-          </h3>
-          <div class="first-run-llm-paths__list">
-            <button
-              type="button"
-              class="first-run-llm-path"
-              :class="{
-                'first-run-llm-path--recommended':
-                  state.recommendedPath.value === 'download-default-gguf',
-              }"
-              :disabled="!canSkipModel"
-              @click="onPickDownloadDefault"
-            >
-              <strong>{{ t("firstRun.llmPaths.downloadDefault.title") }}</strong>
-              <span>{{ t("firstRun.llmPaths.downloadDefault.detail") }}</span>
-            </button>
-            <button
-              type="button"
-              class="first-run-llm-path"
-              :class="{
-                'first-run-llm-path--recommended':
-                  state.recommendedPath.value === 'use-local-server',
-              }"
-              :disabled="!hasDetectedLocalServer"
-              @click="onPickLocalServer"
-            >
-              <strong>{{ t("firstRun.llmPaths.localServer.title") }}</strong>
-              <span v-if="hasDetectedLocalServer">
-                {{ detectedLocalServerLabel }}
-              </span>
-              <span v-else>
-                {{ t("firstRun.llmPaths.localServer.notDetected") }}
-              </span>
-            </button>
-            <button type="button" class="first-run-llm-path" @click="onPickCloud">
-              <strong>{{ t("firstRun.llmPaths.cloud.title") }}</strong>
-              <span>{{ t("firstRun.llmPaths.cloud.detail") }}</span>
-            </button>
-          </div>
-        </section>
+        <FirstRunLlmPaths
+          :recommended-path="state.recommendedPath.value"
+          :can-skip-model="canSkipModel"
+          :has-detected-local-server="hasDetectedLocalServer"
+          :detected-local-server-label="detectedLocalServerLabel"
+          @pick-download-default="onPickDownloadDefault"
+          @pick-local-server="onPickLocalServer"
+          @pick-cloud="onPickCloud"
+        />
 
         <p v-if="state.error.value" class="first-run-card__error">
           {{ state.error.value }}
         </p>
+
+        <section
+          v-if="state.backendFailureMessage.value"
+          class="first-run-card__failure"
+          role="alert"
+        >
+          <h3>{{ t("firstRun.backendFailed.title") }}</h3>
+          <p>{{ state.backendFailureMessage.value }}</p>
+          <div class="first-run-card__failure-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="state.retryBootstrap()"
+            >
+              {{ t("firstRun.backendFailed.retry") }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="state.revealLogsFolder()"
+            >
+              {{ t("firstRun.backendFailed.openLogsFolder") }}
+            </button>
+          </div>
+          <details
+            v-if="state.desktopLogTail.value"
+            class="first-run-card__failure-details"
+          >
+            <summary>{{ t("firstRun.backendFailed.showLog") }}</summary>
+            <pre>{{ state.desktopLogTail.value }}</pre>
+          </details>
+        </section>
+
+        <section v-if="showOllamaHint" class="first-run-card__hint" role="note">
+          <h3>{{ t("firstRun.ollamaHint.title") }}</h3>
+          <p>{{ ollamaProbe?.hint || t("firstRun.ollamaHint.body") }}</p>
+          <code v-if="showOllamaOriginsCommand" class="first-run-card__hint-cmd">{{
+            ollamaOriginsCommand
+          }}</code>
+        </section>
+
+        <section v-if="showLmStudioHint" class="first-run-card__hint" role="note">
+          <h3>LM Studio</h3>
+          <p>{{ lmStudioProbe?.hint }}</p>
+        </section>
 
         <footer class="first-run-card__actions">
           <button
@@ -123,8 +107,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { BootstrapStage, StageRuntimeState } from "./types";
 import { useFirstRun } from "./useFirstRun";
+import FirstRunStageList from "./FirstRunStageList.vue";
+import FirstRunLlmPaths from "./FirstRunLlmPaths.vue";
 
 const { t } = useI18n();
 const state = useFirstRun();
@@ -152,6 +137,33 @@ const hasDetectedLocalServer = computed(() => {
   return !!(detected && (detected.ollama || detected.lmStudio));
 });
 
+const ollamaProbe = computed(
+  () => state.localProviderProbes.value.find((p) => p.provider === "ollama") ?? null,
+);
+
+const lmStudioProbe = computed(
+  () => state.localProviderProbes.value.find((p) => p.provider === "lm_studio") ?? null,
+);
+
+const showOllamaHint = computed(() => {
+  const probe = ollamaProbe.value;
+  if (!probe) return false;
+  return probe.status === "rejected" || probe.status === "not_running";
+});
+
+const showLmStudioHint = computed(() => {
+  const probe = lmStudioProbe.value;
+  if (!probe) return false;
+  return probe.status === "rejected" || probe.status === "malformed";
+});
+
+const ollamaOriginsCommand =
+  'OLLAMA_ORIGINS="tauri://localhost,http://tauri.localhost,*" ollama serve';
+
+const showOllamaOriginsCommand = computed(
+  () => ollamaProbe.value?.status === "rejected",
+);
+
 const detectedLocalServerLabel = computed(() => {
   const detected = state.detectedProviders.value;
   if (!detected) return "";
@@ -176,40 +188,6 @@ function onPickLocalServer(): void {
 function onPickCloud(): void {
   if (canSkipModel.value) {
     void state.skipModel();
-  }
-}
-
-const stageLabelMap: Record<BootstrapStage, string> = {
-  "preparing-tree": "firstRun.stage.preparingTree",
-  "fetching-python": "firstRun.stage.fetchingPython",
-  "creating-venv": "firstRun.stage.creatingVenv",
-  "installing-backend": "firstRun.stage.installingBackend",
-  "staging-llama-cpp": "firstRun.stage.stagingLlamaCpp",
-  "staging-mcp-runtimes": "firstRun.stage.stagingMcpRuntimes",
-  "downloading-model": "firstRun.stage.downloadingModel",
-  ready: "firstRun.stage.ready",
-};
-
-function stageLabelKey(stage: BootstrapStage): string {
-  return stageLabelMap[stage];
-}
-
-function stageStateKey(stateName: StageRuntimeState): string {
-  return `firstRun.state.${stateName}`;
-}
-
-function stageIcon(stateName: StageRuntimeState): string {
-  switch (stateName) {
-    case "done":
-      return "✓";
-    case "skipped":
-      return "→";
-    case "active":
-      return "…";
-    case "error":
-      return "!";
-    default:
-      return "·";
   }
 }
 </script>
@@ -246,106 +224,6 @@ function stageIcon(stateName: StageRuntimeState): string {
   color: var(--text-muted, #555);
   font-size: 0.9rem;
 }
-.first-run-stages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.first-run-stage {
-  border: 1px solid var(--border-subtle, #e0e0e0);
-  border-radius: 6px;
-  padding: 0.55rem 0.75rem;
-}
-.first-run-stage__head {
-  display: grid;
-  grid-template-columns: 1.25rem 1fr auto;
-  gap: 0.5rem;
-  align-items: center;
-}
-.first-run-stage__icon {
-  font-weight: 600;
-  text-align: center;
-}
-.first-run-stage__label {
-  font-weight: 500;
-}
-.first-run-stage__state {
-  font-size: 0.8rem;
-  color: var(--text-muted, #666);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.first-run-stage--done .first-run-stage__icon {
-  color: #166534;
-}
-.first-run-stage--skipped .first-run-stage__icon {
-  color: #b45309;
-}
-.first-run-stage--active .first-run-stage__icon {
-  color: #1d4ed8;
-}
-.first-run-stage--error .first-run-stage__icon {
-  color: #b91c1c;
-}
-.first-run-stage__progress {
-  width: 100%;
-  height: 4px;
-  margin-top: 0.4rem;
-}
-.first-run-stage__message {
-  margin: 0.3rem 0 0;
-  font-size: 0.8rem;
-  color: var(--text-muted, #666);
-}
-.first-run-llm-paths {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.first-run-llm-paths__title {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-.first-run-llm-paths__list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.4rem;
-}
-.first-run-llm-path {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-subtle, #d4d4d8);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  font-size: 0.85rem;
-  color: var(--text, #111);
-}
-.first-run-llm-path strong {
-  font-weight: 600;
-}
-.first-run-llm-path span {
-  color: var(--text-muted, #666);
-}
-.first-run-llm-path:hover:not(:disabled) {
-  border-color: #1d4ed8;
-}
-.first-run-llm-path:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.first-run-llm-path--recommended {
-  border-color: #1d4ed8;
-  background: rgba(29, 78, 216, 0.06);
-}
 .first-run-card__error {
   background: #fef2f2;
   color: #991b1b;
@@ -353,6 +231,64 @@ function stageIcon(stateName: StageRuntimeState): string {
   padding: 0.5rem 0.75rem;
   margin: 0;
   font-size: 0.85rem;
+}
+.first-run-card__failure {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+}
+.first-run-card__failure h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+}
+.first-run-card__failure pre {
+  margin-top: 0.4rem;
+  background: #1f2937;
+  color: #e5e7eb;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.72rem;
+  max-height: 16rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.first-run-card__failure-details summary {
+  cursor: pointer;
+  color: #b91c1c;
+}
+.first-run-card__failure-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.first-run-card__hint {
+  background: rgba(29, 78, 216, 0.06);
+  border: 1px solid rgba(29, 78, 216, 0.2);
+  color: var(--text, #111);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+}
+.first-run-card__hint h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+}
+.first-run-card__hint-cmd {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.4rem 0.55rem;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 .first-run-card__actions {
   display: flex;

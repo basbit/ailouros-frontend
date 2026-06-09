@@ -95,7 +95,7 @@ const errors = ref<string[]>([]);
 async function discoverLocalProvider(provider: string): Promise<void> {
   try {
     const data = await httpGet<DiscoveredModelsResponse>(
-      `/ui/models?provider=${encodeURIComponent(provider)}`,
+      `/v1/ui/models?provider=${encodeURIComponent(provider)}`,
     );
     const ids = (data.models ?? []).map((m) => m.id);
     discovered.value = { ...discovered.value, [provider]: ids };

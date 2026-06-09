@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpDelete, httpGet, httpPost, httpPut } from "@/shared/api/http";
 
 interface PipelineNodeDto {
   id: string;
@@ -32,44 +32,35 @@ export interface PipelineListItemDto {
 export async function createPipelineDefinition(
   payload: PipelineDefinitionDto,
 ): Promise<PipelineDefinitionDto> {
-  return fetchJson<PipelineDefinitionDto>("/api/pipelines", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  return httpPost<PipelineDefinitionDto>("/v1/pipelines", payload);
 }
 
 export async function updatePipelineDefinition(
   pipelineId: string,
   payload: PipelineDefinitionDto,
 ): Promise<PipelineDefinitionDto> {
-  return fetchJson<PipelineDefinitionDto>(
-    `/api/pipelines/${encodeURIComponent(pipelineId)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
+  return httpPut<PipelineDefinitionDto>(
+    `/v1/pipelines/${encodeURIComponent(pipelineId)}`,
+    payload,
   );
 }
 
 export async function listPipelineDefinitions(): Promise<PipelineListItemDto[]> {
-  return fetchJson<PipelineListItemDto[]>("/api/pipelines");
+  return httpGet<PipelineListItemDto[]>("/v1/pipelines");
 }
 
 export async function getPipelineDefinition(
   pipelineId: string,
 ): Promise<PipelineDefinitionDto> {
-  return fetchJson<PipelineDefinitionDto>(
-    `/api/pipelines/${encodeURIComponent(pipelineId)}`,
+  return httpGet<PipelineDefinitionDto>(
+    `/v1/pipelines/${encodeURIComponent(pipelineId)}`,
   );
 }
 
 export async function deletePipelineDefinition(
   pipelineId: string,
 ): Promise<{ ok: boolean; id: string }> {
-  return fetchJson<{ ok: boolean; id: string }>(
-    `/api/pipelines/${encodeURIComponent(pipelineId)}`,
-    { method: "DELETE" },
+  return httpDelete<{ ok: boolean; id: string }>(
+    `/v1/pipelines/${encodeURIComponent(pipelineId)}`,
   );
 }

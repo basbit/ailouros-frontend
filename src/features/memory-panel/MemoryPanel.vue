@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from "vue";
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import {
   consolidateMemoryNotes,
   deleteMemoryNote,

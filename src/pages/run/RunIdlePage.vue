@@ -43,6 +43,20 @@
           </section>
 
           <section
+            v-if="slashOutcome || slashError"
+            class="run-idle__slash-banner"
+            role="status"
+          >
+            <p v-if="slashError" class="run-idle__slash-error">
+              {{ slashError }}
+            </p>
+            <p v-else-if="slashOutcome" class="run-idle__slash-result">
+              <span class="run-idle__slash-kind">/{{ slashOutcome.kind }}</span>
+              {{ slashOutcome.summary }}
+            </p>
+          </section>
+
+          <section
             v-if="activeGateBanner"
             class="run-idle__gate-banner"
             role="alert"
@@ -65,10 +79,7 @@
             </p>
           </section>
 
-          <PipelineSpine
-            :steps="pipelineSteps"
-            @open-configure="handlers.onOpenConfigure"
-          />
+          <PipelineSpine :steps="pipelineSteps" />
 
           <PatternMemoryHint
             v-if="patternHint"
@@ -109,7 +120,7 @@ import PipelineSpine from "@/widgets/run-idle/PipelineSpine.vue";
 import HistoryGlimpse from "@/widgets/run-idle/HistoryGlimpse.vue";
 import PatternMemoryHint from "@/widgets/pattern-memory-hint/PatternMemoryHint.vue";
 import { APP_SETTINGS_KEY } from "@/app/providers/settingsContext";
-import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run/swarmRunContext";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { useRunIdleHandlers } from "./useRunIdleHandlers";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -135,7 +146,10 @@ const {
   patternHint,
   patternHintMessage,
   historyItems,
+  slashRunner,
 } = handlers;
+const slashOutcome = slashRunner.lastOutcome;
+const slashError = slashRunner.lastError;
 </script>
 
 <style scoped>
@@ -258,6 +272,35 @@ const {
   .run-idle__main {
     padding: 28px 24px 24px;
   }
+}
+
+.run-idle__slash-banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.run-idle__slash-kind {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  margin-right: 6px;
+}
+
+.run-idle__slash-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--error);
+}
+
+.run-idle__slash-result {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-2);
 }
 
 .run-idle__gate-banner {

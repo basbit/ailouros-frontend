@@ -68,6 +68,20 @@
     </div>
   </details>
 
+  <details class="section section-global-feature-flags">
+    <summary>
+      Feature flags &amp; MCP tools
+      <span
+        class="scope-badge scope-badge-global"
+        :title="t('globalSettings.allProjectsTitle')"
+        >{{ t("globalSettings.allProjects") }}</span
+      >
+    </summary>
+    <div class="section-body">
+      <GlobalFeatureFlagsSettings :workspace-root="workspaceRoot ?? ''" />
+    </div>
+  </details>
+
   <details class="section section-global-notifications">
     <summary>
       {{ t("notify.summary") }}
@@ -87,6 +101,7 @@
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useI18n } from "@/shared/lib/i18n";
 import GlobalAutomationSettings from "./GlobalAutomationSettings.vue";
+import GlobalFeatureFlagsSettings from "./GlobalFeatureFlagsSettings.vue";
 import GlobalNotificationSettings from "./GlobalNotificationSettings.vue";
 
 const { t } = useI18n();
@@ -96,5 +111,6 @@ defineProps<{
   remoteApiProvider?: string;
   remoteApiKey?: string;
   remoteApiBaseUrl?: string;
+  workspaceRoot?: string;
 }>();
 </script>

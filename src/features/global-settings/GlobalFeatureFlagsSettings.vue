@@ -1,0 +1,357 @@
+<template>
+  <div class="feature-flags">
+    <details
+      v-for="group in groups"
+      :key="group.id"
+      :class="`feature-flag-group feature-flag-group-${group.id}`"
+    >
+      <summary>{{ t(groupTitleKey(group)) }}</summary>
+      <p class="feature-flag-group-description">
+        {{ t(groupDescriptionKey(group)) }}
+      </p>
+      <div
+        v-for="field in group.fields"
+        :key="field.field"
+        :class="[
+          `feature-flag-field feature-flag-field-${field.kind}`,
+          isFieldWired(field) ? '' : 'feature-flag-field-not-wired',
+          workspaceOverrides.isOverridden(field.field)
+            ? 'feature-flag-field-workspace-override'
+            : '',
+        ]"
+      >
+        <template v-if="field.kind === 'boolean'">
+          <label class="feature-flag-toggle">
+            <input
+              type="checkbox"
+              :checked="readBooleanFieldValue(field) as boolean"
+              @change="
+                writeBooleanFieldValue(
+                  field,
+                  ($event.target as HTMLInputElement).checked,
+                )
+              "
+            />
+            <span class="feature-flag-toggle-label">{{ t(fieldLabelKey(field)) }}</span>
+            <span
+              v-if="!isFieldWired(field)"
+              class="feature-flag-badge-not-wired"
+              :title="t('featureFlags.badge.notWired.hint')"
+              >{{ t("featureFlags.badge.notWired.label") }}</span
+            >
+            <span
+              v-if="workspaceOverrides.isOverridden(field.field)"
+              class="feature-flag-badge-workspace-override"
+              :title="t('featureFlags.badge.workspaceOverride.hint')"
+              >{{ t("featureFlags.badge.workspaceOverride.label") }}</span
+            >
+          </label>
+          <div class="feature-flag-hint">
+            {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
+          </div>
+          <label v-if="props.workspaceRoot" class="feature-flag-override-toggle">
+            <input
+              type="checkbox"
+              :checked="workspaceOverrides.isOverridden(field.field)"
+              @change="
+                toggleOverride(field, ($event.target as HTMLInputElement).checked)
+              "
+            />
+            <span>{{ t("featureFlags.overrideToggle.label") }}</span>
+          </label>
+        </template>
+        <template v-else-if="field.kind === 'enum'">
+          <FeatureFlagLabel
+            :for-id="`global_${field.field}`"
+            :label-text="t(fieldLabelKey(field))"
+            :wired="isFieldWired(field)"
+            :overridden="workspaceOverrides.isOverridden(field.field)"
+            :not-wired-hint="t('featureFlags.badge.notWired.hint')"
+            :not-wired-label="t('featureFlags.badge.notWired.label')"
+            :override-hint="t('featureFlags.badge.workspaceOverride.hint')"
+            :override-label="t('featureFlags.badge.workspaceOverride.label')"
+          />
+          <select
+            :id="`global_${field.field}`"
+            :value="readStringFieldValue(field) as string"
+            @change="
+              writeStringFieldValue(field, ($event.target as HTMLSelectElement).value)
+            "
+          >
+            <option
+              v-for="option in field.options"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ t(enumOptionLabelKey(field, option)) }}
+            </option>
+          </select>
+          <div class="feature-flag-hint">
+            {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
+          </div>
+          <FeatureFlagOverrideToggle
+            :visible="Boolean(props.workspaceRoot)"
+            :overridden="workspaceOverrides.isOverridden(field.field)"
+            :label="t('featureFlags.overrideToggle.label')"
+            @change="(checked) => toggleOverride(field, checked)"
+          />
+        </template>
+        <template v-else>
+          <FeatureFlagLabel
+            :for-id="`global_${field.field}`"
+            :label-text="t(fieldLabelKey(field))"
+            :wired="isFieldWired(field)"
+            :overridden="workspaceOverrides.isOverridden(field.field)"
+            :not-wired-hint="t('featureFlags.badge.notWired.hint')"
+            :not-wired-label="t('featureFlags.badge.notWired.label')"
+            :override-hint="t('featureFlags.badge.workspaceOverride.hint')"
+            :override-label="t('featureFlags.badge.workspaceOverride.label')"
+          />
+          <input
+            :id="`global_${field.field}`"
+            type="text"
+            :value="readStringFieldValue(field) as string"
+            :placeholder="field.placeholder ?? ''"
+            @input="
+              writeStringFieldValue(field, ($event.target as HTMLInputElement).value)
+            "
+          />
+          <div class="feature-flag-hint">
+            {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
+          </div>
+          <FeatureFlagOverrideToggle
+            :visible="Boolean(props.workspaceRoot)"
+            :overridden="workspaceOverrides.isOverridden(field.field)"
+            :label="t('featureFlags.overrideToggle.label')"
+            @change="(checked) => toggleOverride(field, checked)"
+          />
+        </template>
+      </div>
+    </details>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, toRef } from "vue";
+import FeatureFlagLabel from "@/features/global-settings/FeatureFlagLabel.vue";
+import FeatureFlagOverrideToggle from "@/features/global-settings/FeatureFlagOverrideToggle.vue";
+import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
+import { useWorkspaceFeatureFlagOverrides } from "@/features/global-settings/useWorkspaceFeatureFlagOverrides";
+import {
+  FEATURE_FLAG_GROUPS,
+  enumOptionLabelKey,
+  fieldHintKey,
+  fieldLabelKey,
+  groupDescriptionKey,
+  groupTitleKey,
+  isFieldWired,
+  type FeatureFlagBooleanKey,
+  type FeatureFlagStringKey,
+} from "@/features/global-settings/featureFlagGroups";
+import { useI18n } from "@/shared/lib/i18n";
+
+type BooleanFlagField = { kind: "boolean"; field: FeatureFlagBooleanKey };
+type StringFlagField = {
+  kind: "string" | "enum";
+  field: FeatureFlagStringKey;
+};
+
+const { t } = useI18n();
+const { state, setKey } = useGlobalSettings();
+const groups = FEATURE_FLAG_GROUPS;
+
+const props = defineProps<{
+  workspaceRoot?: string;
+}>();
+
+const workspaceRootRef = toRef(props, "workspaceRoot");
+const workspaceOverrides = useWorkspaceFeatureFlagOverrides(
+  workspaceRootRef as unknown as import("vue").Ref<string>,
+);
+
+onMounted(() => {
+  void workspaceOverrides.loadForCurrentWorkspace();
+});
+
+function readBooleanFieldValue(field: BooleanFlagField): boolean {
+  if (workspaceOverrides.isOverridden(field.field)) {
+    return Boolean(workspaceOverrides.overrideValue(field.field));
+  }
+  return state[field.field] as boolean;
+}
+
+function readStringFieldValue(field: StringFlagField): string {
+  if (workspaceOverrides.isOverridden(field.field)) {
+    return String(workspaceOverrides.overrideValue(field.field) ?? "");
+  }
+  return state[field.field] as string;
+}
+
+async function writeBooleanFieldValue(
+  field: BooleanFlagField,
+  value: boolean,
+): Promise<void> {
+  if (workspaceOverrides.isOverridden(field.field)) {
+    await workspaceOverrides.setOverride(field.field, value);
+    return;
+  }
+  setKey(field.field, value);
+}
+
+async function writeStringFieldValue(
+  field: StringFlagField,
+  value: string,
+): Promise<void> {
+  if (workspaceOverrides.isOverridden(field.field)) {
+    await workspaceOverrides.setOverride(field.field, value);
+    return;
+  }
+  setKey(field.field, value);
+}
+
+async function toggleOverride(
+  field: BooleanFlagField | StringFlagField,
+  enabled: boolean,
+): Promise<void> {
+  if (!enabled) {
+    await workspaceOverrides.removeOverride(field.field);
+    return;
+  }
+  const initialValue =
+    field.kind === "boolean"
+      ? (state[field.field] as boolean)
+      : (state[field.field] as string);
+  await workspaceOverrides.setOverride(field.field, initialValue);
+}
+</script>
+
+<style scoped>
+.feature-flags {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feature-flag-group {
+  border: 1px solid var(--c-border, #ddd);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.feature-flag-group > summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.feature-flag-group-description {
+  font-size: 0.9rem;
+  color: var(--c-text-muted, #666);
+  margin: 0.25rem 0 0.75rem;
+}
+
+.feature-flag-field {
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem 0 1rem;
+}
+
+.feature-flag-field-boolean {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.feature-flag-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.feature-flag-toggle-label {
+  font-weight: 500;
+}
+
+.feature-flag-string-label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.feature-flag-field-string input {
+  width: 100%;
+  max-width: 32rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.feature-flag-hint {
+  font-size: 0.85rem;
+  color: var(--c-text-muted, #666);
+  margin-top: 0.25rem;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.feature-flag-hint code {
+  background: var(--c-code-bg, #f4f4f4);
+  padding: 0 0.25rem;
+  border-radius: 3px;
+}
+
+.feature-flag-badge-not-wired {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--c-warning-text, #8a5a00);
+  background: var(--c-warning-bg, #fff4d6);
+  border: 1px solid var(--c-warning-border, #f0c34a);
+  border-radius: 3px;
+}
+
+.feature-flag-field-not-wired {
+  opacity: 0.65;
+}
+
+.feature-flag-field-not-wired input,
+.feature-flag-field-not-wired select {
+  background: var(--c-disabled-bg, #f9f9f9);
+}
+
+.feature-flag-badge-workspace-override {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--c-accent-text, #1e5fad);
+  background: var(--c-accent-bg, #e4f0ff);
+  border: 1px solid var(--c-accent-border, #6fa3e0);
+  border-radius: 3px;
+}
+
+.feature-flag-field-workspace-override {
+  border-left: 3px solid var(--c-accent-border, #6fa3e0);
+  padding-left: 0.5rem;
+}
+
+.feature-flag-override-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--c-text-muted, #666);
+  cursor: pointer;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.feature-flag-override-toggle input[type="checkbox"] {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+</style>

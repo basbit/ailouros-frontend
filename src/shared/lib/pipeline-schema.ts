@@ -40,9 +40,12 @@ function _pipelineStepLabel(): Record<string, string> {
   return Object.fromEntries(buildPipelineOptionsBase());
 }
 
-export const PIPELINE_OPTIONS_BASE: [string, string][] = buildPipelineOptionsBase();
+export function roleRefForStep(stepId: string): string | null {
+  const entry = _pipelineStepPlan().find((step) => step.id === stepId);
+  return entry?.role_ref ?? null;
+}
 
-export const PIPELINE_DEFAULT_ORDER: string[] = _pipelineStepPlan().map((s) => s.id);
+export const PIPELINE_OPTIONS_BASE: [string, string][] = buildPipelineOptionsBase();
 
 function getRoleIds(): readonly string[] {
   return getCachedRolesCatalog().roles.map((r) => r.id);
@@ -57,11 +60,6 @@ onRolesCatalogUpdate(() => {
   PIPELINE_OPTIONS_BASE.length = 0;
   for (const pair of freshOptions) {
     PIPELINE_OPTIONS_BASE.push(pair);
-  }
-  const freshOrder = _pipelineStepPlan().map((s) => s.id);
-  PIPELINE_DEFAULT_ORDER.length = 0;
-  for (const id of freshOrder) {
-    PIPELINE_DEFAULT_ORDER.push(id);
   }
   _ROLES_STATE.length = 0;
   for (const role of getCachedRolesCatalog().roles) {
@@ -172,6 +170,7 @@ export const ROLE_NEEDS_TOOL_CALLING: Partial<Record<RoleId, boolean>> = {
   devops: true,
 };
 
+// config-discipline: code-owned (user-facing UI hint strings for role pickers)
 export const ROLE_MODEL_HINT: Partial<Record<RoleId, string>> = {
   pm: "Requires tool calling support. Suggested: qwen3-coder:30b / claude / gpt-4o",
   ba: "Requirements analysis. Suggested: qwen2.5:14b+ / claude-haiku",

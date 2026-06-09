@@ -1,0 +1,157 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { runSwarmChat } from "./run-swarm-chat";
+import type { RunSwarmChatSettings } from "@/shared/lib/agent-config";
+import type { ScenarioSummary } from "@/shared/model/scenario-types";
+
+const startStreamMock = vi.fn();
+const listScenariosMock = vi.fn();
+
+vi.mock("@/shared/api/endpoints/onboarding", () => ({
+  startSwarmChatStream: (body: unknown) => startStreamMock(body),
+}));
+vi.mock("@/shared/api/endpoints/scenarios", () => ({
+  listScenarios: () => listScenariosMock(),
+}));
+vi.mock("@/shared/lib/agent-config", () => ({
+  buildAgentConfig: () => ({}),
+  agentConfigErrorMessage: { value: null },
+}));
+vi.mock("@/shared/lib/i18n", () => ({
+  useI18n: () => ({ t: (key: string) => key }),
+}));
+vi.mock("@/shared/lib/swarm-chat-stream", () => ({
+  consumeSseStream: vi.fn(),
+}));
+vi.mock("@/shared/lib/step-order", () => ({
+  analyzePipelineStepOrder: () => ({ hasViolations: false }),
+  formatStepOrderSummary: () => "",
+}));
+vi.mock("@/shared/lib/pipeline-schema", () => ({
+  // Only "needs-model" maps to a role; all other step ids resolve to no role
+  // so existing tests skip the role-model preflight.
+  roleRefForStep: (id: string) => (id === "needs-model" ? "dev" : null),
+}));
+
+function makeSettings(scenarioId: string, roleModel = "gemma"): RunSwarmChatSettings {
+  return {
+    form: {
+      prompt: "do it",
+      workspace_root: "/ws",
+      project_context_file: "",
+      workspace_write: false,
+      scenario_id: scenarioId,
+      scenario_overrides: {},
+    },
+    pipelineState: {
+      collectStepIds: () => [],
+      collectStages: () => [],
+    },
+    rolesState: {
+      collectRoleApiConfig: () => ({ model: roleModel, environment: "cloud" }),
+    },
+  } as unknown as RunSwarmChatSettings;
+}
+
+function makeScenario(overrides: Partial<ScenarioSummary> = {}): ScenarioSummary {
+  return {
+    id: "s1",
+    title: "S1",
+    category: "development",
+    description: "",
+    pipeline_steps: ["spec", "build"],
+    default_gates: [],
+    expected_artifacts: [],
+    required_tools: [],
+    recommended_models: {},
+    workspace_write_default: false,
+    tags: [],
+    quality_checks: [],
+    inputs: [],
+    ...overrides,
+  } as ScenarioSummary;
+}
+
+function okResponse() {
+  return {
+    ok: true,
+    headers: { get: (h: string) => (h === "x-task-id" ? "task-1" : null) },
+    body: null,
+  };
+}
+
+describe("runSwarmChat scenario resolution", () => {
+  beforeEach(() => {
+    startStreamMock.mockReset();
+    listScenariosMock.mockReset();
+    startStreamMock.mockResolvedValue(okResponse());
+  });
+
+  it("resolves the scenario via the injected resolver, not the backend list", async () => {
+    const scenario = makeScenario({ pipeline_steps: ["spec", "build"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("s1"), handlers, { resolveScenario });
+
+    expect(resolveScenario).toHaveBeenCalledWith("s1");
+    expect(listScenariosMock).not.toHaveBeenCalled();
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+    const payload = startStreamMock.mock.calls[0][0] as {
+      pipeline_steps: string[];
+      scenario_id?: string;
+    };
+    expect(payload.pipeline_steps).toContain("build");
+    expect(payload.scenario_id).toBe("s1");
+  });
+
+  it("omits scenario_id for a custom scenario but keeps its steps", async () => {
+    const scenario = makeScenario({
+      id: "spec-copy-x",
+      category: "custom",
+      pipeline_steps: ["spec", "build"],
+    });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: true });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("spec-copy-x"), handlers, { resolveScenario });
+
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+    const payload = startStreamMock.mock.calls[0][0] as {
+      pipeline_steps: string[];
+      scenario_id?: string;
+    };
+    expect(payload.scenario_id).toBeUndefined();
+    expect(payload.pipeline_steps).toContain("build");
+  });
+
+  it("aborts (no request) when a pipeline role has no model configured", async () => {
+    const scenario = makeScenario({ id: "s-dev", pipeline_steps: ["needs-model"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("s-dev", ""), handlers, { resolveScenario });
+
+    expect(startStreamMock).not.toHaveBeenCalled();
+  });
+
+  it("proceeds when the pipeline role has a model", async () => {
+    const scenario = makeScenario({ id: "s-dev2", pipeline_steps: ["needs-model"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("s-dev2", "gemma"), handlers, { resolveScenario });
+
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the backend list when no resolver is injected", async () => {
+    listScenariosMock.mockResolvedValue({ scenarios: [makeScenario()] });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("s1"), handlers);
+
+    expect(listScenariosMock).toHaveBeenCalledTimes(1);
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+  });
+});

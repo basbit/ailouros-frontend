@@ -162,7 +162,7 @@ describe("useScenarioEstimate.load — error handling", () => {
   });
 
   it("treats 404 ApiError as notImplemented without error", async () => {
-    const { ApiError } = await import("@/shared/api/client");
+    const { ApiError } = await import("@/shared/api/http");
     api.getScenarioEstimate.mockRejectedValue(new ApiError("not found", 404));
     const { useScenarioEstimate } = await import("../useScenarioEstimate");
     const state = useScenarioEstimate();
@@ -173,7 +173,7 @@ describe("useScenarioEstimate.load — error handling", () => {
   });
 
   it("surfaces non-404 ApiError message", async () => {
-    const { ApiError } = await import("@/shared/api/client");
+    const { ApiError } = await import("@/shared/api/http");
     api.getScenarioEstimate.mockRejectedValue(new ApiError("HTTP 500: down", 500));
     const { useScenarioEstimate } = await import("../useScenarioEstimate");
     const state = useScenarioEstimate();

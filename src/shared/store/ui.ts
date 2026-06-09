@@ -1,16 +1,16 @@
 import { defineStore } from "pinia";
-import { createGateRefs, resetGateRefs } from "./_ui_gates";
+import { createGateRefs, resetGateRefs } from "./ui-gates";
 import {
   createTaskRefs,
   persistActiveTask,
   restoreActiveTask,
   resetTaskRefs,
-} from "./_ui_task";
-import { createHistoryRefs } from "./_ui_history";
+} from "./ui-task";
+import { createHistoryRefs } from "./ui-history";
 
-export type { HistoryEntry } from "./_ui_history";
-export type { HostMetrics, HostMetricsSample } from "./_ui_task";
-export { HOST_METRICS_HISTORY_MAX } from "./_ui_task";
+export type { HistoryEntry } from "./ui-history";
+export type { HostMetrics, HostMetricsSample } from "./ui-task";
+export { HOST_METRICS_HISTORY_MAX } from "./ui-task";
 
 export const useUiStore = defineStore("ui", () => {
   const taskParts = createTaskRefs();

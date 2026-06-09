@@ -6,6 +6,8 @@ import {
   remoteProfileProviderOptions,
 } from "@/shared/lib/use-swarm-defaults";
 import { LS_REMOTE_PROFILES } from "@/shared/lib/swarm-ui-constants";
+import { loadJSON } from "@/shared/lib/storage-utils";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 export function getRemoteProfileProviderOptions(): [string, string][] {
   return remoteProfileProviderOptions();
@@ -16,16 +18,16 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
 
   function loadGlobal(): void {
     try {
-      const raw = localStorage.getItem(LS_REMOTE_PROFILES);
-      if (raw) {
-        const arr = JSON.parse(raw) as RemoteProfileRow[];
-        if (Array.isArray(arr)) {
-          profiles.value = arr;
-          return;
-        }
+      const arr = loadJSON<RemoteProfileRow[] | null>(LS_REMOTE_PROFILES, null);
+      if (Array.isArray(arr)) {
+        profiles.value = arr;
+        return;
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      frontendLogger.warn(
+        "useRemoteApiProfiles: failed to load profiles from storage",
+        e,
+      );
     }
     profiles.value = [];
   }
@@ -55,7 +57,11 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     const p = profiles.value[idx];
     if (!p) return;
     if (field === "provider") {
-      if (!p.base_url.trim()) {
+      const current = p.base_url.trim();
+      const previousPreset = defaultRemoteApiBaseUrl(p.provider);
+      // Refresh the base URL when empty or still an unmodified preset of the
+      // previous provider; never clobber a user-typed custom URL.
+      if (!current || current === previousPreset) {
         p.base_url = defaultRemoteApiBaseUrl(value);
       }
     }
@@ -113,7 +119,11 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     let obj: unknown;
     try {
       obj = JSON.parse(jsonStr);
-    } catch {
+    } catch (e) {
+      frontendLogger.warn(
+        "useRemoteApiProfiles: invalid JSON in migrateJsonStringToRows",
+        e,
+      );
       return;
     }
     if (!obj || typeof obj !== "object" || Array.isArray(obj)) return;

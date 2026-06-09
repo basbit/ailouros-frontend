@@ -14,6 +14,7 @@ describe("ui store — host metrics history", () => {
       cpu_percent: 42.7,
       memory_percent: 33,
       gpu_percent: 88.1,
+      gpu_memory_percent: 61.5,
       timestamp_ms: 1_700_000_000_000,
     });
     expect(ui.hostMetricsHistory).toHaveLength(1);
@@ -22,6 +23,7 @@ describe("ui store — host metrics history", () => {
       cpu: 42.7,
       mem: 33,
       gpu: 88.1,
+      gpuMem: 61.5,
     });
   });
 
@@ -39,8 +41,8 @@ describe("ui store — host metrics history", () => {
       timestamp_ms: 20,
     });
     const [a, b] = ui.hostMetricsHistory;
-    expect(a).toEqual({ t: 10, cpu: 12, mem: null, gpu: null });
-    expect(b).toEqual({ t: 20, cpu: null, mem: 50, gpu: null });
+    expect(a).toEqual({ t: 10, cpu: 12, mem: null, gpu: null, gpuMem: null });
+    expect(b).toEqual({ t: 20, cpu: null, mem: 50, gpu: null, gpuMem: null });
   });
 
   it("deduplicates consecutive ticks with the same timestamp", () => {

@@ -31,14 +31,7 @@
               @name-input-ref="(el) => (nameEl = el)"
             />
 
-            <ProjectFormAdvancedSections
-              :form="form"
-              :mcp-slice="mcpSlice"
-              :db-slice="dbSlice"
-              :visual-slice="visualSlice"
-              @update:field="onFieldChange"
-              @update:child-field="onFieldUpdate"
-            />
+            <ProjectFormAdvancedSections />
 
             <footer class="project-form__actions">
               <button type="button" class="btn-secondary" @click="onCancel">
@@ -81,16 +74,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const {
-  form,
-  nameEl,
-  capsWarn,
-  mcpSlice,
-  dbSlice,
-  visualSlice,
-  onFieldUpdate,
-  buildSubmitPayload,
-} = useProjectFormState({
+const { form, nameEl, capsWarn, buildSubmitPayload } = useProjectFormState({
   open: toRef(props, "open"),
   initial: toRef(props, "initial"),
   capabilities: toRef(props, "capabilities"),

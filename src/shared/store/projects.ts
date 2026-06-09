@@ -15,6 +15,8 @@ import {
   defaultPromptPathForRole,
   defaultRemoteApiProvider,
 } from "@/shared/lib/use-swarm-defaults";
+import { loadJSON, writeRawString, removeKey } from "@/shared/lib/storage-utils";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 export type {
   SkillCatalogSnap,
@@ -154,29 +156,26 @@ export const useProjectsStore = defineStore("projects", () => {
 
   function _save(d: ProjectsData): void {
     try {
-      localStorage.setItem(LS_PROJECTS, JSON.stringify(d));
-    } catch {
-      /* quota */
+      writeRawString(LS_PROJECTS, JSON.stringify(d));
+    } catch (e) {
+      frontendLogger.warn("projects: localStorage quota exceeded when saving", e);
     }
   }
 
   function _load(): ProjectsData | null {
     try {
-      const raw = localStorage.getItem(LS_PROJECTS);
-      if (!raw) return null;
-      const d = JSON.parse(raw) as ProjectsData;
+      const d = loadJSON<ProjectsData | null>(LS_PROJECTS, null);
       if (!d || d.v !== 1 || typeof d.projects !== "object") return null;
       return d;
-    } catch {
+    } catch (e) {
+      frontendLogger.warn("projects: failed to load project data from storage", e);
       return null;
     }
   }
 
   function _migrateLegacy(): ProjectsData | null {
     try {
-      const raw = localStorage.getItem(LS_SETTINGS);
-      if (!raw) return null;
-      const snap = JSON.parse(raw) as SettingsSnap;
+      const snap = loadJSON<SettingsSnap | null>(LS_SETTINGS, null);
       if (!snap || snap.v !== 1) return null;
       const id = "default";
       const pdata: ProjectsData = {
@@ -186,7 +185,8 @@ export const useProjectsStore = defineStore("projects", () => {
       };
       _save(pdata);
       return pdata;
-    } catch {
+    } catch (e) {
+      frontendLogger.warn("projects: failed to migrate legacy settings", e);
       return null;
     }
   }
@@ -257,11 +257,14 @@ export const useProjectsStore = defineStore("projects", () => {
     const ids = Object.keys(data.value.projects);
     if (ids.length <= 1) return null;
     try {
-      localStorage.removeItem(LS_HISTORY + "_" + id);
-      localStorage.removeItem(LS_ACTIVE_TASK + "_" + id);
-      localStorage.removeItem(LS_EVENTS_VIEW + "_" + id);
-    } catch {
-      /* ignore */
+      removeKey(LS_HISTORY + "_" + id);
+      removeKey(LS_ACTIVE_TASK + "_" + id);
+      removeKey(LS_EVENTS_VIEW + "_" + id);
+    } catch (e) {
+      frontendLogger.warn(
+        "projects: failed to remove project-scoped storage keys for",
+        e,
+      );
     }
     delete data.value.projects[id];
     data.value.current = Object.keys(data.value.projects)[0];

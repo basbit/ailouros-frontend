@@ -155,7 +155,7 @@ import { useProjectsStore } from "@/shared/store/projects";
 import { useUiStore } from "@/shared/store/ui";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
-import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run/swarmRunContext";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
 import { useInjectedProjectFormActions } from "@/entities/project-form";
 import { usePipelineGraphState } from "@/pages/swarm-ui/usePipelineGraphState";

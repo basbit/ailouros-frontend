@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet, httpPut } from "@/shared/api/http";
 import type { SettingsSnap } from "@/shared/model/project-types";
 
 interface ProjectSettingsResponse {
@@ -7,11 +7,11 @@ interface ProjectSettingsResponse {
   settings: SettingsSnap | null;
 }
 
-export async function loadProjectSettings(
+export async function getProjectSettings(
   workspaceRoot: string,
 ): Promise<SettingsSnap | null> {
   const qs = new URLSearchParams({ workspace_root: workspaceRoot });
-  const data = await fetchJson<ProjectSettingsResponse>(
+  const data = await httpGet<ProjectSettingsResponse>(
     `/v1/project/settings?${qs.toString()}`,
   );
   return data.exists ? data.settings : null;
@@ -21,12 +21,8 @@ export async function saveProjectSettings(
   workspaceRoot: string,
   settings: SettingsSnap,
 ): Promise<void> {
-  await fetchJson<{ ok: boolean; path: string }>("/v1/project/settings", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      workspace_root: workspaceRoot,
-      settings,
-    }),
+  await httpPut<{ ok: boolean; path: string }>("/v1/project/settings", {
+    workspace_root: workspaceRoot,
+    settings,
   });
 }

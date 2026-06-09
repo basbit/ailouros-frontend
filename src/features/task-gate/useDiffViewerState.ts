@@ -1,5 +1,5 @@
 import { computed, reactive, type ComputedRef } from "vue";
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import {
   patchWorkspaceFile,
   tryGetWorkspaceFile,

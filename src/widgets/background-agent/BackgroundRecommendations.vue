@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from "vue";
-import { fetchJson } from "@/shared/api/client";
+import { httpGet, httpPut } from "@/shared/api/http";
 import { useI18n } from "@/shared/lib/i18n";
 
 interface Recommendation {
@@ -70,7 +70,7 @@ let timer: ReturnType<typeof setInterval> | null = null;
 async function poll(): Promise<void> {
   if (!active.value) return;
   try {
-    const data = await fetchJson<PollResponse>("/v1/background-recommendations");
+    const data = await httpGet<PollResponse>("/v1/background-recommendations");
     if (!data.active) {
       active.value = false;
       stopPolling();
@@ -109,19 +109,15 @@ async function syncLifecycle(): Promise<void> {
   stopPolling();
   const shouldEnable = props.enabled && !!props.workspaceRoot.trim();
   try {
-    const data = await fetchJson<ConfigureResponse>("/v1/background-agent", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        enabled: shouldEnable,
-        workspace_root: props.workspaceRoot,
-        watch_paths: props.watchPaths,
-        environment: props.environment ?? "",
-        model: props.model ?? "",
-        remote_provider: props.remoteApiProvider ?? "",
-        remote_api_key: props.remoteApiKey ?? "",
-        remote_base_url: props.remoteApiBaseUrl ?? "",
-      }),
+    const data = await httpPut<ConfigureResponse>("/v1/background-agent", {
+      enabled: shouldEnable,
+      workspace_root: props.workspaceRoot,
+      watch_paths: props.watchPaths,
+      environment: props.environment ?? "",
+      model: props.model ?? "",
+      remote_provider: props.remoteApiProvider ?? "",
+      remote_api_key: props.remoteApiKey ?? "",
+      remote_base_url: props.remoteApiBaseUrl ?? "",
     });
     active.value = !!data.active;
     if (active.value) startPolling();

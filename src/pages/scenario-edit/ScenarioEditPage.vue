@@ -56,6 +56,17 @@
           />
         </section>
 
+        <label class="scenario-edit-page__field">
+          <span class="scenario-edit-page__label">
+            {{ t("configure.pipeline.topologyLabel") }}
+          </span>
+          <select v-model="form.topology" class="scenario-edit-page__input">
+            <option v-for="opt in topologyOptions" :key="opt.id" :value="opt.id">
+              {{ opt.label }}
+            </option>
+          </select>
+        </label>
+
         <label class="scenario-edit-page__toggle">
           <input v-model="form.workspaceWriteDefault" type="checkbox" />
           <span>{{ t("settings.scenarios.editor.workspaceWriteDefault") }}</span>
@@ -91,6 +102,7 @@ import PipelineStepEditor, {
   type PipelineStepRow,
 } from "@/features/pipeline/PipelineStepEditor.vue";
 import { pipelineOptionsAll } from "@/features/pipeline/usePipeline";
+import { TOPOLOGY_PRESETS, type TopologyId } from "@/features/pipeline/topologyPresets";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -109,6 +121,17 @@ const stepOptions = computed<[string, string][]>(() =>
   pipelineOptionsAll(customRoles.value),
 );
 
+const TOPOLOGY_IDS: readonly TopologyId[] = ["ring", "mesh"];
+const topologyOptions = computed(() =>
+  TOPOLOGY_IDS.map((id) => ({ id, label: TOPOLOGY_PRESETS[id].label })),
+);
+
+function coerceTopology(raw: unknown): TopologyId {
+  return (TOPOLOGY_IDS as readonly string[]).includes(raw as string)
+    ? (raw as TopologyId)
+    : "ring";
+}
+
 const isEditMode = computed(() => Boolean(props.scenarioId));
 
 let uidCounter = 0;
@@ -122,6 +145,7 @@ interface FormState {
   title: string;
   steps: PipelineStepRow[];
   workspaceWriteDefault: boolean;
+  topology: TopologyId;
 }
 
 const form = reactive<FormState>({
@@ -129,6 +153,7 @@ const form = reactive<FormState>({
   title: "",
   steps: [],
   workspaceWriteDefault: false,
+  topology: "ring",
 });
 
 const existingIds = computed<string[]>(() =>
@@ -159,6 +184,7 @@ function hydrate(): void {
     form.title = "";
     form.steps = [];
     form.workspaceWriteDefault = false;
+    form.topology = "ring";
     return;
   }
   const entry = customScenarios.value.find((item) => item.id === props.scenarioId);
@@ -170,6 +196,7 @@ function hydrate(): void {
   form.title = entry.title;
   form.steps = entry.pipeline_steps.map((stepId) => ({ uid: makeUid(), id: stepId }));
   form.workspaceWriteDefault = entry.workspace_write_default;
+  form.topology = coerceTopology(entry.topology);
 }
 
 watch(() => props.scenarioId, hydrate, { immediate: true });
@@ -216,6 +243,7 @@ function onSave(): void {
     title: form.title.trim() || trimmedId,
     pipeline_steps: form.steps.map((row) => row.id),
     workspace_write_default: form.workspaceWriteDefault,
+    topology: form.topology,
   };
   if (idx >= 0) {
     next[idx] = payload;

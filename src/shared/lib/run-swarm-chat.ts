@@ -11,6 +11,7 @@ import {
   analyzePipelineStepOrder,
   formatStepOrderSummary,
 } from "@/shared/lib/step-order";
+import { roleRefForStep } from "@/shared/lib/pipeline-schema";
 import { consumeSseStream } from "@/shared/lib/swarm-chat-stream";
 import type { ScenarioInputKey, ScenarioSummary } from "@/shared/model/scenario-types";
 
@@ -20,8 +21,16 @@ const TASK_ID_HEADER = "x-task-id";
 
 type Translator = ReturnType<typeof useI18n>["t"];
 
+export interface ResolvedScenario {
+  scenario: ScenarioSummary;
+  isCustom: boolean;
+}
+
+type ScenarioResolver = (scenarioId: string) => Promise<ResolvedScenario | null>;
+
 export interface RunSwarmChatOptions {
   signal?: AbortSignal;
+  resolveScenario?: ScenarioResolver;
 }
 
 interface RunSwarmChatHandlers {
@@ -43,9 +52,10 @@ interface PipelineSelection {
   hasParallelStages: boolean;
 }
 
-async function fetchScenarioById(scenarioId: string): Promise<ScenarioSummary | null> {
+async function fetchScenarioById(scenarioId: string): Promise<ResolvedScenario | null> {
   const list = await listScenarios();
-  return list.scenarios.find((entry) => entry.id === scenarioId) ?? null;
+  const scenario = list.scenarios.find((entry) => entry.id === scenarioId) ?? null;
+  return scenario ? { scenario, isCustom: false } : null;
 }
 
 function findMissingRequiredScenarioInputs(
@@ -97,6 +107,29 @@ function ensurePipelineStepsPresent(
   return true;
 }
 
+function ensurePipelineRolesHaveModels(
+  selection: PipelineSelection,
+  settings: RunSwarmChatSettings,
+  translate: Translator,
+): boolean {
+  const missing: string[] = [];
+  const seen = new Set<string>();
+  for (const stepId of selection.stepIds) {
+    const role = roleRefForStep(stepId);
+    if (!role || seen.has(role)) continue;
+    seen.add(role);
+    const cfg = settings.rolesState.collectRoleApiConfig(role);
+    const model = String(cfg.model ?? "").trim();
+    const profile = String(cfg.remote_profile ?? "").trim();
+    if (!model && !profile) missing.push(role);
+  }
+  if (missing.length === 0) return true;
+  agentConfigErrorMessage.value = translate("errors.roleMissingModel", {
+    roles: missing.join(", "),
+  });
+  return false;
+}
+
 function confirmStepOrderOrCancel(
   selection: PipelineSelection,
   translate: Translator,
@@ -118,16 +151,21 @@ function confirmStepOrderOrCancel(
   return true;
 }
 
-async function ensureScenarioInputsPresent(
-  scenarioId: string,
+function selectionFromScenario(scenario: ScenarioSummary): PipelineSelection {
+  const steps = scenario.pipeline_steps ?? [];
+  const stepIds = steps.includes(CLARIFY_INPUT_STEP_ID)
+    ? [...steps]
+    : [CLARIFY_INPUT_STEP_ID, ...steps];
+  return { stepIds, stages: [], hasParallelStages: false };
+}
+
+function ensureScenarioInputsPresent(
+  scenario: ScenarioSummary,
   form: RunSwarmChatSettings["form"],
   workspaceRoot: string,
   projectContextFile: string,
   translate: Translator,
-): Promise<boolean> {
-  if (!scenarioId) return true;
-  const scenario = await fetchScenarioById(scenarioId);
-  if (!scenario) return true;
+): boolean {
   const missing = findMissingRequiredScenarioInputs(
     scenario,
     form,
@@ -136,7 +174,7 @@ async function ensureScenarioInputsPresent(
   );
   if (missing.length === 0) return true;
   agentConfigErrorMessage.value = translate("scenarios.preflight.missingInputs", {
-    scenario: scenarioId,
+    scenario: scenario.id,
     fields: missing.join(", "),
   });
   return false;
@@ -191,21 +229,53 @@ export async function runSwarmChat(
   const agentConfig = buildAgentConfig(settings);
   if (!agentConfig) return;
 
-  const selection = buildPipelineSelection(pipelineState);
+  const normalized = normalizeForm(form);
+
+  // A selected scenario owns the pipeline steps; the per-project pipeline
+  // editor is only used when no scenario is active (custom run).
+  let selection: PipelineSelection;
+  let payloadNormalized = normalized;
+  if (normalized.scenarioId) {
+    const resolve = options?.resolveScenario ?? fetchScenarioById;
+    const resolved = await resolve(normalized.scenarioId);
+    if (!resolved) {
+      agentConfigErrorMessage.value = translate(
+        "scenarios.preflight.scenarioNotFound",
+        { scenario: normalized.scenarioId },
+      );
+      return;
+    }
+    if (
+      !ensureScenarioInputsPresent(
+        resolved.scenario,
+        form,
+        normalized.workspaceRoot,
+        normalized.projectContextFile,
+        translate,
+      )
+    ) {
+      return;
+    }
+    selection = selectionFromScenario(resolved.scenario);
+    // Custom scenarios are client-only; the backend rejects their id. Run them
+    // as an explicit pipeline (steps only, no scenario_id).
+    if (resolved.isCustom) {
+      payloadNormalized = { ...normalized, scenarioId: "" };
+    }
+  } else {
+    selection = buildPipelineSelection(pipelineState);
+  }
+
   if (!ensurePipelineStepsPresent(selection, translate)) return;
+  if (!ensurePipelineRolesHaveModels(selection, settings, translate)) return;
   if (!confirmStepOrderOrCancel(selection, translate)) return;
 
-  const normalized = normalizeForm(form);
-  const scenarioInputsValid = await ensureScenarioInputsPresent(
-    normalized.scenarioId,
+  const payload = buildSwarmChatPayload(
     form,
-    normalized.workspaceRoot,
-    normalized.projectContextFile,
-    translate,
+    agentConfig,
+    selection,
+    payloadNormalized,
   );
-  if (!scenarioInputsValid) return;
-
-  const payload = buildSwarmChatPayload(form, agentConfig, selection, normalized);
   const response = await startSwarmChatStream(payload);
   if (!response.ok) {
     throw new Error(await readHttpErrorMessage(response));

@@ -6,6 +6,8 @@ export type BootstrapStage =
   | "staging-llama-cpp"
   | "staging-mcp-runtimes"
   | "downloading-model"
+  | "waiting-for-backend"
+  | "failed"
   | "ready";
 
 export interface BootstrapProgress {

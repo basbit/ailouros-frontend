@@ -35,14 +35,11 @@ export function usePipelineGraphInteractions(
     destroySortable();
     if (!options.container.value || !options.editorEnabled.value) return;
 
-    const currentTopo = options.topology.value;
-    const draggable = currentTopo === "parallel" ? ".step-stage" : ".step-card";
-
     sortableInstance.value = Sortable.create(options.container.value, {
       animation: 200,
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
       handle: ".step-drag-handle",
-      draggable,
+      draggable: ".step-card",
       filter: ".step-remove-btn, .step-select",
       preventOnFilter: false,
       ghostClass: "step-sortable-ghost",
@@ -53,29 +50,13 @@ export function usePipelineGraphInteractions(
       fallbackTolerance: 3,
       swapThreshold: 0.65,
       invertSwap: true,
-      group:
-        currentTopo === "parallel"
-          ? { name: "stages", pull: true, put: true }
-          : undefined,
       onEnd(evt) {
         const oldIndex = evt.oldDraggableIndex;
         const newIndex = evt.newDraggableIndex;
         if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex)
           return;
-
-        if (currentTopo === "parallel") {
-          const stages = options.parallelStages.value;
-          const stage = stages[oldIndex];
-          const oldFlat = stages.slice(0, oldIndex).flat().length;
-          const newFlat =
-            newIndex > oldIndex
-              ? stages.slice(0, newIndex + 1).flat().length
-              : stages.slice(0, newIndex).flat().length;
-          options.onReorder(oldFlat, newFlat, stage?.length ?? 1);
-        } else {
-          const preRemovalNew = newIndex > oldIndex ? newIndex + 1 : newIndex;
-          options.onReorder(oldIndex, preRemovalNew, 1);
-        }
+        const preRemovalNew = newIndex > oldIndex ? newIndex + 1 : newIndex;
+        options.onReorder(oldIndex, preRemovalNew, 1);
       },
     });
   }

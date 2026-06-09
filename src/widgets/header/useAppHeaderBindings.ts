@@ -3,7 +3,7 @@ import { useProjectsStore } from "@/shared/store/projects";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
-import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run/swarmRunContext";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { useInjectedProjectFormActions } from "@/entities/project-form";
 
 export function useAppHeaderBindings() {

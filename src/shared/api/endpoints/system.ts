@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet } from "@/shared/api/http";
 
 export interface UpdateStatusDto {
   checked: boolean;
@@ -12,5 +12,5 @@ export interface UpdateStatusDto {
 }
 
 export async function getUpdateAvailable(): Promise<UpdateStatusDto> {
-  return fetchJson<UpdateStatusDto>("/v1/system/update-available");
+  return httpGet<UpdateStatusDto>("/v1/system/update-available");
 }

@@ -13,6 +13,14 @@
       <button
         type="button"
         class="prompt-action"
+        :title="t('promptCoach.openLabel')"
+        @click="promptCoachOpen = true"
+      >
+        {{ t("promptCoach.openLabel") }}
+      </button>
+      <button
+        type="button"
+        class="prompt-action"
         :disabled="!settings.form.workspace_root.trim()"
         :title="t('assetUpload.title')"
         @click="emit('open-asset-upload')"
@@ -53,6 +61,8 @@
     </button>
     <template v-if="advancedSidebarOpen">
       <MemoryPanel @append-to-prompt="onAppendToPrompt" />
+      <WikiQualitySection :workspace-root="settings.form.workspace_root" />
+      <RetrievalTraceInspector :workspace-root="settings.form.workspace_root" />
       <CrossProjectStats />
     </template>
 
@@ -147,6 +157,12 @@
       @continue-pipeline="(steps) => emit('continue-pipeline', steps)"
     />
 
+    <PromptAssistantDialog
+      :open="promptCoachOpen"
+      @close="promptCoachOpen = false"
+      @apply="onPromptCoachApply"
+    />
+
     <div v-if="ui.taskError" class="task-error-banner">
       <strong>{{ t("status.error") }}:</strong> {{ ui.taskError }}
     </div>
@@ -167,26 +183,22 @@
         {{ t(`scenarios.tab.${ui.taskScenarioCategory}`) }}
       </span>
     </div>
-
-    <!--
-      Note: the per-step "agentChips" list was removed (2026-05-14).
-      The same information is surfaced by the pipeline graph in the main
-      view and by the blocked / retry banners above; duplicating it as a
-      flat chip list in the sidebar menu added visual noise without
-      adding signal. See docs/improve-plan-done.md "Sidebar agent chips" item.
-    -->
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ScenarioInputs from "@/features/scenario-picker/ScenarioInputs.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
-import CrossProjectStats from "@/entities/observability/CrossProjectStats.vue";
+import { CrossProjectStats } from "@/widgets/observability";
 import HumanGate from "@/features/task-gate/HumanGate.vue";
 import ShellGate from "@/features/task-gate/ShellGate.vue";
 import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
 import RetryGate from "@/features/task-gate/RetryGate.vue";
+import PromptAssistantDialog from "@/widgets/prompt-assistant/PromptAssistantDialog.vue";
+import WikiQualitySection from "@/widgets/wiki-quality-section/WikiQualitySection.vue";
+import RetrievalTraceInspector from "@/widgets/retrieval-trace-inspector/RetrievalTraceInspector.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import type { AppSettings } from "@/entities/app-settings/contract";
@@ -230,9 +242,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const ui = useUiStore();
+const promptCoachOpen = ref(false);
 
 function onPromptUpdate(val: string): void {
   emit("update:prompt", val);
+}
+
+function onPromptCoachApply(body: string): void {
+  emit("update:prompt", body);
 }
 
 function onAppendToPrompt(text: string): void {

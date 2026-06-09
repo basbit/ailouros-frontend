@@ -1,4 +1,4 @@
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
 import type { ChatStreamEvent } from "@/shared/lib/chat-stream-events";
 import { consumeSseStream } from "@/shared/lib/swarm-chat-stream";

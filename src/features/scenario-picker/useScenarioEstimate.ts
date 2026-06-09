@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import { getScenarioEstimate } from "@/shared/api/endpoints/scenarios";
 import type { ScenarioEstimate } from "@/shared/model/scenario-types";
 

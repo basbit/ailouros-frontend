@@ -57,6 +57,7 @@ export type AgentConfigForm = Pick<
   | "scenario_id"
   | "favorite_scenarios"
   | "scenario_overrides"
+  | "custom_scenarios"
 >;
 
 export interface ProfilesStateLike {

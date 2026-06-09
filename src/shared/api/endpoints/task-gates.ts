@@ -1,5 +1,5 @@
 import { apiUrl } from "@/shared/api/base";
-import { ApiError, fetchJson } from "@/shared/api/client";
+import { ApiError, httpGet, httpPost } from "@/shared/api/http";
 
 export interface PendingManualShellPayload {
   commands: string[];
@@ -44,13 +44,9 @@ export async function postConfirmShell(
   taskId: string,
   approved: boolean,
 ): Promise<void> {
-  await fetchJson<{ ok: boolean }>(
+  await httpPost<{ ok: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/confirm-shell`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approved }),
-    },
+    { approved },
   );
 }
 
@@ -58,7 +54,7 @@ export async function getPendingManualShell(
   taskId: string,
 ): Promise<PendingManualShellPayload | null> {
   try {
-    return await fetchJson<PendingManualShellPayload>(
+    return await httpGet<PendingManualShellPayload>(
       `/v1/tasks/${encodeURIComponent(taskId)}/pending-manual-shell`,
     );
   } catch (error) {
@@ -71,13 +67,9 @@ export async function postConfirmManualShell(
   taskId: string,
   done: boolean,
 ): Promise<void> {
-  await fetchJson<{ ok: boolean }>(
+  await httpPost<{ ok: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/confirm-manual-shell`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ done }),
-    },
+    { done },
   );
 }
 
@@ -86,13 +78,9 @@ export async function postConfirmHuman(
   approved: boolean,
   userInput = "",
 ): Promise<void> {
-  await fetchJson<{ ok: boolean }>(
+  await httpPost<{ ok: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/confirm-human`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ approved, user_input: userInput }),
-    },
+    { approved, user_input: userInput },
   );
 }
 
@@ -100,7 +88,7 @@ export async function getPendingHuman(
   taskId: string,
 ): Promise<PendingHumanResponse | null> {
   try {
-    return await fetchJson<PendingHumanResponse>(
+    return await httpGet<PendingHumanResponse>(
       `/v1/tasks/${encodeURIComponent(taskId)}/pending-human`,
     );
   } catch (error) {
@@ -113,7 +101,7 @@ export async function getPendingShell(
   taskId: string,
 ): Promise<PendingShellPayload | null> {
   try {
-    return await fetchJson<PendingShellPayload>(
+    return await httpGet<PendingShellPayload>(
       `/v1/tasks/${encodeURIComponent(taskId)}/pending-shell`,
     );
   } catch (error) {

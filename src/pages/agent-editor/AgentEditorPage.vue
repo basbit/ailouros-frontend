@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { VueFlow, Handle, Position } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
@@ -158,9 +158,12 @@ import "@vue-flow/minimap/dist/style.css";
 import "@vue-flow/controls/dist/style.css";
 import { useI18n } from "@/shared/lib/i18n";
 import { useEditorStore } from "@/features/agent-editor/useEditorStore";
+import {
+  useAgentEditorCanvas,
+  NODE_COLORS,
+} from "@/features/agent-editor/useAgentEditorCanvas";
 import NodeConfigPanel from "@/features/agent-editor/NodeConfigPanel.vue";
 import ScenarioToolbar from "@/features/agent-editor/ScenarioToolbar.vue";
-import type { PipelineNode } from "@/features/agent-editor/types";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -202,16 +205,9 @@ async function handleDeletePipeline(pipelineId: string): Promise<void> {
   await deletePipelineById(pipelineId);
 }
 
-const canvasWrapRef = ref<HTMLDivElement | null>(null);
-
-const NODE_COLORS: Record<string, string> = {
-  trigger: "#868e96",
-  agent: "#4dabf7",
-  tool: "#51cf66",
-  condition: "#ffd43b",
-  aggregator: "#cc5de8",
-  output: "#495057",
-};
+async function handleSave(): Promise<void> {
+  await savePipeline();
+}
 
 const availableNodeTypes = [
   {
@@ -246,92 +242,26 @@ const availableNodeTypes = [
   },
 ];
 
-const vueFlowNodes = computed(() =>
-  pipeline.value.nodes.map((n) => {
-    const config = n.config as Record<string, unknown>;
-    const isOfficial = config.official === true;
-    const isSelected = n.id === selectedNode.value?.id;
-    let borderColor = "transparent";
-    if (isSelected) {
-      borderColor = "#fff";
-    } else if (!isOfficial) {
-      borderColor = "#fab005";
-    }
-    return {
-      id: n.id,
-      type: n.type,
-      position: n.position,
-      data: {
-        label: config.name ?? n.type,
-        config: n.config,
-      },
-      style: {
-        background: NODE_COLORS[n.type] ?? "#4a5578",
-        borderRadius: "8px",
-        border: `2px solid ${borderColor}`,
-      },
-    };
-  }),
-);
-
-const vueFlowEdges = computed(() =>
-  pipeline.value.edges.map((e) => ({
-    id: e.id,
-    source: e.source,
-    target: e.target,
-    label: e.label,
-  })),
-);
-
-let dragNodeType: PipelineNode["type"] | null = null;
-
-function onDragStart(event: DragEvent, type: PipelineNode["type"]): void {
-  dragNodeType = type;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = "move";
-  }
-}
-
-function onDrop(event: DragEvent): void {
-  if (!dragNodeType || !canvasWrapRef.value) return;
-  const rect = canvasWrapRef.value.getBoundingClientRect();
-  const position = {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
-  };
-  addNode(dragNodeType, position);
-  dragNodeType = null;
-}
-
-function onVfNodeClick(event: { node: { id: string } }): void {
-  selectNode(event.node.id);
-}
-
-function onConnect(params: { source: string; target: string }): void {
-  addEdge(params.source, params.target);
-}
-
-function onEdgesDelete(edges: { id: string }[]): void {
-  for (const e of edges) removeEdge(e.id);
-}
-
-function onNodesDelete(nodes: { id: string }[]): void {
-  for (const n of nodes) removeNode(n.id);
-}
-
-function onNodeDragStop(event: {
-  node: { id: string; position: { x: number; y: number } };
-}): void {
-  updateNode(event.node.id, { position: event.node.position });
-}
-
-function updateSelectedNode(patch: Partial<PipelineNode>): void {
-  if (selectedNode.value) updateNode(selectedNode.value.id, patch);
-}
-
-async function handleSave(): Promise<void> {
-  await savePipeline();
-}
+const {
+  canvasWrapRef,
+  vueFlowNodes,
+  vueFlowEdges,
+  onDragStart,
+  onDrop,
+  onVfNodeClick,
+  onConnect,
+  onEdgesDelete,
+  onNodesDelete,
+  onNodeDragStop,
+  updateSelectedNode,
+} = useAgentEditorCanvas(pipeline, selectedNode, {
+  addNode,
+  updateNode,
+  removeNode,
+  addEdge,
+  removeEdge,
+  selectNode,
+});
 </script>
 
 <style scoped>

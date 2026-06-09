@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet } from "@/shared/api/http";
 
 interface ObservabilityRunSummary {
   task_id: string;
@@ -36,5 +36,5 @@ export interface ObservabilityResponse {
 }
 
 export async function getCrossProjectObservability(): Promise<ObservabilityResponse> {
-  return fetchJson<ObservabilityResponse>("/v1/observability/cross-project");
+  return httpGet<ObservabilityResponse>("/v1/observability/cross-project");
 }

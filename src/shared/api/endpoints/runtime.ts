@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet } from "@/shared/api/http";
 
 interface CapabilityProbe {
   name: string;
@@ -13,5 +13,5 @@ export interface RuntimeCapabilitiesResponse {
 }
 
 export async function getRuntimeCapabilities(): Promise<RuntimeCapabilitiesResponse> {
-  return fetchJson<RuntimeCapabilitiesResponse>("/v1/runtime/capabilities");
+  return httpGet<RuntimeCapabilitiesResponse>("/v1/runtime/capabilities");
 }

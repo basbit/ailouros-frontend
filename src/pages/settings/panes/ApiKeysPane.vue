@@ -34,12 +34,19 @@
             :value="profile.id"
             @input="onProfileUpdate(index, 'id', $event)"
           />
-          <input
-            type="text"
+          <select
             class="api-keys-pane__input"
             :value="profile.provider"
-            @input="onProfileUpdate(index, 'provider', $event)"
-          />
+            @change="onProfileUpdate(index, 'provider', $event)"
+          >
+            <option
+              v-for="option in PROVIDER_OPTIONS"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
           <input
             type="password"
             autocomplete="off"
@@ -161,8 +168,26 @@ const { t } = useI18n();
 
 const profiles = computed(() => settings.profilesState.profiles.value);
 
+const PROVIDER_OPTIONS = [
+  { value: "openai", label: "OpenAI" },
+  { value: "anthropic", label: "Anthropic" },
+  { value: "google", label: "Google (Gemini)" },
+  { value: "azure_openai", label: "Azure OpenAI" },
+  { value: "vertex_ai", label: "Google Vertex AI" },
+  { value: "bedrock", label: "AWS Bedrock" },
+  { value: "groq", label: "Groq" },
+  { value: "deepseek", label: "DeepSeek" },
+  { value: "fireworks_ai", label: "Fireworks AI" },
+  { value: "together_ai", label: "Together AI" },
+  { value: "openrouter", label: "OpenRouter" },
+  { value: "ollama", label: "Ollama (local)" },
+  { value: "lmstudio", label: "LM Studio (local)" },
+  { value: "litellm", label: "LiteLLM proxy" },
+  { value: "custom", label: "Custom / OpenAI-compatible" },
+] as const;
+
 function readInputValue(event: Event): string {
-  const target = event.target as HTMLInputElement;
+  const target = event.target as HTMLInputElement | HTMLSelectElement;
   return target.value;
 }
 

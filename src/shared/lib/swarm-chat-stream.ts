@@ -1,5 +1,6 @@
 import {
   parseChatStreamEvent,
+  parseChatStreamSiblingExtra,
   type ChatStreamEvent,
 } from "@/shared/lib/chat-stream-events";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
@@ -12,13 +13,15 @@ interface OpenAiCompatDelta {
   choices?: { delta?: { content?: string } }[];
 }
 
-function extractDeltaContent(payload: string): string {
-  const parsed = JSON.parse(payload) as OpenAiCompatDelta;
+function extractDeltaContent(parsed: OpenAiCompatDelta): string {
   return parsed.choices?.[0]?.delta?.content ?? "";
 }
 
 function parseSseDataPayload(payload: string): ChatStreamEvent | null {
-  const content = extractDeltaContent(payload);
+  const parsed = JSON.parse(payload) as OpenAiCompatDelta & Record<string, unknown>;
+  const sibling = parseChatStreamSiblingExtra(parsed);
+  if (sibling) return sibling;
+  const content = extractDeltaContent(parsed);
   if (!content) return null;
   return parseChatStreamEvent(content);
 }

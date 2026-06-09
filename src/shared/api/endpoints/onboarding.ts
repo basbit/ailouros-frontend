@@ -1,5 +1,5 @@
 import { apiUrl } from "@/shared/api/base";
-import { fetchJson } from "@/shared/api/client";
+import { httpGet, httpPost } from "@/shared/api/http";
 import type {
   MCPServerSpec,
   ModelAssignment,
@@ -7,6 +7,15 @@ import type {
   PreflightRecommendation,
   ScanResult,
 } from "@/shared/model/onboarding-types";
+
+type LocalProviderStatus = "ok" | "not_running" | "rejected" | "malformed";
+
+export interface LocalProviderProbe {
+  provider: "ollama" | "lm_studio";
+  status: LocalProviderStatus;
+  base_url: string;
+  hint: string;
+}
 
 export interface OnboardingModelsResponse {
   source?: string;
@@ -19,6 +28,7 @@ export interface OnboardingModelsResponse {
     >;
   };
   assignments?: ModelAssignment[];
+  providers?: LocalProviderProbe[];
 }
 
 export interface OnboardingPreflightResponse {
@@ -33,7 +43,7 @@ export interface OnboardingPreflightResponse {
 export async function scanOnboardingWorkspace(
   workspaceRoot: string,
 ): Promise<ScanResult> {
-  return fetchJson<ScanResult>(
+  return httpGet<ScanResult>(
     `/v1/onboarding/scan?workspace_root=${encodeURIComponent(workspaceRoot)}`,
   );
 }
@@ -41,13 +51,9 @@ export async function scanOnboardingWorkspace(
 export async function preconfigureOnboarding(
   workspaceRoot: string,
 ): Promise<PreconfigResult & { detected_stack?: string[]; error?: string }> {
-  return fetchJson<PreconfigResult & { detected_stack?: string[]; error?: string }>(
+  return httpPost<PreconfigResult & { detected_stack?: string[]; error?: string }>(
     "/v1/onboarding/preconfigure",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspace_root: workspaceRoot }),
-    },
+    { workspace_root: workspaceRoot },
   );
 }
 
@@ -55,10 +61,9 @@ export async function applyOnboardingConfig(
   workspaceRoot: string,
   content: string,
 ): Promise<void> {
-  await fetchJson<{ status: string; workspace_root: string }>("/v1/onboarding/apply", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ workspace_root: workspaceRoot, content }),
+  await httpPost<{ status: string; workspace_root: string }>("/v1/onboarding/apply", {
+    workspace_root: workspaceRoot,
+    content,
   });
 }
 
@@ -66,10 +71,9 @@ export async function applyOnboardingMcpConfig(
   workspaceRoot: string,
   servers: MCPServerSpec[],
 ): Promise<void> {
-  await fetchJson<{ status: string; path: string }>("/v1/onboarding/mcp-config/apply", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ workspace_root: workspaceRoot, servers }),
+  await httpPost<{ status: string; path: string }>("/v1/onboarding/mcp-config/apply", {
+    workspace_root: workspaceRoot,
+    servers,
   });
 }
 
@@ -79,17 +83,16 @@ export async function runOnboardingMcpPreflight(
     Record<"tavily_api_key" | "exa_api_key" | "scrapingdog_api_key", string | undefined>
   >,
 ): Promise<OnboardingPreflightResponse> {
-  return fetchJson<OnboardingPreflightResponse>("/v1/onboarding/mcp-preflight", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ workspace_root: workspaceRoot, ...searchKeys }),
+  return httpPost<OnboardingPreflightResponse>("/v1/onboarding/mcp-preflight", {
+    workspace_root: workspaceRoot,
+    ...searchKeys,
   });
 }
 
 export async function getOnboardingModels(
   workspaceRoot: string,
 ): Promise<OnboardingModelsResponse> {
-  return fetchJson<OnboardingModelsResponse>(
+  return httpGet<OnboardingModelsResponse>(
     `/v1/onboarding/models?workspace_root=${encodeURIComponent(workspaceRoot)}`,
   );
 }

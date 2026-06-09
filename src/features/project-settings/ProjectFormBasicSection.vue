@@ -62,6 +62,21 @@
       </div>
     </div>
 
+    <div v-if="form.workspace_write" class="field">
+      <label class="checkbox-row">
+        <input
+          id="pf-allow-server-write"
+          :checked="serverWriteGranted"
+          type="checkbox"
+          @change="onAllowServerWriteToggle"
+        />
+        <span class="check-label">{{ t("projectForm.allowServerWriteLabel") }}</span>
+      </label>
+      <div class="hint project-form__hint">
+        {{ t("projectForm.allowServerWriteHint") }}
+      </div>
+    </div>
+
     <div
       v-if="capabilities"
       class="project-form__caps"
@@ -80,8 +95,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import { useGlobalSearchKeys } from "@/shared/lib/global-search-keys";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 import type { ProjectFormValues } from "./useProjectFormState";
 
@@ -98,7 +114,20 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const globalSettings = useGlobalSearchKeys();
 const nameRef = ref<HTMLInputElement | null>(null);
+
+const serverWriteGranted = computed(
+  () =>
+    globalSettings.state.swarm_allow_workspace_write &&
+    globalSettings.state.swarm_allow_command_exec,
+);
+
+function onAllowServerWriteToggle(ev: Event): void {
+  const target = ev.target as HTMLInputElement;
+  globalSettings.setKey("swarm_allow_workspace_write", target.checked);
+  globalSettings.setKey("swarm_allow_command_exec", target.checked);
+}
 
 watch(
   nameRef,

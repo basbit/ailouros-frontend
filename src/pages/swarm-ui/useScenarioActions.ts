@@ -120,6 +120,7 @@ export function useScenarioActions(
     if (!scenario) return;
     settings.pipelineState.applyStepIds(scenario.pipeline_steps);
     settings.form.workspace_write = scenario.workspace_write_default;
+    settings.form.swarm_topology = scenario.topology?.trim() || "ring";
     settings.form.custom_scenario_id = scenario.id;
     settings.saveSettingsSoon();
   }
@@ -149,6 +150,7 @@ export function useScenarioActions(
       title,
       pipeline_steps: steps,
       workspace_write_default: !!settings.form.workspace_write,
+      topology: (settings.form.swarm_topology ?? "").trim() || "ring",
     };
     const index = settings.form.custom_scenarios.findIndex((item) => item.id === id);
     if (index >= 0) {

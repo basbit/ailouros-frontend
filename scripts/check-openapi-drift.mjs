@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -75,11 +75,17 @@ function main() {
   const write = process.argv.includes("--write");
   ensureSchema();
   regenerateTypes();
-  if (write) {
-    maybeWrite();
-    process.exit(0);
+  let code = 0;
+  try {
+    if (write) {
+      maybeWrite();
+    } else {
+      code = compareWithCommitted();
+    }
+  } finally {
+    rmSync(`${TYPES_PATH}.regenerated`, { force: true });
   }
-  process.exit(compareWithCommitted());
+  process.exit(code);
 }
 
 main();

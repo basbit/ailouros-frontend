@@ -40,6 +40,11 @@
         :d="gpuPath"
         class="host-chart__line host-chart__line--gpu"
       />
+      <path
+        v-if="gpuMemPath"
+        :d="gpuMemPath"
+        class="host-chart__line host-chart__line--gpu-mem"
+      />
     </svg>
     <div v-else class="host-chart__placeholder" />
 
@@ -63,6 +68,16 @@
         {{ gpuLabel }}
         <span v-if="latest.gpu != null" class="host-chart__legend-val">
           {{ Math.round(latest.gpu) }}%
+        </span>
+      </span>
+      <span
+        v-if="hasGpuMem"
+        class="host-chart__legend-item host-chart__legend-item--gpu-mem"
+      >
+        <span class="host-chart__swatch host-chart__swatch--gpu-mem" />
+        {{ t("hostMetrics.chart.gpuMem") }}
+        <span v-if="latest.gpuMem != null" class="host-chart__legend-val">
+          {{ Math.round(latest.gpuMem) }}%
         </span>
       </span>
     </div>
@@ -95,13 +110,19 @@ const hasGpu = computed(() =>
   props.samples.some((s) => typeof s.gpu === "number" && s.gpu !== null),
 );
 
+const hasGpuMem = computed(() =>
+  props.samples.some((s) => typeof s.gpuMem === "number" && s.gpuMem !== null),
+);
+
 const gpuLabel = computed(() =>
   props.gpuName ? `GPU · ${props.gpuName}` : t("hostMetrics.chart.gpu"),
 );
 
 const latest = computed<HostMetricsSample>(() => {
   const buf = props.samples;
-  return buf.length ? buf[buf.length - 1] : { t: 0, cpu: null, mem: null, gpu: null };
+  return buf.length
+    ? buf[buf.length - 1]
+    : { t: 0, cpu: null, mem: null, gpu: null, gpuMem: null };
 });
 
 const windowSeconds = computed(() => {
@@ -146,6 +167,9 @@ const cpuPath = computed(() => buildPath(props.samples.map((s) => s.cpu)));
 const memPath = computed(() => buildPath(props.samples.map((s) => s.mem)));
 const gpuPath = computed(() =>
   hasGpu.value ? buildPath(props.samples.map((s) => s.gpu)) : "",
+);
+const gpuMemPath = computed(() =>
+  hasGpuMem.value ? buildPath(props.samples.map((s) => s.gpuMem)) : "",
 );
 </script>
 
@@ -211,6 +235,9 @@ const gpuPath = computed(() =>
 .host-chart__line--gpu {
   stroke: #2dab66;
 }
+.host-chart__line--gpu-mem {
+  stroke: #b07be0;
+}
 .host-chart__legend {
   display: flex;
   flex-wrap: wrap;
@@ -237,6 +264,9 @@ const gpuPath = computed(() =>
 }
 .host-chart__swatch--gpu {
   background: #2dab66;
+}
+.host-chart__swatch--gpu-mem {
+  background: #b07be0;
 }
 .host-chart__legend-val {
   font-variant-numeric: tabular-nums;

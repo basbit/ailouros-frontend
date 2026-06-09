@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AgentIcon from "@/shared/ui/AgentIcon.vue";
-import RolePickerPopover from "@/shared/ui/RolePickerPopover.vue";
+import RolePickerPopover from "@/entities/role/ui/RolePickerPopover.vue";
 import { useI18n } from "@/shared/lib/i18n";
 // §10.5: single source of truth for node taxonomy — shared with
 // PipelineSummary.vue and step-summarisation utilities. Do NOT duplicate

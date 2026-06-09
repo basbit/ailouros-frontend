@@ -38,6 +38,73 @@
         <input v-model="form.human_manual_review" type="checkbox" @change="onChange" />
         <span>{{ t("configure.project.humanManualReview") }}</span>
       </label>
+
+      <fieldset class="project-pane__fieldset">
+        <legend>{{ t("configure.project.languagesLegend") }}</legend>
+        <div class="project-pane__field">
+          <span class="project-pane__label">{{ t("swarm.languagesLabel") }}</span>
+          <input
+            v-model="form.swarm_languages"
+            class="project-pane__input"
+            type="text"
+            placeholder="python, go, typescript"
+            @input="onChange"
+          />
+          <p class="project-pane__hint">{{ t("swarm.languagesHint") }}</p>
+        </div>
+        <div class="project-pane__field">
+          <span class="project-pane__label">{{ t("swarm.docLocaleLabel") }}</span>
+          <input
+            v-model="form.swarm_doc_locale"
+            class="project-pane__input"
+            type="text"
+            placeholder="ru"
+            @input="onChange"
+          />
+        </div>
+        <div class="project-pane__field">
+          <span class="project-pane__label">{{ t("swarm.docSourcesLabel") }}</span>
+          <textarea
+            v-model="form.swarm_documentation_sources"
+            class="project-pane__input"
+            rows="4"
+            placeholder="https://… one per line"
+            @input="onChange"
+          />
+          <p class="project-pane__hint">{{ t("swarm.docSourcesHint") }}</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="project-pane__fieldset">
+        <legend>{{ t("configure.project.databaseLegend") }}</legend>
+        <div class="project-pane__field">
+          <span class="project-pane__label">{{ t("swarm.databaseUrlLabel") }}</span>
+          <input
+            v-model="form.swarm_database_url"
+            class="project-pane__input"
+            type="text"
+            placeholder="postgresql://user:pass@host:5432/db"
+            @input="onChange"
+          />
+        </div>
+        <div class="project-pane__field">
+          <span class="project-pane__label">{{ t("swarm.databaseHintLabel") }}</span>
+          <input
+            v-model="form.swarm_database_hint"
+            class="project-pane__input"
+            type="text"
+            @input="onChange"
+          />
+        </div>
+        <label class="project-pane__toggle">
+          <input
+            v-model="form.swarm_database_readonly"
+            type="checkbox"
+            @change="onChange"
+          />
+          <span>{{ t("swarm.databaseReadonlyLabel") }}</span>
+        </label>
+      </fieldset>
     </form>
   </section>
 </template>
@@ -140,5 +207,30 @@ function onContextFileChange(value: string): void {
   height: 16px;
   accent-color: var(--accent);
   cursor: pointer;
+}
+
+.project-pane__fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+}
+
+.project-pane__fieldset legend {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  padding: 0 4px;
+}
+
+.project-pane__hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-3);
 }
 </style>

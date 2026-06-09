@@ -6,19 +6,22 @@ import {
   listenEvent,
   probeDesktop,
 } from "@/shared/lib/desktop-bridge";
-import {
-  recommendOnboardingPath,
-  type LlmOnboardingPath,
-  type LocalLlmDetection,
+import type {
+  LlmOnboardingPath,
+  LocalLlmDetection,
 } from "@/shared/lib/local-llm-detect";
-import { getOnboardingModels } from "@/shared/api/endpoints/onboarding";
+import type { LocalProviderProbe } from "@/shared/api/endpoints/onboarding";
 import type {
   BootstrapProgress,
   BootstrapStage,
   BootstrapStatusView,
-  StageRuntimeState,
   StageRuntimeView,
 } from "./types";
+import {
+  applyProgressEvent,
+  refreshLocalProviderDetection as refreshDetection,
+  type InternalStageState,
+} from "./first-run-helpers";
 
 const VISIBLE_STAGES: BootstrapStage[] = [
   "fetching-python",
@@ -26,13 +29,8 @@ const VISIBLE_STAGES: BootstrapStage[] = [
   "creating-venv",
   "staging-llama-cpp",
   "downloading-model",
+  "waiting-for-backend",
 ];
-
-interface InternalStageState {
-  state: StageRuntimeState;
-  fraction: number;
-  message: string;
-}
 
 function emptyStageMap(): Record<BootstrapStage, InternalStageState> {
   const map = {} as Record<BootstrapStage, InternalStageState>;
@@ -51,6 +49,9 @@ export function useFirstRun() {
     reactive<Record<BootstrapStage, InternalStageState>>(emptyStageMap());
   const detectedProviders = ref<LocalLlmDetection | null>(null);
   const recommendedPath = ref<LlmOnboardingPath | null>(null);
+  const localProviderProbes = ref<LocalProviderProbe[]>([]);
+  const backendFailureMessage = ref<string | null>(null);
+  const desktopLogTail = ref<string | null>(null);
 
   let unlistenProgress: (() => void) | null = null;
 
@@ -94,29 +95,60 @@ export function useFirstRun() {
   }
 
   function applyProgress(progress: BootstrapProgress): void {
-    if (progress.stage === "ready") {
-      for (const stage of VISIBLE_STAGES) {
-        if (stageMap[stage].state === "active" || stageMap[stage].state === "pending") {
-          stageMap[stage] = { state: "done", fraction: 1, message: "" };
-        }
-      }
-      ready.value = true;
-      return;
+    applyProgressEvent(progress, {
+      visibleStages: VISIBLE_STAGES,
+      stageMap,
+      ready,
+      backendFailureMessage,
+      onFailed: () => void loadDesktopLogs(),
+    });
+  }
+
+  async function loadDesktopLogs(): Promise<void> {
+    if (!(await ensureDesktop())) return;
+    try {
+      desktopLogTail.value = await invokeCommand<string>("read_desktop_logs", {
+        maxLinesPerFile: 80,
+      });
+    } catch (logError) {
+      desktopLogTail.value =
+        logError instanceof Error ? logError.message : String(logError);
     }
+  }
 
-    if (!(progress.stage in stageMap)) return;
-    const previous = stageMap[progress.stage];
-    if (previous.state === "done" || previous.state === "skipped") return;
-
-    const isComplete = progress.fraction >= 1;
-    const isSkipped =
-      progress.stage === "downloading-model" && /skipped/i.test(progress.message);
-
-    stageMap[progress.stage] = {
-      state: isSkipped ? "skipped" : isComplete ? "done" : "active",
-      fraction: progress.fraction,
-      message: progress.message,
+  async function retryBootstrap(): Promise<void> {
+    if (!(await ensureDesktop())) return;
+    backendFailureMessage.value = null;
+    desktopLogTail.value = null;
+    error.value = null;
+    stageMap["waiting-for-backend"] = {
+      state: "active",
+      fraction: 0,
+      message: "",
     };
+    try {
+      await invokeCommand<void>("retry_bootstrap");
+      await loadStatus();
+    } catch (retryError) {
+      const message =
+        retryError instanceof Error ? retryError.message : String(retryError);
+      backendFailureMessage.value = message;
+      stageMap["waiting-for-backend"] = {
+        state: "error",
+        fraction: 0,
+        message,
+      };
+      void loadDesktopLogs();
+    }
+  }
+
+  async function revealLogsFolder(): Promise<void> {
+    if (!(await ensureDesktop())) return;
+    try {
+      await invokeCommand<string>("reveal_logs_folder");
+    } catch (openError) {
+      error.value = openError instanceof Error ? openError.message : String(openError);
+    }
   }
 
   async function subscribe(): Promise<void> {
@@ -128,22 +160,12 @@ export function useFirstRun() {
   }
 
   async function refreshLocalProviderDetection(): Promise<void> {
-    try {
-      const models = await getOnboardingModels("");
-      const result: LocalLlmDetection = {
-        ollama: (models.ollama ?? []).length > 0,
-        lmStudio: (models.lm_studio ?? []).length > 0,
-        ollamaBaseUrl: "http://localhost:11434",
-        lmStudioBaseUrl: "http://localhost:1234",
-      };
-      detectedProviders.value = result;
-      recommendedPath.value = recommendOnboardingPath(result);
-    } catch (detectError) {
-      detectedProviders.value = null;
-      recommendedPath.value = null;
-      error.value =
-        detectError instanceof Error ? detectError.message : String(detectError);
-    }
+    await refreshDetection({
+      detectedProviders,
+      recommendedPath,
+      localProviderProbes,
+      error,
+    });
   }
 
   async function start(): Promise<void> {
@@ -172,12 +194,13 @@ export function useFirstRun() {
       await invokeCommand<void>("retry_default_model_download");
       await loadStatus();
     } catch (retryError) {
-      error.value =
+      const message =
         retryError instanceof Error ? retryError.message : String(retryError);
+      error.value = message;
       stageMap["downloading-model"] = {
         state: "error",
         fraction: 0,
-        message: error.value ?? "",
+        message,
       };
     }
   }
@@ -219,10 +242,16 @@ export function useFirstRun() {
     visible,
     detectedProviders: readonly(detectedProviders),
     recommendedPath: readonly(recommendedPath),
+    localProviderProbes: readonly(localProviderProbes),
+    backendFailureMessage: readonly(backendFailureMessage),
+    desktopLogTail: readonly(desktopLogTail),
     start,
     skipModel,
     retryModelDownload,
     refreshLocalProviderDetection,
+    loadDesktopLogs,
+    retryBootstrap,
+    revealLogsFolder,
     dismiss,
     dispose,
   };

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseChatStreamEvent } from "@/shared/lib/chat-stream-events";
+import {
+  parseChatStreamEvent,
+  parseChatStreamSiblingExtra,
+} from "@/shared/lib/chat-stream-events";
 
 describe("parseChatStreamEvent — empty/invalid", () => {
   it("returns null for empty string", () => {
@@ -267,6 +270,56 @@ describe("parseChatStreamEvent — auto_approved", () => {
       JSON.stringify({ _event_type: "auto_approved", step: "x" }),
     );
     expect(parsed?.kind).toBe("auto_approved");
+  });
+});
+
+describe("parseChatStreamSiblingExtra — retrieval_done", () => {
+  it("returns a typed retrieval_done event when the sibling key is present", () => {
+    const event = parseChatStreamSiblingExtra({
+      choices: [{ index: 0, delta: { content: "" }, finish_reason: null }],
+      retrieval_done: {
+        namespace: "wiki",
+        query: "auth flow",
+        elapsed_ms: 420,
+        chunks: [
+          {
+            chunk_id: "wiki/auth#login",
+            score: 0.91,
+            rel_path: "wiki/auth.md",
+            section: "login",
+            snippet: "JWT verified server-side…",
+          },
+        ],
+      },
+    });
+    expect(event).toEqual({
+      kind: "retrieval_done",
+      event: {
+        namespace: "wiki",
+        query: "auth flow",
+        elapsedMs: 420,
+        chunks: [
+          {
+            chunkId: "wiki/auth#login",
+            score: 0.91,
+            relPath: "wiki/auth.md",
+            section: "login",
+            snippet: "JWT verified server-side…",
+          },
+        ],
+      },
+    });
+  });
+
+  it("returns null when no recognised sibling key is present", () => {
+    expect(parseChatStreamSiblingExtra({ choices: [] })).toBeNull();
+  });
+
+  it("returns null when retrieval_done payload is malformed (not an object)", () => {
+    const event = parseChatStreamSiblingExtra({
+      retrieval_done: "garbage",
+    });
+    expect(event).toBeNull();
   });
 });
 

@@ -14,7 +14,7 @@ beforeEach(() => {
 function sample(
   partial: Partial<HostMetricsSample> & { t: number },
 ): HostMetricsSample {
-  return { cpu: null, mem: null, gpu: null, ...partial };
+  return { cpu: null, mem: null, gpu: null, gpuMem: null, ...partial };
 }
 
 describe("HostMetricsChart", () => {
@@ -48,6 +48,28 @@ describe("HostMetricsChart", () => {
     });
     expect(wrapper.find(".host-chart__line--gpu").exists()).toBe(true);
     expect(wrapper.text()).toContain("GPU · RTX 4090");
+  });
+
+  it("draws GPU utilisation and GPU memory as separate lines", () => {
+    const samples: HostMetricsSample[] = [
+      sample({ t: 0, cpu: 1, mem: 2, gpu: 80, gpuMem: 40 }),
+      sample({ t: 1000, cpu: 3, mem: 4, gpu: 75, gpuMem: 55 }),
+    ];
+    const wrapper = mount(HostMetricsChart, { props: { samples } });
+    expect(wrapper.find(".host-chart__line--gpu").exists()).toBe(true);
+    expect(wrapper.find(".host-chart__line--gpu-mem").exists()).toBe(true);
+    expect(wrapper.find(".host-chart__legend-item--gpu-mem").exists()).toBe(true);
+  });
+
+  it("hides the GPU memory line when no sample carries gpuMem", () => {
+    const samples: HostMetricsSample[] = [
+      sample({ t: 0, cpu: 1, mem: 2, gpu: 80 }),
+      sample({ t: 1000, cpu: 3, mem: 4, gpu: 75 }),
+    ];
+    const wrapper = mount(HostMetricsChart, { props: { samples } });
+    expect(wrapper.find(".host-chart__line--gpu").exists()).toBe(true);
+    expect(wrapper.find(".host-chart__line--gpu-mem").exists()).toBe(false);
+    expect(wrapper.find(".host-chart__legend-item--gpu-mem").exists()).toBe(false);
   });
 
   it("breaks the line on null samples instead of stitching across them", () => {

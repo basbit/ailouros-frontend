@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpGet, httpPost } from "@/shared/api/http";
 
 export interface TaskMetricRow {
   step_id: string;
@@ -10,14 +10,13 @@ export interface TaskMetricRow {
 }
 
 export async function cancelTask(taskId: string): Promise<void> {
-  await fetchJson<{ task_id: string; status: string; was_active: boolean }>(
+  await httpPost<{ task_id: string; status: string; was_active: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/cancel`,
-    { method: "POST" },
   );
 }
 
 export async function getTaskMetrics(taskId: string): Promise<TaskMetricRow[]> {
-  const data = await fetchJson<{ steps?: TaskMetricRow[] }>(
+  const data = await httpGet<{ steps?: TaskMetricRow[] }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/metrics`,
   );
   return Array.isArray(data.steps) ? data.steps : [];

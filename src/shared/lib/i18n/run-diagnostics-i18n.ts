@@ -1,0 +1,123 @@
+import type { Messages } from "./types";
+
+export const runDiagnosticsI18nEn: Messages = {
+  "retrievalSettings.cardAria": "Retrieval settings",
+  "retrievalSettings.headline": "Retrieval settings",
+  "retrievalSettings.refresh": "Refresh",
+  "retrievalSettings.refreshing": "Refreshing…",
+  "retrievalSettings.empty": "Press Refresh to load the current retrieval profile.",
+  "retrievalSettings.lateChunkingHeading": "Late chunking",
+  "retrievalSettings.enabled": "enabled",
+  "retrievalSettings.disabled": "disabled",
+  "redTeam.cardAria": "Red-team corpus",
+  "redTeam.headline": "Red-team corpus",
+  "redTeam.refresh": "Refresh",
+  "redTeam.refreshing": "Refreshing…",
+  "redTeam.empty": "Press Refresh to load the red-team probe catalogue.",
+  "redTeam.summary": "{count} probes · schedule {schedule}",
+  "evaluationStatus.cardAria": "Evaluation status",
+  "evaluationStatus.headline": "Evaluation status",
+  "evaluationStatus.refresh": "Refresh",
+  "evaluationStatus.refreshing": "Refreshing…",
+  "evaluationStatus.empty": "Press Refresh to load the current evaluation toggles.",
+  "evaluationStatus.ragas": "Ragas",
+  "evaluationStatus.telemetry": "Telemetry",
+  "evaluationStatus.entailment": "Entailment",
+  "evaluationStatus.enabled": "enabled",
+  "evaluationStatus.disabled": "disabled",
+  "evaluationStatus.threshold": "threshold {threshold}",
+  "runDiagnostics.cardAria": "Pipeline diagnostics",
+  "runDiagnostics.headline": "Pipeline diagnostics",
+  "runDiagnostics.refresh": "Refresh",
+  "runDiagnostics.refreshing": "Refreshing…",
+  "runDiagnostics.empty": "No diagnostics persisted for this run yet.",
+  "runDiagnostics.needsRun": "Start a run to see pipeline diagnostics here.",
+  "runDiagnostics.phaseLoop": "Phase loop",
+  "runDiagnostics.phaseSummary": "{scenario} · current {phase}",
+  "runDiagnostics.memoryTier": "Memory tier",
+  "runDiagnostics.entailment": "Entailment",
+  "runDiagnostics.entailmentScore": "score {score}",
+  "runDiagnostics.citation": "Citation enforcement",
+  "runDiagnostics.citationCounts": "cited {cited}/{total} · violations {violations}",
+  "runDiagnostics.selectAria": "Pick a task to inspect",
+  "runDiagnostics.postGates": "Post-pipeline gates",
+  "runDiagnostics.postGatesPrm": "score {score}",
+  "runDiagnostics.flare": "FLARE confidence",
+  "runDiagnostics.flareSummary":
+    "confidence {confidence} · {samples} samples · round {round}",
+  "runDiagnostics.enableHintsHeading": "Enable hints",
+  "runDiagnostics.hint.phase_loop":
+    "Set SWARM_ORCHESTRATION_PHASE_LOOP_AUTO_ADVANCE=1 to advance phases automatically.",
+  "runDiagnostics.hint.wiki_context_tier":
+    "Set SWARM_MEMORY_TIER_ROUTING_ENABLED=1 to classify wiki context into tiers.",
+  "runDiagnostics.hint.entailment_verdict":
+    "Set SWARM_EVALUATION_ENTAILMENT_ENABLED=1 to enable post-answer entailment.",
+  "runDiagnostics.hint.citation_enforcement":
+    "Set SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict to enable per-node coverage.",
+  "runDiagnostics.hint.post_pipeline_gates":
+    "Set SWARM_REASONING_PRM_ENABLED=1 + model and/or SWARM_REASONING_VERIFIER_ENABLED=1 + model.",
+  "runDiagnostics.hint.flare_signal":
+    "Set SWARM_REASONING_FLARE_ENABLED=1 and SWARM_REASONING_SELF_CONSISTENCY_SAMPLES>=2.",
+};
+
+export const runDiagnosticsI18nRu: Messages = {
+  "retrievalSettings.cardAria": "Настройки ретривала",
+  "retrievalSettings.headline": "Настройки ретривала",
+  "retrievalSettings.refresh": "Обновить",
+  "retrievalSettings.refreshing": "Обновляю…",
+  "retrievalSettings.empty":
+    "Нажми Обновить, чтобы загрузить текущий профиль ретривала.",
+  "retrievalSettings.lateChunkingHeading": "Late chunking",
+  "retrievalSettings.enabled": "включён",
+  "retrievalSettings.disabled": "выключен",
+  "redTeam.cardAria": "Red-team корпус",
+  "redTeam.headline": "Red-team корпус",
+  "redTeam.refresh": "Обновить",
+  "redTeam.refreshing": "Обновляю…",
+  "redTeam.empty": "Нажми Обновить, чтобы загрузить каталог red-team probes.",
+  "redTeam.summary": "{count} probes · расписание {schedule}",
+  "evaluationStatus.cardAria": "Статус оценки",
+  "evaluationStatus.headline": "Статус оценки",
+  "evaluationStatus.refresh": "Обновить",
+  "evaluationStatus.refreshing": "Обновляю…",
+  "evaluationStatus.empty":
+    "Нажми Обновить, чтобы увидеть текущие переключатели evaluation.",
+  "evaluationStatus.ragas": "Ragas",
+  "evaluationStatus.telemetry": "Телеметрия",
+  "evaluationStatus.entailment": "Энтейлмент",
+  "evaluationStatus.enabled": "включён",
+  "evaluationStatus.disabled": "выключен",
+  "evaluationStatus.threshold": "порог {threshold}",
+  "runDiagnostics.cardAria": "Диагностика пайплайна",
+  "runDiagnostics.headline": "Диагностика пайплайна",
+  "runDiagnostics.refresh": "Обновить",
+  "runDiagnostics.refreshing": "Обновляю…",
+  "runDiagnostics.empty": "Для этого прогона диагностика ещё не записана.",
+  "runDiagnostics.needsRun": "Запусти прогон — здесь появится диагностика.",
+  "runDiagnostics.phaseLoop": "Фазовый цикл",
+  "runDiagnostics.phaseSummary": "{scenario} · текущая {phase}",
+  "runDiagnostics.memoryTier": "Memory-tier",
+  "runDiagnostics.entailment": "Энтейлмент",
+  "runDiagnostics.entailmentScore": "оценка {score}",
+  "runDiagnostics.citation": "Citation enforcement",
+  "runDiagnostics.citationCounts": "цитат {cited}/{total} · нарушений {violations}",
+  "runDiagnostics.selectAria": "Выбери task для просмотра",
+  "runDiagnostics.postGates": "Пост-пайплайн gates",
+  "runDiagnostics.postGatesPrm": "оценка {score}",
+  "runDiagnostics.flare": "FLARE уверенность",
+  "runDiagnostics.flareSummary":
+    "уверенность {confidence} · сэмплов {samples} · раунд {round}",
+  "runDiagnostics.enableHintsHeading": "Подсказки как включить",
+  "runDiagnostics.hint.phase_loop":
+    "Поставь SWARM_ORCHESTRATION_PHASE_LOOP_AUTO_ADVANCE=1 для автоматических переходов фаз.",
+  "runDiagnostics.hint.wiki_context_tier":
+    "Поставь SWARM_MEMORY_TIER_ROUTING_ENABLED=1 для классификации wiki-контекста по tier'ам.",
+  "runDiagnostics.hint.entailment_verdict":
+    "Поставь SWARM_EVALUATION_ENTAILMENT_ENABLED=1 для пост-ответного entailment'а.",
+  "runDiagnostics.hint.citation_enforcement":
+    "Поставь SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict для per-node coverage.",
+  "runDiagnostics.hint.post_pipeline_gates":
+    "Поставь SWARM_REASONING_PRM_ENABLED=1 + model и/или SWARM_REASONING_VERIFIER_ENABLED=1 + model.",
+  "runDiagnostics.hint.flare_signal":
+    "Поставь SWARM_REASONING_FLARE_ENABLED=1 и SWARM_REASONING_SELF_CONSISTENCY_SAMPLES>=2.",
+};

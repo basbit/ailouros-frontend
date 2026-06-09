@@ -1,4 +1,4 @@
-type SlashCommandKind = "goal";
+type SlashCommandKind = "goal" | "dispatch" | "quick";
 
 export interface SlashCommand {
   key: SlashCommandKind;
@@ -12,6 +12,17 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     trigger: "/goal",
     description:
       "Create a persistent goal that spawns tasks until success criteria are met.",
+  },
+  {
+    key: "dispatch",
+    trigger: "/dispatch",
+    description: "Route a task hint through the skill dispatcher (no run started).",
+  },
+  {
+    key: "quick",
+    trigger: "/quick",
+    description:
+      "Evaluate a change as a quick-fix candidate: `description | file1,file2 | loc`.",
   },
 ];
 
@@ -63,6 +74,47 @@ export function tryParseGoalCommand(raw: string): ParsedGoalCommand | null {
   }
   description = descriptionBuffer.join("\n").trim();
   return { kind: "goal", title, successCriteria: criteria, description, schedule };
+}
+
+type DispatchOrQuickKind = "dispatch" | "quick";
+
+export interface DispatchOrQuickIntent {
+  readonly kind: DispatchOrQuickKind;
+  readonly payload: string;
+}
+
+const _DISPATCH_OR_QUICK_PATTERN = /^\/(dispatch|quick)\b\s*(.*)$/i;
+
+export function tryParseDispatchOrQuick(raw: string): DispatchOrQuickIntent | null {
+  const match = _DISPATCH_OR_QUICK_PATTERN.exec(raw.trim());
+  if (!match) return null;
+  return {
+    kind: match[1].toLowerCase() as DispatchOrQuickKind,
+    payload: match[2].trim(),
+  };
+}
+
+export interface QuickFixPayload {
+  readonly description: string;
+  readonly targetFiles: readonly string[];
+  readonly estimatedLoc: number;
+}
+
+export function parseQuickFixPayload(payload: string): QuickFixPayload {
+  const segments = payload.split("|").map((entry) => entry.trim());
+  const description = segments[0] ?? "";
+  const filesRaw = segments[1] ?? "";
+  const locRaw = segments[2] ?? "0";
+  const targetFiles = filesRaw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  const parsedLoc = Number.parseInt(locRaw, 10);
+  return {
+    description,
+    targetFiles,
+    estimatedLoc: Number.isFinite(parsedLoc) && parsedLoc >= 0 ? parsedLoc : 0,
+  };
 }
 
 function parseScheduleLine(raw: string): ParsedGoalSchedule | null {

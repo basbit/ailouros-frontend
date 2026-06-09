@@ -1,4 +1,4 @@
-import { ApiError, fetchJson } from "@/shared/api/client";
+import { ApiError, httpGet, httpPatch } from "@/shared/api/http";
 
 export interface WorkspaceFilePayload {
   path: string;
@@ -27,7 +27,7 @@ export async function getWorkspaceFile(
   taskId: string,
   path: string,
 ): Promise<WorkspaceFilePayload> {
-  return fetchJson<WorkspaceFilePayload>(
+  return httpGet<WorkspaceFilePayload>(
     `/v1/tasks/${encodeURIComponent(taskId)}/workspace-file?path=${encodeURIComponent(path)}`,
   );
 }
@@ -37,18 +37,14 @@ export async function patchWorkspaceFile(
   path: string,
   content: string,
 ): Promise<void> {
-  await fetchJson<{ ok: boolean }>(
+  await httpPatch<{ ok: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/workspace-file`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path, content }),
-    },
+    { path, content },
   );
 }
 
 export async function getWorkspaceDiff(taskId: string): Promise<WorkspaceDiffPayload> {
-  return fetchJson<WorkspaceDiffPayload>(
+  return httpGet<WorkspaceDiffPayload>(
     `/v1/tasks/${encodeURIComponent(taskId)}/workspace-diff`,
   );
 }
@@ -56,7 +52,7 @@ export async function getWorkspaceDiff(taskId: string): Promise<WorkspaceDiffPay
 export async function getClarifyQuestions(
   taskId: string,
 ): Promise<{ questions?: ClarifyQuestionDto[] }> {
-  return fetchJson<{ questions?: ClarifyQuestionDto[] }>(
+  return httpGet<{ questions?: ClarifyQuestionDto[] }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/clarify-questions`,
   );
 }
@@ -64,7 +60,7 @@ export async function getClarifyQuestions(
 export async function listWorkspaceFiles(
   workspaceRoot: string,
 ): Promise<WorkspaceFilesPayload> {
-  return fetchJson<WorkspaceFilesPayload>(
+  return httpGet<WorkspaceFilesPayload>(
     `/v1/workspace/files?workspace_root=${encodeURIComponent(workspaceRoot)}`,
   );
 }

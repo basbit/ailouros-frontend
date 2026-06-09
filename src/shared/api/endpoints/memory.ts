@@ -1,4 +1,4 @@
-import { fetchJson } from "@/shared/api/client";
+import { httpDelete, httpGet, httpPost } from "@/shared/api/http";
 
 type MemoryEntrySource = "note" | "pattern_memory" | "qdrant";
 
@@ -16,19 +16,15 @@ export async function listMemoryNotes(): Promise<{
   entries?: MemoryEntry[];
   error?: string;
 }> {
-  return fetchJson<{ entries?: MemoryEntry[]; error?: string }>("/v1/memory/notes");
+  return httpGet<{ entries?: MemoryEntry[]; error?: string }>("/v1/memory/notes");
 }
 
 export async function createMemoryNote(text: string, source: string): Promise<void> {
-  await fetchJson<{ ok: boolean }>("/v1/memory/notes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, source }),
-  });
+  await httpPost<{ ok: boolean }>("/v1/memory/notes", { text, source });
 }
 
 export async function deleteMemoryNote(index: number): Promise<void> {
-  await fetchJson<{ ok: boolean }>(`/v1/memory/notes/${index}`, { method: "DELETE" });
+  await httpDelete<{ ok: boolean }>(`/v1/memory/notes/${index}`);
 }
 
 export async function consolidateMemoryNotes(): Promise<{
@@ -36,9 +32,8 @@ export async function consolidateMemoryNotes(): Promise<{
   entries_processed?: number;
   error?: string;
 }> {
-  return fetchJson<{ status?: string; entries_processed?: number; error?: string }>(
+  return httpPost<{ status?: string; entries_processed?: number; error?: string }>(
     "/v1/memory/consolidate",
-    { method: "POST" },
   );
 }
 
@@ -49,7 +44,7 @@ export async function listQdrantEntries(
   const params = new URLSearchParams();
   if (collection) params.set("collection", collection);
   params.set("limit", String(limit));
-  return fetchJson<{ entries: MemoryEntry[]; collections: string[] }>(
+  return httpGet<{ entries: MemoryEntry[]; collections: string[] }>(
     `/v1/memory/qdrant?${params.toString()}`,
   );
 }

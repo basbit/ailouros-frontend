@@ -1,3 +1,7 @@
+import {
+  parseRetrievalDonePayload,
+  type RetrievalDoneEvent,
+} from "@/shared/model/streaming-rag-types";
 import type {
   OrchestratorSseEvent,
   OrchestratorSseEventName,
@@ -8,6 +12,11 @@ interface AutoApprovedEvent {
   step: string;
   rule?: string | null;
   audit?: Record<string, unknown> | null;
+}
+
+interface RetrievalDoneStreamEvent {
+  kind: "retrieval_done";
+  event: RetrievalDoneEvent;
 }
 
 export interface OrchestratorStreamEvent {
@@ -35,7 +44,8 @@ interface McpStatusEvent {
 export type ChatStreamEvent =
   | AutoApprovedEvent
   | OrchestratorStreamEvent
-  | McpStatusEvent;
+  | McpStatusEvent
+  | RetrievalDoneStreamEvent;
 
 const ORCHESTRATOR_EVENT_LINE_PREFIX = "[orchestrator-event]";
 
@@ -82,6 +92,17 @@ function parseOrchestratorEventLine(line: string): OrchestratorStreamEvent | nul
   } catch {
     return null;
   }
+}
+
+export function parseChatStreamSiblingExtra(
+  payload: Record<string, unknown>,
+): ChatStreamEvent | null {
+  const retrievalDoneRaw = payload["retrieval_done"];
+  if (retrievalDoneRaw !== undefined) {
+    const event = parseRetrievalDonePayload(retrievalDoneRaw);
+    if (event) return { kind: "retrieval_done", event };
+  }
+  return null;
 }
 
 export function parseChatStreamEvent(content: string): ChatStreamEvent | null {

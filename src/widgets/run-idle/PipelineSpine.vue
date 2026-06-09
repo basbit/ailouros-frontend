@@ -7,9 +7,6 @@
           {{ t("runIdle.spineMeta", { count: steps.length }) }}
         </span>
       </div>
-      <button type="button" class="spine__link" @click="emit('open-configure')">
-        {{ t("runIdle.openConfigure") }}
-      </button>
     </header>
     <ol v-if="steps.length" class="spine__track">
       <li v-for="(step, index) in steps" :key="`${step}-${index}`" class="spine__node">
@@ -25,10 +22,6 @@ import { useI18n } from "@/shared/lib/i18n";
 
 defineProps<{
   steps: string[];
-}>();
-
-const emit = defineEmits<{
-  "open-configure": [];
 }>();
 
 const { t } = useI18n();
@@ -67,22 +60,6 @@ const { t } = useI18n();
 .spine__caption-meta {
   font-size: 11px;
   color: var(--ink-3);
-}
-
-.spine__link {
-  appearance: none;
-  background: transparent;
-  border: none;
-  color: var(--accent-2);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--r-sm);
-}
-
-.spine__link:hover {
-  background: var(--card);
 }
 
 .spine__track {

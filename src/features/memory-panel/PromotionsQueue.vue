@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from "vue";
-import { ApiError } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import {
   approvePromotion,
   listPromotions,
