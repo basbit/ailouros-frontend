@@ -5,11 +5,6 @@ export const FLAG_GROUP_REASONING: FeatureFlagGroup = {
   fields: [
     {
       kind: "boolean",
-      field: "swarm_reasoning_flare",
-      envName: "SWARM_REASONING_FLARE_ENABLED",
-    },
-    {
-      kind: "boolean",
       field: "swarm_reflexion",
       envName: "SWARM_REFLEXION_ENABLED",
     },
@@ -32,12 +27,6 @@ export const FLAG_GROUP_REASONING: FeatureFlagGroup = {
       placeholder: "model id (optional)",
     },
     {
-      kind: "string",
-      field: "swarm_memory_tier_model",
-      envName: "SWARM_MEMORY_TIER_MODEL",
-      placeholder: "model id (optional)",
-    },
-    {
       kind: "boolean",
       field: "swarm_reasoning_prm",
       envName: "SWARM_REASONING_PRM_ENABLED",
@@ -47,12 +36,6 @@ export const FLAG_GROUP_REASONING: FeatureFlagGroup = {
       kind: "boolean",
       field: "swarm_reasoning_verifier",
       envName: "SWARM_REASONING_VERIFIER_ENABLED",
-      wired: true,
-    },
-    {
-      kind: "boolean",
-      field: "swarm_memory_tier_routing",
-      envName: "SWARM_MEMORY_TIER_ROUTING_ENABLED",
       wired: true,
     },
   ],

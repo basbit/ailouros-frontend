@@ -37,19 +37,13 @@ interface CitationEnforcementReport {
   }[];
 }
 
-interface PostPipelineGates {
-  readonly prmScore: number | null;
-  readonly prmReason: string;
-  readonly verifierVerdict: string;
-  readonly verifierReason: string;
+interface RagasMetricScore {
+  readonly score: number;
+  readonly reason: string;
 }
 
-interface FlareSignal {
-  readonly verdict: string;
-  readonly confidence: number;
-  readonly sampleCount: number;
-  readonly reason: string;
-  readonly round: number;
+interface RagasMetrics {
+  readonly scores: Readonly<Record<string, RagasMetricScore>>;
 }
 
 export interface RunDiagnostics {
@@ -58,8 +52,7 @@ export interface RunDiagnostics {
   readonly wikiContextTier: WikiContextTier | null;
   readonly entailmentVerdict: EntailmentVerdict | null;
   readonly citation: CitationEnforcementReport | null;
-  readonly postPipelineGates: PostPipelineGates | null;
-  readonly flareSignal: FlareSignal | null;
+  readonly ragasMetrics: RagasMetrics | null;
   readonly enableHints: Readonly<Record<string, string>>;
 }
 
@@ -89,19 +82,9 @@ interface RawCitationNode {
   violations?: unknown;
 }
 
-interface RawPostPipelineGates {
-  prm_score?: unknown;
-  prm_reason?: unknown;
-  verifier_verdict?: unknown;
-  verifier_reason?: unknown;
-}
-
-interface RawFlareSignal {
-  verdict?: unknown;
-  confidence?: unknown;
-  sample_count?: unknown;
+interface RawRagasMetricScore {
+  score?: unknown;
   reason?: unknown;
-  round?: unknown;
 }
 
 interface RawPayload {
@@ -110,8 +93,7 @@ interface RawPayload {
   wiki_context_tier?: unknown;
   entailment_verdict?: unknown;
   citation_enforcement?: unknown;
-  post_pipeline_gates?: unknown;
-  flare_signal?: unknown;
+  ragas_metrics?: unknown;
   enable_hints?: unknown;
 }
 
@@ -185,35 +167,20 @@ function parseCitationNode(raw: unknown): CitationEnforcementNode | null {
   };
 }
 
-function parsePostPipelineGates(raw: unknown): PostPipelineGates | null {
+function parseRagasMetrics(raw: unknown): RagasMetrics | null {
   if (!raw || typeof raw !== "object") return null;
-  const candidate = raw as RawPostPipelineGates;
-  const hasPrm =
-    typeof candidate.prm_score === "number" && Number.isFinite(candidate.prm_score);
-  const hasVerifier =
-    typeof candidate.verifier_verdict === "string" &&
-    candidate.verifier_verdict.length > 0;
-  if (!hasPrm && !hasVerifier) return null;
-  return {
-    prmScore: hasPrm ? Number(candidate.prm_score) : null,
-    prmReason: readString(candidate.prm_reason),
-    verifierVerdict: readString(candidate.verifier_verdict),
-    verifierReason: readString(candidate.verifier_reason),
-  };
-}
-
-function parseFlareSignal(raw: unknown): FlareSignal | null {
-  if (!raw || typeof raw !== "object") return null;
-  const candidate = raw as RawFlareSignal;
-  const verdict = readString(candidate.verdict);
-  if (!verdict) return null;
-  return {
-    verdict,
-    confidence: readNumber(candidate.confidence),
-    sampleCount: readNonNegativeInt(candidate.sample_count),
-    reason: readString(candidate.reason),
-    round: readNonNegativeInt(candidate.round),
-  };
+  const entries = Object.entries(raw as Record<string, unknown>);
+  const scores: Record<string, RagasMetricScore> = {};
+  for (const [metric, value] of entries) {
+    if (!value || typeof value !== "object") continue;
+    const candidate = value as RawRagasMetricScore;
+    scores[metric] = {
+      score: readNumber(candidate.score),
+      reason: readString(candidate.reason),
+    };
+  }
+  if (Object.keys(scores).length === 0) return null;
+  return { scores };
 }
 
 function parseEnableHints(raw: unknown): Record<string, string> {
@@ -248,8 +215,7 @@ export function parseRunDiagnosticsPayload(raw: unknown): RunDiagnostics | null 
     wikiContextTier: parseWikiTier(candidate.wiki_context_tier),
     entailmentVerdict: parseEntailment(candidate.entailment_verdict),
     citation: parseCitation(candidate.citation_enforcement),
-    postPipelineGates: parsePostPipelineGates(candidate.post_pipeline_gates),
-    flareSignal: parseFlareSignal(candidate.flare_signal),
+    ragasMetrics: parseRagasMetrics(candidate.ragas_metrics),
     enableHints: parseEnableHints(candidate.enable_hints),
   };
 }

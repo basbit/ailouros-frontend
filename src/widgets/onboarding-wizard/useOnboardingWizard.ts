@@ -14,7 +14,7 @@ import type {
   PreflightInfo,
   PreflightRecommendation,
   ModelAssignment,
-} from "@/shared/model/onboarding-types";
+} from "@/features/onboarding/onboarding-types";
 
 export interface SearchApiKeys {
   tavily_api_key?: string;

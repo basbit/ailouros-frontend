@@ -208,10 +208,10 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tool-activity {
-  border: 1px solid var(--border, #2a2f3e);
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--surface, #1a1d29) 60%, transparent);
+  background: var(--card);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text2, #a8b0c4);
+  color: var(--ink-3);
 }
 .tool-activity__filters {
   display: flex;
@@ -238,21 +238,21 @@ onBeforeUnmount(() => {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid var(--border, #2a2f3e);
+  border: 1px solid var(--line);
   background: transparent;
-  color: var(--text2, #a8b0c4);
+  color: var(--ink-3);
   cursor: pointer;
 }
 .tool-activity__chip--active {
-  background: var(--accent, #6c8cff);
-  color: var(--surface, #1a1d29);
+  background: var(--accent);
+  color: #fff;
   border-color: transparent;
 }
 .tool-activity__reload {
   background: transparent;
-  border: 1px solid var(--border, #2a2f3e);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  color: var(--text, #f5f0e7);
+  color: var(--ink);
   padding: 2px 8px;
   font-size: 12px;
   cursor: pointer;
@@ -260,10 +260,10 @@ onBeforeUnmount(() => {
 .tool-activity__hint,
 .tool-activity__error {
   font-size: 12px;
-  color: var(--text2, #a8b0c4);
+  color: var(--ink-3);
 }
 .tool-activity__error {
-  color: var(--error, #d7563f);
+  color: var(--error);
 }
 .tool-activity__list {
   list-style: none;
@@ -279,13 +279,13 @@ onBeforeUnmount(() => {
   font-size: 11px;
   padding: 4px 6px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--surface-2, #11141d) 80%, transparent);
+  background: var(--bg-2);
 }
 .tool-activity__entry-head {
   display: flex;
   gap: 6px;
-  font-family: var(--mono, ui-monospace, monospace);
-  color: var(--text3, #6b7280);
+  font-family: var(--font-mono);
+  color: var(--ink-4);
 }
 .tool-activity__channel {
   font-size: 10px;
@@ -293,8 +293,8 @@ onBeforeUnmount(() => {
   letter-spacing: 0.04em;
 }
 .tool-activity__entry-body {
-  font-family: var(--mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   word-break: break-word;
-  color: var(--text, #f5f0e7);
+  color: var(--ink);
 }
 </style>

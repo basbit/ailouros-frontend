@@ -1,37 +1,6 @@
 import type { Messages } from "./types";
 
 export const miscEn: Messages = {
-  "pluginsMarketplace.title.registries": "Registries",
-  "pluginsMarketplace.title.installed": "Installed",
-  "pluginsMarketplace.input.registryName": "name",
-  "pluginsMarketplace.input.registryUrl": "https://registry.example.com",
-  "pluginsMarketplace.input.searchPlaceholder": "Search plugins…",
-  "pluginsMarketplace.btn.addRegistry": "Add registry",
-  "pluginsMarketplace.btn.adding": "Adding…",
-  "pluginsMarketplace.btn.refresh": "Refresh",
-  "pluginsMarketplace.btn.refreshing": "Refreshing…",
-  "pluginsMarketplace.btn.reload": "Reload",
-  "pluginsMarketplace.btn.reloading": "Reloading…",
-  "pluginsMarketplace.btn.search": "Search",
-  "pluginsMarketplace.btn.searching": "Searching…",
-  "pluginsMarketplace.btn.install": "Install",
-  "pluginsMarketplace.btn.installing": "Installing…",
-  "pluginsMarketplace.btn.uninstall": "Uninstall",
-  "pluginsMarketplace.btn.removing": "Removing…",
-  "pluginsMarketplace.state.loadingRegistries": "Loading registries…",
-  "pluginsMarketplace.state.registriesUnavailable":
-    "Plugins API not available yet (endpoint not available).",
-  "pluginsMarketplace.state.noRegistries": "No registries configured.",
-  "pluginsMarketplace.state.pluginCount": "{n} plugins",
-  "pluginsMarketplace.state.searching": "Searching…",
-  "pluginsMarketplace.state.searchUnavailable":
-    "Plugin search not available yet (endpoint not available).",
-  "pluginsMarketplace.state.noResults": "No plugins matched.",
-  "pluginsMarketplace.state.searchPrompt": "Enter a query to search.",
-  "pluginsMarketplace.state.loadingInstalled": "Loading installed plugins…",
-  "pluginsMarketplace.state.installedUnavailable":
-    "Installed plugins endpoint not available yet.",
-  "pluginsMarketplace.state.noInstalled": "No plugins installed.",
   "errors.duplicateProfileId": "Duplicate remote profile id: {ids}",
   "errors.invalidMcpJson": "Invalid MCP JSON: {message}",
   "errors.invalidMcpShape":
@@ -127,37 +96,6 @@ export const miscEn: Messages = {
 };
 
 export const miscRu: Messages = {
-  "pluginsMarketplace.title.registries": "Реестры",
-  "pluginsMarketplace.title.installed": "Установленные",
-  "pluginsMarketplace.input.registryName": "имя",
-  "pluginsMarketplace.input.registryUrl": "https://registry.example.com",
-  "pluginsMarketplace.input.searchPlaceholder": "Поиск плагинов…",
-  "pluginsMarketplace.btn.addRegistry": "Добавить реестр",
-  "pluginsMarketplace.btn.adding": "Добавляем…",
-  "pluginsMarketplace.btn.refresh": "Обновить",
-  "pluginsMarketplace.btn.refreshing": "Обновляем…",
-  "pluginsMarketplace.btn.reload": "Перезагрузить",
-  "pluginsMarketplace.btn.reloading": "Перезагружаем…",
-  "pluginsMarketplace.btn.search": "Искать",
-  "pluginsMarketplace.btn.searching": "Поиск…",
-  "pluginsMarketplace.btn.install": "Установить",
-  "pluginsMarketplace.btn.installing": "Устанавливаем…",
-  "pluginsMarketplace.btn.uninstall": "Удалить",
-  "pluginsMarketplace.btn.removing": "Удаляем…",
-  "pluginsMarketplace.state.loadingRegistries": "Загружаем реестры…",
-  "pluginsMarketplace.state.registriesUnavailable":
-    "API плагинов пока недоступен (endpoint недоступен).",
-  "pluginsMarketplace.state.noRegistries": "Реестры не настроены.",
-  "pluginsMarketplace.state.pluginCount": "{n} плагинов",
-  "pluginsMarketplace.state.searching": "Поиск…",
-  "pluginsMarketplace.state.searchUnavailable":
-    "Поиск плагинов пока недоступен (endpoint недоступен).",
-  "pluginsMarketplace.state.noResults": "Плагины не найдены.",
-  "pluginsMarketplace.state.searchPrompt": "Введите запрос для поиска.",
-  "pluginsMarketplace.state.loadingInstalled": "Загружаем установленные плагины…",
-  "pluginsMarketplace.state.installedUnavailable":
-    "Список установленных плагинов пока недоступен.",
-  "pluginsMarketplace.state.noInstalled": "Нет установленных плагинов.",
   "errors.duplicateProfileId": "Дублирующийся id remote profile: {ids}",
   "errors.invalidMcpJson": "Неверный MCP JSON: {message}",
   "errors.invalidMcpShape":

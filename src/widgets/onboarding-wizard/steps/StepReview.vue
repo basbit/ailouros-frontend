@@ -70,7 +70,7 @@ import type {
   ModelAssignment,
   ScanResult,
   MCPServerSpec,
-} from "@/shared/model/onboarding-types";
+} from "@/features/onboarding/onboarding-types";
 import { useI18n } from "@/shared/lib/i18n";
 
 defineProps<{

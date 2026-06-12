@@ -22,11 +22,26 @@ export interface EventRow {
 type UiStore = ReturnType<typeof useUiStore>;
 type SwarmRunController = ReturnType<typeof useInjectedSwarmRunController>;
 
+/**
+ * Read-only view of a historical run, sourced from the loaded HistoryEntry and
+ * its task snapshot instead of the live ui store. When provided, the steps and
+ * log render from this data and `isRunning` is treated as false (a completed run
+ * never has an active step).
+ */
+export interface HistorySource {
+  pipelineSteps: string[];
+  events: EventRow[];
+  /** Step the run failed at (task snapshot `failed_step`), when known. */
+  failedStep?: string | null;
+}
+
 interface RunLiveStepsOptions {
   ui: UiStore;
   controller: SwarmRunController;
   isRunning: ComputedRef<boolean>;
   logFilter: Ref<LogFilter>;
+  /** When set, steps + log come from the historical run, not the live store. */
+  history?: ComputedRef<HistorySource | null>;
 }
 
 export function useRunLiveSteps({
@@ -34,8 +49,15 @@ export function useRunLiveSteps({
   controller,
   isRunning,
   logFilter,
+  history,
 }: RunLiveStepsOptions) {
-  const events = computed<EventRow[]>(() => ui.taskHistory as EventRow[]);
+  const historySource = computed<HistorySource | null>(() => history?.value ?? null);
+
+  const events = computed<EventRow[]>(() => {
+    const source = historySource.value;
+    if (source) return source.events;
+    return ui.taskHistory as EventRow[];
+  });
 
   const filteredEvents = computed(() => {
     if (logFilter.value === "all") return events.value;
@@ -51,6 +73,8 @@ export function useRunLiveSteps({
   });
 
   const plannedStepIds = computed<string[]>(() => {
+    const source = historySource.value;
+    if (source) return source.pipelineSteps;
     const fromController = controller.currentPipelineSteps.value;
     if (fromController.length) return fromController;
     const fromPlan = ui.taskPipelinePlan?.pipeline_steps ?? [];
@@ -94,12 +118,27 @@ export function useRunLiveSteps({
   }
 
   const stepRows = computed<StepRow[]>(() => {
+    const isHistory = historySource.value !== null;
     const stepIds = plannedStepIds.value;
     const derived = deriveStepStatesFromHistory(stepIds);
-    const orchestratorCompleted = new Set(ui.orchestratorCompletedSteps);
+    // For a historical run the live ui store is unrelated to this entry, so we
+    // only trust the snapshot events; the live orchestrator/active-step refs
+    // belong to whatever the Run page is currently showing.
+    const orchestratorCompleted = isHistory
+      ? new Set<string>()
+      : new Set(ui.orchestratorCompletedSteps);
     const completedSet = new Set([...orchestratorCompleted, ...derived.completed]);
     const failedSet = new Set(derived.failed);
-    const activeId = ui.activeStep;
+    // The final pipeline error event is attributed to the orchestrator, not to
+    // the step that died — the snapshot's failed_step closes that gap so a
+    // failed run does not render its last step as merely "pending".
+    const snapshotFailedStep = isHistory
+      ? (historySource.value?.failedStep ?? "").trim()
+      : "";
+    if (snapshotFailedStep && !completedSet.has(snapshotFailedStep)) {
+      failedSet.add(snapshotFailedStep);
+    }
+    const activeId = isHistory ? null : ui.activeStep;
     let activeAssigned = false;
     return stepIds.map((id) => {
       if (failedSet.has(id)) return { id, state: "failed" as const };

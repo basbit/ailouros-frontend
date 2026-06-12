@@ -7,12 +7,6 @@ export const featureFlagsReasoningEfficiencyEn: Messages = {
   "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
   "featureFlags.field.swarm_reasoning_verifier.hint":
     "Second-opinion pass that may revise or abstain.",
-  "featureFlags.field.swarm_memory_tier_routing.label": "Memory tier routing",
-  "featureFlags.field.swarm_memory_tier_routing.hint":
-    "Classify writes into semantic / episodic / procedural memory.",
-  "featureFlags.field.swarm_reasoning_flare.label": "FLARE",
-  "featureFlags.field.swarm_reasoning_flare.hint":
-    "FLARE — active retrieval during generation triggered by low token confidence. Needs a logprob-capable model.",
   "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
   "featureFlags.field.swarm_reflexion.hint":
     "Reflexion — the agent self-critiques and revises its own answer before finalizing (extra LLM pass).",
@@ -26,9 +20,6 @@ export const featureFlagsReasoningEfficiencyEn: Messages = {
   "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
   "featureFlags.field.swarm_reasoning_prm_model.hint":
     "Model id for the process-reward-model per-step scoring.",
-  "featureFlags.field.swarm_memory_tier_model.label": "Memory-tier model",
-  "featureFlags.field.swarm_memory_tier_model.hint":
-    "Model for LLM memory-tier classification. Empty = heuristic.",
   "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
   "featureFlags.field.swarm_prompt_cache.hint":
     "Reuse provider prompt-cache markers across requests.",
@@ -53,12 +44,6 @@ export const featureFlagsReasoningEfficiencyRu: Messages = {
   "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
   "featureFlags.field.swarm_reasoning_verifier.hint":
     "Second-opinion проход с возможной правкой или абстейном.",
-  "featureFlags.field.swarm_memory_tier_routing.label": "Маршрутизация memory-тиров",
-  "featureFlags.field.swarm_memory_tier_routing.hint":
-    "Классифицировать запись в semantic / episodic / procedural память.",
-  "featureFlags.field.swarm_reasoning_flare.label": "FLARE",
-  "featureFlags.field.swarm_reasoning_flare.hint":
-    "FLARE — активный retrieval во время генерации, запускаемый при низкой уверенности токенов. Нужна модель с logprob.",
   "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
   "featureFlags.field.swarm_reflexion.hint":
     "Reflexion — агент сам критикует и правит свой ответ перед финализацией (доп. LLM-проход).",
@@ -72,9 +57,6 @@ export const featureFlagsReasoningEfficiencyRu: Messages = {
   "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
   "featureFlags.field.swarm_reasoning_prm_model.hint":
     "Идентификатор модели для пошагового скоринга process-reward-model.",
-  "featureFlags.field.swarm_memory_tier_model.label": "Модель memory-тиров",
-  "featureFlags.field.swarm_memory_tier_model.hint":
-    "Модель для LLM-классификации memory-тиров. Пусто = эвристика.",
   "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
   "featureFlags.field.swarm_prompt_cache.hint":
     "Переиспользовать prompt-cache маркеры провайдера между запросами.",

@@ -65,48 +65,30 @@ describe("parseRunDiagnosticsPayload", () => {
     expect(parsed?.phaseLoop?.history[0]?.from).toBe("a");
   });
 
-  it("parses post_pipeline_gates with prm + verifier", () => {
+  it("parses ragas_metrics with scores", () => {
     const parsed = parseRunDiagnosticsPayload({
       task_id: "t",
-      post_pipeline_gates: {
-        prm_score: 0.42,
-        prm_reason: "ok",
-        verifier_verdict: "revise",
-        verifier_reason: "needs more detail",
+      ragas_metrics: {
+        faithfulness: { score: 0.85, reason: "strong overlap" },
+        answer_relevancy: { score: 0.72, reason: "" },
       },
     });
-    expect(parsed?.postPipelineGates?.prmScore).toBe(0.42);
-    expect(parsed?.postPipelineGates?.verifierVerdict).toBe("revise");
+    expect(parsed?.ragasMetrics?.scores.faithfulness?.score).toBe(0.85);
+    expect(parsed?.ragasMetrics?.scores.answer_relevancy?.score).toBe(0.72);
   });
 
-  it("returns null gates when both prm and verifier missing", () => {
+  it("returns null ragas_metrics when empty object", () => {
     const parsed = parseRunDiagnosticsPayload({
       task_id: "t",
-      post_pipeline_gates: { prm_reason: "noise" },
+      ragas_metrics: {},
     });
-    expect(parsed?.postPipelineGates).toBeNull();
-  });
-
-  it("parses flare signal", () => {
-    const parsed = parseRunDiagnosticsPayload({
-      task_id: "t",
-      flare_signal: {
-        verdict: "uncertain",
-        confidence: 0.3,
-        sample_count: 3,
-        reason: "diverged",
-        round: 2,
-      },
-    });
-    expect(parsed?.flareSignal?.verdict).toBe("uncertain");
-    expect(parsed?.flareSignal?.confidence).toBe(0.3);
-    expect(parsed?.flareSignal?.round).toBe(2);
+    expect(parsed?.ragasMetrics).toBeNull();
   });
 
   it("parses enable_hints as plain string map", () => {
     const parsed = parseRunDiagnosticsPayload({
       task_id: "t",
-      enable_hints: { phase_loop: "set SWARM_FOO=1", flare_signal: "set BAR" },
+      enable_hints: { phase_loop: "set SWARM_FOO=1", wiki_tier: "set BAR" },
     });
     expect(parsed?.enableHints["phase_loop"]).toContain("SWARM_FOO");
     expect(Object.keys(parsed?.enableHints ?? {}).length).toBe(2);

@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref } from "vue";
-import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { ScenarioCategory, ScenarioSummary } from "@/entities/scenario";
+import type { CustomScenarioSnap } from "@/entities/project";
 import { CUSTOM_CATEGORY } from "./useScenarioPickerTabs";
 
 interface ScenarioPickerCardsOptions {

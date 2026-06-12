@@ -39,8 +39,8 @@ import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioDescription, scenarioTitle } from "./scenarioDisplay";
 import { useScenarioCatalog } from "@/entities/scenario";
-import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { ScenarioCategory, ScenarioSummary } from "@/entities/scenario";
+import type { CustomScenarioSnap } from "@/entities/project";
 
 const props = withDefaults(
   defineProps<{

@@ -30,9 +30,9 @@
         </template>
       </PaneHeader>
 
-      <StatusLine />
+      <StatusLine v-if="!isHistoryView" />
 
-      <div class="run-live-body__metrics-row">
+      <div v-if="!isHistoryView" class="run-live-body__metrics-row">
         <div class="run-live-body__monitor">
           <TaskMonitor />
         </div>
@@ -43,58 +43,17 @@
         />
       </div>
 
-      <div class="run-live-body__gates">
-        <HumanGate
-          :visible="ui.humanGateVisible"
-          :title="ui.humanGateTitle"
-          :feedback="ui.humanGateFeedback"
-          :task-id="ui.taskId ?? undefined"
-          :submitting="ui.humanGateSubmitting"
-          @submit="onHumanResume"
-          @update:feedback="ui.humanGateFeedback = $event"
-        />
-        <ShellGate
-          :visible="ui.shellGateVisible"
-          :commands="ui.shellGateCommands"
-          :needs-allowlist="ui.shellGateNeedsAllowlist"
-          :already-allowed="ui.shellGateAlreadyAllowed"
-          @confirm="onConfirmShell"
-        />
-        <ManualShellGate
-          :visible="ui.manualShellGateVisible"
-          :commands="ui.manualShellCommands"
-          :reason="ui.manualShellReason"
-          @confirm="onConfirmManualShell"
-        />
-        <RetryGate
-          :visible="ui.retryGateVisible"
-          :failed-step="ui.retryFailedStep"
-          :current-pipeline-steps="controller.currentPipelineSteps.value"
-          @retry="onRetry"
-          @continue-pipeline="onContinuePipeline"
-        />
-      </div>
+      <RunLiveGates
+        v-if="!isHistoryView"
+        :current-pipeline-steps="controller.currentPipelineSteps.value"
+        @human-resume="onHumanResume"
+        @confirm-shell="onConfirmShell"
+        @confirm-manual-shell="onConfirmManualShell"
+        @retry="onRetry"
+        @continue-pipeline="onContinuePipeline"
+      />
 
-      <nav
-        class="run-live-body__tabs"
-        :aria-label="t('runLive.tabsAria')"
-        role="tablist"
-      >
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          type="button"
-          role="tab"
-          class="run-live-body__tab"
-          :class="{ 'run-live-body__tab--active': activeTab === tab.key }"
-          :aria-selected="activeTab === tab.key"
-          @click="setActiveTab(tab.key)"
-        >
-          {{ tab.label }}
-        </button>
-      </nav>
-
-      <div v-if="activeTab === 'steps'" class="run-live-body__layout">
+      <div class="run-live-body__layout">
         <RunLiveStepList
           :heading="t('runLive.stepsHeading')"
           :steps="stepRows"
@@ -111,12 +70,12 @@
         />
       </div>
 
-      <ToolActivityPanel
-        v-else-if="activeTab === 'activity'"
-        :task-id="ui.taskId ?? null"
-      />
+      <PhaseGateCard :workspace-root="currentWorkspaceRoot" />
 
-      <RunArtifactsTab v-else-if="activeTab === 'artifacts'" />
+      <RunLiveDiagnostics
+        :task-id="diagnosticsTaskId"
+        :workspace-root="currentWorkspaceRoot"
+      />
     </template>
 
     <div v-else class="run-live-body__idle">
@@ -132,25 +91,48 @@ import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import { TaskMonitor } from "@/widgets/task-monitor";
 import HostMetricsChart from "@/shared/components/HostMetricsChart.vue";
-import HumanGate from "@/features/task-gate/HumanGate.vue";
-import ShellGate from "@/features/task-gate/ShellGate.vue";
-import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
-import RetryGate from "@/features/task-gate/RetryGate.vue";
+import RunLiveGates from "./RunLiveGates.vue";
 import RunLiveStepList from "./RunLiveStepList.vue";
 import RunLiveLog from "./RunLiveLog.vue";
-import RunArtifactsTab from "./RunArtifactsTab.vue";
-import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
-import { useRunLiveSteps, type LogFilter, type StepState } from "./useRunLiveSteps";
-import { useRunLiveTabs } from "./useRunLiveTabs";
-import { useUiStore } from "@/shared/store/ui";
+import RunLiveDiagnostics from "./RunLiveDiagnostics.vue";
+import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
+import {
+  useRunLiveSteps,
+  type EventRow,
+  type HistorySource,
+  type LogFilter,
+  type StepState,
+} from "./useRunLiveSteps";
+import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useI18n } from "@/shared/lib/i18n";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     hideHeader?: boolean;
+    /**
+     * When viewing a past run (history detail), the run to render. Steps + log
+     * are then sourced from this entry + `historyEvents` instead of the live
+     * ui store, leaving the live Run page untouched.
+     */
+    historyEntry?: HistoryEntry | null;
+    historyEvents?: EventRow[];
+    /**
+     * Steps actually executed by the run (from the task snapshot). The entry's
+     * own pipeline_steps are what the UI was configured with at launch and may
+     * differ from the resolved scenario — the snapshot wins when present.
+     */
+    historySteps?: string[] | null;
+    /** Step the run failed at (snapshot `failed_step`). */
+    historyFailedStep?: string | null;
   }>(),
-  { hideHeader: false },
+  {
+    hideHeader: false,
+    historyEntry: null,
+    historyEvents: () => [],
+    historySteps: null,
+    historyFailedStep: null,
+  },
 );
 
 const ui = useUiStore();
@@ -158,10 +140,37 @@ const controller = useInjectedSwarmRunController();
 const { t } = useI18n();
 
 const logFilter = ref<LogFilter>("all");
-const { activeTab, tabs, setActiveTab } = useRunLiveTabs(t);
 
-const isRunning = computed(() => controller.isRunning.value);
-const hasActiveTask = computed(() => !!ui.taskId || isRunning.value);
+const isHistoryView = computed(() => props.historyEntry !== null);
+
+const historySource = computed<HistorySource | null>(() => {
+  const entry = props.historyEntry;
+  if (!entry) return null;
+  return {
+    pipelineSteps: props.historySteps?.length
+      ? props.historySteps
+      : (entry.pipeline_steps ?? []),
+    events: props.historyEvents,
+    failedStep: props.historyFailedStep ?? null,
+  };
+});
+
+const isRunning = computed(() =>
+  isHistoryView.value ? false : controller.isRunning.value,
+);
+const hasActiveTask = computed(
+  () => isHistoryView.value || !!ui.taskId || controller.isRunning.value,
+);
+
+const currentWorkspaceRoot = computed(() => {
+  if (props.historyEntry) return props.historyEntry.workspace_root ?? null;
+  const entry = ui.historyList.find((item) => item.taskId === ui.taskId);
+  return entry?.workspace_root ?? null;
+});
+
+const diagnosticsTaskId = computed<string | null>(() =>
+  props.historyEntry ? (props.historyEntry.taskId ?? null) : (ui.taskId ?? null),
+);
 
 const canContinue = computed(() => {
   if (!ui.taskId) return false;
@@ -202,7 +211,7 @@ const {
   currentStepIndex,
   classifyEvent,
   formatTime,
-} = useRunLiveSteps({ ui, controller, isRunning, logFilter });
+} = useRunLiveSteps({ ui, controller, isRunning, logFilter, history: historySource });
 
 function stepStateLabel(state: StepState): string {
   return t(`runLive.${state}Step`);
@@ -256,7 +265,6 @@ function onRestart(): void {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: 0;
   flex: 1 1 auto;
 }
 
@@ -327,40 +335,15 @@ function onRestart(): void {
   cursor: not-allowed;
 }
 
-.run-live-body__tabs {
-  display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-  margin-top: 4px;
-}
-
-.run-live-body__tab {
-  appearance: none;
-  background: transparent;
-  border: none;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink-3);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-}
-
-.run-live-body__tab:hover {
-  color: var(--ink);
-}
-
-.run-live-body__tab--active {
-  color: var(--ink);
-  border-bottom-color: var(--accent);
-}
-
+/* No flex-shrink here: with `flex: 1 1 auto; min-height: 0` the grid used to
+   collapse inside the viewport-height page column, its content kept painting
+   (overflow: visible) and the cards below (PhaseGateCard, RunLiveDiagnostics)
+   were laid out on top of the overflowing log/steps. The page scrolls instead;
+   the log panel caps its own height (see RunLiveLog). */
 .run-live-body__layout {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 24px;
-  min-height: 0;
-  flex: 1 1 auto;
 }
 
 .run-live-body__idle {

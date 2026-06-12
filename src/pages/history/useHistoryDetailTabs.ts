@@ -1,14 +1,6 @@
-import { computed, ref, watch, type Ref } from "vue";
+import { computed, ref } from "vue";
 
-export type HistoryTabKey =
-  | "run"
-  | "overview"
-  | "artifacts"
-  | "activity"
-  | "tokens"
-  | "conversation"
-  | "spec"
-  | "graph";
+export type HistoryTabKey = "run" | "activity" | "artifacts" | "tokens" | "graphs";
 
 type TranslatorArgs = Record<string, string | number | null | undefined>;
 
@@ -16,38 +8,19 @@ interface TranslatorLike {
   (key: string, args?: TranslatorArgs): string;
 }
 
-export function useHistoryDetailTabs(
-  t: TranslatorLike,
-  workspaceRootForRun: Ref<string>,
-) {
+export function useHistoryDetailTabs(t: TranslatorLike) {
   const activeTab = ref<HistoryTabKey>("run");
-  const selectedSpecId = ref<string>("");
-  const specEditing = ref(false);
 
   const tabs = computed<Array<{ key: HistoryTabKey; label: string }>>(() => [
     { key: "run", label: t("history.detail.tab.run") },
-    { key: "overview", label: t("history.detail.tab.overview") },
+    { key: "activity", label: t("history.detail.tab.activity") },
+    { key: "artifacts", label: t("history.detail.tab.artifacts") },
     { key: "tokens", label: t("history.detail.tab.tokens") },
-    { key: "conversation", label: t("history.detail.tab.conversation") },
-    { key: "spec", label: t("history.detail.tab.spec") },
-    { key: "graph", label: t("history.detail.tab.graph") },
+    { key: "graphs", label: t("history.detail.tab.graphs") },
   ]);
-
-  function onSpecNodeClick(nodeId: string): void {
-    selectedSpecId.value = nodeId;
-    specEditing.value = false;
-  }
-
-  watch(workspaceRootForRun, () => {
-    selectedSpecId.value = "";
-    specEditing.value = false;
-  });
 
   return {
     activeTab,
     tabs,
-    selectedSpecId,
-    specEditing,
-    onSpecNodeClick,
   };
 }

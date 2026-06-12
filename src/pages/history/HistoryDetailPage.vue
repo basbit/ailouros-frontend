@@ -28,7 +28,7 @@
 
         <nav
           class="history-detail-page__tabs"
-          :aria-label="t('history.detail.tab.overview')"
+          :aria-label="t('history.detail.tabsAria')"
         >
           <button
             v-for="tab in tabs"
@@ -44,35 +44,26 @@
 
         <div class="history-detail-page__columns">
           <section class="history-detail-page__main">
-            <RunTab v-if="activeTab === 'run'" />
-            <OverviewTab
-              v-else-if="activeTab === 'overview'"
-              :entry="entry"
-              :format-date="formatDate"
-              :format-duration="formatDuration"
+            <RunTab
+              v-if="activeTab === 'run'"
+              :history-entry="entry"
+              :history-events="remoteEvents"
+              :history-steps="remoteSteps"
+              :history-failed-step="remoteFailedStep"
             />
+            <ToolActivityPanel
+              v-else-if="activeTab === 'activity'"
+              :task-id="entry.taskId ?? null"
+            />
+            <RunArtifactsTab v-else-if="activeTab === 'artifacts'" />
             <TokensTab
               v-else-if="activeTab === 'tokens'"
               :task-id="entry.taskId ?? null"
             />
-            <ConversationTab
-              v-else-if="activeTab === 'conversation'"
-              :messages="conversationState.messages.value"
-              :loading="conversationState.loading.value"
-              :error-message="conversationState.error.value"
-              :not-implemented="conversationState.notImplemented.value ?? false"
-              :shared-history-enabled="conversationState.sharedHistoryEnabled.value"
-            />
-            <SpecTab
-              v-else-if="activeTab === 'spec'"
+            <GraphsTab
+              v-else-if="activeTab === 'graphs'"
               :workspace-root="workspaceRootForRun"
-              :selected-spec-id="selectedSpecId"
-              :editing="specEditing"
-              @node-click="onSpecNodeClick"
-              @update:selected-spec-id="selectedSpecId = $event"
-              @update:editing="specEditing = $event"
             />
-            <GraphTab v-else-if="activeTab === 'graph'" />
           </section>
 
           <HistoryDetailSidebar
@@ -106,12 +97,10 @@ import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import HistoryDetailSidebar from "./HistoryDetailSidebar.vue";
 import HistoryDetailHeaderActions from "./HistoryDetailHeaderActions.vue";
 import RunTab from "@/pages/history/tabs/RunTab.vue";
-import GraphTab from "@/pages/history/tabs/GraphTab.vue";
-import OverviewTab from "@/pages/history/tabs/OverviewTab.vue";
+import GraphsTab from "@/pages/history/tabs/GraphsTab.vue";
 import TokensTab from "@/pages/history/tabs/TokensTab.vue";
-import ConversationTab from "@/pages/history/tabs/ConversationTab.vue";
-import SpecTab from "@/pages/history/tabs/SpecTab.vue";
-import { useConversationHistory } from "@/features/conversation-history/useConversationHistory";
+import RunArtifactsTab from "@/pages/run/RunArtifactsTab.vue";
+import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useHistoryDetailActions } from "@/pages/history/tabs/useHistoryDetailActions";
 import { useHistoryDetailLoad } from "./useHistoryDetailLoad";
@@ -119,12 +108,9 @@ import { useHistoryDetailTabs } from "./useHistoryDetailTabs";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
 import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useUxStore } from "@/shared/store/ux";
-import {
-  formatDate,
-  formatDuration,
-  formatRelative,
-  promptPreviewOf,
-} from "./historyFormatters";
+import { useProjectsStore } from "@/shared/store/projects";
+import type { TaskStatus } from "@/shared/model/task-types";
+import { formatDate, formatRelative, promptPreviewOf } from "./historyFormatters";
 import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{ runId: string }>();
@@ -136,7 +122,6 @@ const settings = useInjectedAppSettings();
 const { t } = useI18n();
 
 const hintDismissed = ref(false);
-const conversationState = useConversationHistory();
 
 const entry = computed<HistoryEntry | null>(() => {
   return ui.historyList.find((item) => item.id === props.runId) ?? null;
@@ -174,15 +159,42 @@ const {
   getTaskId: () => entry.value?.taskId,
 });
 
-const { activeTab, tabs, selectedSpecId, specEditing, onSpecNodeClick } =
-  useHistoryDetailTabs(t, workspaceRootForRun);
+const { activeTab, tabs } = useHistoryDetailTabs(t);
 
-useHistoryDetailLoad({
-  entry,
-  conversationState,
-  resumeAvailable,
-  resumeStepId,
-  loadResumeOptions,
+const { remoteEvents, remoteSteps, remoteFailedStep, remoteStatus } =
+  useHistoryDetailLoad({
+    entry,
+    resumeAvailable,
+    resumeStepId,
+    loadResumeOptions,
+  });
+
+const projects = useProjectsStore();
+
+const KNOWN_TASK_STATUSES: readonly TaskStatus[] = [
+  "pending",
+  "running",
+  "in_progress",
+  "completed",
+  "completed_no_writes",
+  "completed_with_failures",
+  "failed",
+  "blocked",
+  "awaiting_human",
+  "awaiting_shell_confirm",
+  "awaiting_manual_shell",
+  "cancelled",
+];
+
+// The locally persisted entry status is only updated while the launching tab
+// is open; runs that finish (or fail further) after a reload keep showing the
+// stale badge. The backend snapshot is authoritative — sync it back.
+watch(remoteStatus, (status) => {
+  const taskId = entry.value?.taskId;
+  if (!status || !taskId) return;
+  if (!KNOWN_TASK_STATUSES.includes(status as TaskStatus)) return;
+  if ((entry.value?.status ?? "") === status) return;
+  ui.updateHistoryResult(taskId, { status: status as TaskStatus }, projects.currentId);
 });
 
 const promptPreview = computed(() =>

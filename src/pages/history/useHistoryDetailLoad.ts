@@ -17,14 +17,8 @@ export interface StepRow {
   messageCount: number;
 }
 
-interface ConversationLike {
-  reset: () => void;
-  load: (taskId: string) => Promise<void> | void;
-}
-
 interface HistoryDetailLoadOptions {
   entry: ComputedRef<HistoryEntry | null>;
-  conversationState: ConversationLike;
   resumeAvailable: Ref<boolean>;
   resumeStepId: Ref<string>;
   loadResumeOptions: (taskId: string) => Promise<void> | void;
@@ -32,7 +26,6 @@ interface HistoryDetailLoadOptions {
 
 export function useHistoryDetailLoad({
   entry,
-  conversationState,
   resumeAvailable,
   resumeStepId,
   loadResumeOptions,
@@ -41,6 +34,13 @@ export function useHistoryDetailLoad({
   const remoteEventsLoading = ref(false);
   const remoteEventsError = ref<string | null>(null);
   const eventsViewMode = ref<"preview" | "raw">("preview");
+  /** Steps the run actually executed, per the task snapshot (may differ from
+   * the steps the entry was launched with after scenario resolution). */
+  const remoteSteps = ref<string[]>([]);
+  const remoteFailedStep = ref<string>("");
+  /** Authoritative run status from the backend snapshot. The locally stored
+   * entry status goes stale when the run finishes while the tab is closed. */
+  const remoteStatus = ref<string>("");
 
   async function loadRemoteEvents(taskId: string): Promise<void> {
     remoteEventsLoading.value = true;
@@ -48,9 +48,17 @@ export function useHistoryDetailLoad({
     try {
       const snapshot = await getLegacyTaskSnapshot(taskId);
       remoteEvents.value = Array.isArray(snapshot.history) ? snapshot.history : [];
+      remoteSteps.value = Array.isArray(snapshot.pipeline_steps)
+        ? snapshot.pipeline_steps.map((step) => String(step))
+        : [];
+      remoteFailedStep.value = (snapshot.failed_step ?? "").trim();
+      remoteStatus.value = (snapshot.status ?? "").trim();
     } catch (error) {
       remoteEventsError.value = error instanceof Error ? error.message : String(error);
       remoteEvents.value = [];
+      remoteSteps.value = [];
+      remoteFailedStep.value = "";
+      remoteStatus.value = "";
     } finally {
       remoteEventsLoading.value = false;
     }
@@ -61,12 +69,13 @@ export function useHistoryDetailLoad({
     (taskId) => {
       remoteEvents.value = [];
       remoteEventsError.value = null;
+      remoteSteps.value = [];
+      remoteFailedStep.value = "";
+      remoteStatus.value = "";
       resumeAvailable.value = false;
       resumeStepId.value = "";
-      conversationState.reset();
       if (taskId) {
         void loadRemoteEvents(taskId);
-        void conversationState.load(taskId);
         void loadResumeOptions(taskId);
       }
     },
@@ -111,6 +120,9 @@ export function useHistoryDetailLoad({
     remoteEvents,
     remoteEventsLoading,
     remoteEventsError,
+    remoteSteps,
+    remoteFailedStep,
+    remoteStatus,
     eventsViewMode,
     stepRows,
   };

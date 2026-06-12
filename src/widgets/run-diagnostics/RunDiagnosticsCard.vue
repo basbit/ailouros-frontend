@@ -90,8 +90,7 @@ const SECTION_KEYS = [
   "wiki_context_tier",
   "entailment_verdict",
   "citation_enforcement",
-  "post_pipeline_gates",
-  "flare_signal",
+  "ragas_metrics",
 ] as const;
 
 const missingSections = computed(() => {
@@ -102,8 +101,7 @@ const missingSections = computed(() => {
   if (current.wikiContextTier) populated.add("wiki_context_tier");
   if (current.entailmentVerdict) populated.add("entailment_verdict");
   if (current.citation) populated.add("citation_enforcement");
-  if (current.postPipelineGates) populated.add("post_pipeline_gates");
-  if (current.flareSignal) populated.add("flare_signal");
+  if (current.ragasMetrics) populated.add("ragas_metrics");
   const hints = current.enableHints ?? {};
   const entries: { key: string; hint: string }[] = [];
   for (const key of SECTION_KEYS) {

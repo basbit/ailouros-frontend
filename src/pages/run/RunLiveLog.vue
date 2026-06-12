@@ -58,6 +58,10 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
   border-radius: var(--r-md);
   overflow: hidden;
   min-width: 0;
+  /* Cap the terminal panel so long runs scroll inside it instead of
+     stretching the page; the grid row still matches the steps column when
+     the log is shorter. The 320px floor keeps it usable in tiny viewports. */
+  max-height: clamp(320px, 70vh, 640px);
 }
 
 .run-live-log__toolbar {

@@ -29,18 +29,6 @@ export const FLAG_GROUP_RETRIEVAL: FeatureFlagGroup = {
     },
     {
       kind: "string",
-      field: "swarm_retrieval_mmr_lambda",
-      envName: "SWARM_RETRIEVAL_MMR_LAMBDA",
-      placeholder: "0.7",
-    },
-    {
-      kind: "string",
-      field: "swarm_retrieval_crag_model",
-      envName: "SWARM_RETRIEVAL_CRAG_MODEL",
-      placeholder: "model id (optional)",
-    },
-    {
-      kind: "string",
       field: "swarm_retrieval_hyde_model",
       envName: "SWARM_RETRIEVAL_HYDE_MODEL",
       placeholder: "model id (optional)",
@@ -57,41 +45,13 @@ export const FLAG_GROUP_RETRIEVAL: FeatureFlagGroup = {
     },
     {
       kind: "boolean",
-      field: "swarm_retrieval_late_chunking",
-      envName: "SWARM_RETRIEVAL_LATE_CHUNKING_ENABLED",
-    },
-    {
-      kind: "boolean",
-      field: "swarm_retrieval_hierarchical",
-      envName: "SWARM_RETRIEVAL_HIERARCHICAL_ENABLED",
-    },
-    {
-      kind: "boolean",
       field: "swarm_retrieval_knowledge_graph",
       envName: "SWARM_RETRIEVAL_KNOWLEDGE_GRAPH_ENABLED",
     },
     {
       kind: "boolean",
-      field: "swarm_retrieval_crag",
-      envName: "SWARM_RETRIEVAL_CRAG_ENABLED",
-    },
-    {
-      kind: "boolean",
       field: "swarm_retrieval_self_rag",
       envName: "SWARM_RETRIEVAL_SELF_RAG_ENABLED",
-    },
-    {
-      kind: "enum",
-      field: "swarm_retrieval_self_rag_classifier",
-      envName: "SWARM_RETRIEVAL_SELF_RAG_CLASSIFIER",
-      wired: true,
-      options: [
-        { value: "", i18nSuffix: "auto" },
-        { value: "heuristic", i18nSuffix: "heuristic" },
-        { value: "feature", i18nSuffix: "feature" },
-        { value: "llm", i18nSuffix: "llm" },
-        { value: "ensemble", i18nSuffix: "ensemble" },
-      ],
     },
     {
       kind: "boolean",
@@ -102,33 +62,6 @@ export const FLAG_GROUP_RETRIEVAL: FeatureFlagGroup = {
       kind: "boolean",
       field: "swarm_retrieval_incremental_indexing",
       envName: "SWARM_RETRIEVAL_INCREMENTAL_INDEXING",
-    },
-    {
-      kind: "enum",
-      field: "swarm_retrieval_strategy_selector",
-      envName: "SWARM_RETRIEVAL_STRATEGY_SELECTOR",
-      wired: true,
-      options: [
-        { value: "", i18nSuffix: "static-default" },
-        { value: "complexity-aware", i18nSuffix: "complexity-aware" },
-        { value: "adaptive", i18nSuffix: "adaptive" },
-      ],
-    },
-    {
-      kind: "string",
-      field: "swarm_retrieval_self_refine_max_iters",
-      envName: "SWARM_RETRIEVAL_SELF_REFINE_MAX_ITERS",
-      placeholder: "0",
-    },
-    {
-      kind: "enum",
-      field: "swarm_retrieval_vector_index_backend",
-      envName: "SWARM_RETRIEVAL_VECTOR_INDEX_BACKEND",
-      wired: true,
-      options: [
-        { value: "", i18nSuffix: "linear" },
-        { value: "hnsw", i18nSuffix: "hnsw" },
-      ],
     },
     {
       kind: "enum",
@@ -146,7 +79,10 @@ export const FLAG_GROUP_RETRIEVAL: FeatureFlagGroup = {
       field: "swarm_retrieval_chunking_policy_id",
       envName: "SWARM_RETRIEVAL_CHUNKING_POLICY_ID",
       wired: true,
-      options: [{ value: "", i18nSuffix: "context-aware-default" }],
+      options: [
+        { value: "", i18nSuffix: "context-aware-default" },
+        { value: "code-large-blocks", i18nSuffix: "code-large-blocks" },
+      ],
     },
     {
       kind: "string",

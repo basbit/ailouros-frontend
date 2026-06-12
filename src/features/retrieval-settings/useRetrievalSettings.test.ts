@@ -11,8 +11,7 @@ vi.mock("@/shared/api/endpoints/retrieval-settings", () => ({
 
 function makeSettings(overrides: Partial<RetrievalSettings> = {}): RetrievalSettings {
   return {
-    lateChunkingEnabled: false,
-    lateChunkingModelId: "",
+    _placeholder: true,
     ...overrides,
   };
 }

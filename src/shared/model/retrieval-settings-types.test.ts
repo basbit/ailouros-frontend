@@ -8,20 +8,13 @@ describe("parseRetrievalSettingsPayload", () => {
     expect(parseRetrievalSettingsPayload("nope")).toBeNull();
   });
 
-  it("parses late chunking settings", () => {
-    const parsed = parseRetrievalSettingsPayload({
-      late_chunking: {
-        enabled: true,
-        model_id: "sentence-transformers/all-MiniLM-L6-v2",
-      },
-    });
-    expect(parsed?.lateChunkingEnabled).toBe(true);
-    expect(parsed?.lateChunkingModelId).toContain("MiniLM");
+  it("returns null for an empty payload (backend currently returns {})", () => {
+    expect(parseRetrievalSettingsPayload({})).toBeNull();
   });
 
-  it("defaults late chunking to disabled when the block is missing", () => {
-    const parsed = parseRetrievalSettingsPayload({});
-    expect(parsed?.lateChunkingEnabled).toBe(false);
-    expect(parsed?.lateChunkingModelId).toBe("");
+  it("returns a settings object for a non-empty payload", () => {
+    const parsed = parseRetrievalSettingsPayload({ some_future_field: true });
+    expect(parsed).not.toBeNull();
+    expect(parsed?._placeholder).toBe(true);
   });
 });

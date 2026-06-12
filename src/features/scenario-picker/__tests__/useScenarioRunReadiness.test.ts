@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 import * as catalogModule from "@/entities/scenario/model/useScenarioCatalog";
 import { useScenarioRunReadiness } from "../useScenarioRunReadiness";
-import type { ScenarioInputSpec, ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioInputSpec, ScenarioSummary } from "@/entities/scenario";
 
 function buildScenario(id: string, inputs: ScenarioInputSpec[]): ScenarioSummary {
   return {

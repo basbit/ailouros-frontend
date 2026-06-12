@@ -130,8 +130,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import PromptPathPicker from "@/shared/components/PromptPathPicker.vue";
-import PromptEditorDialog from "@/shared/components/PromptEditorDialog.vue";
+import PromptPathPicker from "@/entities/prompt-template/ui/PromptPathPicker.vue";
+import PromptEditorDialog from "@/entities/prompt-template/ui/PromptEditorDialog.vue";
 import type {
   PipelineNode,
   AgentConfig,

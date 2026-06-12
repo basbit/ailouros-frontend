@@ -1,5 +1,5 @@
 import { computed, watch, type ComputedRef, type Ref } from "vue";
-import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioCategory, ScenarioSummary } from "@/entities/scenario";
 
 type TranslatorArgs = Record<string, string | number | null | undefined>;
 

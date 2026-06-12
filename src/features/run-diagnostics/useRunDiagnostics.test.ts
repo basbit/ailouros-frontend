@@ -16,8 +16,7 @@ function makeDiagnostics(): RunDiagnostics {
     wikiContextTier: null,
     entailmentVerdict: null,
     citation: null,
-    postPipelineGates: null,
-    flareSignal: null,
+    ragasMetrics: null,
     enableHints: {},
   };
 }

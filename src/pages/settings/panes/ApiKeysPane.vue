@@ -151,7 +151,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useInjectedGlobalSettings } from "@/features/global-settings/globalSettingsContext";
 import { useI18n } from "@/shared/lib/i18n";

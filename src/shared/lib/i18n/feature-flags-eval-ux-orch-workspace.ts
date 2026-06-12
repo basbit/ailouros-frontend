@@ -32,12 +32,16 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "How many follow-up question chips to render (0 disables the feature).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.label": "Skill dispatcher",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.hint":
-    "Classifier mode for the /dispatch slash command (off disables it; heuristic = rule-based; llm = model-based). It classifies a task into a skill on demand; it does not change pipeline routing.",
+    "Classifier mode for the /dispatch slash command and auto-inject (off disables both; heuristic = rule-based; llm = model-based).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.off": "off",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.heuristic":
     "heuristic (rule-based)",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.llm":
     "llm (model-based)",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_auto.label":
+    "Auto-inject skills into pipeline",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_auto.hint":
+    "When enabled, the skill dispatcher automatically assigns a skill to all pipeline roles based on the task text. Manual skill_ids on a role always take priority. Requires skill dispatcher mode != off.",
   "featureFlags.field.swarm_orchestration_quick_fix.label": "Quick-fix fast path",
   "featureFlags.field.swarm_orchestration_quick_fix.hint":
     "For verified single-file low-LOC changes, skip the post-plan review and human-approval steps — Dev, Verification and QA still run. Budget: SWARM_ORCHESTRATION_QUICK_FIX_MAX_LOC.",
@@ -45,16 +49,6 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Phase verification gate",
   "featureFlags.field.swarm_orchestration_phase_verification_required.hint":
     "Pause the run on every phase change and wait for a human decision in the Phase gates card (Run → Artifacts). Approve to continue; request changes to stop the run; auto-times-out after SWARM_ORCHESTRATION_PHASE_GATE_TTL_SECONDS.",
-  "featureFlags.field.swarm_orchestration_phase_loop_auto_advance.label":
-    "Phase loop auto-advance",
-  "featureFlags.field.swarm_orchestration_phase_loop_auto_advance.hint":
-    "Reporting-only: marks phases in the scenario's auto-advance set as auto-advanceable in the status snapshot. It does not gate pipeline execution — phase tracking advances regardless.",
-  "featureFlags.field.swarm_orchestration_status_enabled.label": "Status introspection",
-  "featureFlags.field.swarm_orchestration_status_enabled.hint":
-    "Expose a structured status snapshot (phase, milestones, artefacts, lint).",
-  "featureFlags.field.swarm_orchestration_spec_lint.label": "Spec linter",
-  "featureFlags.field.swarm_orchestration_spec_lint.hint":
-    "Check the spec for required sections, ambiguity and forbidden phrases.",
   "featureFlags.field.swarm_workspace_snapshots.label": "Workspace snapshots",
   "featureFlags.field.swarm_workspace_snapshots.hint":
     "Take a workspace snapshot before applying writes; enables rollback.",
@@ -101,11 +95,15 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Сколько follow-up чипов рендерить (0 отключает фичу).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.label": "Skill dispatcher",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.hint":
-    "Режим классификатора для команды /dispatch (off отключает; heuristic — по правилам; llm — модель). Классифицирует задачу в скилл по запросу; маршрутизацию пайплайна не меняет.",
+    "Режим классификатора для /dispatch и авто-инжекции (off отключает оба; heuristic — по правилам; llm — модель).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.off": "выключено",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.heuristic":
     "эвристика (правила)",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.option.llm": "llm (модель)",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_auto.label":
+    "Авто-инжекция скиллов в пайплайн",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_auto.hint":
+    "При включении диспетчер автоматически назначает скилл всем ролям пайплайна по тексту задачи. Ручные skill_ids роли всегда в приоритете. Требует режима диспетчера != off.",
   "featureFlags.field.swarm_orchestration_quick_fix.label": "Quick-fix fast path",
   "featureFlags.field.swarm_orchestration_quick_fix.hint":
     "Для проверенных одно-файловых правок с малым LOC пропускает шаги ревью и ручного подтверждения после планирования — Dev, верификация и QA всё равно выполняются. Бюджет: SWARM_ORCHESTRATION_QUICK_FIX_MAX_LOC.",
@@ -113,16 +111,6 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Гейт проверки фаз",
   "featureFlags.field.swarm_orchestration_phase_verification_required.hint":
     "Останавливает прогон при каждой смене фазы и ждёт решения человека в карточке «Гейты фаз» (Run → Артефакты). Одобрить — продолжить; запросить изменения — остановить прогон; авто-таймаут через SWARM_ORCHESTRATION_PHASE_GATE_TTL_SECONDS.",
-  "featureFlags.field.swarm_orchestration_phase_loop_auto_advance.label":
-    "Phase loop авто-переход",
-  "featureFlags.field.swarm_orchestration_phase_loop_auto_advance.hint":
-    "Только индикация: помечает фазы из auto-advance набора сценария как авто-переходимые в снапшоте статуса. Не влияет на выполнение пайплайна — трекинг фаз продвигается в любом случае.",
-  "featureFlags.field.swarm_orchestration_status_enabled.label": "Status introspection",
-  "featureFlags.field.swarm_orchestration_status_enabled.hint":
-    "Открыть структурный снимок статуса (фазы, milestones, артефакты, lint).",
-  "featureFlags.field.swarm_orchestration_spec_lint.label": "Spec linter",
-  "featureFlags.field.swarm_orchestration_spec_lint.hint":
-    "Проверять spec на обязательные секции, неоднозначность и запрещённые фразы.",
   "featureFlags.field.swarm_workspace_snapshots.label": "Workspace-снимки",
   "featureFlags.field.swarm_workspace_snapshots.hint":
     "Делать снимок workspace перед записью; позволяет откат.",

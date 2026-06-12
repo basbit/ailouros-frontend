@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import { getCodeGraph } from "@/shared/api/endpoints/codegraph";
-import type { CodeGraphResponse } from "@/shared/model/code-graph-types";
+import type { CodeGraphResponse } from "./model/types";
 
 export function useCodeGraph() {
   const data = ref<CodeGraphResponse | null>(null);

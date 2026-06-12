@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import type { ScenarioCategory } from "@/shared/model/scenario-types";
+import type { ScenarioCategory } from "@/entities/scenario";
 import { useI18n } from "@/shared/lib/i18n";
 import { scenarioTitle, shortScenarioDescription } from "./scenarioDisplay";
 import { useScenarioEstimate } from "./useScenarioEstimate";
@@ -118,8 +118,8 @@ import { useScenarioPickerCards } from "./useScenarioPickerCards";
 import ScenarioCard from "./ScenarioCard.vue";
 import ScenarioEstimatePanel from "./ScenarioEstimatePanel.vue";
 import { useScenarioCatalog } from "@/entities/scenario";
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { ScenarioSummary } from "@/entities/scenario";
+import type { CustomScenarioSnap } from "@/entities/project";
 
 const props = withDefaults(
   defineProps<{

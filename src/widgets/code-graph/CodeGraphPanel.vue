@@ -104,7 +104,7 @@ import type {
   CodeGraphContext,
   CodeGraphEdge,
   CodeGraphResponse,
-} from "@/shared/model/code-graph-types";
+} from "@/features/code-graph/model/types";
 import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{

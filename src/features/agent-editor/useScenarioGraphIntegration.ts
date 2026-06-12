@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
 import { getScenario, validateScenarioPayload } from "@/shared/api/endpoints/scenarios";
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioSummary } from "@/entities/scenario";
 import { useEditorStore } from "./useEditorStore";
 import type { PipelineDefinition, PipelineEdge, PipelineNode } from "./types";
 

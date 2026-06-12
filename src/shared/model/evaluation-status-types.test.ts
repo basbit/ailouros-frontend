@@ -11,7 +11,7 @@ describe("parseEvaluationStatusPayload", () => {
   it("defaults sub-blocks when they are missing", () => {
     const parsed = parseEvaluationStatusPayload({});
     expect(parsed?.ragas.enabled).toBe(false);
-    expect(parsed?.ragas.modelId).toBe("");
+    expect(parsed?.ragas.judgeKind).toBe("heuristic");
     expect(parsed?.telemetry.enabled).toBe(false);
     expect(parsed?.telemetry.exporterKind).toBe("noop");
     expect(parsed?.entailment.enabled).toBe(false);
@@ -21,18 +21,17 @@ describe("parseEvaluationStatusPayload", () => {
 
   it("parses a full payload", () => {
     const parsed = parseEvaluationStatusPayload({
-      ragas: { enabled: true, model_id: "gpt-4o" },
+      ragas: { enabled: true, judge_kind: "heuristic" },
       telemetry: { enabled: true, exporter_kind: "otel" },
       entailment: {
         enabled: true,
-        judge_kind: "llm",
-        model_id: "claude-sonnet",
+        judge_kind: "heuristic",
         threshold: 0.75,
       },
     });
-    expect(parsed?.ragas.modelId).toBe("gpt-4o");
+    expect(parsed?.ragas.judgeKind).toBe("heuristic");
     expect(parsed?.telemetry.exporterKind).toBe("otel");
-    expect(parsed?.entailment.judgeKind).toBe("llm");
+    expect(parsed?.entailment.judgeKind).toBe("heuristic");
     expect(parsed?.entailment.threshold).toBe(0.75);
   });
 

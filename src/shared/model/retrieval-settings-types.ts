@@ -1,27 +1,21 @@
+/**
+ * Retrieval settings payload type.
+ * The backend returns an empty object `{}` — reserved for future additions.
+ * The type is kept for forward compatibility; the parser returns null on empty
+ * payloads so the widget shows its empty/idle state.
+ */
 export interface RetrievalSettings {
-  readonly lateChunkingEnabled: boolean;
-  readonly lateChunkingModelId: string;
-}
-
-interface RawLateChunking {
-  enabled?: unknown;
-  model_id?: unknown;
+  readonly _placeholder: true;
 }
 
 interface RawPayload {
-  late_chunking?: unknown;
-}
-
-function readString(value: unknown): string {
-  return typeof value === "string" ? value : "";
+  [key: string]: unknown;
 }
 
 export function parseRetrievalSettingsPayload(raw: unknown): RetrievalSettings | null {
   if (!raw || typeof raw !== "object") return null;
   const candidate = raw as RawPayload;
-  const lateChunking = (candidate.late_chunking ?? {}) as RawLateChunking;
-  return {
-    lateChunkingEnabled: Boolean(lateChunking.enabled),
-    lateChunkingModelId: readString(lateChunking.model_id),
-  };
+  // Return null when payload is empty (backend currently returns {})
+  if (Object.keys(candidate).length === 0) return null;
+  return { _placeholder: true };
 }

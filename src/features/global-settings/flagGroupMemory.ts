@@ -32,18 +32,8 @@ export const FLAG_GROUP_MEMORY: FeatureFlagGroup = {
     },
     {
       kind: "boolean",
-      field: "swarm_failure_memory",
-      envName: "SWARM_FAILURE_MEMORY",
-    },
-    {
-      kind: "boolean",
       field: "swarm_unified_memory_search",
       envName: "SWARM_UNIFIED_MEMORY_SEARCH",
-    },
-    {
-      kind: "boolean",
-      field: "swarm_playbook_lookup_enabled",
-      envName: "SWARM_PLAYBOOK_LOOKUP_ENABLED",
     },
     {
       kind: "boolean",

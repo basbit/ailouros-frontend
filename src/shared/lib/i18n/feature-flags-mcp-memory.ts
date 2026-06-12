@@ -46,15 +46,9 @@ export const featureFlagsMcpMemoryEn: Messages = {
     "Retrieval traces cap",
   "featureFlags.field.swarm_retrieval_traces_max_per_workspace.hint":
     "Max traces kept per workspace before rotation.",
-  "featureFlags.field.swarm_failure_memory.label": "Failure memory",
-  "featureFlags.field.swarm_failure_memory.hint":
-    "Remember and replay corrective steps after past failures.",
   "featureFlags.field.swarm_unified_memory_search.label": "Unified memory search",
   "featureFlags.field.swarm_unified_memory_search.hint":
     "Search wiki, pattern memory and cross-task memory through one ranker.",
-  "featureFlags.field.swarm_playbook_lookup_enabled.label": "Playbook lookup",
-  "featureFlags.field.swarm_playbook_lookup_enabled.hint":
-    "Match the task to stored playbooks and inject the matching plan.",
   "featureFlags.field.swarm_code_rag_enabled.label": "Code RAG (index project source)",
   "featureFlags.field.swarm_code_rag_enabled.hint":
     "Index the target project's source code and retrieve the most relevant snippets into dev/architect/review prompts (more precise, fewer tokens than dumping files).",
@@ -109,15 +103,9 @@ export const featureFlagsMcpMemoryRu: Messages = {
     "Лимит retrieval-трейсов",
   "featureFlags.field.swarm_retrieval_traces_max_per_workspace.hint":
     "Сколько трейсов хранить на workspace до ротации.",
-  "featureFlags.field.swarm_failure_memory.label": "Память сбоев",
-  "featureFlags.field.swarm_failure_memory.hint":
-    "Помнить и повторно использовать корректирующие шаги после прошлых ошибок.",
   "featureFlags.field.swarm_unified_memory_search.label": "Единый memory-поиск",
   "featureFlags.field.swarm_unified_memory_search.hint":
     "Искать одновременно по wiki, pattern memory и cross-task через один ранкер.",
-  "featureFlags.field.swarm_playbook_lookup_enabled.label": "Playbook lookup",
-  "featureFlags.field.swarm_playbook_lookup_enabled.hint":
-    "Сопоставить задачу с сохранёнными playbooks и подставить план.",
   "featureFlags.field.swarm_code_rag_enabled.label": "Code RAG (индекс кода проекта)",
   "featureFlags.field.swarm_code_rag_enabled.hint":
     "Индексировать исходный код целевого проекта и подставлять самые релевантные фрагменты в промпты dev/architect/review (точнее и дешевле по токенам, чем дамп файлов).",

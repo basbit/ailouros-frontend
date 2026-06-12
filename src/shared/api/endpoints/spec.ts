@@ -1,4 +1,4 @@
-import { httpGet, httpPost } from "@/shared/api/http";
+import { httpGet } from "@/shared/api/http";
 
 export interface SpecGraphNodeDto {
   id: string;
@@ -17,29 +17,25 @@ export interface SpecGraphDto {
   edges?: SpecGraphEdgeDto[];
 }
 
-interface SpecDriftStaleEntry {
-  spec_id?: string;
-  path?: string;
-  reason?: string;
-}
-
-interface SpecDriftAgedKeepRegion {
-  path?: string;
-  line?: number;
-  age_days?: number;
-}
-
-export interface SpecDriftReport {
-  stale_code: SpecDriftStaleEntry[];
-  stale_specs: SpecDriftStaleEntry[];
-  aged_keep_regions: SpecDriftAgedKeepRegion[];
-}
-
-export interface SpecCodegenOutcome {
+export interface SpecDocumentDto {
   spec_id: string;
-  written_files: string[];
-  sidecar_paths: string[];
-  retry_count: number;
+  version?: string;
+  status?: string;
+  privacy?: string;
+  title?: string;
+  hash_inputs?: string[];
+  codegen_targets?: string[];
+  depends_on?: string[];
+  last_reviewed_by?: string | null;
+  last_reviewed_at?: string | null;
+  body: string;
+  codegen_hash?: string;
+}
+
+export interface SpecShowDto {
+  spec: SpecDocumentDto;
+  dependencies: string[];
+  dependants: string[];
 }
 
 function buildWorkspaceQuery(workspaceRoot: string, persist?: boolean): string {
@@ -61,13 +57,12 @@ export async function getSpecGraph(
   return httpGet<SpecGraphDto>(`/v1/spec/graph${qs}`);
 }
 
-export async function getSpecDrift(workspaceRoot = ""): Promise<SpecDriftReport> {
-  const qs = buildWorkspaceQuery(workspaceRoot);
-  return httpGet<SpecDriftReport>(`/v1/spec/drift${qs}`);
-}
-
-export async function generateFromSpec(specId: string): Promise<SpecCodegenOutcome> {
-  return httpPost<SpecCodegenOutcome>(
-    `/v1/spec/${encodeURIComponent(specId)}/generate`,
-  );
+export async function showSpec(
+  workspaceRoot: string,
+  specId: string,
+): Promise<SpecShowDto> {
+  const search = new URLSearchParams();
+  search.set("workspace_root", workspaceRoot.trim());
+  search.set("spec_id", specId);
+  return httpGet<SpecShowDto>(`/v1/spec/show?${search.toString()}`);
 }

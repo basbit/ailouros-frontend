@@ -52,7 +52,7 @@
 import { onMounted, onUnmounted } from "vue";
 import ScenarioPicker from "./ScenarioPicker.vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { CustomScenarioSnap } from "@/entities/project";
 
 const props = withDefaults(
   defineProps<{

@@ -147,8 +147,8 @@ import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConn
 import { usePipelineGraphInteractions } from "@/widgets/pipeline-graph/usePipelineGraphInteractions";
 import { usePipelineGraphLayout } from "@/widgets/pipeline-graph/usePipelineGraphLayout";
 import { usePipelineGraphEditor } from "@/widgets/pipeline-graph/usePipelineGraphEditor";
-import type { PipeStep } from "@/shared/model/pipeline-types";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { PipeStep } from "@/features/pipeline/model/types";
+import type { CustomScenarioSnap } from "@/entities/project";
 import type {
   HostMetrics as HostMetricsType,
   HostMetricsSample,

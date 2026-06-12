@@ -1,7 +1,7 @@
 import { computed } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { useScenarioCatalog } from "@/entities/scenario";
-import type { ScenarioInputKey, ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioInputKey, ScenarioSummary } from "@/entities/scenario";
 
 export interface RunFormSnapshot {
   prompt: string;

@@ -127,6 +127,12 @@
           />
         </template>
       </div>
+      <div v-if="group.id === 'retrieval'" class="feature-flag-group-status-cards">
+        <slot name="retrieval-status" />
+      </div>
+      <div v-if="group.id === 'evaluation'" class="feature-flag-group-status-cards">
+        <slot name="evaluation-status" />
+      </div>
     </details>
   </div>
 </template>
@@ -353,5 +359,12 @@ async function toggleOverride(
 .feature-flag-override-toggle input[type="checkbox"] {
   width: 0.9rem;
   height: 0.9rem;
+}
+
+.feature-flag-group-status-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 </style>

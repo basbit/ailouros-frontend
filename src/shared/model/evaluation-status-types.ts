@@ -1,6 +1,6 @@
 interface RagasStatus {
   readonly enabled: boolean;
-  readonly modelId: string;
+  readonly judgeKind: string;
 }
 
 interface TelemetryStatus {
@@ -11,7 +11,6 @@ interface TelemetryStatus {
 interface EntailmentStatus {
   readonly enabled: boolean;
   readonly judgeKind: string;
-  readonly modelId: string;
   readonly threshold: number;
 }
 
@@ -23,7 +22,7 @@ export interface EvaluationStatus {
 
 interface RawRagas {
   enabled?: unknown;
-  model_id?: unknown;
+  judge_kind?: unknown;
 }
 
 interface RawTelemetry {
@@ -34,7 +33,6 @@ interface RawTelemetry {
 interface RawEntailment {
   enabled?: unknown;
   judge_kind?: unknown;
-  model_id?: unknown;
   threshold?: unknown;
 }
 
@@ -56,7 +54,7 @@ function parseRagas(raw: unknown): RagasStatus {
   const candidate = (raw ?? {}) as RawRagas;
   return {
     enabled: Boolean(candidate.enabled),
-    modelId: readString(candidate.model_id),
+    judgeKind: readString(candidate.judge_kind) || "heuristic",
   };
 }
 
@@ -73,7 +71,6 @@ function parseEntailment(raw: unknown): EntailmentStatus {
   return {
     enabled: Boolean(candidate.enabled),
     judgeKind: readString(candidate.judge_kind) || "heuristic",
-    modelId: readString(candidate.model_id),
     threshold: readNumber(candidate.threshold),
   };
 }

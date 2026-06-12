@@ -78,7 +78,14 @@
       >
     </summary>
     <div class="section-body">
-      <GlobalFeatureFlagsSettings :workspace-root="workspaceRoot ?? ''" />
+      <GlobalFeatureFlagsSettings :workspace-root="workspaceRoot ?? ''">
+        <template #retrieval-status>
+          <slot name="retrieval-status" />
+        </template>
+        <template #evaluation-status>
+          <slot name="evaluation-status" />
+        </template>
+      </GlobalFeatureFlagsSettings>
     </div>
   </details>
 

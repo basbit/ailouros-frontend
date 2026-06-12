@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { ScenarioInputSpec } from "@/shared/model/scenario-types";
+import type { ScenarioInputSpec } from "@/entities/scenario";
 
 const props = defineProps<{
   inputs: ScenarioInputSpec[];

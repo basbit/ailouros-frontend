@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const http = vi.hoisted(() => ({
   httpGet: vi.fn<(path: string) => Promise<unknown>>(),
-  httpPost: vi.fn<(path: string) => Promise<unknown>>(),
   ApiError: class ApiError extends Error {
     status: number;
     body?: string;

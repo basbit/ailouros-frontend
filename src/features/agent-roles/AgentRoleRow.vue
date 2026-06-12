@@ -138,7 +138,7 @@ import { ROLE_NEEDS_TOOL_CALLING, ROLE_MODEL_HINT } from "@/shared/lib/swarm-con
 import type { RoleId } from "@/shared/lib/swarm-constants";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";
-import PromptEditorDialog from "@/shared/components/PromptEditorDialog.vue";
+import PromptEditorDialog from "@/entities/prompt-template/ui/PromptEditorDialog.vue";
 import type { AgentRoleEmitMap } from "./agent-role-events";
 
 const props = defineProps<{

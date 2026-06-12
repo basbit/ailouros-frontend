@@ -90,62 +90,21 @@
       </ul>
     </section>
 
-    <section v-if="diagnostics.postPipelineGates" class="run-diagnostics__group">
-      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.postGates") }}</h4>
-      <p
-        v-if="diagnostics.postPipelineGates.prmScore !== null"
-        class="run-diagnostics__meta"
-      >
-        <span class="run-diagnostics__pill">PRM</span>
-        <span class="run-diagnostics__reason">
-          {{
-            t("runDiagnostics.postGatesPrm", {
-              score: diagnostics.postPipelineGates.prmScore.toFixed(2),
-            })
-          }}
-        </span>
-      </p>
-      <p
-        v-if="diagnostics.postPipelineGates.verifierVerdict"
-        class="run-diagnostics__meta"
-      >
-        <span
-          class="run-diagnostics__pill"
-          :class="`run-diagnostics__pill--${diagnostics.postPipelineGates.verifierVerdict}`"
+    <section v-if="diagnostics.ragasMetrics" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.ragas") }}</h4>
+      <ul class="run-diagnostics__list">
+        <li
+          v-for="(data, metric) in diagnostics.ragasMetrics.scores"
+          :key="metric"
+          class="run-diagnostics__row"
         >
-          verifier · {{ diagnostics.postPipelineGates.verifierVerdict }}
-        </span>
-        <span
-          v-if="diagnostics.postPipelineGates.verifierReason"
-          class="run-diagnostics__reason"
-        >
-          {{ diagnostics.postPipelineGates.verifierReason }}
-        </span>
-      </p>
-    </section>
-
-    <section v-if="diagnostics.flareSignal" class="run-diagnostics__group">
-      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.flare") }}</h4>
-      <p class="run-diagnostics__meta">
-        <span
-          class="run-diagnostics__pill"
-          :class="`run-diagnostics__pill--${diagnostics.flareSignal.verdict}`"
-        >
-          {{ diagnostics.flareSignal.verdict }}
-        </span>
-        <span class="run-diagnostics__reason">
-          {{
-            t("runDiagnostics.flareSummary", {
-              confidence: diagnostics.flareSignal.confidence.toFixed(2),
-              samples: diagnostics.flareSignal.sampleCount,
-              round: diagnostics.flareSignal.round,
-            })
-          }}
-        </span>
-      </p>
-      <p v-if="diagnostics.flareSignal.reason" class="run-diagnostics__reason">
-        {{ diagnostics.flareSignal.reason }}
-      </p>
+          <code class="run-diagnostics__code">{{ metric }}</code>
+          <span class="run-diagnostics__pill">{{ data.score.toFixed(2) }}</span>
+          <span v-if="data.reason" class="run-diagnostics__reason">{{
+            data.reason
+          }}</span>
+        </li>
+      </ul>
     </section>
 
     <section v-if="missingSections.length > 0" class="run-diagnostics__group">

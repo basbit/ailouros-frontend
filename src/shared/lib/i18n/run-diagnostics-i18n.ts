@@ -40,11 +40,7 @@ export const runDiagnosticsI18nEn: Messages = {
   "runDiagnostics.citation": "Citation enforcement",
   "runDiagnostics.citationCounts": "cited {cited}/{total} · violations {violations}",
   "runDiagnostics.selectAria": "Pick a task to inspect",
-  "runDiagnostics.postGates": "Post-pipeline gates",
-  "runDiagnostics.postGatesPrm": "score {score}",
-  "runDiagnostics.flare": "FLARE confidence",
-  "runDiagnostics.flareSummary":
-    "confidence {confidence} · {samples} samples · round {round}",
+  "runDiagnostics.ragas": "Ragas metrics",
   "runDiagnostics.enableHintsHeading": "Enable hints",
   "runDiagnostics.hint.phase_loop":
     "Set SWARM_ORCHESTRATION_PHASE_LOOP_AUTO_ADVANCE=1 to advance phases automatically.",
@@ -54,10 +50,8 @@ export const runDiagnosticsI18nEn: Messages = {
     "Set SWARM_EVALUATION_ENTAILMENT_ENABLED=1 to enable post-answer entailment.",
   "runDiagnostics.hint.citation_enforcement":
     "Set SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict to enable per-node coverage.",
-  "runDiagnostics.hint.post_pipeline_gates":
-    "Set SWARM_REASONING_PRM_ENABLED=1 + model and/or SWARM_REASONING_VERIFIER_ENABLED=1 + model.",
-  "runDiagnostics.hint.flare_signal":
-    "Set SWARM_REASONING_FLARE_ENABLED=1 and SWARM_REASONING_SELF_CONSISTENCY_SAMPLES>=2.",
+  "runDiagnostics.hint.ragas_metrics":
+    "Set SWARM_EVALUATION_RAGAS_ENABLED=1 to compute heuristic faithfulness and answer relevancy.",
 };
 
 export const runDiagnosticsI18nRu: Messages = {
@@ -102,11 +96,7 @@ export const runDiagnosticsI18nRu: Messages = {
   "runDiagnostics.citation": "Citation enforcement",
   "runDiagnostics.citationCounts": "цитат {cited}/{total} · нарушений {violations}",
   "runDiagnostics.selectAria": "Выбери task для просмотра",
-  "runDiagnostics.postGates": "Пост-пайплайн gates",
-  "runDiagnostics.postGatesPrm": "оценка {score}",
-  "runDiagnostics.flare": "FLARE уверенность",
-  "runDiagnostics.flareSummary":
-    "уверенность {confidence} · сэмплов {samples} · раунд {round}",
+  "runDiagnostics.ragas": "Ragas-метрики",
   "runDiagnostics.enableHintsHeading": "Подсказки как включить",
   "runDiagnostics.hint.phase_loop":
     "Поставь SWARM_ORCHESTRATION_PHASE_LOOP_AUTO_ADVANCE=1 для автоматических переходов фаз.",
@@ -116,8 +106,6 @@ export const runDiagnosticsI18nRu: Messages = {
     "Поставь SWARM_EVALUATION_ENTAILMENT_ENABLED=1 для пост-ответного entailment'а.",
   "runDiagnostics.hint.citation_enforcement":
     "Поставь SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict для per-node coverage.",
-  "runDiagnostics.hint.post_pipeline_gates":
-    "Поставь SWARM_REASONING_PRM_ENABLED=1 + model и/или SWARM_REASONING_VERIFIER_ENABLED=1 + model.",
-  "runDiagnostics.hint.flare_signal":
-    "Поставь SWARM_REASONING_FLARE_ENABLED=1 и SWARM_REASONING_SELF_CONSISTENCY_SAMPLES>=2.",
+  "runDiagnostics.hint.ragas_metrics":
+    "Поставь SWARM_EVALUATION_RAGAS_ENABLED=1 для heuristic faithfulness и answer relevancy.",
 };

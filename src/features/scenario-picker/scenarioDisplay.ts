@@ -1,4 +1,4 @@
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioSummary } from "@/entities/scenario";
 
 type Translate = (
   key: string,

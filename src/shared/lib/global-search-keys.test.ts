@@ -31,17 +31,17 @@ describe("useGlobalSearchKeys.loadFromBackend", () => {
 
   it("applies new track-D retrieval flags from backend response", async () => {
     vi.mocked(getUserSettings).mockResolvedValueOnce({
-      swarm_retrieval_crag: true,
       swarm_retrieval_hyde: true,
       swarm_retrieval_self_rag: true,
+      swarm_retrieval_knowledge_graph: true,
     } as Partial<GlobalSearchKeysState>);
 
     const { state, loadFromBackend } = useGlobalSearchKeys();
     await loadFromBackend();
 
-    expect(state.swarm_retrieval_crag).toBe(true);
     expect(state.swarm_retrieval_hyde).toBe(true);
     expect(state.swarm_retrieval_self_rag).toBe(true);
+    expect(state.swarm_retrieval_knowledge_graph).toBe(true);
   });
 
   it("applies new mcp server flags from backend response", async () => {
@@ -102,12 +102,12 @@ describe("useGlobalSearchKeys.loadFromBackend", () => {
 
   it("coerces non-bool truthy strings to true for boolean fields", async () => {
     vi.mocked(getUserSettings).mockResolvedValueOnce({
-      swarm_retrieval_crag: "1" as unknown as boolean,
+      swarm_retrieval_hyde: "1" as unknown as boolean,
     } as Partial<GlobalSearchKeysState>);
 
     const { state, loadFromBackend } = useGlobalSearchKeys();
     await loadFromBackend();
 
-    expect(state.swarm_retrieval_crag).toBe(true);
+    expect(state.swarm_retrieval_hyde).toBe(true);
   });
 });

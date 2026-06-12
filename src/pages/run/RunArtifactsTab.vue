@@ -11,24 +11,8 @@
     <div v-else class="run-artifacts__stack">
       <StreamingRagCard v-if="rag.visible.value" />
       <InlineCitationList v-if="citations.visible.value" />
-      <StatusSnapshot
-        :scenario="currentScenario"
-        :workspace-root="currentWorkspaceRoot"
-      />
       <ArtefactBrowser
         :scenario="currentScenario"
-        :workspace-root="currentWorkspaceRoot"
-      />
-      <PhaseGateCard :workspace-root="currentWorkspaceRoot" />
-      <MilestoneTree :workspace-root="currentWorkspaceRoot" />
-      <SpecLintPanel :default-scenario="currentScenario" />
-      <SkillDispatchChip :scenario="currentScenario" />
-      <QuickFixDetectorPanel />
-      <RetrievalSettingsCard />
-      <RedTeamCorpusCard />
-      <EvaluationStatusCard />
-      <RunDiagnosticsCard
-        :task-id="currentTaskId"
         :workspace-root="currentWorkspaceRoot"
       />
       <FeedbackThumbs />
@@ -42,17 +26,7 @@ import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import StreamingRagCard from "@/widgets/streaming-rag-card/StreamingRagCard.vue";
 import InlineCitationList from "@/widgets/inline-citation-list/InlineCitationList.vue";
-import StatusSnapshot from "@/widgets/status-snapshot/StatusSnapshot.vue";
 import ArtefactBrowser from "@/widgets/artefact-browser/ArtefactBrowser.vue";
-import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
-import MilestoneTree from "@/widgets/milestone-tree/MilestoneTree.vue";
-import SpecLintPanel from "@/widgets/spec-lint-panel/SpecLintPanel.vue";
-import SkillDispatchChip from "@/widgets/skill-dispatch-chip/SkillDispatchChip.vue";
-import QuickFixDetectorPanel from "@/widgets/quick-fix-detector/QuickFixDetectorPanel.vue";
-import RetrievalSettingsCard from "@/widgets/retrieval-settings-card/RetrievalSettingsCard.vue";
-import RedTeamCorpusCard from "@/widgets/red-team-corpus/RedTeamCorpusCard.vue";
-import EvaluationStatusCard from "@/widgets/evaluation-status/EvaluationStatusCard.vue";
-import RunDiagnosticsCard from "@/widgets/run-diagnostics/RunDiagnosticsCard.vue";
 import FeedbackThumbs from "@/widgets/feedback-thumbs/FeedbackThumbs.vue";
 import FollowUpChips from "@/widgets/follow-up-chips/FollowUpChips.vue";
 import { useStreamingRagCard } from "@/features/streaming-rag/useStreamingRagCard";
@@ -65,7 +39,6 @@ const citations = useInlineCitations();
 const ui = useUiStore();
 
 const currentScenario = computed(() => ui.taskScenarioId ?? "default");
-const currentTaskId = computed(() => ui.taskId ?? null);
 const currentWorkspaceRoot = computed(() => {
   const entry = ui.historyList.find((item) => item.taskId === ui.taskId);
   return entry?.workspace_root ?? null;

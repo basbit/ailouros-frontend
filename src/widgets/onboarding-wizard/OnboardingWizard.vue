@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ModelAssignment } from "@/shared/model/onboarding-types";
+import type { ModelAssignment } from "@/features/onboarding/onboarding-types";
 import { useOnboardingWizard } from "./useOnboardingWizard";
 import { useI18n } from "@/shared/lib/i18n";
 import StepScan from "./steps/StepScan.vue";

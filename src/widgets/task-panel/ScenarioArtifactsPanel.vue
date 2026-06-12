@@ -64,7 +64,7 @@ import { toRef } from "vue";
 import { apiUrl } from "@/shared/api/base";
 import { useI18n } from "@/shared/lib/i18n";
 import { getScenarioArtifacts } from "@/shared/api/endpoints/scenarios";
-import type { ScenarioArtifactsResponse } from "@/shared/model/scenario-types";
+import type { ScenarioArtifactsResponse } from "@/entities/scenario";
 import { useScenarioFinishedReload } from "./useScenarioFinishedReload";
 
 const props = defineProps<{

@@ -5,7 +5,7 @@ import { ref } from "vue";
 
 import FirstRunScenarioPanel from "@/widgets/onboarding-wizard/FirstRunScenarioPanel.vue";
 import * as scenarioPicker from "@/features/scenario-picker";
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioSummary } from "@/entities/scenario";
 
 function buildScenario(
   id: string,

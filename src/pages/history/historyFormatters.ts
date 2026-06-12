@@ -1,8 +1,5 @@
 import { formatEuropeanDateTime } from "@/shared/lib/format-date";
-import {
-  formatDurationOrDash,
-  formatRelativeShort,
-} from "@/shared/lib/format-relative";
+import { formatRelativeShort } from "@/shared/lib/format-relative";
 
 export function promptPreviewOf(prompt: string): string {
   const first = (prompt ?? "").split("\n")[0];
@@ -14,4 +11,3 @@ export function formatDate(value: number | null | undefined): string {
 }
 
 export const formatRelative = formatRelativeShort;
-export const formatDuration = formatDurationOrDash;

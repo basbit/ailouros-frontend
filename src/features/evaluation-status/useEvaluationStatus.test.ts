@@ -11,12 +11,11 @@ vi.mock("@/shared/api/endpoints/evaluation-status", () => ({
 
 function makeStatus(overrides: Partial<EvaluationStatus> = {}): EvaluationStatus {
   return {
-    ragas: { enabled: false, modelId: "" },
+    ragas: { enabled: false, judgeKind: "heuristic" },
     telemetry: { enabled: false, exporterKind: "noop" },
     entailment: {
       enabled: false,
       judgeKind: "heuristic",
-      modelId: "",
       threshold: 0,
     },
     ...overrides,
@@ -30,7 +29,9 @@ describe("useEvaluationStatus", () => {
   });
 
   it("populates the status after refresh", async () => {
-    fetchMock.mockResolvedValue(makeStatus({ ragas: { enabled: true, modelId: "x" } }));
+    fetchMock.mockResolvedValue(
+      makeStatus({ ragas: { enabled: true, judgeKind: "heuristic" } }),
+    );
     const composable = useEvaluationStatus();
     await composable.refresh();
     expect(composable.status.value?.ragas.enabled).toBe(true);

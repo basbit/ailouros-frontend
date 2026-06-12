@@ -161,8 +161,8 @@ import {
   pickModelSelectValue,
   resolveModelChange,
 } from "@/shared/lib/role-model-choice";
-import PromptPathPicker from "@/shared/components/PromptPathPicker.vue";
-import PromptEditorDialog from "@/shared/components/PromptEditorDialog.vue";
+import PromptPathPicker from "@/entities/prompt-template/ui/PromptPathPicker.vue";
+import PromptEditorDialog from "@/entities/prompt-template/ui/PromptEditorDialog.vue";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
 
 const { t } = useI18n();

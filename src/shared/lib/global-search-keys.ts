@@ -77,9 +77,7 @@ export interface GlobalSearchKeysState {
   swarm_pattern_memory: boolean;
   swarm_cross_task_memory: boolean;
   swarm_retrieval_traces_enabled: boolean;
-  swarm_failure_memory: boolean;
   swarm_unified_memory_search: boolean;
-  swarm_playbook_lookup_enabled: boolean;
   swarm_code_rag_enabled: boolean;
   swarm_code_rag_repomap: boolean;
   swarm_retrieval_query_rewrite: boolean;
@@ -87,7 +85,6 @@ export interface GlobalSearchKeysState {
   swarm_retrieval_late_chunking: boolean;
   swarm_retrieval_hierarchical: boolean;
   swarm_retrieval_knowledge_graph: boolean;
-  swarm_retrieval_crag: boolean;
   swarm_retrieval_self_rag: boolean;
   swarm_retrieval_self_rag_classifier: string;
   swarm_retrieval_hyde: boolean;
@@ -103,18 +100,13 @@ export interface GlobalSearchKeysState {
   swarm_retrieval_query_rewrite_model: string;
   swarm_retrieval_multi_query_count: string;
   swarm_retrieval_recency_half_life_days: string;
-  swarm_retrieval_mmr_lambda: string;
-  swarm_retrieval_crag_model: string;
   swarm_retrieval_hyde_model: string;
-  swarm_reasoning_flare: boolean;
   swarm_reflexion: boolean;
   swarm_reasoning_self_consistency_samples: string;
   swarm_reasoning_verifier_model: string;
   swarm_reasoning_prm_model: string;
-  swarm_memory_tier_model: string;
   swarm_reasoning_prm: boolean;
   swarm_reasoning_verifier: boolean;
-  swarm_memory_tier_routing: boolean;
   swarm_efficiency_semantic_cache: boolean;
   swarm_efficiency_batch_inference: boolean;
   swarm_prompt_cache: boolean;
@@ -130,10 +122,8 @@ export interface GlobalSearchKeysState {
   swarm_ux_follow_up_suggestions_count: string;
   swarm_orchestration_quick_fix: boolean;
   swarm_orchestration_phase_verification_required: boolean;
-  swarm_orchestration_phase_loop_auto_advance: boolean;
-  swarm_orchestration_status_enabled: boolean;
-  swarm_orchestration_spec_lint: boolean;
   swarm_orchestration_skill_dispatcher: string;
+  swarm_orchestration_skill_dispatcher_auto: boolean;
   swarm_workspace_snapshots: boolean;
   swarm_allow_workspace_write: boolean;
   swarm_allow_command_exec: boolean;
@@ -194,9 +184,7 @@ const _DEFAULTS: GlobalSearchKeysState = {
   swarm_pattern_memory: true,
   swarm_cross_task_memory: true,
   swarm_retrieval_traces_enabled: true,
-  swarm_failure_memory: true,
   swarm_unified_memory_search: true,
-  swarm_playbook_lookup_enabled: false,
   swarm_code_rag_enabled: false,
   swarm_code_rag_repomap: true,
   swarm_retrieval_query_rewrite: false,
@@ -204,7 +192,6 @@ const _DEFAULTS: GlobalSearchKeysState = {
   swarm_retrieval_late_chunking: false,
   swarm_retrieval_hierarchical: false,
   swarm_retrieval_knowledge_graph: false,
-  swarm_retrieval_crag: false,
   swarm_retrieval_self_rag: false,
   swarm_retrieval_self_rag_classifier: "",
   swarm_retrieval_hyde: false,
@@ -220,18 +207,13 @@ const _DEFAULTS: GlobalSearchKeysState = {
   swarm_retrieval_query_rewrite_model: "",
   swarm_retrieval_multi_query_count: "",
   swarm_retrieval_recency_half_life_days: "",
-  swarm_retrieval_mmr_lambda: "",
-  swarm_retrieval_crag_model: "",
   swarm_retrieval_hyde_model: "",
-  swarm_reasoning_flare: false,
   swarm_reflexion: false,
   swarm_reasoning_self_consistency_samples: "",
   swarm_reasoning_verifier_model: "",
   swarm_reasoning_prm_model: "",
-  swarm_memory_tier_model: "",
   swarm_reasoning_prm: false,
   swarm_reasoning_verifier: false,
-  swarm_memory_tier_routing: false,
   swarm_efficiency_semantic_cache: false,
   swarm_efficiency_batch_inference: false,
   swarm_prompt_cache: true,
@@ -247,10 +229,8 @@ const _DEFAULTS: GlobalSearchKeysState = {
   swarm_ux_follow_up_suggestions_count: "0",
   swarm_orchestration_quick_fix: false,
   swarm_orchestration_phase_verification_required: false,
-  swarm_orchestration_phase_loop_auto_advance: false,
-  swarm_orchestration_status_enabled: false,
-  swarm_orchestration_spec_lint: false,
   swarm_orchestration_skill_dispatcher: "off",
+  swarm_orchestration_skill_dispatcher_auto: false,
   swarm_workspace_snapshots: false,
   swarm_allow_workspace_write: false,
   swarm_allow_command_exec: false,

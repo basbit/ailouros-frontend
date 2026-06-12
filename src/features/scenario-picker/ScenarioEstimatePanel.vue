@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { ScenarioEstimate } from "@/shared/model/scenario-types";
+import type { ScenarioEstimate } from "@/entities/scenario";
 
 const props = withDefaults(
   defineProps<{

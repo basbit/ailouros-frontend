@@ -124,7 +124,7 @@ describe("GlobalFeatureFlagsSettings", () => {
     const wrapper = _mount();
     const codeTagTexts = wrapper.findAll("code").map((node) => node.text());
     expect(codeTagTexts).toContain("SWARM_MCP_AUTO");
-    expect(codeTagTexts).toContain("SWARM_RETRIEVAL_CRAG_ENABLED");
+    expect(codeTagTexts).toContain("SWARM_RETRIEVAL_HYDE_ENABLED");
   });
 
   it("resolves each visible boolean field label via i18n (not the raw key)", () => {
@@ -134,14 +134,14 @@ describe("GlobalFeatureFlagsSettings", () => {
     expect(html).not.toContain(labelKey);
   });
 
-  it("marks unwired fields with a Library-only badge", () => {
+  it("has no unwired fields left and renders no Library-only badges", () => {
     const wrapper = _mount();
-    const badges = wrapper.findAll(".feature-flag-badge-not-wired");
-    expect(badges.length).toBeGreaterThan(0);
     const unwiredFieldCount = FEATURE_FLAG_GROUPS.flatMap(
       (group) => group.fields,
     ).filter((field) => field.wired === false).length;
-    expect(badges.length).toBe(unwiredFieldCount);
+    expect(unwiredFieldCount).toBe(0);
+    const badges = wrapper.findAll(".feature-flag-badge-not-wired");
+    expect(badges.length).toBe(0);
   });
 
   it("does not mark wired fields with the badge", () => {
@@ -151,9 +151,9 @@ describe("GlobalFeatureFlagsSettings", () => {
     expect(mcpBadges.length).toBe(0);
   });
 
-  it("applies the not-wired class to the field container", () => {
+  it("applies the not-wired class to no field container", () => {
     const wrapper = _mount();
     const notWiredFields = wrapper.findAll(".feature-flag-field-not-wired");
-    expect(notWiredFields.length).toBeGreaterThan(0);
+    expect(notWiredFields.length).toBe(0);
   });
 });

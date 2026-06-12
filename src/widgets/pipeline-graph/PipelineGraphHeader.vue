@@ -108,7 +108,7 @@ import {
   scenarioTitle,
   useScenarioCatalog,
 } from "@/features/scenario-picker";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { CustomScenarioSnap } from "@/entities/project";
 
 const CUSTOM_ID = "__custom__";
 

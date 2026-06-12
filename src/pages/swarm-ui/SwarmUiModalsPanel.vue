@@ -23,7 +23,15 @@
       :remote-api-key="remoteApiKey"
       :remote-api-base-url="remoteApiBaseUrl"
       :workspace-root="workspaceRoot"
-    />
+    >
+      <template #retrieval-status>
+        <RetrievalSettingsCard />
+      </template>
+      <template #evaluation-status>
+        <EvaluationStatusCard />
+        <RedTeamCorpusCard />
+      </template>
+    </GlobalSettingsPanel>
     <LocalModels />
   </SettingsDrawer>
 
@@ -59,6 +67,9 @@ import type { ProjectFormValues } from "@/entities/project";
 import SettingsDrawer from "@/widgets/settings-drawer/SettingsDrawer.vue";
 import RemoteApiProfiles from "@/features/remote-api/RemoteApiProfiles.vue";
 import GlobalSettingsPanel from "@/features/global-settings/GlobalSettingsPanel.vue";
+import RetrievalSettingsCard from "@/widgets/retrieval-settings-card/RetrievalSettingsCard.vue";
+import EvaluationStatusCard from "@/widgets/evaluation-status/EvaluationStatusCard.vue";
+import RedTeamCorpusCard from "@/widgets/red-team-corpus/RedTeamCorpusCard.vue";
 import { LocalModels } from "@/features/local-models";
 import PromptLibraryPopover from "@/features/prompt-input/PromptLibraryPopover.vue";
 import type { PromptEntry } from "@/features/prompt-input/usePromptLibrary";

@@ -1,7 +1,7 @@
 import { ref } from "vue";
 
 import { getCodeGraphContext } from "@/shared/api/endpoints/codegraph";
-import type { CodeGraphContext } from "@/shared/model/code-graph-types";
+import type { CodeGraphContext } from "./model/types";
 
 export function useCodeGraphContext() {
   const context = ref<CodeGraphContext | null>(null);

@@ -202,7 +202,7 @@ import RetrievalTraceInspector from "@/widgets/retrieval-trace-inspector/Retriev
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import type { AppSettings } from "@/entities/app-settings/contract";
-import type { ScenarioInputSpec } from "@/shared/model/scenario-types";
+import type { ScenarioInputSpec } from "@/entities/scenario";
 
 type SettingsApi = AppSettings;
 

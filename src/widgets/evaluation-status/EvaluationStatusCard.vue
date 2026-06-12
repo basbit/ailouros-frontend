@@ -43,9 +43,7 @@
               : t("evaluationStatus.disabled")
           }}
         </span>
-        <code v-if="status.ragas.modelId" class="eval-status__model">
-          {{ status.ragas.modelId }}
-        </code>
+        <code class="eval-status__model">{{ status.ragas.judgeKind }}</code>
       </div>
 
       <div class="eval-status__row">
@@ -88,9 +86,6 @@
           }}
         </span>
         <code class="eval-status__model">{{ status.entailment.judgeKind }}</code>
-        <code v-if="status.entailment.modelId" class="eval-status__model">
-          {{ status.entailment.modelId }}
-        </code>
         <span class="eval-status__threshold">
           {{
             t("evaluationStatus.threshold", {

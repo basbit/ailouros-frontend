@@ -15,6 +15,13 @@ export interface LegacyTaskSnapshot {
   scenario_id?: string | null;
   scenario_title?: string | null;
   scenario_category?: string | null;
+  /** Steps the run actually executed (artifact-sourced). */
+  pipeline_steps?: string[];
+  /** Step the run failed at (artifact-sourced). */
+  failed_step?: string;
+  resume_from_step?: string;
+  /** True when the task store forgot the task and it was rebuilt from artifacts. */
+  recovered_from_artifacts?: boolean;
 }
 
 export async function getLegacyTaskSnapshot(

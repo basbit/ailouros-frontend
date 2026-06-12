@@ -12,7 +12,7 @@
         {{ workspaceRoot || t("configure.codeGraph.noWorkspace") }}
       </span>
     </div>
-    <CodeGraphFlow v-if="data" :data="data" @select="onSelect" />
+    <CodeGraphCanvas v-if="data" :data="data" @select="onSelect" />
     <CodeGraphPanel :data="data" :loading="loading" :error="error" :context="context" />
   </section>
 </template>
@@ -22,7 +22,7 @@ import { computed, onMounted } from "vue";
 
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import CodeGraphPanel from "@/widgets/code-graph/CodeGraphPanel.vue";
-import CodeGraphFlow from "@/widgets/code-graph/CodeGraphFlow.vue";
+import CodeGraphCanvas from "@/widgets/code-graph/CodeGraphCanvas.vue";
 import { useCodeGraph } from "@/features/code-graph/useCodeGraph";
 import { useCodeGraphContext } from "@/features/code-graph/useCodeGraphContext";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";

@@ -1,11 +1,7 @@
 import { ref, type Ref } from "vue";
 import { ApiError } from "@/shared/api/http";
 import {
-  generateFromSpec,
-  getSpecDrift,
   getSpecGraph,
-  type SpecCodegenOutcome,
-  type SpecDriftReport,
   type SpecGraphDto,
   type SpecGraphEdgeDto,
   type SpecGraphNodeDto,
@@ -49,15 +45,7 @@ export interface UseSpecGraphState {
   loading: Ref<boolean>;
   error: Ref<string | null>;
   notImplemented: Ref<boolean>;
-  drift: Ref<SpecDriftReport | null>;
-  driftLoading: Ref<boolean>;
-  driftError: Ref<string | null>;
-  codegenResult: Ref<SpecCodegenOutcome | null>;
-  codegenLoading: Ref<boolean>;
-  codegenError: Ref<string | null>;
   load: (workspaceRoot: string, persist?: boolean) => Promise<void>;
-  loadDrift: (workspaceRoot: string) => Promise<void>;
-  runCodegen: (specId: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -101,38 +89,6 @@ export function useSpecGraph(): UseSpecGraphState {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const notImplemented = ref(false);
-  const drift = ref<SpecDriftReport | null>(null);
-  const driftLoading = ref(false);
-  const driftError = ref<string | null>(null);
-  const codegenResult = ref<SpecCodegenOutcome | null>(null);
-  const codegenLoading = ref(false);
-  const codegenError = ref<string | null>(null);
-
-  async function loadDrift(workspaceRoot: string): Promise<void> {
-    driftLoading.value = true;
-    driftError.value = null;
-    try {
-      drift.value = await getSpecDrift(workspaceRoot);
-    } catch (err) {
-      drift.value = null;
-      driftError.value = err instanceof Error ? err.message : String(err);
-    } finally {
-      driftLoading.value = false;
-    }
-  }
-
-  async function runCodegen(specId: string): Promise<void> {
-    codegenLoading.value = true;
-    codegenError.value = null;
-    try {
-      codegenResult.value = await generateFromSpec(specId);
-    } catch (err) {
-      codegenResult.value = null;
-      codegenError.value = err instanceof Error ? err.message : String(err);
-    } finally {
-      codegenLoading.value = false;
-    }
-  }
 
   async function load(workspaceRoot: string, persist = false): Promise<void> {
     loading.value = true;
@@ -170,12 +126,6 @@ export function useSpecGraph(): UseSpecGraphState {
     loading.value = false;
     error.value = null;
     notImplemented.value = false;
-    drift.value = null;
-    driftLoading.value = false;
-    driftError.value = null;
-    codegenResult.value = null;
-    codegenLoading.value = false;
-    codegenError.value = null;
   }
 
   return {
@@ -185,15 +135,7 @@ export function useSpecGraph(): UseSpecGraphState {
     loading,
     error,
     notImplemented,
-    drift,
-    driftLoading,
-    driftError,
-    codegenResult,
-    codegenLoading,
-    codegenError,
     load,
-    loadDrift,
-    runCodegen,
     reset,
   };
 }

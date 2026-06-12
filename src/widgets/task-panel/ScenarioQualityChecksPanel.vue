@@ -59,7 +59,7 @@
 import { toRef } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { getScenarioQualityChecks } from "@/shared/api/endpoints/scenarios";
-import type { ScenarioQualityChecksResponse } from "@/shared/model/scenario-types";
+import type { ScenarioQualityChecksResponse } from "@/entities/scenario";
 import { useScenarioFinishedReload } from "./useScenarioFinishedReload";
 
 const props = defineProps<{

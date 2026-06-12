@@ -55,7 +55,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/scenario-edit/ScenarioEditPage.vue"),
     props: true,
   },
-  { path: "/plugins", component: () => import("@/pages/plugins/PluginsPage.vue") },
   { path: "/legacy", component: () => import("@/pages/swarm-ui/SwarmUiPage.vue") },
   { path: "/:catchAll(.*)", redirect: "/run" },
 ];

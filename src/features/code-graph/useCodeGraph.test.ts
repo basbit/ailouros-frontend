@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import { useCodeGraph } from "@/features/code-graph/useCodeGraph";
 import * as endpoint from "@/shared/api/endpoints/codegraph";
-import type { CodeGraphResponse } from "@/shared/model/code-graph-types";
+import type { CodeGraphResponse } from "./model/types";
 
 const SAMPLE: CodeGraphResponse = {
   nodes: [

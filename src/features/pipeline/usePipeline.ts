@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { PIPELINE_OPTIONS_BASE } from "@/shared/lib/pipeline-schema";
 import { defaultPipelineOrder } from "@/shared/lib/use-swarm-defaults";
-import type { PipeStep } from "@/shared/model/pipeline-types";
+import type { PipeStep } from "./model/types";
 import type { CustomRoleSnap } from "@/entities/project";
 
 type StageGroup = string[];

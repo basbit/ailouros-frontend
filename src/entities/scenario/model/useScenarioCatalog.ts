@@ -3,7 +3,7 @@ import type { ComputedRef, Ref } from "vue";
 import { listScenarios } from "@/shared/api/endpoints/scenarios";
 import { initApiBase } from "@/shared/api/base";
 import { invokeCommand, isDesktop } from "@/shared/lib/desktop-bridge";
-import type { ScenarioCategory, ScenarioSummary } from "@/shared/model/scenario-types";
+import type { ScenarioCategory, ScenarioSummary } from "./types";
 
 const scenarios = ref<ScenarioSummary[]>([]);
 const loading = ref(false);

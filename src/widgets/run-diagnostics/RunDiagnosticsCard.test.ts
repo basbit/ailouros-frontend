@@ -19,8 +19,7 @@ function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostic
     wikiContextTier: null,
     entailmentVerdict: null,
     citation: null,
-    postPipelineGates: null,
-    flareSignal: null,
+    ragasMetrics: null,
     enableHints: {},
     ...overrides,
   };
@@ -46,41 +45,22 @@ describe("RunDiagnosticsCard", () => {
     fetchMock.mockReset();
   });
 
-  it("renders post_pipeline_gates section when payload present", async () => {
+  it("renders ragas_metrics section when payload present", async () => {
     const wrapper = await mountCard(
       makeDiagnostics({
-        postPipelineGates: {
-          prmScore: 0.42,
-          prmReason: "weak",
-          verifierVerdict: "revise",
-          verifierReason: "needs more detail",
+        ragasMetrics: {
+          scores: {
+            faithfulness: { score: 0.85, reason: "strong overlap" },
+            answer_relevancy: { score: 0.72, reason: "" },
+          },
         },
       }),
     );
     const text = wrapper.text();
-    expect(text).toContain("Post-pipeline gates");
-    expect(text).toContain("0.42");
-    expect(text).toContain("revise");
-    expect(text).toContain("needs more detail");
-  });
-
-  it("renders flare section with confidence + samples + round", async () => {
-    const wrapper = await mountCard(
-      makeDiagnostics({
-        flareSignal: {
-          verdict: "uncertain",
-          confidence: 0.33,
-          sampleCount: 3,
-          reason: "samples diverged",
-          round: 2,
-        },
-      }),
-    );
-    const text = wrapper.text();
-    expect(text).toContain("FLARE");
-    expect(text).toContain("uncertain");
-    expect(text).toContain("0.33");
-    expect(text).toContain("samples diverged");
+    expect(text).toContain("Ragas");
+    expect(text).toContain("faithfulness");
+    expect(text).toContain("0.85");
+    expect(text).toContain("strong overlap");
   });
 
   it("renders enable_hints block with localized hint when section missing", async () => {
@@ -88,16 +68,13 @@ describe("RunDiagnosticsCard", () => {
       makeDiagnostics({
         enableHints: {
           phase_loop: "raw english hint that should be replaced",
-          flare_signal: "another raw english hint",
         },
       }),
     );
     const text = wrapper.text();
     expect(text).toContain("Enable hints");
     expect(text).toContain("phase_loop");
-    expect(text).toContain("flare_signal");
     expect(text).toContain("SWARM_ORCHESTRATION_PHASE_LOOP_AUTO_ADVANCE");
-    expect(text).toContain("SWARM_REASONING_FLARE_ENABLED");
   });
 
   it("hides enable_hints block when all sections populated", async () => {
@@ -124,18 +101,8 @@ describe("RunDiagnosticsCard", () => {
           },
         ],
       },
-      postPipelineGates: {
-        prmScore: 0.9,
-        prmReason: "",
-        verifierVerdict: "pass",
-        verifierReason: "",
-      },
-      flareSignal: {
-        verdict: "confident",
-        confidence: 0.9,
-        sampleCount: 2,
-        reason: "",
-        round: 1,
+      ragasMetrics: {
+        scores: { faithfulness: { score: 0.9, reason: "" } },
       },
       enableHints: {
         phase_loop: "should not render — section populated",

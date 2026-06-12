@@ -1,10 +1,7 @@
 import { readonly, ref } from "vue";
 
 import { httpGet } from "@/shared/api/http";
-import {
-  parseTokenMetricsPayload,
-  type TokenMetrics,
-} from "@/shared/model/token-metrics-types";
+import { parseTokenMetricsPayload, type TokenMetrics } from "./model/types";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 const metrics = ref<TokenMetrics | null>(null);

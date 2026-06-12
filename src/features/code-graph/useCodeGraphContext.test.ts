@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { useCodeGraphContext } from "@/features/code-graph/useCodeGraphContext";
 import * as endpoint from "@/shared/api/endpoints/codegraph";
-import type { CodeGraphContext } from "@/shared/model/code-graph-types";
+import type { CodeGraphContext } from "./model/types";
 
 function node(id: string, name: string): CodeGraphContext["definition"] {
   return {

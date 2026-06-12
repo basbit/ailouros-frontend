@@ -66,7 +66,6 @@ function createTestRouter(initialPath: string) {
         component: { template: "<div />" },
         props: true,
       },
-      { path: "/plugins", component: { template: "<div />" } },
       { path: "/agent-editor", component: { template: "<div />" } },
     ],
   });
@@ -90,7 +89,6 @@ function makeHost(
       provide(SWARM_RUN_CONTROLLER_KEY, controller);
       provide(GLOBAL_SETTINGS_KEY, globalSettings);
       provide(PROJECT_FORM_ACTIONS_KEY, projectForm);
-      provide("openPlugins", () => {});
     },
     render() {
       return h(child, childProps);

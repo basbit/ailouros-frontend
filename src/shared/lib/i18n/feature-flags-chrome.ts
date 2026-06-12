@@ -16,7 +16,7 @@ export const featureFlagsChromeEn: Messages = {
     "Knowledge retrieval and learning across runs. Wiki search, retrieval traces, pattern memory and cross-task episodic memory.",
   "featureFlags.group.retrieval.title": "Advanced retrieval (Track D / E)",
   "featureFlags.group.retrieval.description":
-    "Reranking, hierarchical retrieval, knowledge graphs, CRAG, Self-RAG, HyDE and other RAG quality features.",
+    "Reranking, knowledge graph expansion, Self-RAG, HyDE and other RAG quality features.",
   "featureFlags.group.reasoning.title": "Reasoning quality (Track G)",
   "featureFlags.group.reasoning.description":
     "Process reward modelling, verifier model and memory tier routing.",
@@ -53,7 +53,7 @@ export const featureFlagsChromeRu: Messages = {
     "Поиск знаний и обучение между запусками: wiki, retrieval-трейсы, pattern memory, cross-task episodic memory.",
   "featureFlags.group.retrieval.title": "Продвинутый retrieval (Track D / E)",
   "featureFlags.group.retrieval.description":
-    "Реранкинг, иерархический поиск, knowledge graphs, CRAG, Self-RAG, HyDE и другие RAG-улучшения.",
+    "Реранкинг, расширение knowledge graph, Self-RAG, HyDE и другие RAG-улучшения.",
   "featureFlags.group.reasoning.title": "Качество рассуждений (Track G)",
   "featureFlags.group.reasoning.description":
     "Process reward modelling, verifier model и маршрутизация по уровням памяти.",

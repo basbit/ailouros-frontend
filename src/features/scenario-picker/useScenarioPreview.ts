@@ -1,10 +1,7 @@
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
 import { previewScenario } from "@/shared/api/endpoints/scenarios";
-import type {
-  ScenarioPreview,
-  ScenarioPreviewOverrides,
-} from "@/shared/model/scenario-types";
+import type { ScenarioPreview, ScenarioPreviewOverrides } from "@/entities/scenario";
 
 export interface ScenarioPreviewApi {
   preview: Ref<ScenarioPreview | null>;

@@ -2,7 +2,7 @@ import { ref } from "vue";
 import type { Ref } from "vue";
 import { ApiError } from "@/shared/api/http";
 import { getScenarioEstimate } from "@/shared/api/endpoints/scenarios";
-import type { ScenarioEstimate } from "@/shared/model/scenario-types";
+import type { ScenarioEstimate } from "@/entities/scenario";
 
 export interface ScenarioEstimateApi {
   estimate: Ref<ScenarioEstimate | null>;

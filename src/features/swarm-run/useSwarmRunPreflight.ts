@@ -6,8 +6,8 @@ import {
 } from "@/shared/lib/agent-config";
 import type { ResolvedScenario } from "@/shared/lib/run-swarm-chat";
 import { useScenarioCatalog } from "@/entities/scenario";
-import type { ScenarioSummary } from "@/shared/model/scenario-types";
-import type { CustomScenarioSnap } from "@/shared/model/project-types";
+import type { ScenarioSummary } from "@/entities/scenario";
+import type { CustomScenarioSnap } from "@/entities/project";
 import type { SwarmRunState } from "./useSwarmRunState";
 
 export function customScenarioToSummary(snap: CustomScenarioSnap): ScenarioSummary {

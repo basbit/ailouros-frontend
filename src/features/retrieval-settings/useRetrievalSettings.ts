@@ -20,7 +20,7 @@ export function useRetrievalSettings() {
     loading.value = true;
     lastError.value = null;
     try {
-      settings.value = await getRetrievalSettings();
+      settings.value = (await getRetrievalSettings()) ?? null;
     } catch (requestError: unknown) {
       const message =
         requestError instanceof Error ? requestError.message : String(requestError);

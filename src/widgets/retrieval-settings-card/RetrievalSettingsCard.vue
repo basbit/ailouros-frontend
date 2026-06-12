@@ -27,30 +27,7 @@
     </p>
 
     <div v-if="settings" class="retrieval-settings__body">
-      <section class="retrieval-settings__group">
-        <h4 class="retrieval-settings__subtitle">
-          {{ t("retrievalSettings.lateChunkingHeading") }}
-        </h4>
-        <p class="retrieval-settings__meta">
-          <span
-            class="retrieval-settings__pill"
-            :class="
-              settings.lateChunkingEnabled
-                ? 'retrieval-settings__pill--on'
-                : 'retrieval-settings__pill--off'
-            "
-          >
-            {{
-              settings.lateChunkingEnabled
-                ? t("retrievalSettings.enabled")
-                : t("retrievalSettings.disabled")
-            }}
-          </span>
-          <span v-if="settings.lateChunkingModelId" class="retrieval-settings__model">
-            {{ settings.lateChunkingModelId }}
-          </span>
-        </p>
-      </section>
+      <!-- Reserved for future retrieval profile fields -->
     </div>
   </section>
 </template>
