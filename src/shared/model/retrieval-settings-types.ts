@@ -1,21 +1,35 @@
 /**
- * Retrieval settings payload type.
- * The backend returns an empty object `{}` — reserved for future additions.
- * The type is kept for forward compatibility; the parser returns null on empty
- * payloads so the widget shows its empty/idle state.
+ * Retrieval settings payload.
+ * The backend (`GET /v1/retrieval/settings`) returns the effective, read-only
+ * retrieval configuration. The parser returns null for an empty/unknown payload
+ * so the widget can show its idle state.
  */
 export interface RetrievalSettings {
-  readonly _placeholder: true;
+  readonly wikiSearchEnabled: boolean;
+  readonly topK: number;
+  readonly maxChars: number;
+  readonly minRelevance: number;
+  readonly rerankModel: string;
 }
 
 interface RawPayload {
   [key: string]: unknown;
 }
 
+function asNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
 export function parseRetrievalSettingsPayload(raw: unknown): RetrievalSettings | null {
   if (!raw || typeof raw !== "object") return null;
   const candidate = raw as RawPayload;
-  // Return null when payload is empty (backend currently returns {})
-  if (Object.keys(candidate).length === 0) return null;
-  return { _placeholder: true };
+  if (!("wiki_search_enabled" in candidate)) return null;
+  return {
+    wikiSearchEnabled: Boolean(candidate.wiki_search_enabled),
+    topK: asNumber(candidate.top_k),
+    maxChars: asNumber(candidate.max_chars),
+    minRelevance: asNumber(candidate.min_relevance),
+    rerankModel:
+      typeof candidate.rerank_model === "string" ? candidate.rerank_model : "",
+  };
 }

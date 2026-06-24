@@ -73,9 +73,9 @@ export function useHistoryDetailActions(options: {
   getTaskId: () => string | null | undefined;
 }) {
   const { ux, t, workspaceRootForRun, getTaskId } = options;
-  const rollbackBusy = ref<boolean>(false);
-  const resumeBusy = ref<boolean>(false);
-  const resumeAvailable = ref<boolean>(false);
+  const isRollbackBusy = ref<boolean>(false);
+  const isResumeBusy = ref<boolean>(false);
+  const isResumeAvailable = ref<boolean>(false);
   const resumeStepId = ref<string>("");
 
   async function loadResumeOptions(taskId: string): Promise<void> {
@@ -83,10 +83,10 @@ export function useHistoryDetailActions(options: {
       const opts = await httpGet<ResumeOptionsResponse>(
         `/v1/tasks/${encodeURIComponent(taskId)}/resume-options`,
       );
-      resumeAvailable.value = Boolean(opts.can_resume);
+      isResumeAvailable.value = Boolean(opts.can_resume);
       resumeStepId.value = (opts.resume_step ?? "").trim();
     } catch {
-      resumeAvailable.value = false;
+      isResumeAvailable.value = false;
       resumeStepId.value = "";
     }
   }
@@ -94,7 +94,7 @@ export function useHistoryDetailActions(options: {
   async function onRollbackTo(stepId: string): Promise<void> {
     const taskId = getTaskId();
     if (!taskId) return;
-    rollbackBusy.value = true;
+    isRollbackBusy.value = true;
     try {
       const handlePayload = await httpGet<WorkspaceSnapshotResponse>(
         `/v1/tasks/${encodeURIComponent(taskId)}/workspace-snapshot`,
@@ -136,19 +136,19 @@ export function useHistoryDetailActions(options: {
         message: t("history.detail.rollback.failed", { error: message }),
       });
     } finally {
-      rollbackBusy.value = false;
+      isRollbackBusy.value = false;
     }
   }
 
   async function onResumeFromFailedStep(): Promise<void> {
     const taskId = getTaskId();
     if (!taskId) return;
-    resumeBusy.value = true;
+    isResumeBusy.value = true;
     try {
-      if (!resumeAvailable.value) {
+      if (!isResumeAvailable.value) {
         await loadResumeOptions(taskId);
       }
-      if (!resumeAvailable.value) {
+      if (!isResumeAvailable.value) {
         await ux.alertDialog({
           title: t("history.detail.resume.title"),
           message: t("history.detail.resume.noState"),
@@ -163,14 +163,14 @@ export function useHistoryDetailActions(options: {
         message: t("history.detail.resume.failed", { error: message }),
       });
     } finally {
-      resumeBusy.value = false;
+      isResumeBusy.value = false;
     }
   }
 
   return {
-    rollbackBusy,
-    resumeBusy,
-    resumeAvailable,
+    isRollbackBusy,
+    isResumeBusy,
+    isResumeAvailable,
     resumeStepId,
     loadResumeOptions,
     onRollbackTo,

@@ -4,6 +4,7 @@
       {{ t("runLive.diagnostics") }}
     </summary>
     <div class="run-live-diagnostics__body">
+      <RunPlanCard :task-id="taskId" />
       <RunDiagnosticsCard :task-id="taskId" :workspace-root="workspaceRoot" />
     </div>
   </details>
@@ -11,6 +12,7 @@
 
 <script setup lang="ts">
 import RunDiagnosticsCard from "@/widgets/run-diagnostics/RunDiagnosticsCard.vue";
+import RunPlanCard from "@/widgets/run-plan/RunPlanCard.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
 defineProps<{

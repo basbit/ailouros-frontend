@@ -13,6 +13,12 @@
       provider-field="swarm_self_verify_provider"
       :model-custom-placeholder="t('auto.modelIdPlaceholder')"
       model-env-code="SWARM_SELF_VERIFY_MODEL"
+      :profile-options="profileOptions"
+      :remote-profile="state.swarm_self_verify_remote_profile"
+      :profiles="profiles"
+      profile-field="swarm_self_verify_remote_profile"
+      :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
+      :cloud-profile-title="t('agentRoleRow.cloudProfile')"
       @update:form="onUpdate"
     >
       <template #hint>
@@ -113,6 +119,12 @@
       provider-field="swarm_deep_planning_provider"
       :model-custom-placeholder="t('auto.modelIdPlaceholder')"
       model-env-code="SWARM_DEEP_PLANNING_MODEL"
+      :profile-options="profileOptions"
+      :remote-profile="state.swarm_deep_planning_remote_profile"
+      :profiles="profiles"
+      profile-field="swarm_deep_planning_remote_profile"
+      :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
+      :cloud-profile-title="t('agentRoleRow.cloudProfile')"
       @update:form="onUpdate"
     >
       <template #hint>
@@ -185,6 +197,12 @@
       provider-field="swarm_planner_provider"
       model-custom-placeholder="deepseek-r1:14b"
       :show-picker-only-when-enabled="true"
+      :profile-options="profileOptions"
+      :remote-profile="state.swarm_planner_remote_profile"
+      :profiles="profiles"
+      profile-field="swarm_planner_remote_profile"
+      :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
+      :cloud-profile-title="t('agentRoleRow.cloudProfile')"
       @update:form="onUpdate"
     />
   </div>
@@ -197,6 +215,7 @@ import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings"
 import AutonomousToggleWithPicker from "@/features/global-settings/autonomous/AutonomousToggleWithPicker.vue";
 import AutonomousBackgroundAgentForm from "@/features/global-settings/autonomous/AutonomousBackgroundAgentForm.vue";
 import type { GlobalSettingsData } from "./useGlobalSettings";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 const { t } = useI18n();
 const { state, setKey } = useGlobalSettings();
@@ -205,10 +224,10 @@ const props = defineProps<{
   remoteApiProvider?: string;
   remoteApiKey?: string;
   remoteApiBaseUrl?: string;
+  profileOptions?: { value: string; label: string }[];
+  profiles?: RemoteProfileRow[];
 }>();
 
-// Cloud connection is still project-scoped (stored in the current project's
-// remote_api fields). Forms below use it only to discover cloud model ids.
 const connection = computed(() => ({
   remote_api_provider: props.remoteApiProvider ?? "",
   remote_api_key: props.remoteApiKey ?? "",

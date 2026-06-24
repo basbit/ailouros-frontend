@@ -30,4 +30,4 @@ export interface LocalModelView {
   absolute_path: string;
 }
 
-export type { BootstrapProgress } from "@/shared/model/bootstrap-types";
+export type { BootstrapProgress } from "@/entities/bootstrap";

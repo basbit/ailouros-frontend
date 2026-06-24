@@ -11,7 +11,10 @@ import {
   GLOBAL_SETTINGS_KEY,
   type GlobalSettingsApi,
 } from "@/features/global-settings/globalSettingsContext";
-import { useSettingsHotReload } from "@/shared/lib/use-settings-hot-reload";
+import {
+  useSettingsHotReload,
+  shouldRunSettingsHotReload,
+} from "@/shared/lib/use-settings-hot-reload";
 import {
   useProjectFormActions,
   type ProjectFormActions,
@@ -38,6 +41,19 @@ export interface AppBootstrap {
   projectForm: ProjectFormActions;
 }
 
+function isEditingFormField(): boolean {
+  if (typeof document === "undefined") return false;
+  const el = document.activeElement as HTMLElement | null;
+  if (!el) return false;
+  const tag = el.tagName;
+  return (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    el.isContentEditable === true
+  );
+}
+
 export function useAppBootstrap(
   setWorkspaceRoot: (value: string) => void,
 ): AppBootstrap {
@@ -56,9 +72,14 @@ export function useAppBootstrap(
   useSettingsHotReload({
     intervalMs: 7000,
     enabled: () =>
-      !settings.isBooting.value &&
-      !controller.isRunning.value &&
-      (typeof document === "undefined" || document.visibilityState === "visible"),
+      shouldRunSettingsHotReload({
+        booting: settings.isBooting.value,
+        running: controller.isRunning.value,
+        pendingSave: settings.hasPendingSave(),
+        editingField: isEditingFormField(),
+        documentHidden:
+          typeof document !== "undefined" && document.visibilityState !== "visible",
+      }),
     fetcher: async () => {
       await settings.reloadProjectFile();
     },

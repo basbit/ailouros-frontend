@@ -47,37 +47,13 @@
           </div>
           <div v-else class="role-picker__empty">{{ t("rolePicker.empty") }}</div>
 
-          <aside class="role-picker__preview">
-            <header class="role-picker__preview-head">
-              <span class="role-picker__preview-label">
-                {{ t("rolePicker.previewLabel") }}
-              </span>
-              <div class="role-picker__preview-meta">
-                <span v-if="previewRoleId" class="role-picker__preview-id">
-                  {{ previewRoleId }}
-                </span>
-                <button
-                  v-if="previewRoleId"
-                  type="button"
-                  class="role-picker__edit-btn"
-                  :title="t('rolePicker.editInModelsTitle')"
-                  @click="() => onEditInModels(previewRoleId)"
-                >
-                  {{ t("rolePicker.editInModels") }}
-                </button>
-              </div>
-            </header>
-            <div v-if="!previewRoleId" class="role-picker__preview-empty">
-              {{ t("rolePicker.previewHint") }}
-            </div>
-            <div v-else-if="promptLoading" class="role-picker__preview-empty">
-              {{ t("rolePicker.previewLoading") }}
-            </div>
-            <div v-else-if="promptError" class="role-picker__preview-error">
-              {{ promptError }}
-            </div>
-            <pre v-else class="role-picker__preview-body">{{ promptBody }}</pre>
-          </aside>
+          <RolePromptPreview
+            :preview-role-id="previewRoleId"
+            :prompt-loading="promptLoading"
+            :prompt-error="promptError"
+            :prompt-body="promptBody"
+            @edit="onEditInModels"
+          />
         </div>
       </div>
     </div>
@@ -87,9 +63,9 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ApiError, httpGet } from "@/shared/api/http";
-import { defaultPromptPathForRole } from "@/shared/lib/use-swarm-defaults";
 import { useI18n } from "@/shared/lib/i18n";
+import { useRolePromptPreview } from "./useRolePromptPreview";
+import RolePromptPreview from "./RolePromptPreview.vue";
 
 export interface RoleSummary {
   id: string;
@@ -114,14 +90,13 @@ const router = useRouter();
 const query = ref("");
 const searchRef = ref<HTMLInputElement | null>(null);
 const highlightedRoleId = ref<string>("");
-const promptBody = ref<string>("");
-const promptLoading = ref(false);
-const promptError = ref<string>("");
-const promptCache = new Map<string, string>();
 
 const previewRoleId = computed<string>(
   () => highlightedRoleId.value || props.modelValue,
 );
+
+const { promptBody, promptLoading, promptError, loadPromptFor } =
+  useRolePromptPreview(previewRoleId);
 
 watch(
   () => props.open,
@@ -135,10 +110,6 @@ watch(
     }
   },
 );
-
-watch(previewRoleId, (next) => {
-  void loadPromptFor(next);
-});
 
 const filteredRoles = computed<RoleSummary[]>(() => {
   const text = query.value.trim().toLowerCase();
@@ -175,41 +146,6 @@ async function onEditInModels(roleId: string): Promise<void> {
     hash: `#role-anchor-${roleId}`,
   });
   emit("close");
-}
-
-async function loadPromptFor(roleId: string): Promise<void> {
-  promptError.value = "";
-  promptBody.value = "";
-  if (!roleId) return;
-  const promptPath = defaultPromptPathForRole(roleId);
-  if (!promptPath) {
-    promptError.value = t("rolePicker.previewMissing");
-    return;
-  }
-  const cached = promptCache.get(promptPath);
-  if (cached !== undefined) {
-    promptBody.value = cached;
-    return;
-  }
-  promptLoading.value = true;
-  try {
-    const data = await httpGet<{ body?: string }>(
-      `/v1/prompts/get?path=${encodeURIComponent(promptPath)}`,
-    );
-    const body = (data?.body ?? "").trim();
-    promptCache.set(promptPath, body);
-    if (roleId === previewRoleId.value) {
-      promptBody.value = body;
-    }
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
-      promptError.value = t("rolePicker.previewMissing");
-      return;
-    }
-    promptError.value = err instanceof Error ? err.message : String(err);
-  } finally {
-    promptLoading.value = false;
-  }
 }
 </script>
 
@@ -323,74 +259,5 @@ async function loadPromptFor(roleId: string): Promise<void> {
   text-align: center;
   font-size: 12px;
   color: var(--text2, #a8b0c4);
-}
-.role-picker__preview {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 10px 12px;
-  gap: 6px;
-}
-.role-picker__preview-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-.role-picker__preview-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text2, #a8b0c4);
-}
-.role-picker__preview-id {
-  font-family: var(--mono, ui-monospace, monospace);
-  font-size: 11px;
-  color: var(--text, #f5f0e7);
-}
-.role-picker__preview-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.role-picker__edit-btn {
-  appearance: none;
-  border: 1px solid var(--border, #2a2f3e);
-  background: var(--surface2, #14171f);
-  color: var(--text, #f5f0e7);
-  border-radius: 6px;
-  font-size: 11px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-.role-picker__edit-btn:hover {
-  background: color-mix(in srgb, var(--accent, #3b5bdb) 18%, transparent);
-  border-color: var(--accent, #3b5bdb);
-}
-.role-picker__preview-empty,
-.role-picker__preview-error {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: var(--text2, #a8b0c4);
-}
-.role-picker__preview-error {
-  color: var(--error, #c0392b);
-}
-.role-picker__preview-body {
-  flex: 1 1 auto;
-  overflow: auto;
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--surface2, #14171f);
-  font-family: var(--mono, ui-monospace, monospace);
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  color: var(--text, #f5f0e7);
 }
 </style>

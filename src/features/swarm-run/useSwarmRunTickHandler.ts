@@ -70,7 +70,19 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
 
   async function syncTaskFromServer(taskId: string): Promise<void> {
     const hydratedTask = await hydrateTaskFromServer(taskId);
-    if (hydratedTask) applyHydratedTask(hydratedTask);
+    if (hydratedTask) {
+      applyHydratedTask(hydratedTask);
+      // Restoring an already-paused run (page reload / opening an active run)
+      // must re-surface its gate — e.g. the clarification answer form for an
+      // awaiting_human run. Only the live tick path did this before, so a
+      // reloaded awaiting_human run showed no answer window.
+      applyTaskGateForStatus(hydratedTask.status, taskId, {
+        history: hydratedTask.history,
+        agents: hydratedTask.agents,
+        status: hydratedTask.status,
+        error: hydratedTask.error,
+      });
+    }
     await loadPipelinePlan(taskId, "sync");
   }
 
@@ -165,7 +177,7 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
     }
     if (taskPayload.context_mode) ui.contextMode = String(taskPayload.context_mode);
     if (typeof taskPayload.tools_enabled === "boolean") {
-      ui.toolsEnabled = taskPayload.tools_enabled;
+      ui.areToolsEnabled = taskPayload.tools_enabled;
     }
     if (taskPayload.mcp_phase) ui.mcpPhase = String(taskPayload.mcp_phase);
     applyPendingApprovalsFlag(status);

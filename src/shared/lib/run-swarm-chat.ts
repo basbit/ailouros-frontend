@@ -278,6 +278,11 @@ export async function runSwarmChat(
   );
   const response = await startSwarmChatStream(payload);
   if (!response.ok) {
+    // The backend records a recoverable artifact even for early (pre-stream)
+    // failures and returns its id in X-Task-Id. Register the failed run so it
+    // stays visible in history and the user can open its recovered logs.
+    const failedTaskId = response.headers.get(TASK_ID_HEADER) ?? "";
+    if (failedTaskId) handlers.onTaskId(failedTaskId);
     throw new Error(await readHttpErrorMessage(response));
   }
 

@@ -19,7 +19,7 @@
       </button>
     </nav>
 
-    <!-- Спецификации: spec graph + node content/editor -->
+    <!-- Specifications: spec graph + node content/editor -->
     <div v-show="activeView === 'spec'" class="graphs-tab__body">
       <p v-if="!workspaceRoot" class="graphs-tab__placeholder">
         {{ t("history.detail.spec.noWorkspace") }}
@@ -73,12 +73,12 @@
       </div>
     </div>
 
-    <!-- Вики-граф -->
+    <!-- Wiki graph -->
     <div v-show="activeView === 'wiki'" class="graphs-tab__body">
       <WikiGraphPanel />
     </div>
 
-    <!-- Граф кода -->
+    <!-- Code graph -->
     <div v-show="activeView === 'code'" class="graphs-tab__body">
       <p v-if="!workspaceRoot" class="graphs-tab__placeholder">
         {{ t("history.detail.spec.noWorkspace") }}

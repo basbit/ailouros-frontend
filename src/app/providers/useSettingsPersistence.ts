@@ -97,6 +97,10 @@ export function useSettingsPersistence(deps: PersistenceDeps) {
     };
   }
 
+  function hasPendingSave(): boolean {
+    return saveTimer !== null;
+  }
+
   return {
     saveSettingsSoon,
     flushSave,
@@ -104,5 +108,6 @@ export function useSettingsPersistence(deps: PersistenceDeps) {
     saveSettingsToStorage,
     loadProjectSnap,
     loadLegacySearchKeys,
+    hasPendingSave,
   };
 }

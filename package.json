@@ -33,7 +33,7 @@
     "desktop:preview": "tauri dev --no-watch"
   },
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=10"
   },
   "overrides": {
@@ -41,7 +41,8 @@
     "brace-expansion": "^5.0.6",
     "postcss": "^8.5.10",
     "js-cookie": "^3.0.7",
-    "qs": "^6.15.2"
+    "qs": "^6.15.2",
+    "js-yaml": "^4.2.0"
   },
   "dependencies": {
     "@tauri-apps/plugin-dialog": "^2.7.1",

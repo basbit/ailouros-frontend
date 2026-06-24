@@ -23,6 +23,7 @@ import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import SubNav, { type SubNavEntry } from "@/widgets/app-shell/SubNav.vue";
 import ProfilePane from "./panes/ProfilePane.vue";
 import ApiKeysPane from "./panes/ApiKeysPane.vue";
+import SecretsPane from "./panes/SecretsPane.vue";
 import ScenariosPane from "./panes/ScenariosPane.vue";
 import ModelRegistryPane from "./panes/ModelRegistryPane.vue";
 import AutomationPane from "./panes/AutomationPane.vue";
@@ -40,6 +41,7 @@ const { t } = useI18n();
 const PANES = {
   profile: ProfilePane,
   "api-keys": ApiKeysPane,
+  secrets: SecretsPane,
   automation: AutomationPane,
   notifications: NotificationsPane,
   scenarios: ScenariosPane,
@@ -52,6 +54,7 @@ type PaneKey = keyof typeof PANES;
 const PANE_ORDER: PaneKey[] = [
   "profile",
   "api-keys",
+  "secrets",
   "automation",
   "notifications",
   "scenarios",
@@ -62,6 +65,7 @@ const PANE_ORDER: PaneKey[] = [
 const SUBNAV_LABELS: Record<PaneKey, string> = {
   profile: "settings.subnav.profile",
   "api-keys": "settings.subnav.apiKeys",
+  secrets: "settings.subnav.secrets",
   automation: "settings.subnav.automation",
   notifications: "settings.subnav.notifications",
   scenarios: "settings.subnav.scenarios",

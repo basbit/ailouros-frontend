@@ -13,6 +13,7 @@ vi.mock("@/shared/lib/global-search-keys", () => ({
     swarm_self_verify: false,
     swarm_self_verify_model: "",
     swarm_self_verify_provider: "",
+    swarm_self_verify_remote_profile: "",
     swarm_auto_approve: "",
     swarm_auto_approve_timeout: "",
     swarm_auto_retry: false,
@@ -20,6 +21,7 @@ vi.mock("@/shared/lib/global-search-keys", () => ({
     swarm_deep_planning: false,
     swarm_deep_planning_model: "",
     swarm_deep_planning_provider: "",
+    swarm_deep_planning_remote_profile: "",
     swarm_background_agent: false,
     swarm_background_agent_model: "",
     swarm_background_agent_provider: "",
@@ -29,6 +31,7 @@ vi.mock("@/shared/lib/global-search-keys", () => ({
     swarm_auto_plan: false,
     swarm_planner_model: "",
     swarm_planner_provider: "",
+    swarm_planner_remote_profile: "",
     github_token: "",
     swarm_notify_enabled: false,
     swarm_notify_min_severity: "",
@@ -225,6 +228,18 @@ describe("buildAgentConfig swarm automation settings", () => {
     automationOverride.swarm_planner_model = "";
     const without = buildAgentConfig({ ...emptyState, form: baseForm() });
     expect(without).not.toHaveProperty("swarm_planner");
+  });
+
+  it("attaches the planner remote_profile when set (cloud agent-parity)", () => {
+    automationOverride.swarm_planner_model = "planner-v1";
+    automationOverride.swarm_planner_provider = "cloud";
+    automationOverride.swarm_planner_remote_profile = "prodB";
+    const config = buildAgentConfig({ ...emptyState, form: baseForm() });
+    expect(config?.swarm_planner).toEqual({
+      model: "planner-v1",
+      environment: "cloud",
+      remote_profile: "prodB",
+    });
   });
 });
 

@@ -1,7 +1,7 @@
 <template>
   <div
     class="swarm-vue-host"
-    :class="{ 'swarm-vue-host--sidebar-collapsed': preferences.sidebarCollapsed }"
+    :class="{ 'swarm-vue-host--sidebar-collapsed': preferences.isSidebarCollapsed }"
   >
     <FirstRunGate />
 
@@ -61,7 +61,7 @@
             :scenario-input-values="scenarioActions.scenarioInputValues.value"
             :scenario-preview-title="scenarioPreviewTitle"
             :is-running="isRunning"
-            :advanced-sidebar-open="artifactsState.advancedSidebarOpen.value"
+            :is-advanced-sidebar-open="artifactsState.isAdvancedSidebarOpen.value"
             :scenario-readiness-ready="scenarioReadiness.ready.value"
             :scenario-readiness-scenario="scenarioReadiness.scenario.value"
             :missing-keys="scenarioReadiness.missingKeys.value"
@@ -123,7 +123,7 @@
         :is-running="isRunning"
         :background-agent-remote-config="backgroundAgentRemoteConfig"
         :task-history="taskHistory"
-        :artifacts-open="artifactsState.artifactsOpen.value"
+        :are-artifacts-open="artifactsState.areArtifactsOpen.value"
         :clarify-cache-provenance="clarifyCacheProvenance"
         :workspace-identity-resolved="workspaceIdentityResolved"
         :visual-probe-manifest="visualProbeManifest"

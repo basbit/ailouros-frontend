@@ -27,7 +27,32 @@
     </p>
 
     <div v-if="settings" class="retrieval-settings__body">
-      <!-- Reserved for future retrieval profile fields -->
+      <p class="retrieval-settings__meta">
+        <span
+          :class="[
+            'retrieval-settings__pill',
+            settings.wikiSearchEnabled
+              ? 'retrieval-settings__pill--on'
+              : 'retrieval-settings__pill--off',
+          ]"
+        >
+          {{ t("retrievalSettings.wikiSearch") }}:
+          {{
+            settings.wikiSearchEnabled
+              ? t("retrievalSettings.enabled")
+              : t("retrievalSettings.disabled")
+          }}
+        </span>
+        <span>{{ t("retrievalSettings.topK") }} {{ settings.topK }}</span>
+        <span>{{ t("retrievalSettings.maxChars") }} {{ settings.maxChars }}</span>
+        <span
+          >{{ t("retrievalSettings.minRelevance") }} {{ settings.minRelevance }}</span
+        >
+      </p>
+      <p class="retrieval-settings__model">
+        {{ t("retrievalSettings.rerank") }}:
+        {{ settings.rerankModel || t("retrievalSettings.rerankOff") }}
+      </p>
     </div>
   </section>
 </template>

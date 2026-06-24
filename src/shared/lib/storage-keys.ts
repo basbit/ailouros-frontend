@@ -29,7 +29,7 @@ export const STORAGE_KEYS = {
   artifactsPanelOpen: {
     key: "swarm.artifacts-panel-open",
   },
-  advancedSidebarOpen: {
+  isAdvancedSidebarOpen: {
     key: "swarm.sidebar-advanced-open",
   },
   updateBannerDismissedRef: {

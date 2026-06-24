@@ -5,7 +5,7 @@ import {
   isDesktop,
   listenEvent,
 } from "@/shared/lib/desktop-bridge";
-import type { BootstrapProgress, BootstrapStage } from "@/shared/model/bootstrap-types";
+import type { BootstrapProgress, BootstrapStage } from "@/entities/bootstrap";
 
 const LOG_TAIL_MAX_LINES_PER_FILE = 80;
 

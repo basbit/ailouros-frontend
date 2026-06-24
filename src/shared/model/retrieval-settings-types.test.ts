@@ -8,13 +8,36 @@ describe("parseRetrievalSettingsPayload", () => {
     expect(parseRetrievalSettingsPayload("nope")).toBeNull();
   });
 
-  it("returns null for an empty payload (backend currently returns {})", () => {
+  it("returns null when the status payload is empty/unknown (idle state)", () => {
     expect(parseRetrievalSettingsPayload({})).toBeNull();
+    expect(parseRetrievalSettingsPayload({ other: 1 })).toBeNull();
   });
 
-  it("returns a settings object for a non-empty payload", () => {
-    const parsed = parseRetrievalSettingsPayload({ some_future_field: true });
-    expect(parsed).not.toBeNull();
-    expect(parsed?._placeholder).toBe(true);
+  it("maps the live retrieval status payload to camelCase fields", () => {
+    const parsed = parseRetrievalSettingsPayload({
+      wiki_search_enabled: true,
+      top_k: 5,
+      max_chars: 8000,
+      min_relevance: 0.5,
+      rerank_model: "bge-reranker",
+    });
+    expect(parsed).toEqual({
+      wikiSearchEnabled: true,
+      topK: 5,
+      maxChars: 8000,
+      minRelevance: 0.5,
+      rerankModel: "bge-reranker",
+    });
+  });
+
+  it("coerces missing/wrong-typed fields to safe defaults", () => {
+    const parsed = parseRetrievalSettingsPayload({ wiki_search_enabled: false });
+    expect(parsed).toEqual({
+      wikiSearchEnabled: false,
+      topK: 0,
+      maxChars: 0,
+      minRelevance: 0,
+      rerankModel: "",
+    });
   });
 });

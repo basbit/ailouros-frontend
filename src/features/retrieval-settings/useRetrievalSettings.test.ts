@@ -11,7 +11,11 @@ vi.mock("@/shared/api/endpoints/retrieval-settings", () => ({
 
 function makeSettings(overrides: Partial<RetrievalSettings> = {}): RetrievalSettings {
   return {
-    _placeholder: true,
+    wikiSearchEnabled: true,
+    topK: 8,
+    maxChars: 8000,
+    minRelevance: 0.5,
+    rerankModel: "",
     ...overrides,
   };
 }

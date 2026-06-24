@@ -3,7 +3,7 @@ import type { TaskStatus } from "@/shared/model/task-types";
 import type { PipelinePlanSnapshot } from "@/shared/api/endpoints/pipeline";
 import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-constants";
 import { readRawString, writeRawString, removeKey } from "@/shared/lib/storage-utils";
-import { frontendLogger } from "@/shared/lib/frontend-logger";
+import { safeWarn, parseJsonOr } from "@/shared/lib/safe-async";
 
 export interface ServerCapabilities {
   workspace_write?: boolean;
@@ -64,13 +64,13 @@ export function createTaskRefs() {
 
   const activeStep = ref<string | null>(null);
   const contextMode = ref<string | null>(null);
-  const toolsEnabled = ref<boolean>(true);
+  const areToolsEnabled = ref<boolean>(true);
   const mcpPhase = ref<string | null>(null);
   const pendingApprovals = ref<number>(0);
 
   const retryingSteps = ref<Set<string>>(new Set());
   const orchestratorCompletedSteps = ref<Set<string>>(new Set());
-  const verificationRunning = ref<boolean>(false);
+  const isVerificationRunning = ref<boolean>(false);
 
   function pushHostMetricsSample(m: HostMetrics | null): void {
     if (!m) return;
@@ -121,12 +121,12 @@ export function createTaskRefs() {
     taskPipelinePlan,
     activeStep,
     contextMode,
-    toolsEnabled,
+    areToolsEnabled,
     mcpPhase,
     pendingApprovals,
     retryingSteps,
     orchestratorCompletedSteps,
-    verificationRunning,
+    isVerificationRunning,
     pushHostMetricsSample,
     clearHostMetricsHistory,
   };
@@ -138,24 +138,21 @@ function activeTaskKey(pid: string): string {
 
 export function persistActiveTask(taskIdValue: string | null, pid: string): void {
   if (!taskIdValue) {
-    try {
-      removeKey(activeTaskKey(pid));
-    } catch (e) {
-      frontendLogger.warn("ui-task: failed to remove active task key", e);
-    }
+    safeWarn("ui-task: failed to remove active task key", () =>
+      removeKey(activeTaskKey(pid)),
+    );
   } else {
-    try {
-      writeRawString(activeTaskKey(pid), JSON.stringify({ taskId: taskIdValue }));
-    } catch (e) {
-      frontendLogger.warn("ui-task: failed to persist active task", e);
-    }
+    safeWarn("ui-task: failed to persist active task", () =>
+      writeRawString(activeTaskKey(pid), JSON.stringify({ taskId: taskIdValue })),
+    );
   }
 }
 
 export function restoreActiveTask(pid: string): string | null {
-  try {
+  let raw: string | null = null;
+  safeWarn("ui-task: failed to restore active task", () => {
     const key = activeTaskKey(pid);
-    let raw = readRawString(key);
+    raw = readRawString(key);
     if (!raw && pid === "default") {
       const leg = readRawString(LS_ACTIVE_TASK);
       if (leg) {
@@ -163,13 +160,13 @@ export function restoreActiveTask(pid: string): string | null {
         raw = leg;
       }
     }
-    if (!raw) return null;
-    const j = JSON.parse(raw);
-    return j && j.taskId ? String(j.taskId).trim() : null;
-  } catch (e) {
-    frontendLogger.warn("ui-task: failed to restore active task", e);
-    return null;
-  }
+  });
+  const parsed = parseJsonOr<{ taskId?: unknown } | null>(
+    raw,
+    null,
+    "ui-task: failed to restore active task",
+  );
+  return parsed && parsed.taskId ? String(parsed.taskId).trim() : null;
 }
 
 export function resetTaskRefs(t: ReturnType<typeof createTaskRefs>): void {
@@ -185,10 +182,10 @@ export function resetTaskRefs(t: ReturnType<typeof createTaskRefs>): void {
   t.taskPipelinePlan.value = null;
   t.activeStep.value = null;
   t.contextMode.value = null;
-  t.toolsEnabled.value = true;
+  t.areToolsEnabled.value = true;
   t.mcpPhase.value = null;
   t.pendingApprovals.value = 0;
   t.retryingSteps.value = new Set();
   t.orchestratorCompletedSteps.value = new Set();
-  t.verificationRunning.value = false;
+  t.isVerificationRunning.value = false;
 }

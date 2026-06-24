@@ -13,16 +13,37 @@ import {
   postRetryStream,
 } from "@/shared/api/endpoints/task-gates";
 import { buildAgentConfig, type AgentConfigSettings } from "@/shared/lib/agent-config";
-import { frontendLogger } from "@/shared/lib/frontend-logger";
+import { runCatchingWarn } from "@/shared/lib/safe-async";
 import { useI18n } from "@/shared/lib/i18n";
-import { useUxStore } from "@/shared/store/ux";
 
-function notifyError(message: string): void {
-  useUxStore().notify(message, "error", 4200);
-}
+/**
+ * Transport layer for task-gate actions. These functions perform HTTP/stream
+ * work only and report failures through {@link GateActionResult}; the caller
+ * owns the decision to surface errors to the user (e.g. via the UX store).
+ */
+export type GateActionResult<T = void> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+const ok = <T>(data: T): GateActionResult<T> => ({ ok: true, data });
+const fail = (error: string): GateActionResult<never> => ({ ok: false, error });
+
+/**
+ * Sentinel for "already surfaced elsewhere": buildAgentConfig writes its own
+ * error message, so the caller must not double-notify. An empty error string
+ * signals a silent failure the caller should swallow.
+ */
+const SILENT = fail("");
 
 function noTaskIdMessage(): string {
   return useI18n().t("history.noTaskId");
+}
+
+function apiErrorMessage(error: unknown, prefix: string): string {
+  if (error instanceof ApiError) {
+    return `${prefix} HTTP ${error.status}${error.body ? ": " + error.body : ""}`;
+  }
+  return String(error);
 }
 
 async function drainStream(
@@ -46,28 +67,25 @@ export async function submitHumanResume(
   feedback: string,
   sendWsSubscribe: () => void,
   onEvent?: (event: ChatStreamEvent) => void,
-): Promise<void> {
-  if (!taskId) {
-    notifyError(noTaskIdMessage());
-    return;
-  }
+): Promise<GateActionResult> {
+  if (!taskId) return fail(noTaskIdMessage());
   const response = await postHumanResumeStream(taskId, feedback);
-  if (!response.ok) {
-    notifyError("human-resume HTTP " + response.status);
-    return;
-  }
+  if (!response.ok) return fail("human-resume HTTP " + response.status);
   sendWsSubscribe();
   await drainStream(response.body, onEvent);
+  return ok(undefined);
 }
 
-export async function confirmShell(taskId: string, approved: boolean): Promise<void> {
-  if (!taskId) return;
+export async function confirmShell(
+  taskId: string,
+  approved: boolean,
+): Promise<GateActionResult> {
+  if (!taskId) return SILENT;
   try {
     await postConfirmShell(taskId, approved);
+    return ok(undefined);
   } catch (error) {
-    notifyError(
-      error instanceof ApiError ? "confirm-shell HTTP " + error.status : String(error),
-    );
+    return fail(apiErrorMessage(error, "confirm-shell"));
   }
 }
 
@@ -80,29 +98,27 @@ export async function fetchPendingManualShell(
   taskId: string,
 ): Promise<PendingManualShellPayload> {
   const empty: PendingManualShellPayload = { commands: [], reason: "" };
-  try {
-    const data = await getPendingManualShell(taskId);
-    if (!data) return empty;
-    return { commands: data.commands ?? [], reason: data.reason ?? "" };
-  } catch (error) {
-    frontendLogger.warn(
-      `fetchPendingManualShell: network error for task ${taskId}`,
-      error,
-    );
-    return empty;
-  }
+  return runCatchingWarn(
+    async () => {
+      const data = await getPendingManualShell(taskId);
+      if (!data) return empty;
+      return { commands: data.commands ?? [], reason: data.reason ?? "" };
+    },
+    empty,
+    `fetchPendingManualShell: network error for task ${taskId}`,
+  );
 }
 
-export async function confirmManualShell(taskId: string, done: boolean): Promise<void> {
-  if (!taskId) return;
+export async function confirmManualShell(
+  taskId: string,
+  done: boolean,
+): Promise<GateActionResult> {
+  if (!taskId) return SILENT;
   try {
     await postConfirmManualShell(taskId, done);
+    return ok(undefined);
   } catch (error) {
-    notifyError(
-      error instanceof ApiError
-        ? "confirm-manual-shell HTTP " + error.status
-        : String(error),
-    );
+    return fail(apiErrorMessage(error, "confirm-manual-shell"));
   }
 }
 
@@ -110,16 +126,13 @@ export async function confirmHuman(
   taskId: string,
   approved: boolean,
   userInput = "",
-): Promise<void> {
-  if (!taskId) return;
+): Promise<GateActionResult> {
+  if (!taskId) return SILENT;
   try {
     await postConfirmHuman(taskId, approved, userInput);
+    return ok(undefined);
   } catch (error) {
-    if (error instanceof ApiError) {
-      notifyError("confirm-human HTTP " + error.status + ": " + (error.body ?? ""));
-      return;
-    }
-    notifyError(String(error));
+    return fail(apiErrorMessage(error, "confirm-human"));
   }
 }
 
@@ -132,12 +145,11 @@ export interface PendingHumanResponse {
 export async function fetchPendingHuman(
   taskId: string,
 ): Promise<PendingHumanResponse | null> {
-  try {
-    return await getPendingHuman(taskId);
-  } catch (error) {
-    frontendLogger.warn(`fetchPendingHuman: network error for task ${taskId}`, error);
-    return null;
-  }
+  return runCatchingWarn(
+    () => getPendingHuman(taskId),
+    null,
+    `fetchPendingHuman: network error for task ${taskId}`,
+  );
 }
 
 export interface PendingShellPayload {
@@ -154,49 +166,46 @@ export async function fetchPendingShellCommands(
     needs_allowlist: [],
     already_allowed: [],
   };
-  try {
-    const data = await getPendingShell(taskId);
-    if (!data) return empty;
-    return {
-      commands: data.commands ?? [],
-      needs_allowlist: data.needs_allowlist ?? [],
-      already_allowed: data.already_allowed ?? [],
-    };
-  } catch (error) {
-    frontendLogger.warn(
-      `fetchPendingShellCommands: network error for task ${taskId}`,
-      error,
-    );
-    return empty;
-  }
+  return runCatchingWarn(
+    async () => {
+      const data = await getPendingShell(taskId);
+      if (!data) return empty;
+      return {
+        commands: data.commands ?? [],
+        needs_allowlist: data.needs_allowlist ?? [],
+        already_allowed: data.already_allowed ?? [],
+      };
+    },
+    empty,
+    `fetchPendingShellCommands: network error for task ${taskId}`,
+  );
 }
 
 export async function fetchFailedStep(taskId: string): Promise<string> {
-  try {
-    const data = await getTaskPipelinePlan(taskId);
-    const explicit =
-      typeof data.failed_step === "string" ? data.failed_step.trim() : "";
-    if (explicit && explicit !== "graph") return explicit;
-    const current =
-      typeof data.current_step === "string" ? data.current_step.trim() : "";
-    return current;
-  } catch (error) {
-    frontendLogger.warn(`fetchFailedStep: network error for task ${taskId}`, error);
-    return "";
-  }
+  return runCatchingWarn(
+    async () => {
+      const data = await getTaskPipelinePlan(taskId);
+      const explicit =
+        typeof data.failed_step === "string" ? data.failed_step.trim() : "";
+      if (explicit && explicit !== "graph") return explicit;
+      const current =
+        typeof data.current_step === "string" ? data.current_step.trim() : "";
+      return current;
+    },
+    "",
+    `fetchFailedStep: network error for task ${taskId}`,
+  );
 }
 
 export async function fetchCurrentPipelineSteps(taskId: string): Promise<string[]> {
-  try {
-    const data = await getTaskPipelinePlan(taskId);
-    return Array.isArray(data.pipeline_steps) ? data.pipeline_steps : [];
-  } catch (error) {
-    frontendLogger.warn(
-      `fetchCurrentPipelineSteps: network error for task ${taskId}`,
-      error,
-    );
-    return [];
-  }
+  return runCatchingWarn(
+    async () => {
+      const data = await getTaskPipelinePlan(taskId);
+      return Array.isArray(data.pipeline_steps) ? data.pipeline_steps : [];
+    },
+    [],
+    `fetchCurrentPipelineSteps: network error for task ${taskId}`,
+  );
 }
 
 export async function submitContinuePipeline(
@@ -204,17 +213,11 @@ export async function submitContinuePipeline(
   additionalSteps: string[],
   settings: AgentConfigSettings,
   sendWsSubscribe: () => void,
-): Promise<void> {
-  if (!taskId) {
-    notifyError(noTaskIdMessage());
-    return;
-  }
-  if (!additionalSteps.length) {
-    notifyError("Select at least one step to add");
-    return;
-  }
+): Promise<GateActionResult> {
+  if (!taskId) return fail(noTaskIdMessage());
+  if (!additionalSteps.length) return fail("Select at least one step to add");
   const agentConfig = buildAgentConfig(settings);
-  if (!agentConfig) return;
+  if (!agentConfig) return SILENT;
 
   const currentSteps = await fetchCurrentPipelineSteps(taskId);
   const mergedSteps = [...currentSteps];
@@ -230,12 +233,10 @@ export async function submitContinuePipeline(
   };
 
   const response = await postRetryStream(taskId, body);
-  if (!response.ok) {
-    notifyError("continue-pipeline HTTP " + response.status);
-    return;
-  }
+  if (!response.ok) return fail("continue-pipeline HTTP " + response.status);
   sendWsSubscribe();
   await drainStream(response.body);
+  return ok(undefined);
 }
 
 export async function submitRetry(
@@ -243,33 +244,27 @@ export async function submitRetry(
   fromBeginning: boolean,
   settings: AgentConfigSettings,
   sendWsSubscribe: () => void,
-): Promise<void> {
-  if (!taskId) {
-    notifyError(noTaskIdMessage());
-    return;
-  }
+): Promise<GateActionResult> {
+  if (!taskId) return fail(noTaskIdMessage());
   const agentConfig = buildAgentConfig(settings);
-  if (!agentConfig) return;
+  if (!agentConfig) return SILENT;
 
   const body: Record<string, unknown> = { stream: true, agent_config: agentConfig };
   if (fromBeginning) {
-    try {
-      const pipelineSnapshot = await getTaskPipelinePlan(taskId);
-      const steps = pipelineSnapshot.pipeline_steps;
-      if (steps && steps.length) body.from_step = steps[0];
-    } catch (error) {
-      frontendLogger.warn(
-        `submitRetry: could not read pipeline.json for task ${taskId}`,
-        error,
-      );
-    }
+    await runCatchingWarn(
+      async () => {
+        const pipelineSnapshot = await getTaskPipelinePlan(taskId);
+        const steps = pipelineSnapshot.pipeline_steps;
+        if (steps && steps.length) body.from_step = steps[0];
+      },
+      undefined,
+      `submitRetry: could not read pipeline.json for task ${taskId}`,
+    );
   }
 
   const response = await postRetryStream(taskId, body);
-  if (!response.ok) {
-    notifyError("retry HTTP " + response.status);
-    return;
-  }
+  if (!response.ok) return fail("retry HTTP " + response.status);
   sendWsSubscribe();
   await drainStream(response.body);
+  return ok(undefined);
 }

@@ -32,14 +32,14 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
   const selectedEditPath = ref<string>("");
   const editContent = ref<string>("");
   const editOriginal = ref<string>("");
-  const editLoading = ref<boolean>(false);
-  const editSaving = ref<boolean>(false);
+  const isEditLoading = ref<boolean>(false);
+  const isEditSaving = ref<boolean>(false);
   const editError = ref<string | null>(null);
 
   async function loadEditFile(path: string): Promise<void> {
     const taskId = taskIdRef.value;
     if (!taskId || !path) return;
-    editLoading.value = true;
+    isEditLoading.value = true;
     editError.value = null;
     editContent.value = "";
     editOriginal.value = "";
@@ -55,7 +55,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
             ? e.message
             : String(e);
     } finally {
-      editLoading.value = false;
+      isEditLoading.value = false;
     }
   }
 
@@ -66,7 +66,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
   async function saveEditedFile(): Promise<void> {
     const taskId = taskIdRef.value;
     if (!taskId || !selectedEditPath.value) return;
-    editSaving.value = true;
+    isEditSaving.value = true;
     editError.value = null;
     try {
       await patchWorkspaceFile(taskId, selectedEditPath.value, editContent.value);
@@ -80,7 +80,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
             ? e.message
             : String(e);
     } finally {
-      editSaving.value = false;
+      isEditSaving.value = false;
     }
   }
 
@@ -89,8 +89,8 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
     editContent.value = "";
     editOriginal.value = "";
     editError.value = null;
-    editLoading.value = false;
-    editSaving.value = false;
+    isEditLoading.value = false;
+    isEditSaving.value = false;
   }
 
   async function fetchWorkspaceDiff(): Promise<void> {
@@ -150,8 +150,8 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
     selectedEditPath,
     editContent,
     editOriginal,
-    editLoading,
-    editSaving,
+    isEditLoading,
+    isEditSaving,
     editError,
     loadEditFile,
     onEditPathChange,

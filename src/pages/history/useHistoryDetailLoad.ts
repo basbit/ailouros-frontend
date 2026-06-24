@@ -19,14 +19,14 @@ export interface StepRow {
 
 interface HistoryDetailLoadOptions {
   entry: ComputedRef<HistoryEntry | null>;
-  resumeAvailable: Ref<boolean>;
+  isResumeAvailable: Ref<boolean>;
   resumeStepId: Ref<string>;
   loadResumeOptions: (taskId: string) => Promise<void> | void;
 }
 
 export function useHistoryDetailLoad({
   entry,
-  resumeAvailable,
+  isResumeAvailable,
   resumeStepId,
   loadResumeOptions,
 }: HistoryDetailLoadOptions) {
@@ -72,7 +72,7 @@ export function useHistoryDetailLoad({
       remoteSteps.value = [];
       remoteFailedStep.value = "";
       remoteStatus.value = "";
-      resumeAvailable.value = false;
+      isResumeAvailable.value = false;
       resumeStepId.value = "";
       if (taskId) {
         void loadRemoteEvents(taskId);

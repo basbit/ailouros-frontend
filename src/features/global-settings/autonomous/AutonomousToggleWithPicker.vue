@@ -26,16 +26,23 @@
       :provider="provider"
       :model-value="model"
       :connection="connection"
+      :profile-options="profileOptions"
+      :remote-profile="remoteProfile"
+      :profiles="profiles"
+      :profile-placeholder="profilePlaceholder"
+      :cloud-profile-title="cloudProfileTitle"
       :custom-placeholder="modelCustomPlaceholder"
       :env-code="modelEnvCode"
       @update:provider="emit('update:form', providerField, $event)"
       @update:model-value="emit('update:form', modelField, $event)"
+      @update:remote-profile="onRemoteProfile"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import AutonomousModelPickerField from "./AutonomousModelPickerField.vue";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 interface CloudConnection {
   remote_api_provider: string;
@@ -43,7 +50,7 @@ interface CloudConnection {
   remote_api_base_url: string;
 }
 
-defineProps<{
+const props = defineProps<{
   enabled: boolean;
   model: string;
   provider: string;
@@ -57,7 +64,17 @@ defineProps<{
   modelCustomPlaceholder: string;
   modelEnvCode?: string;
   showPickerOnlyWhenEnabled?: boolean;
+  profileOptions?: { value: string; label: string }[];
+  remoteProfile?: string;
+  profiles?: RemoteProfileRow[];
+  profileField?: string;
+  profilePlaceholder?: string;
+  cloudProfileTitle?: string;
 }>();
+
+function onRemoteProfile(value: string): void {
+  if (props.profileField) emit("update:form", props.profileField, value);
+}
 
 const emit = defineEmits<{
   "update:form": [field: string, value: string];

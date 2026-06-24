@@ -9,7 +9,7 @@
     v-if="canShowResume"
     type="button"
     class="history-detail-header__resume-btn"
-    :disabled="resumeBusy"
+    :disabled="isResumeBusy"
     :title="resumeTitle"
     @click="$emit('resume')"
   >
@@ -25,7 +25,7 @@ defineProps<{
   family: "ok" | "fail" | "warn" | "run" | "pending";
   status: string;
   canShowResume: boolean;
-  resumeBusy: boolean;
+  isResumeBusy: boolean;
   resumeStepId: string;
   resumeLabel: string;
   resumeTitle: string;

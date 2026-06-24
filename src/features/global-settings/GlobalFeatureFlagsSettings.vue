@@ -21,44 +21,17 @@
         ]"
       >
         <template v-if="field.kind === 'boolean'">
-          <label class="feature-flag-toggle">
-            <input
-              type="checkbox"
-              :checked="readBooleanFieldValue(field) as boolean"
-              @change="
-                writeBooleanFieldValue(
-                  field,
-                  ($event.target as HTMLInputElement).checked,
-                )
-              "
-            />
-            <span class="feature-flag-toggle-label">{{ t(fieldLabelKey(field)) }}</span>
-            <span
-              v-if="!isFieldWired(field)"
-              class="feature-flag-badge-not-wired"
-              :title="t('featureFlags.badge.notWired.hint')"
-              >{{ t("featureFlags.badge.notWired.label") }}</span
-            >
-            <span
-              v-if="workspaceOverrides.isOverridden(field.field)"
-              class="feature-flag-badge-workspace-override"
-              :title="t('featureFlags.badge.workspaceOverride.hint')"
-              >{{ t("featureFlags.badge.workspaceOverride.label") }}</span
-            >
-          </label>
-          <div class="feature-flag-hint">
-            {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
-          </div>
-          <label v-if="props.workspaceRoot" class="feature-flag-override-toggle">
-            <input
-              type="checkbox"
-              :checked="workspaceOverrides.isOverridden(field.field)"
-              @change="
-                toggleOverride(field, ($event.target as HTMLInputElement).checked)
-              "
-            />
-            <span>{{ t("featureFlags.overrideToggle.label") }}</span>
-          </label>
+          <FeatureFlagBooleanField
+            :checked="readBooleanFieldValue(field)"
+            :label-text="t(fieldLabelKey(field))"
+            :hint-text="t(fieldHintKey(field))"
+            :env-name="field.envName"
+            :wired="isFieldWired(field)"
+            :overridden="workspaceOverrides.isOverridden(field.field)"
+            :show-override-toggle="Boolean(props.workspaceRoot)"
+            @change="(checked) => writeBooleanFieldValue(field, checked)"
+            @toggle-override="(checked) => toggleOverride(field, checked)"
+          />
         </template>
         <template v-else-if="field.kind === 'enum'">
           <FeatureFlagLabel
@@ -138,11 +111,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, toRef } from "vue";
+import { toRef } from "vue";
+import type { Ref } from "vue";
 import FeatureFlagLabel from "@/features/global-settings/FeatureFlagLabel.vue";
 import FeatureFlagOverrideToggle from "@/features/global-settings/FeatureFlagOverrideToggle.vue";
-import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
-import { useWorkspaceFeatureFlagOverrides } from "@/features/global-settings/useWorkspaceFeatureFlagOverrides";
+import FeatureFlagBooleanField from "@/features/global-settings/FeatureFlagBooleanField.vue";
 import {
   FEATURE_FLAG_GROUPS,
   enumOptionLabelKey,
@@ -151,84 +124,26 @@ import {
   groupDescriptionKey,
   groupTitleKey,
   isFieldWired,
-  type FeatureFlagBooleanKey,
-  type FeatureFlagStringKey,
 } from "@/features/global-settings/featureFlagGroups";
+import { useFeatureFlagFields } from "@/features/global-settings/useFeatureFlagFields";
 import { useI18n } from "@/shared/lib/i18n";
 
-type BooleanFlagField = { kind: "boolean"; field: FeatureFlagBooleanKey };
-type StringFlagField = {
-  kind: "string" | "enum";
-  field: FeatureFlagStringKey;
-};
-
 const { t } = useI18n();
-const { state, setKey } = useGlobalSettings();
 const groups = FEATURE_FLAG_GROUPS;
 
 const props = defineProps<{
   workspaceRoot?: string;
 }>();
 
-const workspaceRootRef = toRef(props, "workspaceRoot");
-const workspaceOverrides = useWorkspaceFeatureFlagOverrides(
-  workspaceRootRef as unknown as import("vue").Ref<string>,
-);
-
-onMounted(() => {
-  void workspaceOverrides.loadForCurrentWorkspace();
-});
-
-function readBooleanFieldValue(field: BooleanFlagField): boolean {
-  if (workspaceOverrides.isOverridden(field.field)) {
-    return Boolean(workspaceOverrides.overrideValue(field.field));
-  }
-  return state[field.field] as boolean;
-}
-
-function readStringFieldValue(field: StringFlagField): string {
-  if (workspaceOverrides.isOverridden(field.field)) {
-    return String(workspaceOverrides.overrideValue(field.field) ?? "");
-  }
-  return state[field.field] as string;
-}
-
-async function writeBooleanFieldValue(
-  field: BooleanFlagField,
-  value: boolean,
-): Promise<void> {
-  if (workspaceOverrides.isOverridden(field.field)) {
-    await workspaceOverrides.setOverride(field.field, value);
-    return;
-  }
-  setKey(field.field, value);
-}
-
-async function writeStringFieldValue(
-  field: StringFlagField,
-  value: string,
-): Promise<void> {
-  if (workspaceOverrides.isOverridden(field.field)) {
-    await workspaceOverrides.setOverride(field.field, value);
-    return;
-  }
-  setKey(field.field, value);
-}
-
-async function toggleOverride(
-  field: BooleanFlagField | StringFlagField,
-  enabled: boolean,
-): Promise<void> {
-  if (!enabled) {
-    await workspaceOverrides.removeOverride(field.field);
-    return;
-  }
-  const initialValue =
-    field.kind === "boolean"
-      ? (state[field.field] as boolean)
-      : (state[field.field] as string);
-  await workspaceOverrides.setOverride(field.field, initialValue);
-}
+const workspaceRootRef = toRef(props, "workspaceRoot") as unknown as Ref<string>;
+const {
+  workspaceOverrides,
+  readBooleanFieldValue,
+  readStringFieldValue,
+  writeBooleanFieldValue,
+  writeStringFieldValue,
+  toggleOverride,
+} = useFeatureFlagFields(workspaceRootRef);
 </script>
 
 <style scoped>
@@ -266,17 +181,6 @@ async function toggleOverride(
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-}
-
-.feature-flag-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.feature-flag-toggle-label {
-  font-weight: 500;
 }
 
 .feature-flag-string-label {

@@ -1,38 +1,23 @@
 <template>
-  <div class="field">
-    <label class="field-label">{{ label }}</label>
-    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap">
-      <select
-        :value="env"
-        @change="onEnvChange(($event.target as HTMLSelectElement).value)"
-      >
-        <option v-if="isDesktopShell" value="local">local</option>
-        <option value="ollama">ollama</option>
-        <option value="lmstudio">lmstudio</option>
-        <option value="cloud">cloud</option>
-      </select>
-      <span v-if="err" class="model-fetch-error" :title="err">⚠ {{ err }}</span>
-      <select
-        v-else
-        :value="sel"
-        @change="onModelSel(($event.target as HTMLSelectElement).value)"
-      >
-        <option v-for="[val, lbl] in choices" :key="val" :value="val">
-          {{ lbl }}
-        </option>
-      </select>
-    </div>
-    <input
-      v-if="sel === '__custom__'"
-      type="text"
-      :placeholder="customPlaceholder"
-      :value="modelValue"
-      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    />
-    <div v-if="envCode" class="hint">
-      Env: <code>{{ envCode }}</code>
-    </div>
-  </div>
+  <ModelPickerField
+    :label="label"
+    :environment="env"
+    :model-choices="choices"
+    :model-sel="sel"
+    :model-custom="sel === '__custom__' ? modelValue : ''"
+    :model-fetch-error="err"
+    :profile-options="profileOptions"
+    :remote-profile="remoteProfile"
+    :show-profile-select="showProfileSelect"
+    :profile-placeholder="profilePlaceholder"
+    :cloud-profile-title="cloudProfileTitle"
+    :custom-placeholder="customPlaceholder"
+    :env-code="envCode"
+    @update:environment="onEnvChange"
+    @update:remote-profile="(value: string) => emit('update:remoteProfile', value)"
+    @update:model-sel="onModelSel"
+    @update:model-custom="(value: string) => emit('update:modelValue', value)"
+  />
 </template>
 
 <script setup lang="ts">
@@ -40,8 +25,11 @@ import { ref, watch, computed } from "vue";
 import {
   ensureModelChoicesForEnv,
   fetchCloudModelsFromConnection,
+  fetchCloudModelsForProfile,
 } from "@/shared/lib/use-model-list";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
+import ModelPickerField from "@/shared/components/ModelPickerField.vue";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 interface CloudConnection {
   remote_api_provider: string;
@@ -56,28 +44,45 @@ const props = defineProps<{
   connection: CloudConnection;
   customPlaceholder?: string;
   envCode?: string;
+  profileOptions?: { value: string; label: string }[];
+  remoteProfile?: string;
+  profiles?: RemoteProfileRow[];
+  profilePlaceholder?: string;
+  cloudProfileTitle?: string;
 }>();
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
   "update:provider": [value: string];
+  "update:remoteProfile": [value: string];
 }>();
 
 const isDesktopShell = isDesktop();
 const env = computed(() => props.provider || (isDesktopShell ? "local" : "ollama"));
+const showProfileSelect = computed(
+  () => env.value === "cloud" && Boolean(props.profileOptions?.length),
+);
 const choices = ref<[string, string][]>([["__custom__", "Custom…"]]);
 const err = ref<string | null>(null);
 const sel = ref("__custom__");
+
+async function loadCloudChoices(): Promise<[string, string][]> {
+  const selectedRow = (props.profiles ?? []).find(
+    (row) => row.id === (props.remoteProfile ?? ""),
+  );
+  if (selectedRow) return fetchCloudModelsForProfile(selectedRow);
+  return fetchCloudModelsFromConnection({
+    provider: props.connection.remote_api_provider,
+    api_key: props.connection.remote_api_key,
+    base_url: props.connection.remote_api_base_url,
+  });
+}
 
 async function loadModelChoices(): Promise<void> {
   err.value = null;
   try {
     if (env.value === "cloud") {
-      choices.value = await fetchCloudModelsFromConnection({
-        provider: props.connection.remote_api_provider,
-        api_key: props.connection.remote_api_key,
-        base_url: props.connection.remote_api_base_url,
-      });
+      choices.value = await loadCloudChoices();
       return;
     }
     choices.value = await ensureModelChoicesForEnv(env.value);
@@ -116,6 +121,7 @@ watch(
     props.connection.remote_api_provider,
     props.connection.remote_api_base_url,
     props.connection.remote_api_key,
+    props.remoteProfile,
   ],
   async () => {
     if (env.value === "cloud") await reload();

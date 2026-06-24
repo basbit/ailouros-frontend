@@ -6,7 +6,7 @@ import {
   HISTORY_LIMIT,
 } from "@/shared/lib/swarm-constants";
 import { readRawString, writeRawString, removeKey } from "@/shared/lib/storage-utils";
-import { frontendLogger } from "@/shared/lib/frontend-logger";
+import { safeWarn, parseJsonOr } from "@/shared/lib/safe-async";
 
 export interface HistoryEntry {
   id: string;
@@ -38,9 +38,10 @@ export function createHistoryRefs() {
   const eventsViewMode = ref<"preview" | "raw">("preview");
 
   function loadHistory(pid: string): void {
-    try {
+    let raw: string | null = null;
+    safeWarn("ui-history: failed to load history", () => {
       const key = historyKey(pid);
-      let raw = readRawString(key);
+      raw = readRawString(key);
       if (!raw && pid === "default") {
         const leg = readRawString(LS_HISTORY);
         if (leg) {
@@ -48,16 +49,9 @@ export function createHistoryRefs() {
           raw = leg;
         }
       }
-      if (!raw) {
-        historyList.value = [];
-        return;
-      }
-      const arr = JSON.parse(raw);
-      historyList.value = Array.isArray(arr) ? arr : [];
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to load history", e);
-      historyList.value = [];
-    }
+    });
+    const arr = parseJsonOr<unknown>(raw, [], "ui-history: failed to load history");
+    historyList.value = Array.isArray(arr) ? arr : [];
   }
 
   function pushHistory(entry: Omit<HistoryEntry, "id" | "at">, pid: string): void {
@@ -70,11 +64,9 @@ export function createHistoryRefs() {
     if (historyList.value.length > HISTORY_LIMIT) {
       historyList.value = historyList.value.slice(0, HISTORY_LIMIT);
     }
-    try {
-      writeRawString(historyKey(pid), JSON.stringify(historyList.value));
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to persist history entry", e);
-    }
+    safeWarn("ui-history: failed to persist history entry", () =>
+      writeRawString(historyKey(pid), JSON.stringify(historyList.value)),
+    );
   }
 
   function updateHistoryResult(
@@ -87,24 +79,20 @@ export function createHistoryRefs() {
       return { ...entry, ...patch };
     });
     historyList.value = next;
-    try {
-      writeRawString(historyKey(pid), JSON.stringify(historyList.value));
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to persist updated history", e);
-    }
+    safeWarn("ui-history: failed to persist updated history", () =>
+      writeRawString(historyKey(pid), JSON.stringify(historyList.value)),
+    );
   }
 
   function clearHistory(pid: string): void {
     historyList.value = [];
-    try {
-      removeKey(historyKey(pid));
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to clear history from storage", e);
-    }
+    safeWarn("ui-history: failed to clear history from storage", () =>
+      removeKey(historyKey(pid)),
+    );
   }
 
   function loadEventsView(pid: string): void {
-    try {
+    safeWarn("ui-history: failed to load events view preference", () => {
       const key = eventsViewKey(pid);
       let v = readRawString(key);
       if (v == null && pid === "default") {
@@ -115,17 +103,13 @@ export function createHistoryRefs() {
         }
       }
       eventsViewMode.value = v === "raw" ? "raw" : "preview";
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to load events view preference", e);
-    }
+    });
   }
 
   function saveEventsView(pid: string): void {
-    try {
-      writeRawString(eventsViewKey(pid), eventsViewMode.value);
-    } catch (e) {
-      frontendLogger.warn("ui-history: failed to save events view preference", e);
-    }
+    safeWarn("ui-history: failed to save events view preference", () =>
+      writeRawString(eventsViewKey(pid), eventsViewMode.value),
+    );
   }
 
   return {

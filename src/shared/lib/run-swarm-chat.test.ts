@@ -154,4 +154,31 @@ describe("runSwarmChat scenario resolution", () => {
     expect(listScenariosMock).toHaveBeenCalledTimes(1);
     expect(startStreamMock).toHaveBeenCalledTimes(1);
   });
+
+  it("registers the failed run from X-Task-Id when the request errors", async () => {
+    // Early (pre-stream) failures still carry a recoverable task_id; the run
+    // must be registered so it stays visible in history with its logs.
+    startStreamMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      headers: {
+        get: (h: string) =>
+          h === "x-task-id"
+            ? "failed-task-9"
+            : h === "content-type"
+              ? "text/plain"
+              : null,
+      },
+    });
+    const scenario = makeScenario();
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await expect(
+      runSwarmChat(makeSettings("s1"), handlers, { resolveScenario }),
+    ).rejects.toThrow();
+
+    expect(handlers.onTaskId).toHaveBeenCalledWith("failed-task-9");
+    expect(handlers.onDone).not.toHaveBeenCalled();
+  });
 });

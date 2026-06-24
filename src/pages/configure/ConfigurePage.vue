@@ -26,7 +26,6 @@ import ModelsPane from "./panes/ModelsPane.vue";
 import MemoryPane from "./panes/MemoryPane.vue";
 import McpPane from "./panes/McpPane.vue";
 import VisualQaPane from "./panes/VisualQaPane.vue";
-import CodeGraphPane from "./panes/CodeGraphPane.vue";
 import AdvancedPane from "./panes/AdvancedPane.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -43,7 +42,6 @@ const PANES = {
   memory: MemoryPane,
   mcp: McpPane,
   "visual-qa": VisualQaPane,
-  "code-graph": CodeGraphPane,
   advanced: AdvancedPane,
 } as const;
 
@@ -55,7 +53,6 @@ const PANE_ORDER: PaneKey[] = [
   "memory",
   "mcp",
   "visual-qa",
-  "code-graph",
   "advanced",
 ];
 
@@ -65,7 +62,6 @@ const SUBNAV_LABELS: Record<PaneKey, string> = {
   memory: "configure.subnav.memory",
   mcp: "configure.subnav.mcp",
   "visual-qa": "configure.subnav.visualQa",
-  "code-graph": "configure.subnav.codeGraph",
   advanced: "configure.subnav.advanced",
 };
 

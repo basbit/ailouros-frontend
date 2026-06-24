@@ -1,4 +1,4 @@
-import type { BootstrapStage, BootstrapProgress } from "@/shared/model/bootstrap-types";
+import type { BootstrapStage, BootstrapProgress } from "@/entities/bootstrap";
 
 export type { BootstrapStage, BootstrapProgress };
 

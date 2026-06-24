@@ -323,6 +323,113 @@ describe("parseChatStreamSiblingExtra — retrieval_done", () => {
   });
 });
 
+describe("parseChatStreamSiblingExtra — preflight, scenario, index stats", () => {
+  it("maps a session_preflight failure to a typed preflight event", () => {
+    const event = parseChatStreamSiblingExtra({
+      choices: [{ index: 0, delta: { content: "" }, finish_reason: null }],
+      session_preflight: {
+        type: "session_preflight",
+        status: "failed",
+        error_code: "session_locked",
+        error: "session already running",
+      },
+    });
+    expect(event).toEqual({
+      kind: "preflight",
+      phase: "session",
+      status: "failed",
+      message: "session already running",
+      code: "session_locked",
+    });
+  });
+
+  it("maps an mcp_preflight 401 failure to a typed preflight event", () => {
+    const event = parseChatStreamSiblingExtra({
+      mcp_preflight: {
+        type: "mcp_preflight",
+        status: "failed",
+        phase: "bind",
+        error: "Error code: 401 - {'error': 'Unauthorized'}",
+      },
+    });
+    expect(event).toEqual({
+      kind: "preflight",
+      phase: "mcp",
+      status: "failed",
+      message: "Error code: 401 - {'error': 'Unauthorized'}",
+      code: null,
+    });
+  });
+
+  it("maps a model_preflight failure to a typed preflight event", () => {
+    const event = parseChatStreamSiblingExtra({
+      model_preflight: {
+        type: "model_preflight",
+        status: "failed",
+        message: "model preflight failed: model not reachable",
+      },
+    });
+    expect(event).toEqual({
+      kind: "preflight",
+      phase: "model",
+      status: "failed",
+      message: "model preflight failed: model not reachable",
+      code: null,
+    });
+  });
+
+  it("maps a model_preflight warning to a typed preflight event", () => {
+    const event = parseChatStreamSiblingExtra({
+      model_preflight: {
+        type: "model_preflight",
+        status: "warning",
+        message: "weak model",
+      },
+    });
+    expect(event).toEqual({
+      kind: "preflight",
+      phase: "model",
+      status: "warning",
+      message: "weak model",
+      code: null,
+    });
+  });
+
+  it("maps scenario metadata to a typed scenario event", () => {
+    const event = parseChatStreamSiblingExtra({
+      scenario: {
+        type: "scenario",
+        id: "build_feature",
+        title: "Build Feature",
+        category: "build",
+        warnings: ["no workspace selected"],
+        expected_artifacts: ["PRD.md"],
+      },
+    });
+    expect(event).toEqual({
+      kind: "scenario",
+      id: "build_feature",
+      title: "Build Feature",
+      category: "build",
+      warnings: ["no workspace selected"],
+    });
+  });
+
+  it("maps workspace_index_stats to a typed event", () => {
+    const event = parseChatStreamSiblingExtra({
+      workspace_index_stats: { type: "workspace_index_stats", files: 12, chunks: 88 },
+    });
+    expect(event).toEqual({
+      kind: "workspace_index_stats",
+      stats: { type: "workspace_index_stats", files: 12, chunks: 88 },
+    });
+  });
+
+  it("ignores a preflight payload that is not an object", () => {
+    expect(parseChatStreamSiblingExtra({ model_preflight: "boom" })).toBeNull();
+  });
+});
+
 describe("parseChatStreamEvent — fallthrough cases", () => {
   it("returns null when JSON has neither status nor _event_type marker", () => {
     expect(parseChatStreamEvent(JSON.stringify({ random: 1 }))).toBeNull();

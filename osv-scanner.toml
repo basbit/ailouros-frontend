@@ -1,0 +1,6 @@
+# osv-scanner ignore list.
+#
+# No active suppressions. The esbuild dev-server advisory GHSA-gv7w-rqvm-qjhr
+# is no longer reported by the scan, so its (now unused) ignore was removed.
+# Re-add a scoped [[IgnoredVulns]] entry only for a dev-only advisory that
+# cannot be fixed by a dependency bump.

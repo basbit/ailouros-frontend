@@ -22,11 +22,11 @@
       <span class="sl-sep">·</span>
       <span
         class="sl-item"
-        :class="ui.toolsEnabled ? 'sl-ok' : 'sl-warn'"
+        :class="ui.areToolsEnabled ? 'sl-ok' : 'sl-warn'"
         :title="t('status.tools')"
       >
         <span class="sl-label">{{ t("status.tools") }}</span>
-        <code>{{ ui.toolsEnabled ? "ON" : "OFF" }}</code>
+        <code>{{ ui.areToolsEnabled ? "ON" : "OFF" }}</code>
       </span>
       <span class="sl-sep">·</span>
       <span class="sl-item" :class="mcpPhaseClass" title="MCP phase">

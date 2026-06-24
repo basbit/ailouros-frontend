@@ -107,6 +107,7 @@ export function useSettings() {
     saveSettingsToStorage,
     loadProjectSnap,
     loadLegacySearchKeys,
+    hasPendingSave,
   } = persistence;
 
   function applyRemoteProviderDefaultUrl(): void {
@@ -188,6 +189,7 @@ export function useSettings() {
     saveSettingsSoon,
     flushSave,
     flushSaveAsync,
+    hasPendingSave,
     applySnap,
     reloadProjectFile,
     applyRemoteProviderDefaultUrl,

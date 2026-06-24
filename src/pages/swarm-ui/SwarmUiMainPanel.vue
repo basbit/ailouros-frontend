@@ -79,7 +79,7 @@
     <StepTokensPanel v-if="ui.taskId" :task-id="ui.taskId" />
 
     <ArtifactsPanel
-      :open="artifactsOpen"
+      :open="areArtifactsOpen"
       :artifact-path="ui.artifactPath"
       :clarify-cache-provenance="clarifyCacheProvenance"
       :workspace-identity-resolved="workspaceIdentityResolved"
@@ -148,7 +148,7 @@ defineProps<{
   isRunning: boolean;
   backgroundAgentRemoteConfig: { provider: string; apiKey: string; baseUrl: string };
   taskHistory: EventRow[];
-  artifactsOpen: boolean;
+  areArtifactsOpen: boolean;
   clarifyCacheProvenance: string;
   workspaceIdentityResolved: string;
   visualProbeManifest: Record<string, unknown> | null;

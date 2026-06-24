@@ -1,65 +1,37 @@
 <template>
   <div :id="`role-anchor-${roleId}`" class="agent-role-chunk">
-    <div class="role-row">
-      <span class="role-name" :title="titleHint">{{ label }}</span>
-      <select
-        :value="state.environment"
-        @change="onEnvChange(($event.target as HTMLSelectElement).value)"
-      >
-        <option v-if="isDesktopShell" value="local">local</option>
-        <option value="ollama">ollama</option>
-        <option value="lmstudio">lmstudio</option>
-        <option value="cloud">cloud</option>
-      </select>
-      <div class="role-cloud-model-stack">
-        <select
-          v-if="state.showProfileSelect"
-          class="cfg-remote-profile"
-          :value="state.remoteProfile"
-          :title="t('agentRoleRow.cloudProfile')"
-          @change="onProfileChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">{{ t("agentRoleRow.profilePlaceholder") }}</option>
-          <option v-for="opt in profileOptions" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
-          </option>
-        </select>
-        <span
-          v-if="state.modelFetchError"
-          class="model-fetch-error"
-          :title="state.modelFetchError"
-        >
-          ⚠ {{ state.modelFetchError }}
-        </span>
-        <select
-          v-else
-          :value="state.modelSel"
-          @change="onModelSelChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option v-for="[val, lbl] in state.modelChoices" :key="val" :value="val">
-            {{ lbl }}
-          </option>
-        </select>
-      </div>
-    </div>
-    <div v-if="modelHint" class="role-hint">
-      <span
-        v-if="needsToolCalling"
-        class="role-hint-badge"
-        :title="t('agentRoleRow.toolCalling')"
-        >⚠ tool calling</span
-      >
-      {{ modelHint }}
-    </div>
-
-    <input
-      v-if="state.modelSel === '__custom__'"
-      class="cfg-custom"
-      type="text"
-      :placeholder="t('agentRoleRow.modelIdPlaceholder')"
-      :value="state.modelCustom"
-      @input="onModelCustomInput(($event.target as HTMLInputElement).value)"
-    />
+    <ModelPickerField
+      :environment="state.environment"
+      :model-choices="state.modelChoices"
+      :model-sel="state.modelSel"
+      :model-custom="state.modelCustom"
+      :model-fetch-error="state.modelFetchError"
+      :profile-options="profileOptions"
+      :remote-profile="state.remoteProfile"
+      :show-profile-select="state.showProfileSelect"
+      :custom-placeholder="t('agentRoleRow.modelIdPlaceholder')"
+      :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
+      :cloud-profile-title="t('agentRoleRow.cloudProfile')"
+      @update:environment="onEnvChange"
+      @update:remote-profile="onProfileChange"
+      @update:model-sel="onModelSelChange"
+      @update:model-custom="onModelCustomInput"
+    >
+      <template #leading>
+        <span class="role-name" :title="titleHint">{{ label }}</span>
+      </template>
+      <template #hint>
+        <div v-if="modelHint" class="role-hint">
+          <span
+            v-if="needsToolCalling"
+            class="role-hint-badge"
+            :title="t('agentRoleRow.toolCalling')"
+            >⚠ tool calling</span
+          >
+          {{ modelHint }}
+        </div>
+      </template>
+    </ModelPickerField>
 
     <div class="role-prompt-row">
       <span></span>
@@ -133,9 +105,9 @@
 import { computed, ref } from "vue";
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
-import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { ROLE_NEEDS_TOOL_CALLING, ROLE_MODEL_HINT } from "@/shared/lib/swarm-constants";
 import type { RoleId } from "@/shared/lib/swarm-constants";
+import ModelPickerField from "@/shared/components/ModelPickerField.vue";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";
 import PromptEditorDialog from "@/entities/prompt-template/ui/PromptEditorDialog.vue";
@@ -154,7 +126,6 @@ const { t } = useI18n();
 
 const needsToolCalling = ROLE_NEEDS_TOOL_CALLING[props.roleId as RoleId] ?? false;
 const modelHint = ROLE_MODEL_HINT[props.roleId as RoleId] ?? "";
-const isDesktopShell = isDesktop();
 
 const emit = defineEmits<AgentRoleEmitMap>();
 

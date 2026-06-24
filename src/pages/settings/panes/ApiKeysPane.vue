@@ -25,7 +25,7 @@
         </div>
         <div
           v-for="(profile, index) in profiles"
-          :key="`${profile.id}-${index}`"
+          :key="index"
           class="api-keys-pane__row"
         >
           <input
@@ -180,6 +180,7 @@ const PROVIDER_OPTIONS = [
   { value: "fireworks_ai", label: "Fireworks AI" },
   { value: "together_ai", label: "Together AI" },
   { value: "openrouter", label: "OpenRouter" },
+  { value: "ollama_cloud", label: "Ollama Cloud" },
   { value: "ollama", label: "Ollama (local)" },
   { value: "lmstudio", label: "LM Studio (local)" },
   { value: "litellm", label: "LiteLLM proxy" },

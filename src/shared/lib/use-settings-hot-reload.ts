@@ -1,5 +1,34 @@
 import { onMounted, onUnmounted } from "vue";
 
+export interface HotReloadGateState {
+  booting: boolean;
+  running: boolean;
+  /** A debounced settings save is queued → local state is dirty/unsaved. */
+  pendingSave: boolean;
+  /** The user is actively editing a form field right now. */
+  editingField: boolean;
+  documentHidden: boolean;
+}
+
+/**
+ * Whether the periodic project-file hot-reload may run.
+ *
+ * It must NOT run while the user has unsaved edits (`pendingSave`) or is
+ * actively typing in a field (`editingField`): reloading the persisted file
+ * mid-edit calls `applySnap`, which replaces local state and drops the row the
+ * user is editing (rows with an empty id are filtered out). That manifested as
+ * "typing into an input deletes the whole row".
+ */
+export function shouldRunSettingsHotReload(state: HotReloadGateState): boolean {
+  return (
+    !state.booting &&
+    !state.running &&
+    !state.pendingSave &&
+    !state.editingField &&
+    !state.documentHidden
+  );
+}
+
 export interface HotReloadOptions {
   intervalMs?: number;
   enabled?: () => boolean;

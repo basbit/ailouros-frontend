@@ -35,7 +35,7 @@ describe("useHistoryDetailLoad — snapshot run context", () => {
     const entry = computed(() => (taskId ? makeEntry(taskId) : null));
     return useHistoryDetailLoad({
       entry,
-      resumeAvailable: ref(false),
+      isResumeAvailable: ref(false),
       resumeStepId: ref(""),
       loadResumeOptions: () => {},
     });

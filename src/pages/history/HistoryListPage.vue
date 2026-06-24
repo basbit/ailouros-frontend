@@ -47,59 +47,15 @@
         }}
       </p>
 
-      <div v-else class="history-list-page__table" role="table">
-        <div class="history-list-page__head" role="row">
-          <span role="columnheader">{{ t("history.list.columns.startedAt") }}</span>
-          <span role="columnheader">{{ t("history.list.columns.prompt") }}</span>
-          <span role="columnheader">{{ t("history.list.columns.status") }}</span>
-          <span role="columnheader">{{ t("history.list.columns.duration") }}</span>
-          <span role="columnheader">{{ t("history.list.columns.steps") }}</span>
-          <span role="columnheader" />
-        </div>
-        <div
-          v-for="entry in filteredEntries"
-          :key="entry.id"
-          class="history-list-page__row"
-          role="row"
-          tabindex="0"
-          @click="onOpen(entry.id)"
-          @keydown.enter="onOpen(entry.id)"
-          @keydown.space.prevent="onOpen(entry.id)"
-        >
-          <span role="cell" class="history-list-page__cell-time">
-            {{ formatStartedAt(entry) }}
-          </span>
-          <span role="cell" class="history-list-page__cell-prompt">
-            {{ promptPreview(entry.prompt) }}
-          </span>
-          <span role="cell" class="history-list-page__cell-status">
-            <span
-              class="history-list-page__pill"
-              :class="`history-list-page__pill--${statusFamily(entry.status)}`"
-            >
-              {{ entry.status ?? "—" }}
-            </span>
-          </span>
-          <span role="cell" class="history-list-page__cell-mono">
-            {{ formatDuration(entry.durationMs) }}
-          </span>
-          <span role="cell" class="history-list-page__cell-mono">
-            {{ entry.pipeline_steps?.length ?? 0 }}
-          </span>
-          <span role="cell" class="history-list-page__cell-action">
-            <button
-              v-if="canResume(entry)"
-              type="button"
-              class="history-list-page__resume-btn"
-              :disabled="resumeBusyId === entry.id"
-              :title="t('history.detail.resume.tooltip', { step: '?' })"
-              @click.stop="onResumeEntry(entry)"
-            >
-              {{ t("history.detail.resume.button") }}
-            </button>
-          </span>
-        </div>
-      </div>
+      <HistoryListTable
+        v-else
+        :entries="filteredEntries"
+        :resume-busy-id="resumeBusyId"
+        :status-family="statusFamily"
+        :can-resume="canResume"
+        @open="onOpen"
+        @resume-entry="onResumeEntry"
+      />
     </main>
   </div>
 </template>
@@ -107,11 +63,10 @@
 <script setup lang="ts">
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
-import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
-import { formatEuropeanDateTime } from "@/shared/lib/format-date";
-import { formatDurationOrDash } from "@/shared/lib/format-relative";
+import { useUiStore } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
 import { useHistoryListActions } from "./useHistoryListActions";
+import HistoryListTable from "./HistoryListTable.vue";
 
 const ui = useUiStore();
 const { t } = useI18n();
@@ -128,17 +83,6 @@ const {
   onOpen,
   onExportCsv,
 } = useHistoryListActions();
-
-function promptPreview(prompt: string): string {
-  const first = (prompt ?? "").split("\n")[0];
-  return first.length > 120 ? `${first.slice(0, 119)}…` : first;
-}
-
-function formatStartedAt(entry: HistoryEntry): string {
-  return formatEuropeanDateTime(entry.startedAt ?? entry.at) || "—";
-}
-
-const formatDuration = formatDurationOrDash;
 </script>
 
 <style scoped>
@@ -244,131 +188,5 @@ const formatDuration = formatDurationOrDash;
   text-align: center;
   color: var(--ink-4);
   font-size: 13px;
-}
-
-.history-list-page__table {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.history-list-page__head,
-.history-list-page__row {
-  display: grid;
-  grid-template-columns: 160px 1fr 140px 110px 80px 180px;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 14px;
-}
-
-.history-list-page__head {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-4);
-  border-bottom: 1px solid var(--line);
-}
-
-.history-list-page__row {
-  appearance: none;
-  width: 100%;
-  text-align: left;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  cursor: pointer;
-  color: var(--ink);
-  transition:
-    border-color 0.14s,
-    transform 0.14s;
-}
-
-.history-list-page__row:hover {
-  border-color: var(--accent);
-  transform: translateX(2px);
-}
-
-.history-list-page__cell-time,
-.history-list-page__cell-mono {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ink-2);
-}
-
-.history-list-page__cell-prompt {
-  font-size: 13px;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.history-list-page__cell-status {
-  font-size: 12px;
-}
-
-.history-list-page__pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.history-list-page__pill--ok {
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.history-list-page__pill--fail {
-  background: color-mix(in srgb, var(--error) 16%, transparent);
-  color: var(--error);
-}
-
-.history-list-page__pill--warn {
-  background: rgba(201, 138, 26, 0.16);
-  color: var(--warn);
-}
-
-.history-list-page__pill--run {
-  background: var(--accent-soft);
-  color: var(--accent-2);
-}
-
-.history-list-page__pill--pending {
-  background: var(--card-soft);
-  color: var(--ink-3);
-}
-
-.history-list-page__cell-action {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.history-list-page__resume-btn {
-  appearance: none;
-  padding: 6px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--warn, #c98a1a);
-  background: var(--warn-soft, rgba(201, 138, 26, 0.08));
-  color: var(--warn, #c98a1a);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.history-list-page__resume-btn:hover:not(:disabled) {
-  background: var(--warn, #c98a1a);
-  color: var(--card, #fff);
-}
-
-.history-list-page__resume-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>

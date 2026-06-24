@@ -27,18 +27,18 @@
           v-if="selectedEditPath"
           type="button"
           class="btn-primary file-editor__save"
-          :disabled="editSaving || editLoading || editContent === editOriginal"
+          :disabled="isEditSaving || isEditLoading || editContent === editOriginal"
           @click="saveEditedFile"
         >
-          {{ editSaving ? t("humanGate.editSaving") : t("humanGate.editSave") }}
+          {{ isEditSaving ? t("humanGate.isEditSaving") : t("humanGate.editSave") }}
         </button>
       </div>
-      <div v-if="editLoading" class="file-editor__status">
-        {{ t("humanGate.editLoading") }}
+      <div v-if="isEditLoading" class="file-editor__status">
+        {{ t("humanGate.isEditLoading") }}
       </div>
       <div v-if="editError" class="clarify-error">{{ editError }}</div>
       <textarea
-        v-if="selectedEditPath && !editLoading"
+        v-if="selectedEditPath && !isEditLoading"
         v-model="editContent"
         class="file-editor__textarea"
         spellcheck="false"
@@ -160,8 +160,8 @@ const {
   selectedEditPath,
   editContent,
   editOriginal,
-  editLoading,
-  editSaving,
+  isEditLoading,
+  isEditSaving,
   editError,
   onEditPathChange,
   saveEditedFile,

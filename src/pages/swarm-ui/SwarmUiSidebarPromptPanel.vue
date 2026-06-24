@@ -54,12 +54,12 @@
     <button
       type="button"
       class="sidebar-advanced-toggle"
-      :aria-expanded="advancedSidebarOpen"
+      :aria-expanded="isAdvancedSidebarOpen"
       @click="emit('toggle-advanced-sidebar')"
     >
-      {{ advancedSidebarOpen ? t("page.advanced.hide") : t("page.advanced.show") }}
+      {{ isAdvancedSidebarOpen ? t("page.advanced.hide") : t("page.advanced.show") }}
     </button>
-    <template v-if="advancedSidebarOpen">
+    <template v-if="isAdvancedSidebarOpen">
       <MemoryPanel @append-to-prompt="onAppendToPrompt" />
       <WikiQualitySection :workspace-root="settings.form.workspace_root" />
       <RetrievalTraceInspector :workspace-root="settings.form.workspace_root" />
@@ -122,67 +122,29 @@
       </button>
     </div>
 
-    <HumanGate
-      :visible="ui.humanGateVisible"
-      :title="ui.humanGateTitle"
-      :feedback="ui.humanGateFeedback"
-      :task-id="ui.taskId ?? undefined"
-      :submitting="ui.humanGateSubmitting"
-      @update:feedback="ui.humanGateFeedback = $event"
-      @submit="(feedback) => emit('human-resume', feedback)"
-    />
-
-    <ShellGate
-      :visible="ui.shellGateVisible"
-      :commands="ui.shellGateCommands"
-      :needs-allowlist="ui.shellGateNeedsAllowlist"
-      :already-allowed="ui.shellGateAlreadyAllowed"
-      @confirm="(allow) => emit('confirm-shell', allow)"
-    />
-
-    <ManualShellGate
-      :visible="ui.manualShellGateVisible"
-      :commands="ui.manualShellCommands"
-      :reason="ui.manualShellReason"
-      :sudo-prompt-available="!!manualSudoCommand"
-      @open-sudo-prompt="emit('open-sudo-prompt')"
-      @confirm="(done) => emit('confirm-manual-shell', done)"
-    />
-
-    <RetryGate
-      :visible="ui.retryGateVisible"
-      :failed-step="ui.retryFailedStep"
+    <SidebarTaskGates
+      :manual-sudo-command="manualSudoCommand"
       :current-pipeline-steps="currentPipelineSteps"
+      :prompt-coach-open="promptCoachOpen"
+      @human-resume="(feedback) => emit('human-resume', feedback)"
+      @confirm-shell="(allow) => emit('confirm-shell', allow)"
+      @open-sudo-prompt="emit('open-sudo-prompt')"
+      @confirm-manual-shell="(done) => emit('confirm-manual-shell', done)"
       @retry="(fromBeginning) => emit('retry', fromBeginning)"
       @continue-pipeline="(steps) => emit('continue-pipeline', steps)"
+      @update:prompt-coach-open="promptCoachOpen = $event"
+      @prompt-coach-apply="onPromptCoachApply"
     />
 
-    <PromptAssistantDialog
-      :open="promptCoachOpen"
-      @close="promptCoachOpen = false"
-      @apply="onPromptCoachApply"
+    <SidebarRunStatus
+      :task-error="ui.taskError"
+      :blocked-reason="ui.blockedReason"
+      :blocked-step="ui.blockedStep"
+      :blocked-code="ui.blockedCode"
+      :scenario-id="ui.taskScenarioId"
+      :scenario-title="ui.taskScenarioTitle"
+      :scenario-category="ui.taskScenarioCategory"
     />
-
-    <div v-if="ui.taskError" class="task-error-banner">
-      <strong>{{ t("status.error") }}:</strong> {{ ui.taskError }}
-    </div>
-
-    <div v-if="ui.blockedReason" class="task-blocked-banner">
-      <strong>{{ t("status.blocked") }}</strong>
-      <span v-if="ui.blockedStep"> · {{ ui.blockedStep }}</span>
-      <span v-if="ui.blockedCode"> [{{ ui.blockedCode }}]</span>
-      <div class="task-blocked-reason">{{ ui.blockedReason }}</div>
-    </div>
-
-    <div v-if="ui.taskScenarioId" class="task-scenario-badge">
-      <span class="task-scenario-badge__label">{{ t("scenarios.runningAs") }}</span>
-      <span class="task-scenario-badge__title">
-        {{ ui.taskScenarioTitle ?? ui.taskScenarioId }}
-      </span>
-      <span v-if="ui.taskScenarioCategory" class="task-scenario-badge__category">
-        {{ t(`scenarios.tab.${ui.taskScenarioCategory}`) }}
-      </span>
-    </div>
   </div>
 </template>
 
@@ -192,13 +154,10 @@ import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ScenarioInputs from "@/features/scenario-picker/ScenarioInputs.vue";
 import MemoryPanel from "@/features/memory-panel/MemoryPanel.vue";
 import { CrossProjectStats } from "@/widgets/observability";
-import HumanGate from "@/features/task-gate/HumanGate.vue";
-import ShellGate from "@/features/task-gate/ShellGate.vue";
-import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
-import RetryGate from "@/features/task-gate/RetryGate.vue";
-import PromptAssistantDialog from "@/widgets/prompt-assistant/PromptAssistantDialog.vue";
 import WikiQualitySection from "@/widgets/wiki-quality-section/WikiQualitySection.vue";
 import RetrievalTraceInspector from "@/widgets/retrieval-trace-inspector/RetrievalTraceInspector.vue";
+import SidebarRunStatus from "./SidebarRunStatus.vue";
+import SidebarTaskGates from "./SidebarTaskGates.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import type { AppSettings } from "@/entities/app-settings/contract";
@@ -212,7 +171,7 @@ defineProps<{
   scenarioInputValues: Record<string, string | boolean>;
   scenarioPreviewTitle: string | undefined;
   isRunning: boolean;
-  advancedSidebarOpen: boolean;
+  isAdvancedSidebarOpen: boolean;
   scenarioReadinessReady: boolean;
   scenarioReadinessScenario: { title: string } | null | undefined;
   missingKeys: string[];
@@ -308,33 +267,6 @@ function onForceRerunChange(event: Event): void {
   cursor: not-allowed;
   opacity: 0.5;
 }
-.task-scenario-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  margin: 6px 0;
-  background: color-mix(in srgb, var(--accent, #3b5bdb) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent, #3b5bdb) 50%, transparent);
-  border-radius: 999px;
-  font-size: 11px;
-  color: var(--text, #f5f0e7);
-}
-.task-scenario-badge__label {
-  opacity: 0.75;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 10px;
-}
-.task-scenario-badge__title {
-  font-weight: 600;
-}
-.task-scenario-badge__category {
-  padding: 1px 6px;
-  background: color-mix(in srgb, var(--accent, #3b5bdb) 35%, transparent);
-  border-radius: 4px;
-  font-size: 10px;
-}
 .scenario-readiness-warning {
   font-size: 11px;
   color: var(--text, #f5f0e7);
@@ -347,29 +279,5 @@ function onForceRerunChange(event: Event): void {
 .start-btn[disabled] {
   opacity: 0.55;
   cursor: not-allowed;
-}
-.task-error-banner {
-  background: color-mix(in srgb, var(--error, #d7563f) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--error, #d7563f) 40%, transparent);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin: 8px 0;
-  color: var(--text, #f5f0e7);
-  font-size: 0.875rem;
-  word-break: break-word;
-}
-.task-blocked-banner {
-  background: color-mix(in srgb, #d7563f 10%, transparent);
-  border: 1px solid color-mix(in srgb, #d7563f 45%, transparent);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin: 8px 0;
-  color: var(--text, #f5f0e7);
-  font-size: 0.875rem;
-  word-break: break-word;
-}
-.task-blocked-reason {
-  margin-top: 4px;
-  color: var(--text2, #c9c2b5);
 }
 </style>

@@ -4,37 +4,37 @@ import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 export interface ArtifactsPanelState {
-  artifactsOpen: Ref<boolean>;
+  areArtifactsOpen: Ref<boolean>;
   onArtifactsToggle: (event: Event) => void;
-  advancedSidebarOpen: Ref<boolean>;
+  isAdvancedSidebarOpen: Ref<boolean>;
   onToggleAdvancedSidebar: () => void;
 }
 
 export function useArtifactsPanelState(): ArtifactsPanelState {
-  const artifactsOpen = ref<boolean>(
+  const areArtifactsOpen = ref<boolean>(
     readRawString(STORAGE_KEYS.artifactsPanelOpen.key) !== "0",
   );
   function onArtifactsToggle(event: Event): void {
     const target = event.target as HTMLDetailsElement;
-    artifactsOpen.value = target.open;
+    areArtifactsOpen.value = target.open;
     writeRawString(STORAGE_KEYS.artifactsPanelOpen.key, target.open ? "1" : "0");
   }
 
-  const advancedSidebarOpen = ref<boolean>(
-    readRawString(STORAGE_KEYS.advancedSidebarOpen.key) === "1",
+  const isAdvancedSidebarOpen = ref<boolean>(
+    readRawString(STORAGE_KEYS.isAdvancedSidebarOpen.key) === "1",
   );
   function onToggleAdvancedSidebar(): void {
-    advancedSidebarOpen.value = !advancedSidebarOpen.value;
+    isAdvancedSidebarOpen.value = !isAdvancedSidebarOpen.value;
     writeRawString(
-      STORAGE_KEYS.advancedSidebarOpen.key,
-      advancedSidebarOpen.value ? "1" : "0",
+      STORAGE_KEYS.isAdvancedSidebarOpen.key,
+      isAdvancedSidebarOpen.value ? "1" : "0",
     );
   }
 
   return {
-    artifactsOpen,
+    areArtifactsOpen,
     onArtifactsToggle,
-    advancedSidebarOpen,
+    isAdvancedSidebarOpen,
     onToggleAdvancedSidebar,
   };
 }

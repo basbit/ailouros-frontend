@@ -59,8 +59,8 @@ export const taskMonitorEn: Messages = {
   "humanGate.commentLabel": "Comment",
   "humanGate.editPickFile": "Pick a file to edit…",
   "humanGate.editSave": "Save file",
-  "humanGate.editSaving": "Saving…",
-  "humanGate.editLoading": "Loading file…",
+  "humanGate.isEditSaving": "Saving…",
+  "humanGate.isEditLoading": "Loading file…",
   "humanGate.editLoadError": "Failed to load file",
   "humanGate.editSaveError": "Failed to save file",
 };
@@ -124,8 +124,8 @@ export const taskMonitorRu: Messages = {
   "humanGate.commentLabel": "Комментарий",
   "humanGate.editPickFile": "Выбери файл для правки…",
   "humanGate.editSave": "Сохранить",
-  "humanGate.editSaving": "Сохраняю…",
-  "humanGate.editLoading": "Загружаю файл…",
+  "humanGate.isEditSaving": "Сохраняю…",
+  "humanGate.isEditLoading": "Загружаю файл…",
   "humanGate.editLoadError": "Не удалось загрузить файл",
   "humanGate.editSaveError": "Не удалось сохранить файл",
 };

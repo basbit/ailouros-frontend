@@ -9,12 +9,15 @@
         :remote-api-provider="settings.form.remote_api_provider"
         :remote-api-key="settings.form.remote_api_key"
         :remote-api-base-url="settings.form.remote_api_base_url"
+        :profile-options="profileOptions"
+        :profiles="settings.profilesState.profiles.value"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import GlobalAutomationSettings from "@/features/global-settings/GlobalAutomationSettings.vue";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
@@ -22,6 +25,15 @@ import { useI18n } from "@/shared/lib/i18n";
 
 const settings = useInjectedAppSettings();
 const { t } = useI18n();
+
+const profileOptions = computed(() =>
+  settings.profilesState.profiles.value
+    .filter((profile) => profile.id.trim())
+    .map((profile) => ({
+      value: profile.id,
+      label: `${profile.id} (${profile.provider})`,
+    })),
+);
 </script>
 
 <style scoped>

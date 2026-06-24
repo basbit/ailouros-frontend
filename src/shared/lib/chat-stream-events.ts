@@ -41,11 +41,37 @@ interface McpStatusEvent {
   timestamp: string;
 }
 
+type PreflightPhase = "session" | "mcp" | "model";
+
+interface PreflightStreamEvent {
+  kind: "preflight";
+  phase: PreflightPhase;
+  status: string;
+  message: string;
+  code: string | null;
+}
+
+interface ScenarioStreamEvent {
+  kind: "scenario";
+  id: string;
+  title: string;
+  category: string;
+  warnings: string[];
+}
+
+interface WorkspaceIndexStatsStreamEvent {
+  kind: "workspace_index_stats";
+  stats: Record<string, unknown>;
+}
+
 export type ChatStreamEvent =
   | AutoApprovedEvent
   | OrchestratorStreamEvent
   | McpStatusEvent
-  | RetrievalDoneStreamEvent;
+  | RetrievalDoneStreamEvent
+  | PreflightStreamEvent
+  | ScenarioStreamEvent
+  | WorkspaceIndexStatsStreamEvent;
 
 const ORCHESTRATOR_EVENT_LINE_PREFIX = "[orchestrator-event]";
 
@@ -94,6 +120,48 @@ function parseOrchestratorEventLine(line: string): OrchestratorStreamEvent | nul
   }
 }
 
+const PREFLIGHT_SIBLING_KEYS: ReadonlyArray<readonly [string, PreflightPhase]> = [
+  ["session_preflight", "session"],
+  ["mcp_preflight", "mcp"],
+  ["model_preflight", "model"],
+];
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function buildPreflightStreamEvent(
+  phase: PreflightPhase,
+  raw: Record<string, unknown>,
+): PreflightStreamEvent {
+  const message = String(raw["message"] ?? raw["error"] ?? "");
+  const code =
+    typeof raw["error_code"] === "string"
+      ? (raw["error_code"] as string)
+      : typeof raw["code"] === "string"
+        ? (raw["code"] as string)
+        : null;
+  return {
+    kind: "preflight",
+    phase,
+    status: typeof raw["status"] === "string" ? (raw["status"] as string) : "",
+    message,
+    code,
+  };
+}
+
+function buildScenarioStreamEvent(raw: Record<string, unknown>): ScenarioStreamEvent {
+  return {
+    kind: "scenario",
+    id: String(raw["id"] ?? ""),
+    title: String(raw["title"] ?? ""),
+    category: String(raw["category"] ?? ""),
+    warnings: Array.isArray(raw["warnings"]) ? raw["warnings"].map(String) : [],
+  };
+}
+
 export function parseChatStreamSiblingExtra(
   payload: Record<string, unknown>,
 ): ChatStreamEvent | null {
@@ -102,6 +170,16 @@ export function parseChatStreamSiblingExtra(
     const event = parseRetrievalDonePayload(retrievalDoneRaw);
     if (event) return { kind: "retrieval_done", event };
   }
+  for (const [key, phase] of PREFLIGHT_SIBLING_KEYS) {
+    if (key in payload) {
+      const raw = asRecord(payload[key]);
+      if (raw) return buildPreflightStreamEvent(phase, raw);
+    }
+  }
+  const scenarioRaw = asRecord(payload["scenario"]);
+  if (scenarioRaw) return buildScenarioStreamEvent(scenarioRaw);
+  const indexStatsRaw = asRecord(payload["workspace_index_stats"]);
+  if (indexStatsRaw) return { kind: "workspace_index_stats", stats: indexStatsRaw };
   return null;
 }
 

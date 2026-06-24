@@ -15,7 +15,7 @@
               :family="family"
               :status="entry.status ?? ''"
               :can-show-resume="canShowResume"
-              :resume-busy="resumeBusy"
+              :is-resume-busy="isResumeBusy"
               :resume-step-id="resumeStepId"
               :resume-label="t('history.detail.resume.button')"
               :resume-title="
@@ -147,8 +147,8 @@ const canShowResume = computed<boolean>(() => {
 });
 
 const {
-  resumeBusy,
-  resumeAvailable,
+  isResumeBusy,
+  isResumeAvailable,
   resumeStepId,
   loadResumeOptions,
   onResumeFromFailedStep,
@@ -164,7 +164,7 @@ const { activeTab, tabs } = useHistoryDetailTabs(t);
 const { remoteEvents, remoteSteps, remoteFailedStep, remoteStatus } =
   useHistoryDetailLoad({
     entry,
-    resumeAvailable,
+    isResumeAvailable,
     resumeStepId,
     loadResumeOptions,
   });

@@ -4,77 +4,6 @@
  */
 
 export interface paths {
-    "/api/pipelines": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Pipelines Deprecated */
-        get: operations["list_pipelines_deprecated_api_pipelines_get"];
-        put?: never;
-        /** Create Pipeline Deprecated */
-        post: operations["create_pipeline_deprecated_api_pipelines_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/pipelines/{pipeline_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Pipeline Deprecated */
-        get: operations["get_pipeline_deprecated_api_pipelines__pipeline_id__get"];
-        /** Update Pipeline Deprecated */
-        put: operations["update_pipeline_deprecated_api_pipelines__pipeline_id__put"];
-        post?: never;
-        /** Delete Pipeline Deprecated */
-        delete: operations["delete_pipeline_deprecated_api_pipelines__pipeline_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/wiki/file": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Wiki File Deprecated */
-        get: operations["get_wiki_file_deprecated_api_wiki_file_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/wiki/graph": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Wiki Graph Deprecated */
-        get: operations["get_wiki_graph_deprecated_api_wiki_graph_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/health": {
         parameters: {
             query?: never;
@@ -1126,23 +1055,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/prompts/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Prompts List */
-        get: operations["get_prompts_list_v1_prompts_list_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/prompts/save": {
         parameters: {
             query?: never;
@@ -1240,6 +1152,26 @@ export interface paths {
          * @description Returns the per-run diagnostics written by `finalize_pipeline_metrics` into `<workspace>/.swarm/runs/<task_id>/diagnostics.json`. Empty/null fields are returned when the file does not exist; never errors on missing diagnostics. Path is sanitized against traversal.
          */
         get: operations["get_run_diagnostics_v1_run_diagnostics__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/run-plan/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the orchestrator run plan for a task
+         * @description Returns the per-stage run plan written by the `orchestrator_plan` node into `<artifacts>/<task_id>/run_plan.json` (verdicts RUN/REUSE/UPDATE/SKIP). Returns `available=false` with empty decisions when the file does not exist; never errors on a missing plan. task_id is sanitized against traversal.
+         */
+        get: operations["get_run_plan_v1_run_plan__task_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1402,23 +1334,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/skills/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Skills List */
-        get: operations["get_skills_list_v1_skills_list_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/spec/graph": {
         parameters: {
             query?: never;
@@ -1566,23 +1481,6 @@ export interface paths {
         put?: never;
         /** Validate Spec Endpoint */
         post: operations["validate_spec_endpoint_v1_spec__spec_id__validate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/specs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Specs */
-        get: operations["get_specs_v1_specs_get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2664,10 +2562,6 @@ export interface components {
         };
         /** SkillDispatchRequest */
         SkillDispatchRequest: {
-            /** Metadata */
-            metadata?: {
-                [key: string]: string;
-            } | null;
             /**
              * Phase
              * @default
@@ -2816,6 +2710,11 @@ export interface components {
              */
             swarm_deep_planning_provider: string;
             /**
+             * Swarm Deep Planning Remote Profile
+             * @default
+             */
+            swarm_deep_planning_remote_profile: string;
+            /**
              * Swarm Dream Enabled
              * @default false
              */
@@ -2916,6 +2815,11 @@ export interface components {
              */
             swarm_planner_provider: string;
             /**
+             * Swarm Planner Remote Profile
+             * @default
+             */
+            swarm_planner_remote_profile: string;
+            /**
              * Swarm Quality Gate
              * @default false
              */
@@ -2935,6 +2839,11 @@ export interface components {
              * @default
              */
             swarm_self_verify_provider: string;
+            /**
+             * Swarm Self Verify Remote Profile
+             * @default
+             */
+            swarm_self_verify_remote_profile: string;
             /**
              * Tavily Api Key
              * @default
@@ -2986,220 +2895,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    list_pipelines_deprecated_api_pipelines_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    create_pipeline_deprecated_api_pipelines_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PipelineDefinition"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pipeline_deprecated_api_pipelines__pipeline_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pipeline_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_pipeline_deprecated_api_pipelines__pipeline_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pipeline_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PipelineDefinition"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_pipeline_deprecated_api_pipelines__pipeline_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                pipeline_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_wiki_file_deprecated_api_wiki_file_get: {
-        parameters: {
-            query: {
-                path: string;
-                workspace_root?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_wiki_graph_deprecated_api_wiki_graph_get: {
-        parameters: {
-            query?: {
-                workspace_root?: string | null;
-                force?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -5209,26 +4904,6 @@ export interface operations {
             };
         };
     };
-    get_prompts_list_v1_prompts_list_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
     put_prompt_save_v1_prompts_save_put: {
         parameters: {
             query?: never;
@@ -5378,6 +5053,39 @@ export interface operations {
             query: {
                 workspace_root: string;
             };
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_plan_v1_run_plan__task_id__get: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 task_id: string;
@@ -5709,37 +5417,6 @@ export interface operations {
             };
         };
     };
-    get_skills_list_v1_skills_list_get: {
-        parameters: {
-            query?: {
-                workspace_root?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_spec_graph_v1_spec_graph_get: {
         parameters: {
             query: {
@@ -6033,39 +5710,6 @@ export interface operations {
                 "application/json": components["schemas"]["SpecValidateRequest"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_specs_v1_specs_get: {
-        parameters: {
-            query: {
-                workspace_root: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

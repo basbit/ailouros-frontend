@@ -42,6 +42,8 @@ function attachPlannerConfig(config: Record<string, unknown>): void {
   const plannerConfig: Record<string, string> = { model: plannerModel };
   const plannerProvider = automation.swarm_planner_provider.trim();
   if (plannerProvider) plannerConfig.environment = plannerProvider;
+  const plannerProfile = automation.swarm_planner_remote_profile.trim();
+  if (plannerProfile) plannerConfig.remote_profile = plannerProfile;
   config.swarm_planner = plannerConfig;
 }
 

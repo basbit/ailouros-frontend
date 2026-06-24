@@ -38,7 +38,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   const theme = ref<Theme>(
     (readRawString(STORAGE_KEYS.preferenceTheme.key) as Theme | null) ?? "dark",
   );
-  const sidebarCollapsed = ref<boolean>(
+  const isSidebarCollapsed = ref<boolean>(
     readRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key) === "1",
   );
   const density = ref<Density>(
@@ -61,7 +61,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   }
 
   function toggleSidebar(): void {
-    sidebarCollapsed.value = !sidebarCollapsed.value;
+    isSidebarCollapsed.value = !isSidebarCollapsed.value;
   }
 
   function setDensity(next: Density): void {
@@ -89,7 +89,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   );
 
   watch(
-    sidebarCollapsed,
+    isSidebarCollapsed,
     (value) => {
       writeRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key, value ? "1" : "0");
     },
@@ -109,7 +109,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
     locale,
     theme,
     isDark,
-    sidebarCollapsed,
+    isSidebarCollapsed,
     density,
     setLocale,
     setTheme,

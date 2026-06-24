@@ -11,7 +11,7 @@ function applyRunStarted(ui: UiStore): void {
   ui.blockedStep = null;
   ui.retryingSteps = new Set();
   ui.orchestratorCompletedSteps = new Set();
-  ui.verificationRunning = false;
+  ui.isVerificationRunning = false;
   ui.clearHostMetricsHistory();
 }
 
@@ -50,7 +50,7 @@ function applyPipelineBlocked(
   ui.blockedCode = orchestratorEvent.code ?? null;
   ui.blockedStep = orchestratorEvent.step ?? null;
   ui.activeStep = null;
-  ui.verificationRunning = false;
+  ui.isVerificationRunning = false;
 }
 
 export function applyOrchestratorEvent(
@@ -71,12 +71,12 @@ export function applyOrchestratorEvent(
       applyStepRetryStarted(ui, orchestratorEvent.step);
       return;
     case "verification_layer_started":
-      ui.verificationRunning = true;
+      ui.isVerificationRunning = true;
       return;
     case "verification_layer_completed":
     case "final_gate_denied":
     case "run_finished":
-      ui.verificationRunning = false;
+      ui.isVerificationRunning = false;
       return;
     case "pipeline_blocked":
       applyPipelineBlocked(ui, orchestratorEvent);
