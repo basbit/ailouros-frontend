@@ -67,10 +67,18 @@
       :provider="provider"
       :model-value="model"
       :connection="connection"
+      :profile-options="profileOptions"
+      :remote-profile="remoteProfile"
+      :profiles="profiles"
+      :profile-placeholder="profilePlaceholder"
+      :cloud-profile-title="cloudProfileTitle"
       :custom-placeholder="t('auto.modelIdPlaceholder')"
       env-code="SWARM_BACKGROUND_AGENT_MODEL"
       @update:provider="emit('update:form', 'swarm_background_agent_provider', $event)"
       @update:model-value="emit('update:form', 'swarm_background_agent_model', $event)"
+      @update:remote-profile="
+        emit('update:form', 'swarm_background_agent_remote_profile', $event)
+      "
     />
   </div>
 </template>
@@ -81,6 +89,7 @@ import AutonomousModelPickerField from "./AutonomousModelPickerField.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 interface CloudConnection {
   remote_api_provider: string;
@@ -94,6 +103,11 @@ const props = defineProps<{
   model: string;
   provider: string;
   connection: CloudConnection;
+  profileOptions?: { value: string; label: string }[];
+  remoteProfile?: string;
+  profiles?: RemoteProfileRow[];
+  profilePlaceholder?: string;
+  cloudProfileTitle?: string;
 }>();
 
 const emit = defineEmits<{

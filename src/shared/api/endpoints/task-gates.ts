@@ -21,11 +21,14 @@ export interface PendingShellPayload {
 export async function postHumanResumeStream(
   taskId: string,
   feedback: string,
+  agentConfig?: Record<string, unknown> | null,
 ): Promise<Response> {
+  const body: Record<string, unknown> = { feedback, stream: true };
+  if (agentConfig) body.agent_config = agentConfig;
   return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/human-resume`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ feedback, stream: true }),
+    body: JSON.stringify(body),
   });
 }
 

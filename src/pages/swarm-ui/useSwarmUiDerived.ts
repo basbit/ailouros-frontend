@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
 import { useUiStore } from "@/shared/store/ui";
+import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import type { useSettings } from "@/app/providers/useSettings";
 
 type SettingsApi = ReturnType<typeof useSettings>;
@@ -33,6 +34,7 @@ export interface SwarmUiDerived {
 
 export function useSwarmUiDerived(settings: SettingsApi): SwarmUiDerived {
   const ui = useUiStore();
+  const globalSettings = useGlobalSettings();
 
   const profileOptions = computed(() =>
     settings.profilesState.profiles.value
@@ -97,10 +99,32 @@ export function useSwarmUiDerived(settings: SettingsApi): SwarmUiDerived {
       pickHistoryAgentText("review_dev"),
   );
 
-  // Effective remote connection for the background agent. Prefer the global
-  // connection fields; otherwise inherit the first stored profile that has a
-  // key. Keeping provider/base_url aligned with the selected key avoids sending
+  function selectedBackgroundProfileConfig(): {
+    provider: string;
+    apiKey: string;
+    baseUrl: string;
+  } | null {
+    const selectedProfileId =
+      globalSettings.state.swarm_background_agent_remote_profile.trim();
+    if (!selectedProfileId) return null;
+    const selected = (settings.profilesState.profiles.value ?? []).find(
+      (row) => row.id === selectedProfileId,
+    );
+    if (!selected) return null;
+    return {
+      provider: selected.provider?.trim() ?? "",
+      apiKey: selected.api_key?.trim() ?? "",
+      baseUrl: selected.base_url?.trim() ?? "",
+    };
+  }
+
+  // Effective remote connection for the background agent. The profile the
+  // user picked in the background-agent settings wins; then the global
+  // connection fields; then the first stored profile that has a key. Keeping
+  // provider/base_url aligned with the selected key avoids sending
   const backgroundAgentRemoteConfig = computed(() => {
+    const fromProfile = selectedBackgroundProfileConfig();
+    if (fromProfile) return fromProfile;
     const globalProvider = settings.form.remote_api_provider?.trim() ?? "";
     const globalKey = settings.form.remote_api_key?.trim() ?? "";
     const globalBaseUrl = settings.form.remote_api_base_url?.trim() ?? "";

@@ -19,6 +19,7 @@ export interface GlobalSearchKeysState {
   swarm_background_agent: boolean;
   swarm_background_agent_model: string;
   swarm_background_agent_provider: string;
+  swarm_background_agent_remote_profile: string;
   swarm_background_watch_paths: string;
   swarm_dream_enabled: boolean;
   swarm_quality_gate: boolean;

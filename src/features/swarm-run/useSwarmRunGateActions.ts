@@ -50,6 +50,7 @@ export function useSwarmRunGateActions(deps: SwarmRunGateActionsDeps) {
             (event) => {
               if (event.kind === "orchestrator") applyOrchestratorEvent(event);
             },
+            settings,
           );
       notifyGateError(result);
       ui.humanGateFeedback = "";

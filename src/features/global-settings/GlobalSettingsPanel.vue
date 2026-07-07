@@ -64,6 +64,8 @@
         :remote-api-provider="remoteApiProvider"
         :remote-api-key="remoteApiKey"
         :remote-api-base-url="remoteApiBaseUrl"
+        :profile-options="profileOptions"
+        :profiles="profiles"
       />
     </div>
   </details>
@@ -105,19 +107,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useI18n } from "@/shared/lib/i18n";
 import GlobalAutomationSettings from "./GlobalAutomationSettings.vue";
 import GlobalFeatureFlagsSettings from "./GlobalFeatureFlagsSettings.vue";
 import GlobalNotificationSettings from "./GlobalNotificationSettings.vue";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 const { t } = useI18n();
 const { state, setKey } = useGlobalSettings();
 
-defineProps<{
+const props = defineProps<{
   remoteApiProvider?: string;
   remoteApiKey?: string;
   remoteApiBaseUrl?: string;
   workspaceRoot?: string;
+  profiles?: RemoteProfileRow[];
 }>();
+
+const profileOptions = computed(() =>
+  (props.profiles ?? [])
+    .filter((row) => row.id.trim())
+    .map((row) => ({ value: row.id, label: `${row.id} (${row.provider})` })),
+);
 </script>

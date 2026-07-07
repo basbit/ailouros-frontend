@@ -150,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useProjectsStore } from "@/shared/store/projects";
 import { useUiStore } from "@/shared/store/ui";
 import { usePreferencesStore } from "@/shared/store/preferences";
@@ -205,6 +205,13 @@ const {
   onRetry,
   onContinuePipeline,
 } = controller;
+
+// Re-surface a pending gate (awaiting_human etc.) when the user navigates to
+// this page: gate visibility is otherwise only set at app bootstrap or on a
+// WS tick, so a missed tick left the answer window hidden.
+onMounted(() => {
+  if (ui.taskId) void syncTaskFromServer(ui.taskId);
+});
 
 const currentProjectName = computed(() => {
   const pdata = projectsStore.data;

@@ -20,6 +20,7 @@ export const DEFAULTS: GlobalSearchKeysState = {
   swarm_background_agent: false,
   swarm_background_agent_model: "",
   swarm_background_agent_provider: "",
+  swarm_background_agent_remote_profile: "",
   swarm_background_watch_paths: "",
   swarm_dream_enabled: false,
   swarm_quality_gate: false,

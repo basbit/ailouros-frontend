@@ -139,6 +139,11 @@
       :model="state.swarm_background_agent_model"
       :provider="state.swarm_background_agent_provider"
       :connection="connection"
+      :profile-options="profileOptions"
+      :remote-profile="state.swarm_background_agent_remote_profile"
+      :profiles="profiles"
+      :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
+      :cloud-profile-title="t('agentRoleRow.cloudProfile')"
       @update:form="onUpdate"
     />
 

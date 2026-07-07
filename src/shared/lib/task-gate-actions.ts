@@ -67,9 +67,14 @@ export async function submitHumanResume(
   feedback: string,
   sendWsSubscribe: () => void,
   onEvent?: (event: ChatStreamEvent) => void,
+  settings?: AgentConfigSettings,
 ): Promise<GateActionResult> {
   if (!taskId) return fail(noTaskIdMessage());
-  const response = await postHumanResumeStream(taskId, feedback);
+  // The disk snapshot stores agent_config with API keys redacted; resuming
+  // with it alone 401s on cloud providers. Send the live config so the
+  // backend can merge real credentials back in (same contract as retry).
+  const agentConfig = settings ? buildAgentConfig(settings) : null;
+  const response = await postHumanResumeStream(taskId, feedback, agentConfig);
   if (!response.ok) return fail("human-resume HTTP " + response.status);
   sendWsSubscribe();
   await drainStream(response.body, onEvent);

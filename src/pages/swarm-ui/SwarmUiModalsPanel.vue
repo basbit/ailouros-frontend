@@ -23,6 +23,7 @@
       :remote-api-key="remoteApiKey"
       :remote-api-base-url="remoteApiBaseUrl"
       :workspace-root="workspaceRoot"
+      :profiles="profiles"
     >
       <template #retrieval-status>
         <RetrievalSettingsCard />

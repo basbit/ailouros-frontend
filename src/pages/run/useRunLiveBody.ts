@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   useRunLiveSteps,
   type EventRow,
@@ -26,6 +26,16 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
   const logFilter = ref<LogFilter>("all");
 
   const isHistoryView = computed(() => props.historyEntry !== null);
+
+  // Gate visibility (awaiting_human etc.) is otherwise only recomputed at app
+  // bootstrap or on a WS tick. Navigating to this page after a missed tick
+  // (reconnect, hidden tab) left a paused run with no answer window — re-sync
+  // from the server on every visit so the gate is re-surfaced.
+  onMounted(() => {
+    if (props.historyEntry !== null) return;
+    if (!ui.taskId) return;
+    void controller.syncTaskFromServer(ui.taskId);
+  });
 
   const historySource = computed<HistorySource | null>(() => {
     const entry = props.historyEntry;

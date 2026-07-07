@@ -2648,6 +2648,11 @@ export interface components {
              */
             swarm_background_agent_provider: string;
             /**
+             * Swarm Background Agent Remote Profile
+             * @default
+             */
+            swarm_background_agent_remote_profile: string;
+            /**
              * Swarm Background Watch Paths
              * @default
              */
