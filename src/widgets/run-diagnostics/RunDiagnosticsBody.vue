@@ -107,6 +107,32 @@
       </ul>
     </section>
 
+    <section v-if="diagnostics.skillDispatch" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.skillDispatch") }}</h4>
+      <p class="run-diagnostics__meta">
+        <span class="run-diagnostics__pill">{{ diagnostics.skillDispatch.skillId }}</span>
+        <span class="run-diagnostics__reason">
+          {{
+            t("runDiagnostics.skillDispatchMeta", {
+              dispatcher: diagnostics.skillDispatch.dispatcher,
+              mode: diagnostics.skillDispatch.mode,
+            })
+          }}
+        </span>
+      </p>
+      <p v-if="diagnostics.skillDispatch.reason" class="run-diagnostics__reason">
+        {{ diagnostics.skillDispatch.reason }}
+      </p>
+    </section>
+
+    <section v-if="diagnostics.workspaceIsolation" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.workspaceIsolation") }}</h4>
+      <p class="run-diagnostics__meta">
+        <code class="run-diagnostics__code">{{ diagnostics.workspaceIsolation.branch }}</code>
+        <span class="run-diagnostics__reason">{{ t("runDiagnostics.workspaceIsolationHint") }}</span>
+      </p>
+    </section>
+
     <section v-if="missingSections.length > 0" class="run-diagnostics__group">
       <h4 class="run-diagnostics__subtitle">
         {{ t("runDiagnostics.enableHintsHeading") }}

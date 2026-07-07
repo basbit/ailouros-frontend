@@ -1,6 +1,10 @@
 type WikiQualitySeverity = "info" | "warning" | "error";
 
-type WikiQualityRuleKey = "paragraph_length" | "duplicate_content" | "heading_depth";
+type WikiQualityRuleKey =
+  | "paragraph_length"
+  | "duplicate_content"
+  | "heading_depth"
+  | "artifact_contract";
 
 interface WikiQualityFinding {
   rule: WikiQualityRuleKey;

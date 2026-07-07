@@ -129,15 +129,7 @@ export function useRunIdleHandlers(
   }
 
   function onOpenActiveRun(): void {
-    const taskId = (ui.taskId ?? "").trim();
-    if (taskId) {
-      const entry = ui.historyList.find((item) => (item.taskId ?? "") === taskId);
-      if (entry) {
-        void router.push(`/history/${entry.id}`);
-        return;
-      }
-    }
-    void router.push("/history");
+    void router.push("/run/active");
   }
 
   function onOpenHistory(): void {

@@ -81,8 +81,7 @@
           <input
             v-if="answers[q.index] !== undefined || customMode[q.index]"
             :value="comments[q.index] ?? ''"
-            class="clarify-q__custom-input"
-            style="margin-top: 4px; font-size: 11px; opacity: 0.8"
+            class="clarify-q__custom-input clarify-q__comment-input"
             :placeholder="t('humanGate.commentPlaceholder')"
             @input="comments[q.index] = ($event.target as HTMLInputElement).value"
           />
@@ -98,8 +97,7 @@
       </div>
       <button
         type="button"
-        class="btn-primary"
-        style="margin-top: 8px"
+        class="btn-primary human-gate__submit"
         :disabled="!allAnswered || submitting"
         @click="submitAnswers"
       >
@@ -110,15 +108,14 @@
     <div v-else>
       <textarea
         :value="feedback"
-        style="height: 100px; margin-top: 6px"
+        class="human-gate__feedback"
         :placeholder="t('humanGate.feedbackPlaceholder')"
         :disabled="submitting"
         @input="emit('update:feedback', ($event.target as HTMLTextAreaElement).value)"
       />
       <button
         type="button"
-        class="btn-primary"
-        style="margin-top: 8px"
+        class="btn-primary human-gate__submit"
         :disabled="submitting"
         @click="emit('submit', feedback)"
       >
@@ -279,6 +276,18 @@ watch(clarifyQuestions, (newQuestions, oldQuestions) => {
   border: 1px solid var(--border, #2a2f3e);
   border-radius: 4px;
   color: var(--text1, #c8cfe8);
+}
+.clarify-q__comment-input {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+.human-gate__submit {
+  margin-top: 8px;
+}
+.human-gate__feedback {
+  height: 100px;
+  margin-top: 6px;
 }
 .file-editor {
   margin-top: 8px;

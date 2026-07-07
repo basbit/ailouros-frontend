@@ -46,6 +46,18 @@ interface RagasMetrics {
   readonly scores: Readonly<Record<string, RagasMetricScore>>;
 }
 
+interface SkillDispatchDiagnostic {
+  readonly skillId: string;
+  readonly reason: string;
+  readonly dispatcher: string;
+  readonly mode: string;
+}
+
+interface WorkspaceIsolation {
+  readonly mode: string;
+  readonly branch: string;
+}
+
 export interface RunDiagnostics {
   readonly taskId: string;
   readonly phaseLoop: PhaseLoopSnapshot | null;
@@ -53,6 +65,8 @@ export interface RunDiagnostics {
   readonly entailmentVerdict: EntailmentVerdict | null;
   readonly citation: CitationEnforcementReport | null;
   readonly ragasMetrics: RagasMetrics | null;
+  readonly skillDispatch: SkillDispatchDiagnostic | null;
+  readonly workspaceIsolation: WorkspaceIsolation | null;
   readonly enableHints: Readonly<Record<string, string>>;
 }
 
@@ -87,6 +101,18 @@ interface RawRagasMetricScore {
   reason?: unknown;
 }
 
+interface RawSkillDispatch {
+  skill_id?: unknown;
+  reason?: unknown;
+  dispatcher?: unknown;
+  mode?: unknown;
+}
+
+interface RawWorkspaceIsolation {
+  mode?: unknown;
+  branch?: unknown;
+}
+
 interface RawPayload {
   task_id?: unknown;
   phase_loop?: unknown;
@@ -94,6 +120,8 @@ interface RawPayload {
   entailment_verdict?: unknown;
   citation_enforcement?: unknown;
   ragas_metrics?: unknown;
+  skill_dispatch?: unknown;
+  workspace_isolation?: unknown;
   enable_hints?: unknown;
 }
 
@@ -183,6 +211,28 @@ function parseRagasMetrics(raw: unknown): RagasMetrics | null {
   return { scores };
 }
 
+function parseSkillDispatch(raw: unknown): SkillDispatchDiagnostic | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as RawSkillDispatch;
+  const skillId = readString(candidate.skill_id).trim();
+  if (!skillId) return null;
+  return {
+    skillId,
+    reason: readString(candidate.reason),
+    dispatcher: readString(candidate.dispatcher),
+    mode: readString(candidate.mode),
+  };
+}
+
+function parseWorkspaceIsolation(raw: unknown): WorkspaceIsolation | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as RawWorkspaceIsolation;
+  const mode = readString(candidate.mode).trim();
+  const branch = readString(candidate.branch).trim();
+  if (!mode || !branch) return null;
+  return { mode, branch };
+}
+
 function parseEnableHints(raw: unknown): Record<string, string> {
   if (!raw || typeof raw !== "object") return {};
   const hints: Record<string, string> = {};
@@ -216,6 +266,8 @@ export function parseRunDiagnosticsPayload(raw: unknown): RunDiagnostics | null 
     entailmentVerdict: parseEntailment(candidate.entailment_verdict),
     citation: parseCitation(candidate.citation_enforcement),
     ragasMetrics: parseRagasMetrics(candidate.ragas_metrics),
+    skillDispatch: parseSkillDispatch(candidate.skill_dispatch),
+    workspaceIsolation: parseWorkspaceIsolation(candidate.workspace_isolation),
     enableHints: parseEnableHints(candidate.enable_hints),
   };
 }

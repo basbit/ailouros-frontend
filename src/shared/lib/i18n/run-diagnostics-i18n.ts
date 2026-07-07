@@ -57,6 +57,13 @@ export const runDiagnosticsI18nEn: Messages = {
     "Set SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict to enable per-node coverage.",
   "runDiagnostics.hint.ragas_metrics":
     "Set SWARM_EVALUATION_RAGAS_ENABLED=1 to compute heuristic faithfulness and answer relevancy.",
+  "runDiagnostics.skillDispatch": "Skill dispatch",
+  "runDiagnostics.skillDispatchMeta": "{dispatcher}/{mode}",
+  "runDiagnostics.hint.skill_dispatch":
+    "Set SWARM_ORCHESTRATION_SKILL_DISPATCHER_AUTO=1 to auto-route tasks to a skill and record the decision here.",
+  "runDiagnostics.workspaceIsolation": "Workspace isolation",
+  "runDiagnostics.workspaceIsolationHint":
+    "Review and merge this branch manually — not auto-merged.",
   "runPlan.cardAria": "Orchestrator run plan",
   "runPlan.headline": "Run plan",
   "runPlan.refresh": "Refresh",
@@ -126,6 +133,13 @@ export const runDiagnosticsI18nRu: Messages = {
     "Поставь SWARM_RETRIEVAL_CITATION_ENFORCEMENT=soft|strict для per-node coverage.",
   "runDiagnostics.hint.ragas_metrics":
     "Поставь SWARM_EVALUATION_RAGAS_ENABLED=1 для heuristic faithfulness и answer relevancy.",
+  "runDiagnostics.skillDispatch": "Skill dispatch",
+  "runDiagnostics.skillDispatchMeta": "{dispatcher}/{mode}",
+  "runDiagnostics.hint.skill_dispatch":
+    "Поставь SWARM_ORCHESTRATION_SKILL_DISPATCHER_AUTO=1, чтобы авто-роутинг skill'а фиксировался здесь.",
+  "runDiagnostics.workspaceIsolation": "Изоляция workspace",
+  "runDiagnostics.workspaceIsolationHint":
+    "Проверь и смёржи эту ветку вручную — авто-мержа нет.",
   "runPlan.cardAria": "План прогона оркестратора",
   "runPlan.headline": "План прогона",
   "runPlan.refresh": "Обновить",

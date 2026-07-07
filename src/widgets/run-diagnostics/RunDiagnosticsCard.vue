@@ -91,6 +91,8 @@ const SECTION_KEYS = [
   "entailment_verdict",
   "citation_enforcement",
   "ragas_metrics",
+  "skill_dispatch",
+  "workspace_isolation",
 ] as const;
 
 const missingSections = computed(() => {
@@ -102,6 +104,8 @@ const missingSections = computed(() => {
   if (current.entailmentVerdict) populated.add("entailment_verdict");
   if (current.citation) populated.add("citation_enforcement");
   if (current.ragasMetrics) populated.add("ragas_metrics");
+  if (current.skillDispatch) populated.add("skill_dispatch");
+  if (current.workspaceIsolation) populated.add("workspace_isolation");
   const hints = current.enableHints ?? {};
   const entries: { key: string; hint: string }[] = [];
   for (const key of SECTION_KEYS) {

@@ -1282,41 +1282,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/secrets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Secrets */
-        get: operations["list_secrets_v1_secrets_get"];
-        /** Upsert Secret */
-        put: operations["upsert_secret_v1_secrets_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/secrets/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove Secret */
-        delete: operations["remove_secret_v1_secrets__name__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/skills": {
         parameters: {
             query?: never;
@@ -2547,13 +2512,6 @@ export interface components {
             tz?: string | null;
             /** Workspace Root */
             workspace_root?: string | null;
-        };
-        /** SecretBody */
-        SecretBody: {
-            /** Name */
-            name: string;
-            /** Value */
-            value: string;
         };
         /** ShellConfirmRequest */
         ShellConfirmRequest: {
@@ -5269,96 +5227,6 @@ export interface operations {
             header?: never;
             path: {
                 scenario_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_secrets_v1_secrets_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    upsert_secret_v1_secrets_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SecretBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_secret_v1_secrets__name__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
             };
             cookie?: never;
         };

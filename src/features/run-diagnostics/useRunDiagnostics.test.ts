@@ -17,6 +17,8 @@ function makeDiagnostics(): RunDiagnostics {
     entailmentVerdict: null,
     citation: null,
     ragasMetrics: null,
+    skillDispatch: null,
+    workspaceIsolation: null,
     enableHints: {},
   };
 }

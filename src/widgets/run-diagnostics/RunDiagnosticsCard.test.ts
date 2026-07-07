@@ -20,6 +20,8 @@ function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostic
     entailmentVerdict: null,
     citation: null,
     ragasMetrics: null,
+    skillDispatch: null,
+    workspaceIsolation: null,
     enableHints: {},
     ...overrides,
   };
@@ -110,6 +112,21 @@ describe("RunDiagnosticsCard", () => {
     });
     const wrapper = await mountCard(populated);
     expect(wrapper.text()).not.toContain("Enable hints");
+  });
+
+  it("renders the skill dispatch section when present", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        skillDispatch: {
+          skillId: "backend-engineering",
+          reason: "keyword match: api",
+          dispatcher: "heuristic",
+          mode: "heuristic",
+        },
+      }),
+    );
+    expect(wrapper.text()).toContain("backend-engineering");
+    expect(wrapper.text()).toContain("keyword match: api");
   });
 
   it("shows task selector when history has multiple entries", async () => {

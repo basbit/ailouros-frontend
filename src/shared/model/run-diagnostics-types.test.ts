@@ -94,3 +94,51 @@ describe("parseRunDiagnosticsPayload", () => {
     expect(Object.keys(parsed?.enableHints ?? {}).length).toBe(2);
   });
 });
+
+describe("skill dispatch parsing", () => {
+  it("parses a populated skill_dispatch field", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      skill_dispatch: {
+        skill_id: "backend-engineering",
+        reason: "keyword match",
+        dispatcher: "heuristic",
+        mode: "heuristic",
+      },
+    });
+    expect(result?.skillDispatch).toEqual({
+      skillId: "backend-engineering",
+      reason: "keyword match",
+      dispatcher: "heuristic",
+      mode: "heuristic",
+    });
+  });
+
+  it("returns null when skill_dispatch is absent", () => {
+    const result = parseRunDiagnosticsPayload({ task_id: "t1" });
+    expect(result?.skillDispatch).toBeNull();
+  });
+
+  it("returns null when skill_id is empty", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      skill_dispatch: { skill_id: "", reason: "", dispatcher: "", mode: "" },
+    });
+    expect(result?.skillDispatch).toBeNull();
+  });
+});
+
+describe("workspace isolation parsing", () => {
+  it("parses a populated workspace_isolation field", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      workspace_isolation: { mode: "worktree", branch: "swarm/t1" },
+    });
+    expect(result?.workspaceIsolation).toEqual({ mode: "worktree", branch: "swarm/t1" });
+  });
+
+  it("returns null when workspace_isolation is absent", () => {
+    const result = parseRunDiagnosticsPayload({ task_id: "t1" });
+    expect(result?.workspaceIsolation).toBeNull();
+  });
+});
