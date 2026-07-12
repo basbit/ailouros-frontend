@@ -3,55 +3,80 @@
     <label v-if="label" class="field-label">{{ label }}</label>
     <div class="model-picker__row">
       <slot name="leading" />
-      <select
-        class="model-picker__env"
-        :value="environment"
-        @change="emit('update:environment', ($event.target as HTMLSelectElement).value)"
-      >
-        <option v-if="isDesktopShell" value="local">local</option>
-        <option value="ollama">ollama</option>
-        <option value="lmstudio">lmstudio</option>
-        <option value="cloud">cloud</option>
-      </select>
-      <div class="role-cloud-model-stack">
-        <select
-          v-if="showProfile"
-          class="cfg-remote-profile"
-          :value="remoteProfile"
-          :title="cloudProfileTitle"
+      <label v-if="showModelModeToggle" class="model-picker__auto-toggle">
+        <input
+          type="checkbox"
+          :checked="modelMode === 'auto'"
+          :title="autoModeTitle"
           @change="
-            emit('update:remoteProfile', ($event.target as HTMLSelectElement).value)
+            emit(
+              'update:modelMode',
+              ($event.target as HTMLInputElement).checked ? 'auto' : 'manual',
+            )
+          "
+        />
+        {{ autoModeLabel }}
+      </label>
+      <template v-if="!isAutoMode">
+        <select
+          class="model-picker__env"
+          :value="environment"
+          @change="
+            emit('update:environment', ($event.target as HTMLSelectElement).value)
           "
         >
-          <option value="">{{ profilePlaceholder }}</option>
-          <option v-for="opt in profileOptions" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
-          </option>
+          <option v-if="isDesktopShell" value="local">local</option>
+          <option value="ollama">ollama</option>
+          <option value="lmstudio">lmstudio</option>
+          <option value="cloud">cloud</option>
         </select>
-        <span v-if="modelFetchError" class="model-fetch-error" :title="modelFetchError">
-          ⚠ {{ modelFetchError }}
-        </span>
-        <select
-          v-else
-          :value="modelSel"
-          @change="emit('update:modelSel', ($event.target as HTMLSelectElement).value)"
-        >
-          <option v-for="[val, lbl] in modelChoices" :key="val" :value="val">
-            {{ lbl }}
-          </option>
-        </select>
-      </div>
+        <div class="role-cloud-model-stack">
+          <select
+            v-if="showProfile"
+            class="cfg-remote-profile"
+            :value="remoteProfile"
+            :title="cloudProfileTitle"
+            @change="
+              emit('update:remoteProfile', ($event.target as HTMLSelectElement).value)
+            "
+          >
+            <option value="">{{ profilePlaceholder }}</option>
+            <option v-for="opt in profileOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+          <span
+            v-if="modelFetchError"
+            class="model-fetch-error"
+            :title="modelFetchError"
+          >
+            ⚠ {{ modelFetchError }}
+          </span>
+          <select
+            v-else
+            :value="modelSel"
+            @change="
+              emit('update:modelSel', ($event.target as HTMLSelectElement).value)
+            "
+          >
+            <option v-for="[val, lbl] in modelChoices" :key="val" :value="val">
+              {{ lbl }}
+            </option>
+          </select>
+        </div>
+      </template>
+      <span v-else class="model-picker__auto-indicator">{{ autoIndicatorText }}</span>
     </div>
     <slot name="hint" />
     <input
-      v-if="modelSel === '__custom__'"
+      v-if="!isAutoMode && modelSel === '__custom__'"
       class="cfg-custom"
       type="text"
       :placeholder="customPlaceholder"
       :value="modelCustom"
       @input="emit('update:modelCustom', ($event.target as HTMLInputElement).value)"
     />
-    <div v-if="envCode" class="hint">
+    <div v-if="!isAutoMode && envCode" class="hint">
       Env: <code>{{ envCode }}</code>
     </div>
   </div>
@@ -76,6 +101,11 @@ const props = withDefaults(
     customPlaceholder?: string;
     profilePlaceholder?: string;
     cloudProfileTitle?: string;
+    showModelModeToggle?: boolean;
+    modelMode?: "auto" | "manual";
+    autoModeLabel?: string;
+    autoModeTitle?: string;
+    autoIndicatorText?: string;
   }>(),
   {
     modelFetchError: null,
@@ -87,6 +117,11 @@ const props = withDefaults(
     customPlaceholder: "",
     profilePlaceholder: "",
     cloudProfileTitle: "",
+    showModelModeToggle: false,
+    modelMode: "manual",
+    autoModeLabel: "",
+    autoModeTitle: "",
+    autoIndicatorText: "",
   },
 );
 
@@ -95,12 +130,16 @@ const emit = defineEmits<{
   "update:remoteProfile": [value: string];
   "update:modelSel": [value: string];
   "update:modelCustom": [value: string];
+  "update:modelMode": [value: "auto" | "manual"];
 }>();
 
 const isDesktopShell = isDesktop();
 
 const showProfile = computed(
   () => props.showProfileSelect ?? Boolean(props.profileOptions?.length),
+);
+const isAutoMode = computed(
+  () => props.showModelModeToggle && props.modelMode === "auto",
 );
 </script>
 
@@ -125,5 +164,22 @@ const showProfile = computed(
 }
 .model-picker__row > :slotted(.role-name) {
   flex: 0 0 auto;
+}
+.model-picker__auto-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text2, #a8b0c4);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.model-picker__auto-indicator {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text3, #6b7280);
 }
 </style>

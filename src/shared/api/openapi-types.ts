@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ui/provider-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ui Provider Balance Proxy */
+        post: operations["ui_provider_balance_proxy_ui_provider_balance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ui/remote-models": {
         parameters: {
             query?: never;
@@ -462,6 +479,23 @@ export interface paths {
         };
         /** Follow Up Status */
         get: operations["follow_up_status_v1_follow_up_suggestions_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/fs/directories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Fs Directories */
+        get: operations["get_fs_directories_v1_fs_directories_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1844,6 +1878,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/ui/provider-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Ui Provider Balance */
+        post: operations["post_ui_provider_balance_v1_ui_provider_balance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/ui/remote-models": {
         parameters: {
             query?: never;
@@ -2577,6 +2628,15 @@ export interface components {
              */
             workspace_root: string;
         };
+        /** UiProviderBalanceRequest */
+        UiProviderBalanceRequest: {
+            /** Api Key */
+            api_key: string;
+            /** Base Url */
+            base_url: string;
+            /** Provider */
+            provider: string;
+        };
         /** UiRemoteModelsRequest */
         UiRemoteModelsRequest: {
             /** Api Key */
@@ -2999,6 +3059,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ui_provider_balance_proxy_ui_provider_balance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UiProviderBalanceRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -3649,6 +3742,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    get_fs_directories_v1_fs_directories_get: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -6356,6 +6480,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_ui_provider_balance_v1_ui_provider_balance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UiProviderBalanceRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

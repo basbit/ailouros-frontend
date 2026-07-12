@@ -5,7 +5,6 @@ const config: KnipConfig = {
   project: ["src/**/*.{ts,vue}", "scripts/**/*.{ts,mjs}"],
   ignore: ["src/shared/api/openapi-types.ts"],
   ignoreBinaries: ["dot"],
-  ignoreDependencies: ["openapi-typescript"],
   vue: true,
   vitest: { config: ["vitest.config.ts"], entry: ["src/**/*.test.ts"] },
   playwright: { config: "playwright.config.ts", entry: "e2e/**/*.spec.ts" },

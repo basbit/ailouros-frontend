@@ -7,6 +7,8 @@ import {
   promptChoicesForRole,
 } from "@/shared/lib/use-swarm-defaults";
 
+export type ModelMode = "auto" | "manual";
+
 export interface RoleState {
   environment: string;
   modelChoices: [string, string][];
@@ -20,6 +22,7 @@ export interface RoleState {
   remoteProfile: string;
   showProfileSelect: boolean;
   modelFetchError: string | null;
+  modelMode: ModelMode;
 }
 
 function createInitialRoleState(roleId: string): RoleState {
@@ -36,6 +39,7 @@ function createInitialRoleState(roleId: string): RoleState {
     remoteProfile: "",
     showProfileSelect: false,
     modelFetchError: null,
+    modelMode: "manual",
   };
 }
 

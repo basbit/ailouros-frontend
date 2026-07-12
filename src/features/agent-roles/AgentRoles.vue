@@ -23,6 +23,14 @@
         >
           ⚡ {{ t("agentRoles.autoAssign") }}
         </button>
+        <label class="auto-mode-all-toggle" :title="t('agentRoles.autoModeAllTitle')">
+          <input
+            type="checkbox"
+            :checked="allRolesAuto"
+            @change="onAllModelModeChange"
+          />
+          {{ t("agentRoles.autoModeAll") }}
+        </label>
         <div
           class="role-row role-row--header"
           style="margin-bottom: 8px; font-size: 10px; color: var(--text3)"
@@ -54,6 +62,7 @@
             @profile-change="onProfileChange"
             @model-sel-change="onModelSelChange"
             @model-custom-input="onModelCustomInput"
+            @model-mode-change="onModelModeChange"
             @prompt-sel-change="onPromptSelChange"
             @prompt-custom-input="onPromptCustomInput"
             @prompt-text-input="onPromptTextInput"
@@ -95,6 +104,7 @@
           @profile-change="onProfileChange"
           @model-sel-change="onModelSelChange"
           @model-custom-input="onModelCustomInput"
+          @model-mode-change="onModelModeChange"
           @prompt-sel-change="onPromptSelChange"
           @prompt-custom-input="onPromptCustomInput"
           @prompt-text-input="onPromptTextInput"
@@ -174,8 +184,14 @@ const flat = computed(() => props.flat);
 const emit = defineEmits<
   AgentRoleEmitMap & {
     mediaUpdate: [field: string, value: string];
+    allModelModeChange: [mode: "auto" | "manual"];
   }
 >();
+
+const allRolesAuto = computed(() => {
+  const states = Object.values(props.roleStates);
+  return states.length > 0 && states.every((s) => s.modelMode === "auto");
+});
 
 const mediaImageForm = computed(() => ({
   media_enabled: props.mediaForm.media_enabled,
@@ -214,6 +230,13 @@ function onModelSelChange(roleId: string, v: string): void {
 }
 function onModelCustomInput(roleId: string, v: string): void {
   emit("modelCustomInput", roleId, v);
+}
+function onModelModeChange(roleId: string, mode: "auto" | "manual"): void {
+  emit("modelModeChange", roleId, mode);
+}
+function onAllModelModeChange(event: Event): void {
+  const checked = (event.target as HTMLInputElement).checked;
+  emit("allModelModeChange", checked ? "auto" : "manual");
 }
 function onPromptSelChange(roleId: string, v: string): void {
   emit("promptSelChange", roleId, v);
@@ -263,6 +286,16 @@ function onSkillIdsInput(roleId: string, v: string): void {
 }
 .auto-assign-btn:hover {
   opacity: 1;
+}
+.auto-mode-all-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text2, #a8b0c4);
+  cursor: pointer;
 }
 .agent-roles-media {
   margin-top: 14px;

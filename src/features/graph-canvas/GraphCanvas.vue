@@ -103,9 +103,9 @@ function buildGraph(width: number, height: number): void {
       d3
         .forceLink<GraphNode, ResolvedEdge>(edges)
         .id((d) => d.id)
-        .distance(120),
+        .distance(60),
     )
-    .force("charge", d3.forceManyBody().strength(-300))
+    .force("charge", d3.forceManyBody().strength(-150))
     .force("center", d3.forceCenter(width / 2, height / 2))
     .force(
       "collision",

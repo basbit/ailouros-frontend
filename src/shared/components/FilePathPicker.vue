@@ -34,13 +34,20 @@
       </svg>
     </button>
     <input
-      v-if="!isDesktopShell"
+      v-if="!isDesktopShell && !directory"
       ref="browserInputRef"
       type="file"
       class="file-path-picker__hidden-input"
       :accept="acceptAttribute"
-      :webkitdirectory="directory ? true : undefined"
       @change="onBrowserFileSelected"
+    />
+    <DirectoryPickerDialog
+      v-if="!isDesktopShell && directory"
+      :visible="directoryDialogOpen"
+      :start-path="modelValue || defaultPath"
+      :title="browseLabel"
+      @select="onDirectorySelected"
+      @close="directoryDialogOpen = false"
     />
   </div>
 </template>
@@ -50,6 +57,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
+import DirectoryPickerDialog from "./DirectoryPickerDialog.vue";
 
 const props = defineProps<{
   modelValue: string;
@@ -68,6 +76,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const isDesktopShell = isDesktop();
 const pickerOpen = ref(false);
+const directoryDialogOpen = ref(false);
 const browserInputRef = ref<HTMLInputElement | null>(null);
 
 const browseLabel = computed(
@@ -90,7 +99,16 @@ function onBrowseClick(): void {
     void openDesktopPicker();
     return;
   }
+  if (props.directory) {
+    directoryDialogOpen.value = true;
+    return;
+  }
   browserInputRef.value?.click();
+}
+
+function onDirectorySelected(path: string): void {
+  directoryDialogOpen.value = false;
+  emit("update:modelValue", path);
 }
 
 async function openDesktopPicker(): Promise<void> {
@@ -123,9 +141,7 @@ function onBrowserFileSelected(event: Event): void {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (!file) return;
-  const relative = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
-  const fallbackPath = relative && relative.length ? relative : file.name;
-  emit("update:modelValue", fallbackPath);
+  emit("update:modelValue", file.name);
   input.value = "";
 }
 </script>

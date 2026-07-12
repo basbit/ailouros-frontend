@@ -96,6 +96,8 @@
             @role-profile-change="roleHandlers.onRoleProfileChange"
             @role-model-sel-change="roleHandlers.onRoleModelSelChange"
             @role-model-custom-input="roleHandlers.onRoleModelCustomInput"
+            @role-model-mode-change="roleHandlers.onRoleModelModeChange"
+            @all-roles-model-mode-change="roleHandlers.onAllRolesModelModeChange"
             @role-prompt-sel-change="roleHandlers.onRolePromptSelChange"
             @role-prompt-custom-input="roleHandlers.onRolePromptCustomInput"
             @role-prompt-text-input="roleHandlers.onRolePromptTextInput"

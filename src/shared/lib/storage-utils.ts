@@ -18,7 +18,7 @@ export function loadJSON<T>(key: string, fallback: T): T {
   return parsed as T;
 }
 
-function saveJSON<T>(key: string, value: T): void {
+export function saveJSON<T>(key: string, value: T): void {
   requireLocalStorage().setItem(key, JSON.stringify(value));
 }
 

@@ -6,7 +6,7 @@ import {
   remoteProfileProviderOptions,
 } from "@/shared/lib/use-swarm-defaults";
 import { LS_REMOTE_PROFILES } from "@/shared/lib/swarm-ui-constants";
-import { loadJSON } from "@/shared/lib/storage-utils";
+import { loadJSON, saveJSON } from "@/shared/lib/storage-utils";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 export function getRemoteProfileProviderOptions(): [string, string][] {
@@ -32,6 +32,18 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
     profiles.value = [];
   }
 
+  function saveGlobal(): void {
+    saveJSON(LS_REMOTE_PROFILES, collectForSnap());
+  }
+
+  function adoptLegacyRows(rows: RemoteProfileRow[]): void {
+    if (profiles.value.length || !Array.isArray(rows)) return;
+    const usable = rows.filter((r) => r.id.trim());
+    if (!usable.length) return;
+    profiles.value = usable;
+    saveGlobal();
+  }
+
   function addProfile(data: Partial<RemoteProfileRow> = {}): void {
     const prov = data.provider ?? defaultRemoteApiProvider();
     const baseUrl = data.base_url ?? defaultRemoteApiBaseUrl(prov);
@@ -41,11 +53,13 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
       api_key: data.api_key ?? "",
       base_url: baseUrl,
     });
+    saveGlobal();
     onChangeCb();
   }
 
   function removeProfile(idx: number): void {
     profiles.value.splice(idx, 1);
+    saveGlobal();
     onChangeCb();
   }
 
@@ -66,6 +80,7 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
       }
     }
     (p as Record<string, string>)[field] = value;
+    saveGlobal();
     onChangeCb();
   }
 
@@ -146,6 +161,8 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
   return {
     profiles,
     loadGlobal,
+    saveGlobal,
+    adoptLegacyRows,
     addProfile,
     removeProfile,
     updateProfile,

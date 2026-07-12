@@ -23,49 +23,6 @@ export function useProjectFormState(opts: UseProjectFormStateOptions) {
       !opts.capabilities.value.workspace_write,
   );
 
-  const mcpSlice = computed(() => ({
-    swarm_mcp_auto: form.swarm_mcp_auto,
-    swarm_skip_mcp_tools: form.swarm_skip_mcp_tools,
-    mcp_servers_json: form.mcp_servers_json,
-  }));
-
-  const dbSlice = computed(() => ({
-    swarm_database_url: form.swarm_database_url,
-    swarm_database_hint: form.swarm_database_hint,
-    swarm_database_readonly: form.swarm_database_readonly,
-  }));
-
-  const visualSlice = computed(() => ({
-    swarm_visual_probe_enabled: form.swarm_visual_probe_enabled,
-    swarm_visual_base_url: form.swarm_visual_base_url,
-    swarm_visual_start_command: form.swarm_visual_start_command,
-    swarm_visual_start_directory: form.swarm_visual_start_directory,
-    swarm_visual_ready_path: form.swarm_visual_ready_path,
-    swarm_visual_pages: form.swarm_visual_pages,
-    swarm_visual_capture_har: form.swarm_visual_capture_har,
-    swarm_visual_capture_trace: form.swarm_visual_capture_trace,
-    swarm_visual_multimodal_review: form.swarm_visual_multimodal_review,
-    swarm_visual_max_review_images: form.swarm_visual_max_review_images,
-  }));
-
-  function onFieldUpdate(field: string, value: string): void {
-    const boolFields = new Set([
-      "swarm_mcp_auto",
-      "swarm_skip_mcp_tools",
-      "swarm_database_readonly",
-      "swarm_visual_probe_enabled",
-      "swarm_visual_capture_har",
-      "swarm_visual_capture_trace",
-      "swarm_visual_multimodal_review",
-    ]);
-    if (!(field in form)) return;
-    if (boolFields.has(field)) {
-      (form as Record<string, unknown>)[field] = value === "true";
-    } else {
-      (form as Record<string, unknown>)[field] = value;
-    }
-  }
-
   watch(
     () => opts.open.value,
     (isOpen) => {
@@ -106,10 +63,6 @@ export function useProjectFormState(opts: UseProjectFormStateOptions) {
     form,
     nameEl,
     capsWarn,
-    mcpSlice,
-    dbSlice,
-    visualSlice,
-    onFieldUpdate,
     buildSubmitPayload,
   };
 }

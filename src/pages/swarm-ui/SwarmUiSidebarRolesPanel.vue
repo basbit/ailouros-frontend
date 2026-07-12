@@ -10,6 +10,8 @@
     @profile-change="(roleId, val) => emit('role-profile-change', roleId, val)"
     @model-sel-change="(roleId, val) => emit('role-model-sel-change', roleId, val)"
     @model-custom-input="(roleId, val) => emit('role-model-custom-input', roleId, val)"
+    @model-mode-change="(roleId, mode) => emit('role-model-mode-change', roleId, mode)"
+    @all-model-mode-change="(mode) => emit('all-roles-model-mode-change', mode)"
     @prompt-sel-change="(roleId, val) => emit('role-prompt-sel-change', roleId, val)"
     @prompt-custom-input="
       (roleId, val) => emit('role-prompt-custom-input', roleId, val)
@@ -85,6 +87,8 @@ const emit = defineEmits<{
   (e: "role-profile-change", roleId: string, profile: string): void;
   (e: "role-model-sel-change", roleId: string, val: string): void;
   (e: "role-model-custom-input", roleId: string, val: string): void;
+  (e: "role-model-mode-change", roleId: string, mode: "auto" | "manual"): void;
+  (e: "all-roles-model-mode-change", mode: "auto" | "manual"): void;
   (e: "role-prompt-sel-change", roleId: string, val: string): void;
   (e: "role-prompt-custom-input", roleId: string, val: string): void;
   (e: "role-prompt-text-input", roleId: string, val: string): void;

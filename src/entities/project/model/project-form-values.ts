@@ -1,8 +1,14 @@
+import {
+  WORKSPACE_CONTEXT_MODE_DEFAULT,
+  type WorkspaceContextMode,
+} from "@/shared/model/workspace-context-mode-types";
+
 export interface ProjectFormValues {
   name: string;
   workspace_root: string;
   project_context_file: string;
   workspace_write: boolean;
+  workspace_context_mode: WorkspaceContextMode;
   swarm_languages: string;
   swarm_doc_locale: string;
   swarm_documentation_sources: string;
@@ -34,6 +40,7 @@ export const DEFAULT_PROJECT_FORM_VALUES: ProjectFormValues = {
   workspace_root: "",
   project_context_file: "",
   workspace_write: false,
+  workspace_context_mode: WORKSPACE_CONTEXT_MODE_DEFAULT,
   swarm_languages: "",
   swarm_doc_locale: "",
   swarm_documentation_sources: "",

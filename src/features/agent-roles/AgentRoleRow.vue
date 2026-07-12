@@ -12,10 +12,16 @@
       :custom-placeholder="t('agentRoleRow.modelIdPlaceholder')"
       :profile-placeholder="t('agentRoleRow.profilePlaceholder')"
       :cloud-profile-title="t('agentRoleRow.cloudProfile')"
+      show-model-mode-toggle
+      :model-mode="state.modelMode"
+      :auto-mode-label="t('agentRoleRow.autoModeLabel')"
+      :auto-mode-title="t('agentRoleRow.autoModeTitle')"
+      :auto-indicator-text="t('agentRoleRow.autoIndicator')"
       @update:environment="onEnvChange"
       @update:remote-profile="onProfileChange"
       @update:model-sel="onModelSelChange"
       @update:model-custom="onModelCustomInput"
+      @update:model-mode="onModelModeChange"
     >
       <template #leading>
         <span class="role-name" :title="titleHint">{{ label }}</span>
@@ -140,6 +146,9 @@ function onModelSelChange(val: string): void {
 }
 function onModelCustomInput(val: string): void {
   emit("modelCustomInput", props.roleId, val);
+}
+function onModelModeChange(mode: "auto" | "manual"): void {
+  emit("modelModeChange", props.roleId, mode);
 }
 function onPromptSelChange(val: string): void {
   emit("promptSelChange", props.roleId, val);

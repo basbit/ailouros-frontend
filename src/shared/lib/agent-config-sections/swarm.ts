@@ -5,6 +5,7 @@ import {
 import type { AgentConfigForm } from "@/shared/lib/agent-config-types";
 import { parseDocumentationSourceLines } from "@/shared/lib/agent-config-sections/documentation-sources";
 import { buildVisualProbeConfig } from "@/shared/lib/agent-config-sections/visual-probe";
+import { WORKSPACE_CONTEXT_MODE_DEFAULT } from "@/shared/model/workspace-context-mode-types";
 
 type AutomationSettings = ReturnType<typeof getGlobalAutomationSettings>;
 
@@ -45,6 +46,18 @@ function applySwarmMcpFlags(
 ): void {
   if (!form.swarm_mcp_auto) target.mcp_auto = false;
   if (form.swarm_skip_mcp_tools) target.skip_mcp_tools = true;
+}
+
+function applySwarmWorkspaceContextMode(
+  target: Record<string, unknown>,
+  form: AgentConfigForm,
+): void {
+  const mode = (form.workspace_context_mode ?? "").trim();
+  // Backend (resolve_workspace_context_mode) already falls back to the same
+  // default when the key is absent, so omit it to keep the payload minimal.
+  if (mode && mode !== WORKSPACE_CONTEXT_MODE_DEFAULT) {
+    target.workspace_context_mode = mode;
+  }
 }
 
 function applySwarmDocumentationFields(
@@ -198,6 +211,7 @@ export function buildSwarmSection(form: AgentConfigForm): Record<string, unknown
   applySwarmLanguageList(swarm, form);
   applySwarmTopologyAndHooks(swarm, form);
   applySwarmMcpFlags(swarm, form);
+  applySwarmWorkspaceContextMode(swarm, form);
   applySwarmDocumentationFields(swarm, form);
   applySwarmDatabaseFields(swarm, form);
   applySwarmVisualProbe(swarm, form);

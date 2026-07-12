@@ -279,6 +279,24 @@ describe("buildAgentConfig swarm search api keys precedence", () => {
   });
 });
 
+describe("buildAgentConfig swarm workspace_context_mode", () => {
+  it("propagates a non-default workspace_context_mode into the swarm payload", () => {
+    const config = buildAgentConfig({
+      ...emptyState,
+      form: { ...baseForm(), workspace_context_mode: "tools_only" },
+    });
+    expect(config?.swarm).toMatchObject({ workspace_context_mode: "tools_only" });
+  });
+
+  it("omits workspace_context_mode when it equals the backend default (retrieve)", () => {
+    const config = buildAgentConfig({
+      ...emptyState,
+      form: { ...baseForm(), workspace_context_mode: "retrieve" },
+    });
+    expect(config?.swarm).toBeUndefined();
+  });
+});
+
 describe("buildAgentConfig swarm memory settings", () => {
   it("attaches non-default memory namespace and pattern_memory_path", () => {
     const config = buildAgentConfig({

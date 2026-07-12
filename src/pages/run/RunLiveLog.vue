@@ -53,8 +53,8 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 .run-live-log {
   display: flex;
   flex-direction: column;
-  background: #15120e;
-  color: #f3ece0;
+  background: var(--bg-2);
+  color: var(--ink);
   border-radius: var(--r-md);
   overflow: hidden;
   min-width: 0;
@@ -68,7 +68,7 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
   display: flex;
   gap: 4px;
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(255, 235, 200, 0.12);
+  border-bottom: 1px solid var(--line);
 }
 
 .run-live-log__filter {
@@ -77,7 +77,7 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
-  color: rgba(243, 236, 224, 0.6);
+  color: var(--ink-3);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
@@ -86,12 +86,12 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 }
 
 .run-live-log__filter:hover {
-  color: rgba(243, 236, 224, 0.9);
+  color: var(--ink);
 }
 
 .run-live-log__filter--active {
-  background: rgba(225, 106, 58, 0.22);
-  color: #f08454;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .run-live-log__list {
@@ -113,13 +113,13 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 }
 
 .run-live-log__time {
-  color: rgba(243, 236, 224, 0.45);
+  color: var(--ink-4);
 }
 
 .run-live-log__agent {
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(243, 236, 224, 0.65);
+  color: var(--ink-3);
 }
 
 .run-live-log__message {
@@ -128,23 +128,23 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 }
 
 .run-live-log__line--sys .run-live-log__agent {
-  color: #f08454;
+  color: var(--accent);
 }
 
 .run-live-log__line--agent .run-live-log__agent {
-  color: #87c884;
+  color: var(--ok);
 }
 
 .run-live-log__line--rev .run-live-log__agent {
-  color: #b69be0;
+  color: var(--review);
 }
 
 .run-live-log__line--tool .run-live-log__agent {
-  color: #79a4d4;
+  color: var(--info);
 }
 
 .run-live-log__line--error .run-live-log__message {
-  color: #f08454;
+  color: var(--error);
 }
 
 .run-live-log__empty {
@@ -152,6 +152,6 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
   padding: 24px;
   text-align: center;
   font-size: 12px;
-  color: rgba(243, 236, 224, 0.45);
+  color: var(--ink-4);
 }
 </style>

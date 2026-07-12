@@ -151,7 +151,6 @@ describe("redesign smoke", () => {
       "mcp",
       "visual-qa",
       "notify",
-      "advanced",
     ];
     for (const pane of panes) {
       const { wrapper } = await mountAt(`/configure/${pane}`, ConfigurePage);

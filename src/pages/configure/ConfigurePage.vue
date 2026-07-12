@@ -26,7 +26,6 @@ import ModelsPane from "./panes/ModelsPane.vue";
 import MemoryPane from "./panes/MemoryPane.vue";
 import McpPane from "./panes/McpPane.vue";
 import VisualQaPane from "./panes/VisualQaPane.vue";
-import AdvancedPane from "./panes/AdvancedPane.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{
@@ -42,19 +41,11 @@ const PANES = {
   memory: MemoryPane,
   mcp: McpPane,
   "visual-qa": VisualQaPane,
-  advanced: AdvancedPane,
 } as const;
 
 type PaneKey = keyof typeof PANES;
 
-const PANE_ORDER: PaneKey[] = [
-  "project",
-  "models",
-  "memory",
-  "mcp",
-  "visual-qa",
-  "advanced",
-];
+const PANE_ORDER: PaneKey[] = ["project", "models", "memory", "mcp", "visual-qa"];
 
 const SUBNAV_LABELS: Record<PaneKey, string> = {
   project: "configure.subnav.project",
@@ -62,7 +53,6 @@ const SUBNAV_LABELS: Record<PaneKey, string> = {
   memory: "configure.subnav.memory",
   mcp: "configure.subnav.mcp",
   "visual-qa": "configure.subnav.visualQa",
-  advanced: "configure.subnav.advanced",
 };
 
 const activePane = computed<PaneKey>(() => {

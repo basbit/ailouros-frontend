@@ -21,6 +21,7 @@
           <span>{{ t("settings.apiKeys.colProvider") }}</span>
           <span>{{ t("settings.apiKeys.colKey") }}</span>
           <span>{{ t("settings.apiKeys.colBaseUrl") }}</span>
+          <span>{{ t("settings.apiKeys.colLimit") }}</span>
           <span aria-hidden="true" />
         </div>
         <div
@@ -60,6 +61,7 @@
             :value="profile.base_url"
             @input="onProfileUpdate(index, 'base_url', $event)"
           />
+          <span class="api-keys-pane__balance">{{ balanceText(profile) }}</span>
           <button
             type="button"
             class="api-keys-pane__remove"
@@ -76,6 +78,14 @@
 
       <button type="button" class="api-keys-pane__add" @click="onAddProfile">
         + {{ t("settings.apiKeys.add") }}
+      </button>
+      <button
+        v-if="profiles.length"
+        type="button"
+        class="api-keys-pane__add"
+        @click="refreshBalances"
+      >
+        {{ t("settings.apiKeys.refreshLimits") }}
       </button>
     </section>
 
@@ -121,17 +131,6 @@
           @input="onSetSearchKey('scrapingdog_api_key', $event)"
         />
       </div>
-    </section>
-
-    <section class="api-keys-pane__card">
-      <header class="api-keys-pane__card-head">
-        <h3 class="api-keys-pane__card-title">
-          {{ t("settings.apiKeys.codeHostingTitle") }}
-        </h3>
-        <p class="api-keys-pane__card-hint">
-          {{ t("settings.apiKeys.codeHostingHint") }}
-        </p>
-      </header>
       <div class="api-keys-pane__token-row">
         <span class="api-keys-pane__token-label">
           {{ t("settings.apiKeys.githubToken") }}
@@ -144,14 +143,18 @@
           @input="onSetSearchKey('github_token', $event)"
         />
       </div>
+      <p class="api-keys-pane__token-hint">
+        {{ t("settings.apiKeys.codeHostingHint") }}
+      </p>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import type { RemoteProfileRow } from "@/entities/remote-profile";
+import { useProviderBalances } from "@/features/remote-api/useProviderBalances";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useInjectedGlobalSettings } from "@/features/global-settings/globalSettingsContext";
 import { useI18n } from "@/shared/lib/i18n";
@@ -167,6 +170,25 @@ const globalSettings = useInjectedGlobalSettings();
 const { t } = useI18n();
 
 const profiles = computed(() => settings.profilesState.profiles.value);
+
+const balances = useProviderBalances();
+
+function refreshBalances(): void {
+  void balances.refreshAll(profiles.value);
+}
+
+onMounted(refreshBalances);
+
+function balanceText(profile: RemoteProfileRow): string {
+  const entry = balances.entryFor(profile);
+  if (!entry || entry.loading) return "…";
+  const balance = entry.balance;
+  if (!balance || balance.status === "error") return "—";
+  if (balance.status === "ok" && balance.limit_remaining != null) {
+    return String(balance.limit_remaining);
+  }
+  return t("settings.apiKeys.balanceUnknown");
+}
 
 const PROVIDER_OPTIONS = [
   { value: "openai", label: "OpenAI" },
@@ -260,9 +282,19 @@ function onSetSearchKey(key: GlobalKey, event: Event): void {
 .api-keys-pane__head,
 .api-keys-pane__row {
   display: grid;
-  grid-template-columns: 130px 130px 1fr 1fr 28px;
+  grid-template-columns: 130px 130px 1fr 1fr 90px 28px;
   gap: 8px;
   align-items: center;
+}
+
+.api-keys-pane__balance {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .api-keys-pane__head {
@@ -342,5 +374,11 @@ function onSetSearchKey(key: GlobalKey, event: Event): void {
   font-size: 12px;
   color: var(--ink-2);
   font-weight: 500;
+}
+
+.api-keys-pane__token-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 </style>

@@ -134,7 +134,10 @@ describe("workspace isolation parsing", () => {
       task_id: "t1",
       workspace_isolation: { mode: "worktree", branch: "swarm/t1" },
     });
-    expect(result?.workspaceIsolation).toEqual({ mode: "worktree", branch: "swarm/t1" });
+    expect(result?.workspaceIsolation).toEqual({
+      mode: "worktree",
+      branch: "swarm/t1",
+    });
   });
 
   it("returns null when workspace_isolation is absent", () => {

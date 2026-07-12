@@ -63,7 +63,6 @@ const ROUTES_TO_VISIT = [
   "/configure/mcp",
   "/configure/visual-qa",
   "/configure/notify",
-  "/configure/advanced",
   "/history",
   "/history/run-x",
   "/settings/profile",

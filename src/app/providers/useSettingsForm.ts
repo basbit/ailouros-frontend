@@ -5,6 +5,7 @@ import {
   defaultRemoteApiProvider,
 } from "@/shared/lib/use-swarm-defaults";
 import { baseSettingsDefaults } from "@/shared/store/projects";
+import { WORKSPACE_CONTEXT_MODE_DEFAULT } from "@/shared/model/workspace-context-mode-types";
 
 const DEFAULT_LICENSE_POLICY = "permissive_only";
 const DEFAULT_READY_PATH = "/";
@@ -43,6 +44,8 @@ function copyTextFields(form: SettingsForm, snap: SettingsSnap): void {
   form.prompt = snap.prompt ?? "";
   form.workspace_root = snap.workspace_root ?? "";
   form.project_context_file = snap.project_context_file ?? "";
+  form.workspace_context_mode =
+    snap.workspace_context_mode ?? WORKSPACE_CONTEXT_MODE_DEFAULT;
   form.swarm_languages = snap.swarm_languages ?? "";
   form.swarm_topology = snap.swarm_topology ?? "";
   form.swarm_pipeline_hooks_module = snap.swarm_pipeline_hooks_module ?? "";

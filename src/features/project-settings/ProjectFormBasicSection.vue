@@ -47,6 +47,24 @@
     </div>
 
     <div class="field">
+      <label class="field-label" for="pf-context-mode">
+        {{ t("projectForm.contextModeLabel") }}
+      </label>
+      <select
+        id="pf-context-mode"
+        :value="form.workspace_context_mode"
+        @change="onSelectInput('workspace_context_mode', $event)"
+      >
+        <option v-for="mode in WORKSPACE_CONTEXT_MODES" :key="mode" :value="mode">
+          {{ t(contextModeLabelKeys[mode]) }}
+        </option>
+      </select>
+      <div class="hint project-form__hint">
+        {{ t("projectForm.contextModeHint") }}
+      </div>
+    </div>
+
+    <div class="field">
       <label class="checkbox-row">
         <input
           id="pf-write"
@@ -99,7 +117,19 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useGlobalSearchKeys } from "@/shared/lib/global-search-keys";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";
+import {
+  WORKSPACE_CONTEXT_MODES,
+  type WorkspaceContextMode,
+} from "@/shared/model/workspace-context-mode-types";
 import type { ProjectFormValues } from "./useProjectFormState";
+
+const contextModeLabelKeys: Record<WorkspaceContextMode, string> = {
+  full: "projectForm.contextMode.full",
+  index_only: "projectForm.contextMode.indexOnly",
+  priority_paths: "projectForm.contextMode.priorityPaths",
+  retrieve: "projectForm.contextMode.retrieve",
+  tools_only: "projectForm.contextMode.toolsOnly",
+};
 
 const props = defineProps<{
   form: ProjectFormValues;
@@ -145,6 +175,11 @@ function onTextInput(field: keyof ProjectFormValues, ev: Event): void {
 function onBoolInput(field: keyof ProjectFormValues, ev: Event): void {
   const target = ev.target as HTMLInputElement;
   emit("update:field", field, target.checked);
+}
+
+function onSelectInput(field: keyof ProjectFormValues, ev: Event): void {
+  const target = ev.target as HTMLSelectElement;
+  emit("update:field", field, target.value);
 }
 
 void props;

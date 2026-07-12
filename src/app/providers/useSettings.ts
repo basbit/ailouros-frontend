@@ -37,6 +37,7 @@ export function useSettings() {
       workspace_root: form.workspace_root,
       project_context_file: form.project_context_file,
       workspace_write: form.workspace_write,
+      workspace_context_mode: form.workspace_context_mode,
       human_manual_review: form.human_manual_review,
       swarm_languages: form.swarm_languages,
       swarm_topology: form.swarm_topology,
@@ -86,7 +87,7 @@ export function useSettings() {
       remote_api_provider: form.remote_api_provider,
       remote_api_key: form.remote_api_key,
       remote_api_base_url: form.remote_api_base_url,
-      remote_api_profile_rows: profilesState.collectForSnap(),
+      remote_api_profile_rows: [],
       custom_roles: customRolesState.collectSnap(),
       dev_roles: devRolesState.collectSnap(),
       skills_catalog: skillsState.collectSnap(),
@@ -122,7 +123,7 @@ export function useSettings() {
       Array.isArray(snap.remote_api_profile_rows) &&
       snap.remote_api_profile_rows.length
     ) {
-      profilesState.applyFromArray(snap.remote_api_profile_rows);
+      profilesState.adoptLegacyRows(snap.remote_api_profile_rows);
     }
 
     applyRemoteProviderDefaultUrl();

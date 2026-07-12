@@ -22,6 +22,7 @@
             <span>{{ t("remoteApi.provider") }}</span>
             <span>{{ t("remoteApi.apiKey") }}</span>
             <span>{{ t("remoteApi.baseUrl") }}</span>
+            <span>{{ t("remoteApi.limit") }}</span>
             <span></span>
           </div>
           <div class="remote-profiles-rows">
@@ -69,6 +70,12 @@
                   onUpdate(idx, 'base_url', ($event.target as HTMLInputElement).value)
                 "
               />
+              <span
+                class="rprof-balance"
+                :class="{ 'rprof-balance--loading': isBalanceLoading(idx) }"
+                :title="t('remoteApi.limit')"
+                >{{ balanceText(idx) }}</span
+              >
               <button
                 type="button"
                 class="rprof-remove"
@@ -81,6 +88,9 @@
           </div>
           <div class="remote-profiles-actions">
             <button type="button" @click="onAdd">{{ t("remoteApi.add") }}</button>
+            <button type="button" @click="onRefreshBalances">
+              {{ t("remoteApi.refreshBalances") }}
+            </button>
           </div>
         </div>
       </div>
@@ -89,15 +99,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { getRemoteProfileProviderOptions } from "@/features/remote-api/useRemoteApiProfiles";
+import { useProviderBalances } from "@/features/remote-api/useProviderBalances";
 import { useI18n } from "@/shared/lib/i18n";
 import type { RemoteProfileRow } from "@/entities/remote-profile";
 
 const { t } = useI18n();
 const providerOptions = computed(() => getRemoteProfileProviderOptions());
 
-defineProps<{
+const props = defineProps<{
   profiles: RemoteProfileRow[];
 }>();
 
@@ -107,13 +118,42 @@ const emit = defineEmits<{
   update: [idx: number, field: keyof RemoteProfileRow, value: string];
 }>();
 
+const balances = useProviderBalances();
+
 function onAdd(): void {
   emit("add");
 }
 function onRemove(idx: number): void {
+  balances.forget(props.profiles[idx]);
   emit("remove", idx);
 }
 function onUpdate(idx: number, field: keyof RemoteProfileRow, value: string): void {
   emit("update", idx, field, value);
 }
+
+function onRefreshBalances(): void {
+  void balances.refreshAll(props.profiles);
+}
+
+function isBalanceLoading(idx: number): boolean {
+  return balances.entryFor(props.profiles[idx])?.loading ?? true;
+}
+
+// Never render or log `profile.api_key` here — this only maps a fetched
+// status to display text. `status:"ok"` with a null `limit_remaining` is a
+// legitimate OpenRouter response (the `/auth/key` endpoint can omit the
+// field) and must render the same "revealed on 429" label as `"unknown"`,
+// not the error placeholder.
+function balanceText(idx: number): string {
+  const entry = balances.entryFor(props.profiles[idx]);
+  if (!entry || entry.loading) return t("remoteApi.balanceLoading");
+  const balance = entry.balance;
+  if (!balance || balance.status === "error") return t("remoteApi.balanceError");
+  if (balance.status === "ok" && balance.limit_remaining != null) {
+    return String(balance.limit_remaining);
+  }
+  return t("remoteApi.balanceUnknown");
+}
+
+onMounted(onRefreshBalances);
 </script>

@@ -62,6 +62,14 @@ export const projectEn: Messages = {
   "projectForm.writeLabel": "Allow swarm to write files & run shell commands",
   "projectForm.writeHint":
     "Enables <swarm_file>, <swarm_patch> and <swarm_shell>. Also requires server-side",
+  "projectForm.contextModeLabel": "Workspace context mode",
+  "projectForm.contextModeHint":
+    "Controls how much of the workspace is inlined into agent prompts.",
+  "projectForm.contextMode.full": "Full snapshot",
+  "projectForm.contextMode.indexOnly": "Index only (paths, no contents)",
+  "projectForm.contextMode.priorityPaths": "Priority paths only",
+  "projectForm.contextMode.retrieve": "Retrieve on demand (default)",
+  "projectForm.contextMode.toolsOnly": "Tools only (requires MCP filesystem server)",
   "projectForm.allowServerWriteLabel": "Grant server permission (global)",
   "projectForm.allowServerWriteHint":
     "Sets SWARM_ALLOW_WORKSPACE_WRITE=1 and SWARM_ALLOW_COMMAND_EXEC=1 on the orchestrator. Applies to all projects on this server.",
@@ -176,6 +184,15 @@ export const projectRu: Messages = {
   "projectForm.writeLabel": "Разрешить swarm запись файлов и shell-команды",
   "projectForm.writeHint":
     "Включает <swarm_file>, <swarm_patch> и <swarm_shell>. Также требует на сервере",
+  "projectForm.contextModeLabel": "Режим контекста рабочей области",
+  "projectForm.contextModeHint":
+    "Определяет, сколько содержимого рабочей области передаётся агентам в промпте.",
+  "projectForm.contextMode.full": "Полный снимок",
+  "projectForm.contextMode.indexOnly": "Только индекс (пути, без содержимого)",
+  "projectForm.contextMode.priorityPaths": "Только приоритетные пути",
+  "projectForm.contextMode.retrieve": "По запросу (по умолчанию)",
+  "projectForm.contextMode.toolsOnly":
+    "Только инструменты (нужен MCP filesystem-сервер)",
   "projectForm.allowServerWriteLabel": "Выдать разрешение на сервере (глобально)",
   "projectForm.allowServerWriteHint":
     "Устанавливает SWARM_ALLOW_WORKSPACE_WRITE=1 и SWARM_ALLOW_COMMAND_EXEC=1 на оркестраторе. Действует для всех проектов на этом сервере.",

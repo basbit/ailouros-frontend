@@ -11,6 +11,8 @@ export interface RoleHandlers {
   onRoleProfileChange: (roleId: string, profile: string) => Promise<void>;
   onRoleModelSelChange: (roleId: string, val: string) => void;
   onRoleModelCustomInput: (roleId: string, val: string) => void;
+  onRoleModelModeChange: (roleId: string, mode: "auto" | "manual") => void;
+  onAllRolesModelModeChange: (mode: "auto" | "manual") => void;
   onRolePromptSelChange: (roleId: string, val: string) => void;
   onRolePromptCustomInput: (roleId: string, val: string) => void;
   onRolePromptTextInput: (roleId: string, val: string) => void;
@@ -43,6 +45,14 @@ export function useRoleHandlers(settings: SettingsApi): RoleHandlers {
   function onRoleModelCustomInput(roleId: string, val: string): void {
     settings.rolesState.roleStates[roleId].modelCustom = val;
     settings.saveSettingsSoon();
+  }
+
+  function onRoleModelModeChange(roleId: string, mode: "auto" | "manual"): void {
+    settings.rolesState.setRoleModelMode(roleId, mode);
+  }
+
+  function onAllRolesModelModeChange(mode: "auto" | "manual"): void {
+    settings.rolesState.setAllRolesModelMode(mode);
   }
 
   function onRolePromptSelChange(roleId: string, val: string): void {
@@ -113,6 +123,8 @@ export function useRoleHandlers(settings: SettingsApi): RoleHandlers {
     onRoleProfileChange,
     onRoleModelSelChange,
     onRoleModelCustomInput,
+    onRoleModelModeChange,
+    onAllRolesModelModeChange,
     onRolePromptSelChange,
     onRolePromptCustomInput,
     onRolePromptTextInput,

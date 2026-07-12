@@ -6,7 +6,7 @@ import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 import { getOnboardingModels } from "@/shared/api/endpoints/onboarding";
 import type { RoleSnapshot } from "@/entities/role";
 import type { RemoteProfileRow } from "@/entities/remote-profile";
-import { useRoleState } from "./useRoleState";
+import { useRoleState, type ModelMode } from "./useRoleState";
 import { useRoleModelSelector } from "./useRoleModelSelector";
 import { useRolePromptSelector } from "./useRolePromptSelector";
 import {
@@ -136,12 +136,28 @@ export function useAgentRoles(
         prompt_path: effectivePromptPath(roleId),
         skill_ids: roleState.skillIds,
         remote_profile: roleState.remoteProfile || undefined,
+        model_mode: roleState.modelMode === "auto" ? "auto" : undefined,
       };
       const trimmedPromptText = roleState.promptText.trim();
       if (trimmedPromptText) entry.prompt_text = trimmedPromptText;
       out[roleId] = entry;
     }
     return out;
+  }
+
+  function setRoleModelMode(roleId: string, mode: ModelMode): void {
+    const roleState = roleStates[roleId];
+    if (!roleState) return;
+    roleState.modelMode = mode;
+    if (!isBooting.value) onChangeCb();
+  }
+
+  function setAllRolesModelMode(mode: ModelMode): void {
+    for (const roleId of ROLES) {
+      const roleState = roleStates[roleId];
+      if (roleState) roleState.modelMode = mode;
+    }
+    if (!isBooting.value) onChangeCb();
   }
 
   function collectRoleApiConfig(roleId: string): {
@@ -151,6 +167,7 @@ export function useAgentRoles(
     prompt_text?: string;
     skill_ids?: string[];
     remote_profile?: string;
+    model_mode?: "auto";
   } {
     const roleState = roleStates[roleId];
     if (!roleState) return { environment: "ollama", model: "", prompt_path: "" };
@@ -163,6 +180,7 @@ export function useAgentRoles(
       ...(trimmedPromptText ? { prompt_text: trimmedPromptText } : {}),
       ...(sids.length ? { skill_ids: sids } : {}),
       ...(roleState.remoteProfile ? { remote_profile: roleState.remoteProfile } : {}),
+      ...(roleState.modelMode === "auto" ? { model_mode: "auto" as const } : {}),
     };
   }
 
@@ -199,5 +217,7 @@ export function useAgentRoles(
     collectRoleApiConfig,
     getProfileProvider,
     applyAssignments,
+    setRoleModelMode,
+    setAllRolesModelMode,
   };
 }

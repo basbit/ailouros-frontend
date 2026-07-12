@@ -1,4 +1,5 @@
 import type { ScenarioProjectOverride } from "@/shared/model/scenario-types";
+import type { WorkspaceContextMode } from "@/shared/model/workspace-context-mode-types";
 
 export interface RemoteProfileRow {
   id: string;
@@ -14,6 +15,10 @@ export interface RoleSnapshot {
   prompt_text?: string;
   skill_ids?: string;
   remote_profile?: string;
+  // "auto" means the backend resolves model+provider for this role at run
+  // start from a funded profile (see resolve_auto_role_models); absent/
+  // "manual" keeps the pinned `model` above. Defaults to "manual".
+  model_mode?: "auto" | "manual";
 }
 
 export interface CustomRoleSnap {
@@ -56,6 +61,7 @@ export interface BaseSettingsFields {
   workspace_root: string;
   project_context_file: string;
   workspace_write: boolean;
+  workspace_context_mode?: WorkspaceContextMode;
   human_manual_review: boolean;
   swarm_languages: string;
   swarm_topology: string;

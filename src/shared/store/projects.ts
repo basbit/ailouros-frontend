@@ -46,6 +46,7 @@ function buildEmptyRoleSnapshots(): Record<string, RoleSnapshot> {
 }
 
 import type { BaseSettingsFields } from "@/shared/model/project-types";
+import { WORKSPACE_CONTEXT_MODE_DEFAULT } from "@/shared/model/workspace-context-mode-types";
 
 // Concrete default values for all flat (non-collection) settings keys. Optional
 // snap fields (media_*, swarm_*_api_key, custom_scenario_id) are filled in too
@@ -75,6 +76,7 @@ export function baseSettingsDefaults(): BaseSettingsDefaults {
     workspace_root: "",
     project_context_file: "",
     workspace_write: true,
+    workspace_context_mode: WORKSPACE_CONTEXT_MODE_DEFAULT,
     human_manual_review: false,
     swarm_languages: "",
     swarm_topology: "",

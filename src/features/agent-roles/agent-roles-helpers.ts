@@ -35,10 +35,12 @@ export async function applyRoleSnapshot(
     roleState.environment = roleConfig.environment ?? defaultEnvironmentForRole();
     roleState.remoteProfile = roleConfig.remote_profile ?? "";
     roleState.skillIds = roleConfig.skill_ids ?? "";
+    roleState.modelMode = roleConfig.model_mode === "auto" ? "auto" : "manual";
   } else {
     roleState.environment = defaultEnvironmentForRole();
     roleState.remoteProfile = "";
     roleState.skillIds = "";
+    roleState.modelMode = "manual";
   }
   roleState.showProfileSelect = roleState.environment === "cloud";
   roleState.modelFetchError = null;
@@ -83,6 +85,7 @@ export async function applyOneAssignment(
   roleState.environment = env;
   roleState.showProfileSelect = env === "cloud";
   roleState.modelFetchError = null;
+  roleState.modelMode = "manual";
   if (assignment.remote_profile) {
     roleState.remoteProfile = assignment.remote_profile;
   }

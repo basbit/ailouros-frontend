@@ -526,7 +526,7 @@
     .remote-profiles-block { margin-top: 10px; }
     .remote-profiles-head {
       display: grid;
-      grid-template-columns: 100px 1fr 1fr 1fr 30px;
+      grid-template-columns: 100px 1fr 1fr 1fr 70px 30px;
       gap: 6px;
       font-size: 10px;
       color: var(--text3);
@@ -535,7 +535,7 @@
     }
     .remote-profile-row {
       display: grid;
-      grid-template-columns: 100px 1fr 1fr 1fr 30px;
+      grid-template-columns: 100px 1fr 1fr 1fr 70px 30px;
       gap: 6px;
       align-items: center;
       margin-bottom: 6px;
@@ -545,6 +545,17 @@
       font-size: 11px;
       padding: 5px 6px;
       min-width: 0;
+    }
+    .rprof-balance {
+      font-size: 11px;
+      color: var(--text2);
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rprof-balance--loading {
+      opacity: 0.55;
     }
     .remote-profiles-actions {
       display: flex;

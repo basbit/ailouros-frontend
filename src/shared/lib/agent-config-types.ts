@@ -54,6 +54,7 @@ export type AgentConfigForm = Pick<
   | "workspace_root"
   | "project_context_file"
   | "workspace_write"
+  | "workspace_context_mode"
   | "scenario_id"
   | "favorite_scenarios"
   | "scenario_overrides"

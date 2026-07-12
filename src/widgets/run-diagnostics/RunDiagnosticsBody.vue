@@ -110,7 +110,9 @@
     <section v-if="diagnostics.skillDispatch" class="run-diagnostics__group">
       <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.skillDispatch") }}</h4>
       <p class="run-diagnostics__meta">
-        <span class="run-diagnostics__pill">{{ diagnostics.skillDispatch.skillId }}</span>
+        <span class="run-diagnostics__pill">{{
+          diagnostics.skillDispatch.skillId
+        }}</span>
         <span class="run-diagnostics__reason">
           {{
             t("runDiagnostics.skillDispatchMeta", {
@@ -126,10 +128,16 @@
     </section>
 
     <section v-if="diagnostics.workspaceIsolation" class="run-diagnostics__group">
-      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.workspaceIsolation") }}</h4>
+      <h4 class="run-diagnostics__subtitle">
+        {{ t("runDiagnostics.workspaceIsolation") }}
+      </h4>
       <p class="run-diagnostics__meta">
-        <code class="run-diagnostics__code">{{ diagnostics.workspaceIsolation.branch }}</code>
-        <span class="run-diagnostics__reason">{{ t("runDiagnostics.workspaceIsolationHint") }}</span>
+        <code class="run-diagnostics__code">{{
+          diagnostics.workspaceIsolation.branch
+        }}</code>
+        <span class="run-diagnostics__reason">{{
+          t("runDiagnostics.workspaceIsolationHint")
+        }}</span>
       </p>
     </section>
 

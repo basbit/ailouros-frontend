@@ -14,6 +14,7 @@ const ADVANCED_FORM_FIELDS = [
   "workspace_root",
   "project_context_file",
   "workspace_write",
+  "workspace_context_mode",
   "swarm_languages",
   "swarm_doc_locale",
   "swarm_documentation_sources",

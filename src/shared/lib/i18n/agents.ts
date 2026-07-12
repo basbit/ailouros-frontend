@@ -17,6 +17,11 @@ export const agentsEn: Messages = {
   "remoteApi.baseUrlPlaceholder": "preset on provider change if empty",
   "remoteApi.add": "+ Add provider",
   "remoteApi.remove": "Remove row",
+  "remoteApi.limit": "Limit",
+  "remoteApi.refreshBalances": "Refresh limits",
+  "remoteApi.balanceLoading": "…",
+  "remoteApi.balanceUnknown": "revealed on 429",
+  "remoteApi.balanceError": "—",
   "agentRoles.summary": "Agent Models",
   "agentRoles.project": "project",
   "agentRoles.projectTitle": "Saved inside the current project",
@@ -26,6 +31,9 @@ export const agentsEn: Messages = {
   "agentRoles.autoAssign": "Auto-assign models",
   "agentRoles.autoAssignTitle":
     "Detect available models and assign them to roles automatically",
+  "agentRoles.autoModeAll": "Auto for all roles",
+  "agentRoles.autoModeAllTitle":
+    "Every role's model is picked by the backend from a funded profile at run start; per-role pins are still possible below",
   "agentRoles.cloudProfile": "cloud profile / model",
   "agentRoles.devRolesHint":
     "If set, the dev step runs each dev role in order instead of a Dev Lead task plan.",
@@ -42,6 +50,10 @@ export const agentsEn: Messages = {
   "agentRoleRow.promptTextPlaceholder": "Leave empty to use the selected prompt file.",
   "agentRoleRow.skillIdsLabel": "Skill ids",
   "agentRoleRow.skillIdsPlaceholder": "my_skill, other_skill",
+  "agentRoleRow.autoModeLabel": "Auto",
+  "agentRoleRow.autoModeTitle":
+    "Let the backend pick this role's model and provider from a funded profile at run start",
+  "agentRoleRow.autoIndicator": "Auto (the model is picked automatically at run time)",
   "devRoles.namePlaceholder": "backend / frontend / mobile",
   "devRoles.scopeLabel": "scope (optional)",
   "devRoles.scopePlaceholder": "e.g. API and backend, no frontend",
@@ -109,6 +121,11 @@ export const agentsRu: Messages = {
   "remoteApi.baseUrlPlaceholder": "preset on provider change if empty",
   "remoteApi.add": "+ Add provider",
   "remoteApi.remove": "Удалить строку",
+  "remoteApi.limit": "Лимит",
+  "remoteApi.refreshBalances": "Обновить лимиты",
+  "remoteApi.balanceLoading": "…",
+  "remoteApi.balanceUnknown": "по факту (429)",
+  "remoteApi.balanceError": "—",
   "agentRoles.summary": "Agent Models",
   "agentRoles.project": "проект",
   "agentRoles.projectTitle": "Сохраняется в текущем проекте",
@@ -118,6 +135,9 @@ export const agentsRu: Messages = {
   "agentRoles.autoAssign": "Авто-назначить модели",
   "agentRoles.autoAssignTitle":
     "Обнаружить доступные модели и автоматически назначить их на роли",
+  "agentRoles.autoModeAll": "Авто для всех ролей",
+  "agentRoles.autoModeAllTitle":
+    "Модель для каждой роли подберёт бэкенд из проф. с балансом при запуске; ручной пин по-прежнему доступен ниже",
   "agentRoles.cloudProfile": "cloud profile / model",
   "agentRoles.devRolesHint":
     "Если задано, шаг dev запускает каждую dev-роль по очереди вместо плана от Dev Lead.",
@@ -135,6 +155,10 @@ export const agentsRu: Messages = {
     "Оставьте пустым, чтобы использовать выбранный файл промпта.",
   "agentRoleRow.skillIdsLabel": "Skill ids",
   "agentRoleRow.skillIdsPlaceholder": "my_skill, other_skill",
+  "agentRoleRow.autoModeLabel": "Авто",
+  "agentRoleRow.autoModeTitle":
+    "Модель и провайдер для этой роли подберёт бэкенд из профиля с балансом при запуске",
+  "agentRoleRow.autoIndicator": "Авто (модель подберётся автоматически)",
   "devRoles.namePlaceholder": "backend / frontend / mobile",
   "devRoles.scopeLabel": "scope (необязательно)",
   "devRoles.scopePlaceholder": "например API и backend, без frontend",
