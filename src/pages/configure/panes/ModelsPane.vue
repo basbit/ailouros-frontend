@@ -32,6 +32,7 @@
       @model-custom-input="onRoleModelCustomInput"
       @model-mode-change="onRoleModelModeChange"
       @all-model-mode-change="onAllRolesModelModeChange"
+      @all-model-change="onAllRolesModelChange"
       @prompt-sel-change="onRolePromptSelChange"
       @prompt-custom-input="onRolePromptCustomInput"
       @prompt-text-input="onRolePromptTextInput"
@@ -150,6 +151,10 @@ function onRoleModelModeChange(roleId: string, mode: "auto" | "manual"): void {
 
 function onAllRolesModelModeChange(mode: "auto" | "manual"): void {
   handlers.onAllRolesModelModeChange(mode);
+}
+
+function onAllRolesModelChange(model: string): void {
+  handlers.onAllRolesModelChange(model);
 }
 
 function onRolePromptSelChange(roleId: string, value: string): void {

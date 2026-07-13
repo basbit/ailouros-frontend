@@ -69,7 +69,7 @@ describe("RemoteApiProfiles — balance column", () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain("4.2");
-    expect(wrapper.text()).toContain("по факту (429)");
+    expect(wrapper.text()).toContain("по факту");
   });
 
   it("re-fetches every profile's balance when the refresh action is clicked", async () => {
@@ -101,7 +101,7 @@ describe("RemoteApiProfiles — balance column", () => {
     await flushPromises();
 
     for (const cell of balanceCells(wrapper)) {
-      expect(cell).toBe("по факту (429)");
+      expect(cell).toBe("по факту");
       expect(cell).not.toBe("—");
     }
   });
@@ -141,7 +141,7 @@ describe("RemoteApiProfiles — balance column", () => {
 
     const wrapper = mount(RemoteApiProfiles, { props: { profiles: threeProfiles } });
     await flushPromises();
-    expect(balanceCells(wrapper)).toEqual(["4.2", "по факту (429)", "9.9"]);
+    expect(balanceCells(wrapper)).toEqual(["4.2", "по факту", "9.9"]);
 
     // Remove the middle row (gem1) — the remaining rows (or1, grok1) must
     // keep displaying THEIR OWN balances, not shift into each other's slot.

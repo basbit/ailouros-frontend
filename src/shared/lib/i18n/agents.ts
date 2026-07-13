@@ -20,7 +20,7 @@ export const agentsEn: Messages = {
   "remoteApi.limit": "Limit",
   "remoteApi.refreshBalances": "Refresh limits",
   "remoteApi.balanceLoading": "…",
-  "remoteApi.balanceUnknown": "revealed on 429",
+  "remoteApi.balanceUnknown": "usage-based",
   "remoteApi.balanceError": "—",
   "agentRoles.summary": "Agent Models",
   "agentRoles.project": "project",
@@ -34,6 +34,13 @@ export const agentsEn: Messages = {
   "agentRoles.autoModeAll": "Auto for all roles",
   "agentRoles.autoModeAllTitle":
     "Every role's model is picked by the backend from a funded profile at run start; per-role pins are still possible below",
+  "agentRoles.applyModelAll": "Set model for all:",
+  "agentRoles.applyModelAllTitle":
+    "Assign one model to every built-in agent role at once. This switches those roles to manual mode.",
+  "agentRoles.applyModelAllPlaceholder": "pick a model…",
+  "agentRoles.applyModelAllCustom": "Custom model id…",
+  "agentRoles.applyModelAllCustomPlaceholder": "e.g. deepseek/deepseek-v4-pro",
+  "agentRoles.applyModelAllBtn": "Apply to all",
   "agentRoles.cloudProfile": "cloud profile / model",
   "agentRoles.devRolesHint":
     "If set, the dev step runs each dev role in order instead of a Dev Lead task plan.",
@@ -124,7 +131,7 @@ export const agentsRu: Messages = {
   "remoteApi.limit": "Лимит",
   "remoteApi.refreshBalances": "Обновить лимиты",
   "remoteApi.balanceLoading": "…",
-  "remoteApi.balanceUnknown": "по факту (429)",
+  "remoteApi.balanceUnknown": "по факту",
   "remoteApi.balanceError": "—",
   "agentRoles.summary": "Agent Models",
   "agentRoles.project": "проект",
@@ -138,6 +145,13 @@ export const agentsRu: Messages = {
   "agentRoles.autoModeAll": "Авто для всех ролей",
   "agentRoles.autoModeAllTitle":
     "Модель для каждой роли подберёт бэкенд из проф. с балансом при запуске; ручной пин по-прежнему доступен ниже",
+  "agentRoles.applyModelAll": "Модель для всех:",
+  "agentRoles.applyModelAllTitle":
+    "Назначить одну модель сразу всем встроенным ролям. Роли переключатся в ручной режим.",
+  "agentRoles.applyModelAllPlaceholder": "выберите модель…",
+  "agentRoles.applyModelAllCustom": "Своя модель (id)…",
+  "agentRoles.applyModelAllCustomPlaceholder": "напр. deepseek/deepseek-v4-pro",
+  "agentRoles.applyModelAllBtn": "Назначить всем",
   "agentRoles.cloudProfile": "cloud profile / model",
   "agentRoles.devRolesHint":
     "Если задано, шаг dev запускает каждую dev-роль по очереди вместо плана от Dev Lead.",

@@ -58,4 +58,38 @@ describe("useAgentRoles model_mode", () => {
 
     expect(rolesApi.collectRoleApiConfig(targetRole).model_mode).toBeUndefined();
   });
+
+  it("setAllRolesModel pins the given model on every role and forces manual mode", () => {
+    const rolesApi = makeRoles();
+    rolesApi.setAllRolesModelMode("auto");
+
+    rolesApi.setAllRolesModel("deepseek/deepseek-v4-pro");
+
+    for (const roleId of ROLES) {
+      expect(rolesApi.effectiveModel(roleId)).toBe("deepseek/deepseek-v4-pro");
+      expect(rolesApi.collectRoleApiConfig(roleId).model_mode).toBeUndefined();
+    }
+  });
+
+  it("setAllRolesModel uses an existing choice value directly when available", () => {
+    const rolesApi = makeRoles();
+    const [targetRole] = ROLES;
+    rolesApi.roleStates[targetRole].modelChoices = [["gpt-4o", "GPT-4o"]];
+
+    rolesApi.setAllRolesModel("gpt-4o");
+
+    expect(rolesApi.roleStates[targetRole].modelSel).toBe("gpt-4o");
+    expect(rolesApi.roleStates[targetRole].modelCustom).toBe("");
+    expect(rolesApi.effectiveModel(targetRole)).toBe("gpt-4o");
+  });
+
+  it("setAllRolesModel ignores blank input", () => {
+    const onChange = vi.fn();
+    const rolesApi = useAgentRoles({ value: [] }, onChange);
+    rolesApi.isBooting.value = false;
+
+    rolesApi.setAllRolesModel("   ");
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

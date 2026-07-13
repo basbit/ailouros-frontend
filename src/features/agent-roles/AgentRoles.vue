@@ -31,6 +31,32 @@
           />
           {{ t("agentRoles.autoModeAll") }}
         </label>
+
+        <div class="bulk-model" :title="t('agentRoles.applyModelAllTitle')">
+          <span class="bulk-model__label">{{ t("agentRoles.applyModelAll") }}</span>
+          <select v-model="bulkModelSel" class="bulk-model__select">
+            <option value="">{{ t("agentRoles.applyModelAllPlaceholder") }}</option>
+            <option v-for="[val, lbl] in allModelOptions" :key="val" :value="val">
+              {{ lbl }}
+            </option>
+            <option value="__custom__">{{ t("agentRoles.applyModelAllCustom") }}</option>
+          </select>
+          <input
+            v-if="bulkModelSel === '__custom__'"
+            v-model="bulkModelCustom"
+            type="text"
+            class="bulk-model__input"
+            :placeholder="t('agentRoles.applyModelAllCustomPlaceholder')"
+          />
+          <button
+            type="button"
+            class="bulk-model__btn"
+            :disabled="!bulkModelEffective"
+            @click="applyBulkModel"
+          >
+            {{ t("agentRoles.applyModelAllBtn") }}
+          </button>
+        </div>
         <div
           class="role-row role-row--header"
           style="margin-bottom: 8px; font-size: 10px; color: var(--text3)"
@@ -139,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import AgentRoleRow from "./AgentRoleRow.vue";
 import MediaImageFields from "@/shared/components/MediaImageFields.vue";
 import MediaAudioFields from "@/shared/components/MediaAudioFields.vue";
@@ -185,6 +211,7 @@ const emit = defineEmits<
   AgentRoleEmitMap & {
     mediaUpdate: [field: string, value: string];
     allModelModeChange: [mode: "auto" | "manual"];
+    allModelChange: [model: string];
   }
 >();
 
@@ -192,6 +219,37 @@ const allRolesAuto = computed(() => {
   const states = Object.values(props.roleStates);
   return states.length > 0 && states.every((s) => s.modelMode === "auto");
 });
+
+const bulkModelSel = ref("");
+const bulkModelCustom = ref("");
+
+const allModelOptions = computed<[string, string][]>(() => {
+  const seen = new Set<string>();
+  const opts: [string, string][] = [];
+  for (const state of Object.values(props.roleStates)) {
+    for (const [val, lbl] of state.modelChoices) {
+      if (val && val !== "__custom__" && !seen.has(val)) {
+        seen.add(val);
+        opts.push([val, lbl || val]);
+      }
+    }
+  }
+  opts.sort((a, b) => a[1].localeCompare(b[1]));
+  return opts;
+});
+
+const bulkModelEffective = computed(() =>
+  (bulkModelSel.value === "__custom__"
+    ? bulkModelCustom.value
+    : bulkModelSel.value
+  ).trim(),
+);
+
+function applyBulkModel(): void {
+  const model = bulkModelEffective.value;
+  if (!model) return;
+  emit("allModelChange", model);
+}
 
 const mediaImageForm = computed(() => ({
   media_enabled: props.mediaForm.media_enabled,
@@ -296,6 +354,49 @@ function onSkillIdsInput(roleId: string, v: string): void {
   font-size: 11px;
   color: var(--text2, #a8b0c4);
   cursor: pointer;
+}
+.bulk-model {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 6px;
+  background: var(--surface2, rgba(255, 255, 255, 0.02));
+}
+.bulk-model__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2, #a8b0c4);
+}
+.bulk-model__select,
+.bulk-model__input {
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--border, #2a2f3e);
+  border-radius: 4px;
+  background: var(--surface, #1a1e28);
+  color: var(--text, #e5e9f0);
+  max-width: 260px;
+}
+.bulk-model__input {
+  font-family: var(--mono, ui-monospace, monospace);
+  min-width: 180px;
+}
+.bulk-model__btn {
+  font-size: 11px;
+  padding: 4px 12px;
+  background: var(--accent, #3b5bdb);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.bulk-model__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .agent-roles-media {
   margin-top: 14px;

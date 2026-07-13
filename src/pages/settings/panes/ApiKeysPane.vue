@@ -61,7 +61,9 @@
             :value="profile.base_url"
             @input="onProfileUpdate(index, 'base_url', $event)"
           />
-          <span class="api-keys-pane__balance">{{ balanceText(profile) }}</span>
+          <span class="api-keys-pane__balance" :title="balanceTitle(profile)">
+            {{ balanceText(profile) }}
+          </span>
           <button
             type="button"
             class="api-keys-pane__remove"
@@ -190,6 +192,19 @@ function balanceText(profile: RemoteProfileRow): string {
   return t("settings.apiKeys.balanceUnknown");
 }
 
+function balanceTitle(profile: RemoteProfileRow): string {
+  const entry = balances.entryFor(profile);
+  const balance = entry?.balance;
+  if (!entry || entry.loading) return t("settings.apiKeys.balanceLoadingHint");
+  if (!balance || balance.status === "error") {
+    return t("settings.apiKeys.balanceErrorHint");
+  }
+  if (balance.status === "ok" && balance.limit_remaining != null) {
+    return t("settings.apiKeys.balanceRemainingHint");
+  }
+  return t("settings.apiKeys.balanceUnknownHint");
+}
+
 const PROVIDER_OPTIONS = [
   { value: "openai", label: "OpenAI" },
   { value: "anthropic", label: "Anthropic" },
@@ -282,7 +297,7 @@ function onSetSearchKey(key: GlobalKey, event: Event): void {
 .api-keys-pane__head,
 .api-keys-pane__row {
   display: grid;
-  grid-template-columns: 130px 130px 1fr 1fr 90px 28px;
+  grid-template-columns: 120px 120px minmax(0, 1fr) minmax(0, 1fr) 128px 28px;
   gap: 8px;
   align-items: center;
 }
@@ -295,6 +310,7 @@ function onSetSearchKey(key: GlobalKey, event: Event): void {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: help;
 }
 
 .api-keys-pane__head {

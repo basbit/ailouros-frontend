@@ -142,7 +142,7 @@ function isBalanceLoading(idx: number): boolean {
 // Never render or log `profile.api_key` here — this only maps a fetched
 // status to display text. `status:"ok"` with a null `limit_remaining` is a
 // legitimate OpenRouter response (the `/auth/key` endpoint can omit the
-// field) and must render the same "revealed on 429" label as `"unknown"`,
+// field) and must render the same "usage-based" label as `"unknown"`,
 // not the error placeholder.
 function balanceText(idx: number): string {
   const entry = balances.entryFor(props.profiles[idx]);

@@ -160,6 +160,27 @@ export function useAgentRoles(
     if (!isBooting.value) onChangeCb();
   }
 
+  function setAllRolesModel(model: string): void {
+    const trimmed = model.trim();
+    if (!trimmed) return;
+    for (const roleId of ROLES) {
+      const roleState = roleStates[roleId];
+      if (!roleState) continue;
+      const inChoices = roleState.modelChoices.some(([value]) => value === trimmed);
+      if (inChoices) {
+        roleState.modelSel = trimmed;
+        roleState.modelCustom = "";
+      } else {
+        roleState.modelSel = "__custom__";
+        roleState.modelCustom = trimmed;
+      }
+      // Assigning an explicit model is a manual choice; clear auto so the
+      // picked model is actually used instead of being re-resolved at run time.
+      roleState.modelMode = "manual";
+    }
+    if (!isBooting.value) onChangeCb();
+  }
+
   function collectRoleApiConfig(roleId: string): {
     environment: string;
     model: string;
@@ -219,5 +240,6 @@ export function useAgentRoles(
     applyAssignments,
     setRoleModelMode,
     setAllRolesModelMode,
+    setAllRolesModel,
   };
 }
