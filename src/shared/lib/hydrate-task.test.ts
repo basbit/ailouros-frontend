@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { hydrateTaskFromServer } from "@/shared/lib/hydrate-task";
+import { resolveTaskFromServer } from "@/shared/lib/hydrate-task";
+import { ApiError } from "@/shared/api/http";
 import * as tasksApi from "@/shared/api/endpoints/tasks";
 
-describe("hydrateTaskFromServer input validation", () => {
+describe("resolveTaskFromServer input validation", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -12,12 +13,12 @@ describe("hydrateTaskFromServer input validation", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns null for empty taskId", async () => {
-    expect(await hydrateTaskFromServer("")).toBeNull();
+  it("treats an empty taskId as an unknown task", async () => {
+    expect(await resolveTaskFromServer("")).toEqual({ outcome: "unknown" });
   });
 
-  it("returns null for whitespace-only taskId", async () => {
-    expect(await hydrateTaskFromServer("   ")).toBeNull();
+  it("treats a whitespace-only taskId as an unknown task", async () => {
+    expect(await resolveTaskFromServer("   ")).toEqual({ outcome: "unknown" });
   });
 
   it("trims taskId before issuing request", async () => {
@@ -27,12 +28,12 @@ describe("hydrateTaskFromServer input validation", () => {
       history: [],
       agents: [],
     });
-    await hydrateTaskFromServer("   abc   ");
+    await resolveTaskFromServer("   abc   ");
     expect(spy).toHaveBeenCalledWith("abc");
   });
 });
 
-describe("hydrateTaskFromServer snapshot path", () => {
+describe("resolveTaskFromServer snapshot path", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -52,12 +53,13 @@ describe("hydrateTaskFromServer snapshot path", () => {
       scenario_category: "code_quality",
     });
 
-    const out = await hydrateTaskFromServer("abc");
+    const resolution = await resolveTaskFromServer("abc");
 
-    expect(out).not.toBeNull();
-    expect(out!.scenarioId).toBe("code_review");
-    expect(out!.scenarioTitle).toBe("Code Review");
-    expect(out!.scenarioCategory).toBe("code_quality");
+    expect(resolution.outcome).toBe("found");
+    if (resolution.outcome !== "found") return;
+    expect(resolution.task.scenarioId).toBe("code_review");
+    expect(resolution.task.scenarioTitle).toBe("Code Review");
+    expect(resolution.task.scenarioCategory).toBe("code_quality");
   });
 
   it("returns null scenario fields when snapshot has none", async () => {
@@ -68,11 +70,12 @@ describe("hydrateTaskFromServer snapshot path", () => {
       agents: [],
     });
 
-    const out = await hydrateTaskFromServer("xyz");
+    const resolution = await resolveTaskFromServer("xyz");
 
-    expect(out!.scenarioId).toBeNull();
-    expect(out!.scenarioTitle).toBeNull();
-    expect(out!.scenarioCategory).toBeNull();
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.scenarioId).toBeNull();
+    expect(resolution.task.scenarioTitle).toBeNull();
+    expect(resolution.task.scenarioCategory).toBeNull();
   });
 
   it("preserves history and agents arrays verbatim", async () => {
@@ -88,11 +91,11 @@ describe("hydrateTaskFromServer snapshot path", () => {
       agents,
     });
 
-    const out = await hydrateTaskFromServer("with-history");
+    const resolution = await resolveTaskFromServer("with-history");
 
-    expect(out!.history).toEqual(history);
-    expect(out!.agents).toEqual(agents);
-    expect(out!.fromLogFallback).toBe(false);
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.history).toEqual(history);
+    expect(resolution.task.agents).toEqual(agents);
   });
 
   it("defaults history and agents to [] when snapshot omits them", async () => {
@@ -101,10 +104,11 @@ describe("hydrateTaskFromServer snapshot path", () => {
       status: "pending",
     });
 
-    const out = await hydrateTaskFromServer("minimal");
+    const resolution = await resolveTaskFromServer("minimal");
 
-    expect(out!.history).toEqual([]);
-    expect(out!.agents).toEqual([]);
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.history).toEqual([]);
+    expect(resolution.task.agents).toEqual([]);
   });
 
   it("propagates error field verbatim and exposes status as string", async () => {
@@ -116,10 +120,11 @@ describe("hydrateTaskFromServer snapshot path", () => {
       error: "boom",
     });
 
-    const out = await hydrateTaskFromServer("failed");
+    const resolution = await resolveTaskFromServer("failed");
 
-    expect(out!.error).toBe("boom");
-    expect(out!.status).toBe("failed");
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.error).toBe("boom");
+    expect(resolution.task.status).toBe("failed");
   });
 
   it("falls back to null status when snapshot.status is not a string", async () => {
@@ -130,8 +135,10 @@ describe("hydrateTaskFromServer snapshot path", () => {
       agents: [],
     });
 
-    const out = await hydrateTaskFromServer("weird");
-    expect(out!.status).toBeNull();
+    const resolution = await resolveTaskFromServer("weird");
+
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.status).toBeNull();
   });
 
   it("falls back to null error when snapshot omits error", async () => {
@@ -142,8 +149,10 @@ describe("hydrateTaskFromServer snapshot path", () => {
       agents: [],
     });
 
-    const out = await hydrateTaskFromServer("ok");
-    expect(out!.error).toBeNull();
+    const resolution = await resolveTaskFromServer("ok");
+
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.error).toBeNull();
   });
 
   it("builds artifactPath with URL-encoded taskId", async () => {
@@ -153,78 +162,50 @@ describe("hydrateTaskFromServer snapshot path", () => {
       history: [],
       agents: [],
     });
-    const out = await hydrateTaskFromServer("task id with spaces/slash");
-    expect(out!.artifactPath).toContain("task%20id%20with%20spaces%2Fslash");
+
+    const resolution = await resolveTaskFromServer("task id with spaces/slash");
+
+    if (resolution.outcome !== "found") throw new Error("expected found");
+    expect(resolution.task.artifactPath).toContain("task%20id%20with%20spaces%2Fslash");
   });
 });
 
-describe("hydrateTaskFromServer log fallback path", () => {
+describe("resolveTaskFromServer failure path", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
-  it("returns null scenario fields and fromLogFallback=true with status 'completed'", async () => {
+  it("reports a 404 as an unknown task", async () => {
     vi.spyOn(tasksApi, "getLegacyTaskSnapshot").mockRejectedValue(
-      new Error("not found"),
-    );
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: true, text: async () => "log line" }),
+      new ApiError("HTTP 404", 404, "task not found"),
     );
 
-    const out = await hydrateTaskFromServer("logonly");
-
-    expect(out!.fromLogFallback).toBe(true);
-    expect(out!.status).toBe("completed");
-    expect(out!.error).toBeNull();
-    expect(out!.agents).toEqual([]);
-    expect(out!.scenarioId).toBeNull();
-    expect(out!.scenarioTitle).toBeNull();
-    expect(out!.scenarioCategory).toBeNull();
+    expect(await resolveTaskFromServer("gone")).toEqual({ outcome: "unknown" });
   });
 
-  it("inserts trimmed log body as single history entry under pipeline_run.log agent", async () => {
-    vi.spyOn(tasksApi, "getLegacyTaskSnapshot").mockRejectedValue(new Error("x"));
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        text: async () => "  multi-line\nlog body  ",
-      }),
-    );
-
-    const out = await hydrateTaskFromServer("withlog");
-
-    expect(out!.history).toHaveLength(1);
-    expect(out!.history[0].agent).toBe("pipeline_run.log");
-    expect(out!.history[0].message).toBe("multi-line\nlog body");
-    expect(typeof out!.history[0].timestamp).toBe("string");
-  });
-
-  it("substitutes placeholder when pipeline_run.log content is empty", async () => {
-    vi.spyOn(tasksApi, "getLegacyTaskSnapshot").mockRejectedValue(new Error("x"));
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: true, text: async () => "   " }),
-    );
-
-    const out = await hydrateTaskFromServer("emptylog");
-
-    expect(out!.history[0].message).toBe("(empty pipeline_run.log)");
-  });
-
-  it("returns null when both snapshot and log fallback fail", async () => {
+  it("surfaces a transport failure instead of guessing a status", async () => {
     vi.spyOn(tasksApi, "getLegacyTaskSnapshot").mockRejectedValue(
-      new Error("snapshot down"),
+      new Error("Failed to fetch"),
     );
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("log unavailable")));
 
-    const out = await hydrateTaskFromServer("nothing");
-    expect(out).toBeNull();
+    expect(await resolveTaskFromServer("offline")).toEqual({
+      outcome: "error",
+      message: "Failed to fetch",
+    });
+  });
+
+  it("surfaces a server error instead of reporting the task as unknown", async () => {
+    vi.spyOn(tasksApi, "getLegacyTaskSnapshot").mockRejectedValue(
+      new ApiError("HTTP 503", 503, "unavailable"),
+    );
+
+    expect(await resolveTaskFromServer("flaky")).toEqual({
+      outcome: "error",
+      message: "HTTP 503",
+    });
   });
 });

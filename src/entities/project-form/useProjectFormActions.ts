@@ -50,6 +50,7 @@ const ADVANCED_FORM_FIELDS = [
   "media_budget_max_cost_usd",
   "media_budget_max_attempts",
   "media_license_policy",
+  "human_manual_review",
 ] as const;
 
 export interface ProjectFormActions {
@@ -174,7 +175,7 @@ export function useProjectFormActions(
         values.workspace_root,
       );
       applyAdvancedToForm(values);
-      settings.saveSettingsSoon();
+      await settings.flushSaveAsync();
       refreshProjectPanels();
       return;
     }

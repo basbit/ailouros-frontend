@@ -34,12 +34,35 @@
 
         <div class="bulk-model" :title="t('agentRoles.applyModelAllTitle')">
           <span class="bulk-model__label">{{ t("agentRoles.applyModelAll") }}</span>
+          <select
+            :value="bulkEnvironment"
+            class="bulk-model__select bulk-model__select--env"
+            @change="onBulkEnvChange(($event.target as HTMLSelectElement).value)"
+          >
+            <option value="ollama">ollama</option>
+            <option value="lmstudio">lmstudio</option>
+            <option value="local">local</option>
+            <option value="cloud">cloud</option>
+          </select>
+          <select
+            v-if="bulkEnvironment === 'cloud'"
+            :value="bulkRemoteProfile"
+            class="bulk-model__select bulk-model__select--profile"
+            @change="onBulkProfileChange(($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">{{ t("agentRoleRow.profilePlaceholder") }}</option>
+            <option v-for="opt in profileOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
           <select v-model="bulkModelSel" class="bulk-model__select">
             <option value="">{{ t("agentRoles.applyModelAllPlaceholder") }}</option>
             <option v-for="[val, lbl] in allModelOptions" :key="val" :value="val">
               {{ lbl }}
             </option>
-            <option value="__custom__">{{ t("agentRoles.applyModelAllCustom") }}</option>
+            <option value="__custom__">
+              {{ t("agentRoles.applyModelAllCustom") }}
+            </option>
           </select>
           <input
             v-if="bulkModelSel === '__custom__'"
@@ -51,11 +74,16 @@
           <button
             type="button"
             class="bulk-model__btn"
-            :disabled="!bulkModelEffective"
+            :disabled="
+              !bulkModelEffective || (bulkEnvironment === 'cloud' && !bulkRemoteProfile)
+            "
             @click="applyBulkModel"
           >
             {{ t("agentRoles.applyModelAllBtn") }}
           </button>
+          <span v-if="bulkModelFetchError" class="bulk-model__error">
+            {{ bulkModelFetchError }}
+          </span>
         </div>
         <div
           class="role-row role-row--header"
@@ -197,12 +225,16 @@ const props = withDefaults(
     onAutoAssign?: () => Promise<void>;
     mediaForm: MediaForm;
     flat?: boolean;
+    bulkModelChoices?: [string, string][];
+    bulkModelFetchError?: string | null;
   }>(),
   {
     workspaceRoot: "",
     catalogIds: () => [],
     onAutoAssign: undefined,
     flat: false,
+    bulkModelChoices: () => [],
+    bulkModelFetchError: null,
   },
 );
 const flat = computed(() => props.flat);
@@ -212,6 +244,19 @@ const emit = defineEmits<
     mediaUpdate: [field: string, value: string];
     allModelModeChange: [mode: "auto" | "manual"];
     allModelChange: [model: string];
+    allModelFromPicker: [
+      payload: {
+        environment: string;
+        remoteProfile?: string;
+        model: string;
+      },
+    ];
+    bulkPickerChange: [
+      payload: {
+        environment: string;
+        remoteProfile: string;
+      },
+    ];
   }
 >();
 
@@ -220,14 +265,24 @@ const allRolesAuto = computed(() => {
   return states.length > 0 && states.every((s) => s.modelMode === "auto");
 });
 
+const bulkEnvironment = ref("ollama");
+const bulkRemoteProfile = ref("");
 const bulkModelSel = ref("");
 const bulkModelCustom = ref("");
+
+const effectiveBulkProfile = computed(() =>
+  bulkEnvironment.value === "cloud" ? bulkRemoteProfile.value : "",
+);
 
 const allModelOptions = computed<[string, string][]>(() => {
   const seen = new Set<string>();
   const opts: [string, string][] = [];
-  for (const state of Object.values(props.roleStates)) {
-    for (const [val, lbl] of state.modelChoices) {
+  const sources: [string, string][][] =
+    props.bulkModelChoices.length > 0
+      ? [props.bulkModelChoices]
+      : Object.values(props.roleStates).map((state) => state.modelChoices);
+  for (const choices of sources) {
+    for (const [val, lbl] of choices) {
       if (val && val !== "__custom__" && !seen.has(val)) {
         seen.add(val);
         opts.push([val, lbl || val]);
@@ -248,7 +303,32 @@ const bulkModelEffective = computed(() =>
 function applyBulkModel(): void {
   const model = bulkModelEffective.value;
   if (!model) return;
-  emit("allModelChange", model);
+  emit("allModelFromPicker", {
+    environment: bulkEnvironment.value,
+    remoteProfile: effectiveBulkProfile.value,
+    model,
+  });
+}
+
+function onBulkEnvChange(env: string): void {
+  bulkEnvironment.value = env;
+  if (env !== "cloud") {
+    bulkRemoteProfile.value = "";
+  }
+  reloadBulkModelChoices();
+}
+
+function onBulkProfileChange(profile: string): void {
+  bulkRemoteProfile.value = profile;
+  reloadBulkModelChoices();
+}
+
+function reloadBulkModelChoices(): void {
+  bulkModelSel.value = "";
+  emit("bulkPickerChange", {
+    environment: bulkEnvironment.value,
+    remoteProfile: effectiveBulkProfile.value,
+  });
 }
 
 const mediaImageForm = computed(() => ({
@@ -381,6 +461,14 @@ function onSkillIdsInput(roleId: string, v: string): void {
   color: var(--text, #e5e9f0);
   max-width: 260px;
 }
+.bulk-model__select--env {
+  width: auto;
+  min-width: 72px;
+}
+.bulk-model__select--profile {
+  width: auto;
+  min-width: 120px;
+}
 .bulk-model__input {
   font-family: var(--mono, ui-monospace, monospace);
   min-width: 180px;
@@ -397,6 +485,10 @@ function onSkillIdsInput(roleId: string, v: string): void {
 .bulk-model__btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.bulk-model__error {
+  font-size: 11px;
+  color: var(--danger, #e03131);
 }
 .agent-roles-media {
   margin-top: 14px;

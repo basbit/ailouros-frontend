@@ -1,5 +1,5 @@
 import { apiUrl } from "@/shared/api/base";
-import { httpRequestRaw } from "@/shared/api/http";
+import { ApiError } from "@/shared/api/http";
 import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
 
 type TaskHistoryRow = { agent?: string; message?: string; timestamp?: string };
@@ -11,70 +11,48 @@ export interface HydrateResult {
   error: unknown;
   agents: string[];
   artifactPath: string | null;
-  fromLogFallback: boolean;
   scenarioId: string | null;
   scenarioTitle: string | null;
   scenarioCategory: string | null;
 }
 
-export async function hydrateTaskFromServer(
-  taskIdInput: string,
-): Promise<HydrateResult | null> {
-  const taskId = taskIdInput.trim();
-  if (!taskId) return null;
+export type TaskResolution =
+  | { outcome: "found"; task: HydrateResult }
+  | { outcome: "unknown" }
+  | { outcome: "error"; message: string };
 
-  const artifactJson = apiUrl(
-    "/artifacts/" + encodeURIComponent(taskId) + "/pipeline.json",
-  );
+export async function resolveTaskFromServer(
+  taskIdInput: string,
+): Promise<TaskResolution> {
+  const taskId = taskIdInput.trim();
+  if (!taskId) return { outcome: "unknown" };
 
   try {
     const snapshot = await getLegacyTaskSnapshot(taskId);
-    const history = snapshot.history ?? [];
-    const agents = snapshot.agents ?? [];
     return {
-      taskId: taskId,
-      history,
-      status: typeof snapshot.status === "string" ? snapshot.status : null,
-      error: snapshot.error ?? null,
-      agents,
-      artifactPath: artifactJson,
-      fromLogFallback: false,
-      scenarioId: snapshot.scenario_id ?? null,
-      scenarioTitle: snapshot.scenario_title ?? null,
-      scenarioCategory: snapshot.scenario_category ?? null,
+      outcome: "found",
+      task: {
+        taskId,
+        history: snapshot.history ?? [],
+        status: typeof snapshot.status === "string" ? snapshot.status : null,
+        error: snapshot.error ?? null,
+        agents: snapshot.agents ?? [],
+        artifactPath: apiUrl(
+          "/artifacts/" + encodeURIComponent(taskId) + "/pipeline.json",
+        ),
+        scenarioId: snapshot.scenario_id ?? null,
+        scenarioTitle: snapshot.scenario_title ?? null,
+        scenarioCategory: snapshot.scenario_category ?? null,
+      },
     };
-  } catch {
-    /* Network / CORS */
-  }
-
-  try {
-    const lr = await httpRequestRaw(
-      "GET",
-      "/artifacts/" + encodeURIComponent(taskId) + "/pipeline_run.log",
-    );
-    const text = await lr.text();
-    const body = text.trim() || "(empty pipeline_run.log)";
+  } catch (lookupFailure: unknown) {
+    if (lookupFailure instanceof ApiError && lookupFailure.status === 404) {
+      return { outcome: "unknown" };
+    }
     return {
-      taskId: taskId,
-      history: [
-        {
-          agent: "pipeline_run.log",
-          message: body,
-          timestamp: new Date().toISOString(),
-        },
-      ],
-      status: "completed",
-      error: null,
-      agents: [],
-      artifactPath: artifactJson,
-      fromLogFallback: true,
-      scenarioId: null,
-      scenarioTitle: null,
-      scenarioCategory: null,
+      outcome: "error",
+      message:
+        lookupFailure instanceof Error ? lookupFailure.message : String(lookupFailure),
     };
-  } catch {
-    /* ignore */
   }
-
-  return null;
 }

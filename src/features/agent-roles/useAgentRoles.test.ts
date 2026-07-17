@@ -1,7 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { ROLES } from "@/shared/lib/pipeline-schema";
+import type { RemoteProfileRow } from "@/entities/remote-profile";
 import { useAgentRoles } from "./useAgentRoles";
+
+const { fetchCloudModelsForProfileMock, ensureModelChoicesForEnvMock } = vi.hoisted(
+  () => ({
+    fetchCloudModelsForProfileMock: vi.fn(),
+    ensureModelChoicesForEnvMock: vi.fn(),
+  }),
+);
+
+vi.mock("@/shared/lib/use-model-list", () => ({
+  fetchCloudModelsForProfile: fetchCloudModelsForProfileMock,
+  ensureModelChoicesForEnv: ensureModelChoicesForEnvMock,
+}));
 
 describe("useAgentRoles model_mode", () => {
   beforeEach(() => {
@@ -91,5 +104,75 @@ describe("useAgentRoles model_mode", () => {
     rolesApi.setAllRolesModel("   ");
 
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("useAgentRoles bulk cloud model choices", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem("ailouros.locale", "en");
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+
+  const cloudProfile = {
+    id: "ollama",
+    provider: "ollama_cloud",
+    base_url: "https://ollama.com/v1",
+    api_key: "secret-key",
+  } as RemoteProfileRow;
+
+  it("loadBulkModelChoices('cloud', id) fetches the catalogue from that profile's connection", async () => {
+    fetchCloudModelsForProfileMock.mockResolvedValue([
+      ["deepseek-v4-flash", "deepseek-v4-flash"],
+      ["__custom__", "Custom…"],
+    ]);
+    const rolesApi = useAgentRoles({ value: [cloudProfile] }, vi.fn());
+    rolesApi.isBooting.value = false;
+
+    await rolesApi.loadBulkModelChoices("cloud", "ollama");
+
+    expect(fetchCloudModelsForProfileMock).toHaveBeenCalledWith(cloudProfile);
+    expect(rolesApi.bulkModelChoices.value).toContainEqual([
+      "deepseek-v4-flash",
+      "deepseek-v4-flash",
+    ]);
+    expect(rolesApi.bulkModelFetchError.value).toBeNull();
+  });
+
+  it("surfaces the fetch failure instead of silently offering an empty list", async () => {
+    fetchCloudModelsForProfileMock.mockRejectedValue(new Error("401 unauthorized"));
+    const rolesApi = useAgentRoles({ value: [cloudProfile] }, vi.fn());
+    rolesApi.isBooting.value = false;
+
+    await rolesApi.loadBulkModelChoices("cloud", "ollama");
+
+    expect(rolesApi.bulkModelChoices.value).toEqual([]);
+    expect(rolesApi.bulkModelFetchError.value).toBe("401 unauthorized");
+  });
+
+  it("a local env uses the env catalogue and needs no profile", async () => {
+    ensureModelChoicesForEnvMock.mockResolvedValue([["qwen2.5:0.5b", "qwen2.5:0.5b"]]);
+    const rolesApi = useAgentRoles({ value: [cloudProfile] }, vi.fn());
+    rolesApi.isBooting.value = false;
+
+    await rolesApi.loadBulkModelChoices("ollama", "");
+
+    expect(ensureModelChoicesForEnvMock).toHaveBeenCalledWith("ollama");
+    expect(rolesApi.bulkModelChoices.value).toContainEqual([
+      "qwen2.5:0.5b",
+      "qwen2.5:0.5b",
+    ]);
+  });
+
+  it("cloud env without a chosen profile clears the list rather than reusing a stale catalogue", async () => {
+    fetchCloudModelsForProfileMock.mockResolvedValue([["deepseek-v4-flash", "d"]]);
+    const rolesApi = useAgentRoles({ value: [cloudProfile] }, vi.fn());
+    rolesApi.isBooting.value = false;
+    await rolesApi.loadBulkModelChoices("cloud", "ollama");
+
+    await rolesApi.loadBulkModelChoices("cloud", "");
+
+    expect(rolesApi.bulkModelChoices.value).toEqual([]);
   });
 });

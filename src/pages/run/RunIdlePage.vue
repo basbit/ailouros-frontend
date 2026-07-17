@@ -42,6 +42,14 @@
             </div>
           </section>
 
+          <RunUnavailableBanner
+            v-if="isRunUnavailable"
+            :availability="ui.runAvailability"
+            :task-id="ui.taskId ?? ''"
+            :lookup-error="ui.runAvailabilityError"
+            @reset="handlers.onResetUnavailableRun"
+          />
+
           <section
             v-if="slashOutcome || slashError"
             class="run-idle__slash-banner"
@@ -119,6 +127,7 @@ import ScenarioPickerDialog from "@/features/scenario-picker/ScenarioPickerDialo
 import PipelineSpine from "@/widgets/run-idle/PipelineSpine.vue";
 import HistoryGlimpse from "@/widgets/run-idle/HistoryGlimpse.vue";
 import PatternMemoryHint from "@/widgets/pattern-memory-hint/PatternMemoryHint.vue";
+import { RunUnavailableBanner } from "@/features/run-recovery";
 import { APP_SETTINGS_KEY } from "@/app/providers/settingsContext";
 import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { useRunIdleHandlers } from "./useRunIdleHandlers";
@@ -147,6 +156,7 @@ const {
   patternHintMessage,
   historyItems,
   slashRunner,
+  isRunUnavailable,
 } = handlers;
 const slashOutcome = slashRunner.lastOutcome;
 const slashError = slashRunner.lastError;

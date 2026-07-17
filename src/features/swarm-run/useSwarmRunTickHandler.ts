@@ -3,14 +3,16 @@ import { useUxStore } from "@/shared/store/ux";
 import { apiUrl } from "@/shared/api/base";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 import { type OrchestratorStreamEvent } from "@/shared/lib/chat-stream-events";
-import { hydrateTaskFromServer } from "@/shared/lib/hydrate-task";
+import { resolveTaskFromServer } from "@/shared/lib/hydrate-task";
 import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
 import { applyOrchestratorEvent as applyOrchestratorEventToUi } from "./swarm-run-orchestrator-applier";
-import { createGateHandlers } from "./swarm-run-tick-gate-handlers";
+import { createGateHandlers, hideAllGates } from "./swarm-run-tick-gate-handlers";
 import type { SwarmRunState } from "./useSwarmRunState";
 
 type TaskRecord = Record<string, unknown>;
 type SetTaskInput = Parameters<SwarmRunState["taskStore"]["setTask"]>[0];
+
+const TASK_NOT_FOUND_ERROR = "not_found";
 
 interface HistoryEntry {
   agent?: string;
@@ -68,21 +70,41 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
     await promise;
   }
 
+  function markRunUnavailable(): void {
+    ui.runAvailability = "unavailable";
+    ui.runAvailabilityError = null;
+    ui.taskStatus = null;
+    ui.activeStep = null;
+    ui.pendingApprovals = 0;
+    hideAllGates(ui);
+  }
+
   async function syncTaskFromServer(taskId: string): Promise<void> {
-    const hydratedTask = await hydrateTaskFromServer(taskId);
-    if (hydratedTask) {
-      applyHydratedTask(hydratedTask);
-      // Restoring an already-paused run (page reload / opening an active run)
-      // must re-surface its gate — e.g. the clarification answer form for an
-      // awaiting_human run. Only the live tick path did this before, so a
-      // reloaded awaiting_human run showed no answer window.
-      applyTaskGateForStatus(hydratedTask.status, taskId, {
-        history: hydratedTask.history,
-        agents: hydratedTask.agents,
-        status: hydratedTask.status,
-        error: hydratedTask.error,
-      });
+    const resolution = await resolveTaskFromServer(taskId);
+    if (resolution.outcome === "unknown") {
+      markRunUnavailable();
+      return;
     }
+    if (resolution.outcome === "error") {
+      ui.runAvailability = "lookup_failed";
+      ui.runAvailabilityError = resolution.message;
+      ui.taskStatus = null;
+      return;
+    }
+    const task = resolution.task;
+    ui.runAvailability = "resolved";
+    ui.runAvailabilityError = null;
+    applyHydratedTask(task);
+    // Restoring an already-paused run (page reload / opening an active run)
+    // must re-surface its gate — e.g. the clarification answer form for an
+    // awaiting_human run. Only the live tick path did this before, so a
+    // reloaded awaiting_human run showed no answer window.
+    applyTaskGateForStatus(task.status, taskId, {
+      history: task.history,
+      agents: task.agents,
+      status: task.status,
+      error: task.error,
+    });
     await loadPipelinePlan(taskId, "sync");
   }
 
@@ -201,7 +223,13 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
     if (resetViewIfNoTask()) return;
     const taskPayload = tickPayload.task as TaskRecord | undefined;
     if (!taskPayload) return;
+    if (taskPayload.error === TASK_NOT_FOUND_ERROR) {
+      markRunUnavailable();
+      return;
+    }
     const status = (taskPayload.status as string | null) ?? null;
+    ui.runAvailability = "resolved";
+    ui.runAvailabilityError = null;
     ui.taskStatus = status as typeof ui.taskStatus;
     ui.taskError = (taskPayload.error as typeof ui.taskError) ?? null;
     if (ui.taskId) applyTaskGateForStatus(status, ui.taskId, taskPayload);

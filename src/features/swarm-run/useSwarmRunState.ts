@@ -3,7 +3,7 @@ import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useProjectsStore } from "@/shared/store/projects";
 import { isTaskActive } from "@/shared/lib/task-status";
-import { hydrateTaskFromServer } from "@/shared/lib/hydrate-task";
+import type { HydrateResult } from "@/shared/lib/hydrate-task";
 
 export type SwarmRunState = ReturnType<typeof useSwarmRunState>;
 
@@ -17,7 +17,10 @@ export function useSwarmRunState() {
   const runBootstrapPending = ref(false);
   const lastPipelinePlanLoadKey = ref<string>("");
 
-  const isRunning = computed(() => isTaskActive(ui.taskStatus ?? ""));
+  const isRunning = computed(() => {
+    if (ui.runAvailability === "unavailable") return false;
+    return isTaskActive(ui.taskStatus ?? "");
+  });
 
   function waitForUiPaint(): Promise<void> {
     return new Promise((resolve) => {
@@ -32,33 +35,27 @@ export function useSwarmRunState() {
     });
   }
 
-  function applyHydratedTask(
-    h: NonNullable<Awaited<ReturnType<typeof hydrateTaskFromServer>>>,
-  ): void {
-    ui.taskHistory = h.history;
-    ui.taskStatus = h.status as typeof ui.taskStatus;
-    ui.taskError = h.error ?? null;
-    ui.taskAgents = h.agents;
-    ui.taskScenarioId = h.scenarioId;
-    ui.taskScenarioTitle = h.scenarioTitle;
-    ui.taskScenarioCategory = h.scenarioCategory;
-    ui.activeStep = h.agents.length ? h.agents[h.agents.length - 1] : null;
-    ui.artifactPath = h.artifactPath;
-    if (h.fromLogFallback) {
-      ui.eventsViewMode = "raw";
-      ui.saveEventsView(projectsStore.currentId);
-    }
-    if (!isTaskActive(h.status ?? "")) {
+  function applyHydratedTask(task: HydrateResult): void {
+    ui.taskHistory = task.history;
+    ui.taskStatus = task.status as typeof ui.taskStatus;
+    ui.taskError = task.error ?? null;
+    ui.taskAgents = task.agents;
+    ui.taskScenarioId = task.scenarioId;
+    ui.taskScenarioTitle = task.scenarioTitle;
+    ui.taskScenarioCategory = task.scenarioCategory;
+    ui.activeStep = task.agents.length ? task.agents[task.agents.length - 1] : null;
+    ui.artifactPath = task.artifactPath;
+    if (!isTaskActive(task.status ?? "")) {
       ui.contextMode = null;
       ui.mcpPhase = null;
       ui.pendingApprovals = 0;
     }
     taskStore.setTask({
-      task_id: h.taskId,
-      status: h.status as Parameters<typeof taskStore.setTask>[0]["status"],
-      error: h.error,
-      history: h.history,
-      agents: h.agents,
+      task_id: task.taskId,
+      status: task.status as Parameters<typeof taskStore.setTask>[0]["status"],
+      error: task.error,
+      history: task.history,
+      agents: task.agents,
     });
   }
 
@@ -88,7 +85,8 @@ export function useSwarmRunState() {
       status === "failed" ||
       status === "blocked" ||
       status === "cancelled";
-    const finishedAt = isTerminal ? Date.now() : null;
+    const alreadyRecordedFinishedAt = entry?.finishedAt ?? null;
+    const finishedAt = isTerminal ? (alreadyRecordedFinishedAt ?? Date.now()) : null;
     ui.updateHistoryResult(
       taskId,
       {

@@ -33,6 +33,7 @@ export interface ProjectFormValues {
   swarm_visual_capture_trace: boolean;
   swarm_visual_multimodal_review: boolean;
   swarm_visual_max_review_images: string;
+  human_manual_review: boolean;
 }
 
 export const DEFAULT_PROJECT_FORM_VALUES: ProjectFormValues = {
@@ -65,4 +66,5 @@ export const DEFAULT_PROJECT_FORM_VALUES: ProjectFormValues = {
   swarm_visual_capture_trace: false,
   swarm_visual_multimodal_review: false,
   swarm_visual_max_review_images: "4",
+  human_manual_review: false,
 };

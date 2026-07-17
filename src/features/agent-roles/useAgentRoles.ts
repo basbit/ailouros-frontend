@@ -9,6 +9,8 @@ import type { RemoteProfileRow } from "@/entities/remote-profile";
 import { useRoleState, type ModelMode } from "./useRoleState";
 import { useRoleModelSelector } from "./useRoleModelSelector";
 import { useRolePromptSelector } from "./useRolePromptSelector";
+import { useBulkRoleApplier } from "./useBulkRoleApplier";
+import { useBulkModelCatalog } from "./useBulkModelCatalog";
 import {
   applyOneAssignment,
   applyRoleSnapshot,
@@ -29,6 +31,13 @@ export function useAgentRoles(
 
   const modelApi = useRoleModelSelector({ profiles, getRoleState, effectiveModel });
   const promptApi = useRolePromptSelector({ getRoleState });
+  const bulkApplier = useBulkRoleApplier({
+    roleStates,
+    modelApi,
+    isBooting,
+    onChangeCb,
+  });
+  const bulkCatalog = useBulkModelCatalog(profiles);
 
   function getProfileProvider(profileId: string): string {
     const row = profiles.value.find((profile) => profile.id === profileId);
@@ -174,8 +183,6 @@ export function useAgentRoles(
         roleState.modelSel = "__custom__";
         roleState.modelCustom = trimmed;
       }
-      // Assigning an explicit model is a manual choice; clear auto so the
-      // picked model is actually used instead of being re-resolved at run time.
       roleState.modelMode = "manual";
     }
     if (!isBooting.value) onChangeCb();
@@ -241,5 +248,9 @@ export function useAgentRoles(
     setRoleModelMode,
     setAllRolesModelMode,
     setAllRolesModel,
+    setAllRolesFromPicker: bulkApplier.setAllRolesFromPicker,
+    bulkModelChoices: bulkCatalog.bulkModelChoices,
+    bulkModelFetchError: bulkCatalog.bulkModelFetchError,
+    loadBulkModelChoices: bulkCatalog.loadBulkModelChoices,
   };
 }

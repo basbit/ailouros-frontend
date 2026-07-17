@@ -105,6 +105,23 @@ describe("runSwarmChat scenario resolution", () => {
     expect(payload.scenario_id).toBe("s1");
   });
 
+  it("reports the scenario's steps to onTaskId, not the pipeline editor's", async () => {
+    // The history entry is built from onTaskId's steps. A selected scenario owns
+    // the pipeline, so reporting the editor's steps would make the run view render
+    // a step list the run never executes.
+    const scenario = makeScenario({ pipeline_steps: ["spec", "build"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+    const settings = makeSettings("s1");
+    settings.pipelineState.collectStepIds = () => ["editor-only-step"];
+
+    await runSwarmChat(settings, handlers, { resolveScenario });
+
+    const payload = startStreamMock.mock.calls[0][0] as { pipeline_steps: string[] };
+    expect(handlers.onTaskId).toHaveBeenCalledWith("task-1", payload.pipeline_steps);
+    expect(handlers.onTaskId).not.toHaveBeenCalledWith("task-1", ["editor-only-step"]);
+  });
+
   it("omits scenario_id for a custom scenario but keeps its steps", async () => {
     const scenario = makeScenario({
       id: "spec-copy-x",
@@ -178,7 +195,10 @@ describe("runSwarmChat scenario resolution", () => {
       runSwarmChat(makeSettings("s1"), handlers, { resolveScenario }),
     ).rejects.toThrow();
 
-    expect(handlers.onTaskId).toHaveBeenCalledWith("failed-task-9");
+    expect(handlers.onTaskId).toHaveBeenCalledWith(
+      "failed-task-9",
+      expect.arrayContaining(["spec", "build"]),
+    );
     expect(handlers.onDone).not.toHaveBeenCalled();
   });
 });

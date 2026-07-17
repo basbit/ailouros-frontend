@@ -75,14 +75,10 @@ export function useRunLiveSteps({
   const plannedStepIds = computed<string[]>(() => {
     const source = historySource.value;
     if (source) return source.pipelineSteps;
+    if (ui.runAvailability === "unavailable") return [];
     const fromController = controller.currentPipelineSteps.value;
     if (fromController.length) return fromController;
-    const fromPlan = ui.taskPipelinePlan?.pipeline_steps ?? [];
-    if (fromPlan.length) return fromPlan;
-    const taskId = (ui.taskId ?? "").trim();
-    if (!taskId) return [];
-    const entry = ui.historyList.find((item) => (item.taskId ?? "").trim() === taskId);
-    return entry?.pipeline_steps ?? [];
+    return ui.taskPipelinePlan?.pipeline_steps ?? [];
   });
 
   function deriveStepStatesFromHistory(stepIds: string[]): {

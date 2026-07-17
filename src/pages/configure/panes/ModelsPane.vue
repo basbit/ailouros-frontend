@@ -26,6 +26,9 @@
       :catalog-ids="skillsCatalogIds"
       :on-auto-assign="onAutoAssign"
       :media-form="mediaForm"
+      :bulk-model-choices="settings.rolesState.bulkModelChoices.value"
+      :bulk-model-fetch-error="settings.rolesState.bulkModelFetchError.value"
+      @bulk-picker-change="onBulkPickerChange"
       @env-change="onRoleEnvChange"
       @profile-change="onRoleProfileChange"
       @model-sel-change="onRoleModelSelChange"
@@ -33,6 +36,7 @@
       @model-mode-change="onRoleModelModeChange"
       @all-model-mode-change="onAllRolesModelModeChange"
       @all-model-change="onAllRolesModelChange"
+      @all-model-from-picker="onAllRolesModelFromPicker"
       @prompt-sel-change="onRolePromptSelChange"
       @prompt-custom-input="onRolePromptCustomInput"
       @prompt-text-input="onRolePromptTextInput"
@@ -129,6 +133,16 @@ async function onAutoAssign(): Promise<void> {
   }
 }
 
+function onBulkPickerChange(payload: {
+  environment: string;
+  remoteProfile: string;
+}): void {
+  void settings.rolesState.loadBulkModelChoices(
+    payload.environment,
+    payload.remoteProfile,
+  );
+}
+
 function onRoleEnvChange(roleId: string, env: string): void {
   handlers.onRoleEnvChange(roleId, env);
 }
@@ -155,6 +169,14 @@ function onAllRolesModelModeChange(mode: "auto" | "manual"): void {
 
 function onAllRolesModelChange(model: string): void {
   handlers.onAllRolesModelChange(model);
+}
+
+async function onAllRolesModelFromPicker(payload: {
+  environment: string;
+  remoteProfile?: string;
+  model: string;
+}): Promise<void> {
+  await handlers.onAllRolesModelFromPicker?.(payload);
 }
 
 function onRolePromptSelChange(roleId: string, value: string): void {

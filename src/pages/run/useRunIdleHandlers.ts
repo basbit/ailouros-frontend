@@ -4,6 +4,7 @@ import type { HistoryGlimpseEntry } from "@/widgets/run-idle/HistoryGlimpse.vue"
 import { useAppHeaderBindings } from "@/widgets/header/useAppHeaderBindings";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
 import { useSlashCommandRunner } from "@/features/slash-commands/useSlashCommandRunner";
+import { useRunRecovery } from "@/features/run-recovery";
 import { useUiStore } from "@/shared/store/ui";
 import { useScenarioCatalog } from "@/entities/scenario";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
@@ -46,6 +47,7 @@ interface InjectedSettingsLike {
 
 interface InjectedControllerLike {
   onStartRun: () => Promise<void>;
+  sendWsSubscribe: () => void;
 }
 
 export function useRunIdleHandlers(
@@ -56,6 +58,9 @@ export function useRunIdleHandlers(
   const ui = useUiStore();
   const header = useAppHeaderBindings();
   const { t } = useI18n();
+  const { isRunUnavailable, resetUnavailableRun } = useRunRecovery({
+    sendWsSubscribe: controller.sendWsSubscribe,
+  });
 
   const scenarioCatalog = useScenarioCatalog();
 
@@ -210,9 +215,14 @@ export function useRunIdleHandlers(
         return;
       }
       await settings.flushSaveAsync();
-      controller.onStartRun().catch((err) => {
-        frontendLogger.warn("controller.onStartRun failed", err);
-      });
+      await controller.onStartRun();
+      const activeStatuses = ["running", "in_progress", "awaiting_human"];
+      if (ui.taskId && activeStatuses.includes(ui.taskStatus ?? "")) {
+        void router.push("/run/active");
+      }
+    } catch (startError: unknown) {
+      frontendLogger.error("run start failed", startError);
+      ui.taskError = startError;
     } finally {
       isStarting.value = false;
     }
@@ -240,6 +250,16 @@ export function useRunIdleHandlers(
     },
   );
 
+  watch(
+    () => ui.taskStatus,
+    (status) => {
+      const activeStatuses = ["running", "in_progress", "awaiting_human"];
+      if (ui.taskId && activeStatuses.includes(status ?? "")) {
+        void router.push("/run/active");
+      }
+    },
+  );
+
   return {
     ui,
     header,
@@ -264,5 +284,7 @@ export function useRunIdleHandlers(
     onDismissPatternHint,
     onStart,
     slashRunner,
+    isRunUnavailable,
+    onResetUnavailableRun: resetUnavailableRun,
   };
 }

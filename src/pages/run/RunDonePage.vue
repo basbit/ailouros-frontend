@@ -10,7 +10,7 @@
         >
           {{ checkSymbol }}
         </span>
-        <h1 class="run-done__title">{{ t("runDone.title") }}</h1>
+        <h1 class="run-done__title">{{ title }}</h1>
         <p class="run-done__subtitle">
           {{ t("runDone.subtitle", { taskId: runId }) }}
         </p>
@@ -59,65 +59,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import { useRouter } from "vue-router";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
-import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
+import { useRunDoneSummary } from "./useRunDoneSummary";
 
 const props = defineProps<{
   runId: string;
 }>();
 
 const router = useRouter();
-const ui = useUiStore();
 const { t } = useI18n();
 
-const historyEntry = computed<HistoryEntry | null>(() => {
-  return ui.historyList.find((entry) => entry.taskId === props.runId) ?? null;
-});
-
-const historyId = computed(() => historyEntry.value?.id ?? null);
-
-const statusLabel = computed<string>(() => {
-  if (historyEntry.value?.status) return historyEntry.value.status;
-  if (ui.taskId === props.runId && ui.taskStatus) return ui.taskStatus;
-  return "—";
-});
-
-const family = computed<"ok" | "fail" | "warn" | "run" | "pending">(() => {
-  const status = historyEntry.value?.status ?? ui.taskStatus;
-  if (status === "completed" || status === "completed_no_writes") return "ok";
-  if (status === "completed_with_failures") return "warn";
-  if (status === "failed" || status === "cancelled") return "fail";
-  if (status === "running" || status === "in_progress") return "run";
-  return "pending";
-});
-
-const checkSymbol = computed(() => {
-  if (family.value === "ok") return "✓";
-  if (family.value === "fail") return "✕";
-  if (family.value === "warn") return "!";
-  return "•";
-});
-
-const duration = computed(() => {
-  const ms = historyEntry.value?.durationMs ?? null;
-  if (!ms || ms <= 0) return "—";
-  const seconds = Math.round(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const rem = seconds % 60;
-  if (minutes === 0) return `${seconds}s`;
-  return `${minutes}m ${rem.toString().padStart(2, "0")}s`;
-});
-
-const stepCount = computed(() => historyEntry.value?.pipeline_steps?.length ?? 0);
-
-const artifactPath = computed<string | null>(() => {
-  const root = historyEntry.value?.workspace_root?.trim();
-  if (!root) return null;
-  return root;
-});
+const {
+  historyId,
+  statusLabel,
+  title,
+  family,
+  checkSymbol,
+  duration,
+  stepCount,
+  artifactPath,
+} = useRunDoneSummary(props.runId);
 
 function onBackToRun(): void {
   void router.push("/run");

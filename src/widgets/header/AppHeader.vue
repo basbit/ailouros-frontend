@@ -44,7 +44,9 @@
       >
         {{ taskId }}
       </button>
-      <span v-else>{{ taskId ?? t("header.noTask") }}</span>
+      <span v-else>{{
+        taskId ?? (isRunning ? t("header.starting") : t("header.noTask"))
+      }}</span>
       <button
         v-if="taskId && !isRunning"
         type="button"

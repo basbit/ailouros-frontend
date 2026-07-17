@@ -117,7 +117,6 @@ export function useProjectLifecycle(deps: ProjectLifecycleDeps) {
     const id = projectsStore.createProject(name);
     await _bootWith(null);
     deps.applyDefaultProviderUrl();
-    deps.saveToStorage();
     return id;
   }
 

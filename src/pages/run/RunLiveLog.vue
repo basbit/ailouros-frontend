@@ -51,6 +51,7 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 
 <style scoped>
 .run-live-log {
+  --run-live-log-longest-role-width: 108px;
   display: flex;
   flex-direction: column;
   background: var(--bg-2);
@@ -107,7 +108,7 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 
 .run-live-log__line {
   display: grid;
-  grid-template-columns: 80px 80px 1fr;
+  grid-template-columns: 80px var(--run-live-log-longest-role-width) 1fr;
   gap: 8px;
   padding: 2px 0;
 }
@@ -120,6 +121,8 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--ink-3);
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 .run-live-log__message {

@@ -108,7 +108,8 @@ export const settingsEn: Messages = {
   "settings.apiKeys.balanceLoadingHint": "Fetching the remaining limit…",
   "settings.apiKeys.balanceErrorHint":
     "Could not fetch the limit — check the API key and Base URL.",
-  "settings.apiKeys.balanceRemainingHint": "Remaining balance / limit for this provider.",
+  "settings.apiKeys.balanceRemainingHint":
+    "Remaining balance / limit for this provider.",
   "settings.apiKeys.balanceUnknownHint":
     "This provider doesn't report a remaining limit up front — it becomes known only when a rate limit (HTTP 429) is hit.",
   "settings.apiKeys.refreshLimits": "Refresh limits",
@@ -269,7 +270,8 @@ export const settingsRu: Messages = {
   "settings.apiKeys.balanceLoadingHint": "Запрашиваем остаток лимита…",
   "settings.apiKeys.balanceErrorHint":
     "Не удалось получить лимит — проверьте API-ключ и Base URL.",
-  "settings.apiKeys.balanceRemainingHint": "Остаток баланса / лимита у этого провайдера.",
+  "settings.apiKeys.balanceRemainingHint":
+    "Остаток баланса / лимита у этого провайдера.",
   "settings.apiKeys.balanceUnknownHint":
     "Провайдер не сообщает остаток лимита заранее — он станет известен только при достижении лимита (HTTP 429).",
   "settings.apiKeys.refreshLimits": "Обновить лимиты",

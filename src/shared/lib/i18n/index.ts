@@ -13,6 +13,7 @@ import { mediaEn, mediaRu } from "./media";
 import { onboardingEn, onboardingRu } from "./onboarding";
 import { taskMonitorEn, taskMonitorRu } from "./task-monitor";
 import { agentsEn, agentsRu } from "./agents";
+import { runDiagnosticsI18nEn, runDiagnosticsI18nRu } from "./run-diagnostics-i18n";
 import { miscEn, miscRu } from "./misc";
 import { scenariosEn, scenariosRu } from "./scenarios";
 import { featureFlagsEn, featureFlagsRu } from "./feature-flags";
@@ -31,6 +32,7 @@ const messages: Record<Locale, Messages> = {
     ...onboardingEn,
     ...taskMonitorEn,
     ...agentsEn,
+    ...runDiagnosticsI18nEn,
     ...miscEn,
     ...scenariosEn,
     ...featureFlagsEn,
@@ -48,6 +50,7 @@ const messages: Record<Locale, Messages> = {
     ...onboardingRu,
     ...taskMonitorRu,
     ...agentsRu,
+    ...runDiagnosticsI18nRu,
     ...miscRu,
     ...scenariosRu,
     ...featureFlagsRu,

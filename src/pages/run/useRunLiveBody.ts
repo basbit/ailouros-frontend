@@ -8,6 +8,7 @@ import {
 } from "./useRunLiveSteps";
 import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useInjectedSwarmRunController } from "@/features/swarm-run";
+import { useRunRecovery } from "@/features/run-recovery";
 import { useI18n } from "@/shared/lib/i18n";
 
 export interface RunLiveBodyProps {
@@ -49,12 +50,18 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
     };
   });
 
+  const { isRunUnavailable, resetUnavailableRun } = useRunRecovery({
+    sendWsSubscribe: controller.sendWsSubscribe,
+  });
+
   const isRunning = computed(() =>
     isHistoryView.value ? false : controller.isRunning.value,
   );
-  const hasActiveTask = computed(
-    () => isHistoryView.value || !!ui.taskId || controller.isRunning.value,
-  );
+  const hasActiveTask = computed(() => {
+    if (isHistoryView.value) return true;
+    if (isRunUnavailable.value) return false;
+    return !!ui.taskId || controller.isRunning.value;
+  });
 
   const currentWorkspaceRoot = computed(() => {
     if (props.historyEntry) return props.historyEntry.workspace_root ?? null;
@@ -161,6 +168,8 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
     isHistoryView,
     isRunning,
     hasActiveTask,
+    isRunUnavailable,
+    onResetUnavailableRun: resetUnavailableRun,
     currentWorkspaceRoot,
     diagnosticsTaskId,
     canContinue,

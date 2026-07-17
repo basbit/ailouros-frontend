@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { TaskStatus } from "@/shared/model/task-types";
+import type { RunAvailability, TaskStatus } from "@/shared/model/task-types";
 import type { PipelinePlanSnapshot } from "@/shared/api/endpoints/pipeline";
 import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-constants";
 import { readRawString, writeRawString, removeKey } from "@/shared/lib/storage-utils";
@@ -40,6 +40,8 @@ export const HOST_METRICS_HISTORY_MAX = 120;
 export function createTaskRefs() {
   const taskId = ref<string | null>(null);
   const taskStatus = ref<TaskStatus | null>(null);
+  const runAvailability = ref<RunAvailability>("unresolved");
+  const runAvailabilityError = ref<string | null>(null);
   const taskError = ref<unknown>(null);
   const taskHistory = ref<
     {
@@ -108,6 +110,8 @@ export function createTaskRefs() {
   return {
     taskId,
     taskStatus,
+    runAvailability,
+    runAvailabilityError,
     taskError,
     taskHistory,
     taskAgents,
@@ -172,6 +176,8 @@ export function restoreActiveTask(pid: string): string | null {
 export function resetTaskRefs(t: ReturnType<typeof createTaskRefs>): void {
   t.taskId.value = null;
   t.taskStatus.value = null;
+  t.runAvailability.value = "unresolved";
+  t.runAvailabilityError.value = null;
   t.taskError.value = null;
   t.taskHistory.value = [];
   t.taskAgents.value = [];

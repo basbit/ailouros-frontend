@@ -72,7 +72,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
       await runSwarmChat(
         settings,
         {
-          onTaskId: (taskId) => {
+          onTaskId: (taskId, pipelineSteps) => {
             runBootstrapPending.value = false;
             ui.taskId = taskId;
             ui.persistActiveTask(taskId, projectsStore.currentId);
@@ -82,7 +82,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
               {
                 prompt: settings.form.prompt,
                 agent_config: null,
-                pipeline_steps: settings.pipelineState.collectStepIds(),
+                pipeline_steps: pipelineSteps,
                 taskId: taskId,
                 workspace_root: settings.form.workspace_root || null,
                 project_context_file: settings.form.project_context_file || null,

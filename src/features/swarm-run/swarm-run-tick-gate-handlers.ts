@@ -51,7 +51,7 @@ function buildHumanGateTitle(taskPayload: TaskRecord, translate: Translator): st
   )}`;
 }
 
-function hideAllGates(ui: UiStore): void {
+export function hideAllGates(ui: UiStore): void {
   ui.humanGateVisible = false;
   ui.shellGateVisible = false;
   ui.manualShellGateVisible = false;

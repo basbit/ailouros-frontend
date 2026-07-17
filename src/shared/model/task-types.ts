@@ -12,6 +12,12 @@ export type TaskStatus =
   | "awaiting_manual_shell"
   | "cancelled";
 
+export type RunAvailability =
+  | "unresolved"
+  | "resolved"
+  | "unavailable"
+  | "lookup_failed";
+
 export type OrchestratorSseEventName =
   | "run_started"
   | "step_started"

@@ -9,9 +9,10 @@
     @env-change="(roleId, env) => emit('role-env-change', roleId, env)"
     @profile-change="(roleId, val) => emit('role-profile-change', roleId, val)"
     @model-sel-change="(roleId, val) => emit('role-model-sel-change', roleId, val)"
-    @model-custom-input="(roleId, val) => emit('role-model-custom-input', roleId, val)"
     @model-mode-change="(roleId, mode) => emit('role-model-mode-change', roleId, mode)"
     @all-model-mode-change="(mode) => emit('all-roles-model-mode-change', mode)"
+    @all-model-change="(model) => emit('all-roles-model-change', model)"
+    @all-model-from-picker="(payload) => emit('all-roles-model-from-picker', payload)"
     @prompt-sel-change="(roleId, val) => emit('role-prompt-sel-change', roleId, val)"
     @prompt-custom-input="
       (roleId, val) => emit('role-prompt-custom-input', roleId, val)
@@ -89,6 +90,15 @@ const emit = defineEmits<{
   (e: "role-model-custom-input", roleId: string, val: string): void;
   (e: "role-model-mode-change", roleId: string, mode: "auto" | "manual"): void;
   (e: "all-roles-model-mode-change", mode: "auto" | "manual"): void;
+  (e: "all-roles-model-change", model: string): void;
+  (
+    e: "all-roles-model-from-picker",
+    payload: {
+      environment: string;
+      remoteProfile?: string;
+      model: string;
+    },
+  ): void;
   (e: "role-prompt-sel-change", roleId: string, val: string): void;
   (e: "role-prompt-custom-input", roleId: string, val: string): void;
   (e: "role-prompt-text-input", roleId: string, val: string): void;

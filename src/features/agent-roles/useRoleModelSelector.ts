@@ -13,7 +13,20 @@ export interface RoleModelSelectorDeps {
   effectiveModel: (roleId: string) => string;
 }
 
-export function useRoleModelSelector(deps: RoleModelSelectorDeps) {
+export interface RoleModelSelectorApi {
+  applyModelChoices: (
+    roleId: string,
+    choices: [string, string][],
+    wantModel?: string,
+  ) => Promise<void>;
+  fetchCloudChoices: (roleId: string) => Promise<[string, string][]>;
+  loadModelChoices: (roleId: string, env: string) => Promise<[string, string][]>;
+  onModelSelect: (roleId: string) => void;
+}
+
+export function useRoleModelSelector(
+  deps: RoleModelSelectorDeps,
+): RoleModelSelectorApi {
   const { t } = useI18n();
 
   async function applyModelChoices(

@@ -34,7 +34,9 @@ export interface RunSwarmChatOptions {
 }
 
 interface RunSwarmChatHandlers {
-  onTaskId: (taskId: string) => void;
+  /** `pipelineSteps` are the steps the run actually executes (a selected
+   *  scenario owns them), so callers record the real pipeline, not the editor's. */
+  onTaskId: (taskId: string, pipelineSteps: string[]) => void;
   onDone: () => void;
   sendWsSubscribe: () => void;
   onEvent?: (event: ChatStreamEvent) => void;
@@ -282,12 +284,12 @@ export async function runSwarmChat(
     // failures and returns its id in X-Task-Id. Register the failed run so it
     // stays visible in history and the user can open its recovered logs.
     const failedTaskId = response.headers.get(TASK_ID_HEADER) ?? "";
-    if (failedTaskId) handlers.onTaskId(failedTaskId);
+    if (failedTaskId) handlers.onTaskId(failedTaskId, selection.stepIds);
     throw new Error(await readHttpErrorMessage(response));
   }
 
   const taskId = response.headers.get(TASK_ID_HEADER) ?? "";
-  handlers.onTaskId(taskId);
+  handlers.onTaskId(taskId, selection.stepIds);
   handlers.sendWsSubscribe();
 
   const reader = response.body?.getReader();

@@ -78,6 +78,14 @@
       />
     </template>
 
+    <RunUnavailableBanner
+      v-else-if="isRunUnavailable"
+      :availability="ui.runAvailability"
+      :task-id="ui.taskId ?? ''"
+      :lookup-error="ui.runAvailabilityError"
+      @reset="onResetUnavailableRun"
+    />
+
     <div v-else class="run-live-body__idle">
       <h2 class="run-live-body__idle-title">{{ t("runLive.idleTitle") }}</h2>
       <p class="run-live-body__idle-hint">{{ t("runLive.idleHint") }}</p>
@@ -95,6 +103,7 @@ import RunLiveStepList from "./RunLiveStepList.vue";
 import RunLiveLog from "./RunLiveLog.vue";
 import RunLiveDiagnostics from "./RunLiveDiagnostics.vue";
 import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
+import { RunUnavailableBanner } from "@/features/run-recovery";
 import { type EventRow } from "./useRunLiveSteps";
 import { type HistoryEntry } from "@/shared/store/ui";
 import { useRunLiveBody } from "./useRunLiveBody";
@@ -135,6 +144,8 @@ const {
   isHistoryView,
   isRunning,
   hasActiveTask,
+  isRunUnavailable,
+  onResetUnavailableRun,
   currentWorkspaceRoot,
   diagnosticsTaskId,
   canContinue,
