@@ -98,9 +98,7 @@ export interface GlobalSearchKeysState {
   swarm_otel_enabled: boolean;
   swarm_sandbox_default_profile: string;
   swarm_ux_streaming_partial_rag: boolean;
-  swarm_ux_feedback_collection: boolean;
   swarm_ux_inline_citations: boolean;
-  swarm_ux_follow_up_suggestions_count: string;
   swarm_orchestration_quick_fix: boolean;
   swarm_orchestration_phase_verification_required: boolean;
   swarm_orchestration_skill_dispatcher: string;

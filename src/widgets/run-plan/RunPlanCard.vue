@@ -1,5 +1,5 @@
 <template>
-  <section class="run-plan" :aria-label="t('runPlan.cardAria')">
+  <section v-if="isVisible" class="run-plan" :aria-label="t('runPlan.cardAria')">
     <header class="run-plan__header">
       <h3 class="run-plan__title">{{ t("runPlan.headline") }}</h3>
       <button
@@ -13,14 +13,6 @@
     </header>
 
     <p v-if="lastError" class="run-plan__error">{{ lastError }}</p>
-
-    <p v-else-if="!canFetch" class="run-plan__hint">{{ t("runPlan.needsRun") }}</p>
-
-    <p v-else-if="plan && !plan.available" class="run-plan__hint">
-      {{ t("runPlan.unavailable") }}
-    </p>
-
-    <p v-else-if="!plan && !loading" class="run-plan__hint">{{ t("runPlan.empty") }}</p>
 
     <ul v-if="plan && plan.available && plan.decisions.length" class="run-plan__list">
       <li
@@ -52,6 +44,7 @@ import { useI18n } from "@/shared/lib/i18n";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 const props = defineProps<{ taskId: string | null }>();
+const emit = defineEmits<{ visibility: [visible: boolean] }>();
 
 const { t } = useI18n();
 const plan = ref<RunPlan | null>(null);
@@ -59,6 +52,16 @@ const loading = ref(false);
 const lastError = ref<string | null>(null);
 
 const canFetch = computed(() => Boolean(props.taskId));
+
+// Only scenarios that run the orchestrator_plan step produce a plan; for the
+// rest there is nothing to show, so the card stays out of the way.
+const isVisible = computed(
+  () =>
+    Boolean(lastError.value) ||
+    Boolean(plan.value?.available && plan.value.decisions.length),
+);
+
+watch(isVisible, (visible) => emit("visibility", visible), { immediate: true });
 
 async function onRefresh(): Promise<void> {
   const taskId = (props.taskId ?? "").trim();

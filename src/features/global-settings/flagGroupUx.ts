@@ -10,21 +10,8 @@ export const FLAG_GROUP_UX: FeatureFlagGroup = {
     },
     {
       kind: "boolean",
-      field: "swarm_ux_feedback_collection",
-      envName: "SWARM_UX_FEEDBACK_COLLECTION_ENABLED",
-      wired: true,
-    },
-    {
-      kind: "boolean",
       field: "swarm_ux_inline_citations",
       envName: "SWARM_UX_INLINE_CITATIONS_ENABLED",
-      wired: true,
-    },
-    {
-      kind: "string",
-      field: "swarm_ux_follow_up_suggestions_count",
-      envName: "SWARM_UX_FOLLOW_UP_SUGGESTIONS_COUNT",
-      placeholder: "0",
       wired: true,
     },
   ],

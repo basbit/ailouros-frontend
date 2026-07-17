@@ -15,8 +15,6 @@
         :scenario="currentScenario"
         :workspace-root="currentWorkspaceRoot"
       />
-      <FeedbackThumbs />
-      <FollowUpChips />
     </div>
   </section>
 </template>
@@ -27,8 +25,6 @@ import { useI18n } from "@/shared/lib/i18n";
 import StreamingRagCard from "@/widgets/streaming-rag-card/StreamingRagCard.vue";
 import InlineCitationList from "@/widgets/inline-citation-list/InlineCitationList.vue";
 import ArtefactBrowser from "@/widgets/artefact-browser/ArtefactBrowser.vue";
-import FeedbackThumbs from "@/widgets/feedback-thumbs/FeedbackThumbs.vue";
-import FollowUpChips from "@/widgets/follow-up-chips/FollowUpChips.vue";
 import { useStreamingRagCard } from "@/features/streaming-rag/useStreamingRagCard";
 import { useInlineCitations } from "@/features/inline-citations/useInlineCitations";
 import { useUiStore } from "@/shared/store/ui";

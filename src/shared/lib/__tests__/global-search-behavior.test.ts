@@ -69,7 +69,6 @@ describe("global-search behavior contract", () => {
     expect(payload.swarm_mcp_auto).toBe(true);
     expect(payload.swarm_wiki_search_enabled).toBe(true);
     expect(payload.swarm_self_verify).toBe(false);
-    expect(payload.swarm_ux_follow_up_suggestions_count).toBe("0");
     expect(payload.swarm_orchestration_skill_dispatcher).toBe("off");
     // full key parity with the typed state surface
     expect(Object.keys(payload).length).toBeGreaterThan(100);

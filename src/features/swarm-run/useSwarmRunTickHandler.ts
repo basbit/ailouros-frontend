@@ -13,6 +13,7 @@ type TaskRecord = Record<string, unknown>;
 type SetTaskInput = Parameters<SwarmRunState["taskStore"]["setTask"]>[0];
 
 const TASK_NOT_FOUND_ERROR = "not_found";
+const PIPELINE_PLAN_RETRY_COOLDOWN_MS = 5000;
 
 interface HistoryEntry {
   agent?: string;
@@ -36,6 +37,7 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
   const { t: translate } = useI18n();
 
   let pipelinePlanRequestId = 0;
+  let pipelinePlanMissedAt = 0;
   const pipelinePlanInflight = new Map<string, Promise<void>>();
 
   async function loadPipelinePlan(taskId: string, reason = "default"): Promise<void> {
@@ -47,11 +49,18 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
       await existing;
       return;
     }
+    if (
+      pipelinePlanMissedAt &&
+      Date.now() - pipelinePlanMissedAt < PIPELINE_PLAN_RETRY_COOLDOWN_MS
+    ) {
+      return;
+    }
     const requestId = ++pipelinePlanRequestId;
     const promise = getTaskPipelinePlan(taskId)
       .then((plan) => {
         if (requestId !== pipelinePlanRequestId || ui.taskId !== taskId) return;
         ui.taskPipelinePlan = plan;
+        pipelinePlanMissedAt = 0;
         lastPipelinePlanLoadKey.value = loadKey;
       })
       .catch((error: unknown) => {
@@ -60,8 +69,11 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
           error: error instanceof Error ? error.message : String(error),
         });
         if (requestId !== pipelinePlanRequestId || ui.taskId !== taskId) return;
-        ui.taskPipelinePlan = null;
-        lastPipelinePlanLoadKey.value = loadKey;
+        // The plan artifact is only written when the run finalises, pauses or
+        // retries, so a miss mid-run is expected. Memoising it under loadKey
+        // pinned the failure for the rest of the run; a plan already in hand is
+        // kept, and the next call retries once the cooldown expires.
+        pipelinePlanMissedAt = Date.now();
       })
       .finally(() => {
         pipelinePlanInflight.delete(taskId);

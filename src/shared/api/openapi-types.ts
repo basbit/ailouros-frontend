@@ -419,74 +419,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/feedback/retrieval": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit Retrieval Feedback */
-        post: operations["submit_retrieval_feedback_v1_feedback_retrieval_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/feedback/retrieval/{feedback_id}/promote": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Promote Retrieval Feedback */
-        post: operations["promote_retrieval_feedback_v1_feedback_retrieval__feedback_id__promote_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/follow-up-suggestions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Generate Follow Up Suggestions */
-        post: operations["generate_follow_up_suggestions_v1_follow_up_suggestions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/follow-up-suggestions/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Follow Up Status */
-        get: operations["follow_up_status_v1_follow_up_suggestions_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/fs/directories": {
         parameters: {
             query?: never;
@@ -2247,23 +2179,6 @@ export interface components {
             /** Verdict */
             verdict: string;
         };
-        /**
-         * FeedbackKind
-         * @enum {string}
-         */
-        FeedbackKind: "thumbs_up" | "thumbs_down" | "mark_as_golden";
-        /** FollowUpRequest */
-        FollowUpRequest: {
-            /**
-             * Answer
-             * @default
-             */
-            answer: string;
-            /** Contexts */
-            contexts?: string[];
-            /** Query */
-            query: string;
-        };
         /** GoalTriggerPayload */
         GoalTriggerPayload: {
             /** Cron */
@@ -2433,11 +2348,6 @@ export interface components {
             /** Workspace Root */
             workspace_root: string;
         };
-        /** PromoteToGoldenBody */
-        PromoteToGoldenBody: {
-            /** Workspace Root */
-            workspace_root: string;
-        };
         /** PromotionDecisionRequest */
         PromotionDecisionRequest: {
             /**
@@ -2466,31 +2376,6 @@ export interface components {
             estimated_loc: number;
             /** Target Files */
             target_files?: string[];
-        };
-        /** RetrievalFeedbackBody */
-        RetrievalFeedbackBody: {
-            /**
-             * Answer
-             * @default
-             */
-            answer: string;
-            /** Chunk Ids */
-            chunk_ids?: string[];
-            kind: components["schemas"]["FeedbackKind"];
-            /** Query */
-            query: string;
-            /**
-             * Rationale
-             * @default
-             */
-            rationale: string;
-            /**
-             * Scenario
-             * @default
-             */
-            scenario: string;
-            /** Workspace Root */
-            workspace_root: string;
         };
         /** RetryRequest */
         RetryRequest: {
@@ -3596,135 +3481,6 @@ export interface operations {
         };
     };
     get_evaluation_status_v1_evaluation_status_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    submit_retrieval_feedback_v1_feedback_retrieval_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RetrievalFeedbackBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    promote_retrieval_feedback_v1_feedback_retrieval__feedback_id__promote_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                feedback_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PromoteToGoldenBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    generate_follow_up_suggestions_v1_follow_up_suggestions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FollowUpRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    follow_up_status_v1_follow_up_suggestions_status_get: {
         parameters: {
             query?: never;
             header?: never;

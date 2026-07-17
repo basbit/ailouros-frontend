@@ -1,5 +1,9 @@
 <template>
-  <section class="run-diagnostics" :aria-label="t('runDiagnostics.cardAria')">
+  <section
+    v-if="isVisible"
+    class="run-diagnostics"
+    :aria-label="t('runDiagnostics.cardAria')"
+  >
     <header class="run-diagnostics__header">
       <h3 class="run-diagnostics__title">{{ t("runDiagnostics.headline") }}</h3>
       <select
@@ -34,14 +38,6 @@
       {{ store.lastError.value }}
     </p>
 
-    <p v-if="!canFetch" class="run-diagnostics__hint">
-      {{ t("runDiagnostics.needsRun") }}
-    </p>
-
-    <p v-else-if="!diagnostics && !store.loading.value" class="run-diagnostics__hint">
-      {{ t("runDiagnostics.empty") }}
-    </p>
-
     <RunDiagnosticsBody
       v-if="diagnostics"
       :diagnostics="diagnostics"
@@ -62,6 +58,7 @@ const props = defineProps<{
   taskId: string | null;
   workspaceRoot: string | null;
 }>();
+const emit = defineEmits<{ visibility: [visible: boolean] }>();
 
 const { t } = useI18n();
 const store = useRunDiagnostics();
@@ -83,6 +80,19 @@ const selectableTasks = computed(() => {
 const effectiveTaskId = computed(() => {
   if (selectedTaskId.value) return selectedTaskId.value;
   return props.taskId ?? "";
+});
+
+// Diagnostics live under the run's own workspace. Picking another run from the
+// selector must follow it there — reusing the current run's root queried the
+// wrong directory and reported the other run as having no diagnostics.
+const effectiveWorkspaceRoot = computed(() => {
+  const taskId = effectiveTaskId.value;
+  if (taskId && taskId !== props.taskId) {
+    const entry = ui.historyList.find((item) => item.taskId === taskId);
+    const root = (entry?.workspace_root ?? "").trim();
+    if (root) return root;
+  }
+  return props.workspaceRoot ?? "";
 });
 
 const SECTION_KEYS = [
@@ -119,14 +129,35 @@ const missingSections = computed(() => {
 });
 
 const canFetch = computed(
-  () => Boolean(effectiveTaskId.value) && Boolean(props.workspaceRoot),
+  () => Boolean(effectiveTaskId.value) && Boolean(effectiveWorkspaceRoot.value),
 );
+
+// A run that produced no diagnostics has nothing to say: every section is
+// behind its own flag, so an always-on card would be a permanent empty box.
+const isVisible = computed(() => {
+  if (store.lastError.value) return true;
+  const current = diagnostics.value;
+  if (!current) return false;
+  return (
+    Boolean(
+      current.phaseLoop ||
+        current.wikiContextTier ||
+        current.entailmentVerdict ||
+        current.citation ||
+        current.ragasMetrics ||
+        current.skillDispatch ||
+        current.workspaceIsolation,
+    ) || missingSections.value.length > 0
+  );
+});
+
+watch(isVisible, (visible) => emit("visibility", visible), { immediate: true });
 
 async function onRefresh(): Promise<void> {
   if (!canFetch.value) return;
   await store.refresh({
     taskId: effectiveTaskId.value,
-    workspaceRoot: props.workspaceRoot ?? "",
+    workspaceRoot: effectiveWorkspaceRoot.value,
   });
 }
 
@@ -135,7 +166,7 @@ onMounted(() => {
 });
 
 watch(
-  () => `${effectiveTaskId.value}|${props.workspaceRoot}`,
+  () => `${effectiveTaskId.value}|${effectiveWorkspaceRoot.value}`,
   () => {
     if (canFetch.value) void onRefresh();
   },

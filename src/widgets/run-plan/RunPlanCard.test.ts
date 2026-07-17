@@ -51,14 +51,22 @@ describe("RunPlanCard", () => {
     expect(wrapper.find('[data-verdict="RUN"]').exists()).toBe(true);
   });
 
-  it("shows the unavailable hint when the orchestrator produced no plan", async () => {
+  it("renders nothing when the scenario never ran the planner", async () => {
     const wrapper = await mountCard({
       taskId: "task-1",
       available: false,
       decisions: [],
     });
-    expect(wrapper.findAll(".run-plan__row")).toHaveLength(0);
-    expect(wrapper.find(".run-plan__hint").exists()).toBe(true);
+    expect(wrapper.find("section.run-plan").exists()).toBe(false);
+    expect(wrapper.text()).toBe("");
+  });
+
+  it("stays visible when the lookup failed so the error is not swallowed", async () => {
+    fetchMock.mockRejectedValue(new Error("run plan lookup exploded"));
+    const wrapper = mount(RunPlanCard, { props: { taskId: "task-1" } });
+    await flushPromises();
+    expect(wrapper.find("section.run-plan").exists()).toBe(true);
+    expect(wrapper.text()).toContain("run plan lookup exploded");
   });
 
   it("does not fetch without a task id", async () => {

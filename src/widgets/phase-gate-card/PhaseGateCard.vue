@@ -1,5 +1,9 @@
 <template>
-  <section class="phase-gate-card" :aria-label="t('phaseGates.cardAria')">
+  <section
+    v-if="isVisible"
+    class="phase-gate-card"
+    :aria-label="t('phaseGates.cardAria')"
+  >
     <header class="phase-gate-card__header">
       <h3 class="phase-gate-card__title">
         {{ t("phaseGates.headline") }}
@@ -18,11 +22,7 @@
       {{ gates.lastError.value }}
     </p>
 
-    <p v-if="!workspaceRoot" class="phase-gate-card__hint">
-      {{ t("phaseGates.noWorkspace") }}
-    </p>
-
-    <ol v-else-if="gates.pendingGates.value.length > 0" class="phase-gate-card__list">
+    <ol v-if="gates.pendingGates.value.length > 0" class="phase-gate-card__list">
       <li
         v-for="gate in gates.pendingGates.value"
         :key="gate.gateId"
@@ -78,15 +78,11 @@
         </div>
       </li>
     </ol>
-
-    <p v-else class="phase-gate-card__empty">
-      {{ t("phaseGates.empty") }}
-    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, reactive, watch } from "vue";
+import { computed, onBeforeUnmount, reactive, watch } from "vue";
 
 import type { PhaseGate, PhaseGateDecision } from "@/entities/phase-gate";
 import { usePhaseGates } from "@/features/phase-gates/usePhaseGates";
@@ -99,6 +95,13 @@ const gates = usePhaseGates();
 
 const decidedByByGate = reactive<Record<string, string>>({});
 const rationaleByGate = reactive<Record<string, string>>({});
+
+// Gates only exist for scenarios that run phase_acceptance_gate with phase
+// verification on. Polling keeps running while hidden, so the card surfaces
+// itself the moment a gate opens.
+const isVisible = computed(
+  () => gates.pendingGates.value.length > 0 || Boolean(gates.lastError.value),
+);
 
 const POLL_INTERVAL_MS = 3000;
 let pollTimer: ReturnType<typeof setInterval> | null = null;

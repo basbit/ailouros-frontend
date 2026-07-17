@@ -64,6 +64,8 @@ export const runDiagnosticsI18nEn: Messages = {
   "runDiagnostics.workspaceIsolation": "Workspace isolation",
   "runDiagnostics.workspaceIsolationHint":
     "Review and merge this branch manually — not auto-merged.",
+  "runDiagnostics.hint.workspace_isolation":
+    "Set SWARM_WORKSPACE_ISOLATION_MODE=worktree to run each task in its own git worktree.",
   "runPlan.cardAria": "Orchestrator run plan",
   "runPlan.headline": "Run plan",
   "runPlan.refresh": "Refresh",
@@ -140,6 +142,8 @@ export const runDiagnosticsI18nRu: Messages = {
   "runDiagnostics.workspaceIsolation": "Изоляция workspace",
   "runDiagnostics.workspaceIsolationHint":
     "Проверь и смёржи эту ветку вручную — авто-мержа нет.",
+  "runDiagnostics.hint.workspace_isolation":
+    "Поставь SWARM_WORKSPACE_ISOLATION_MODE=worktree, чтобы каждая задача шла в своём git worktree.",
   "runPlan.cardAria": "План прогона оркестратора",
   "runPlan.headline": "План прогона",
   "runPlan.refresh": "Обновить",

@@ -74,6 +74,10 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
         {
           onTaskId: (taskId, pipelineSteps) => {
             runBootstrapPending.value = false;
+            // The run's own steps, resolved at launch. The pipeline.json plan is
+            // only written when the run finalises/pauses, so this is the sole
+            // step source while the run is live.
+            currentPipelineSteps.value = pipelineSteps;
             ui.taskId = taskId;
             ui.persistActiveTask(taskId, projectsStore.currentId);
             taskStore.setTaskId(taskId);

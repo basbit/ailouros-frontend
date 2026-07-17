@@ -78,21 +78,30 @@ export function useRunLiveSteps({
     if (ui.runAvailability === "unavailable") return [];
     const fromController = controller.currentPipelineSteps.value;
     if (fromController.length) return fromController;
-    return ui.taskPipelinePlan?.pipeline_steps ?? [];
+    const fromPlan = ui.taskPipelinePlan?.pipeline_steps ?? [];
+    if (fromPlan.length) return fromPlan;
+    // A run restored after a reload never went through onStartRun, and its
+    // pipeline.json is only written once the run finalises/pauses — so the
+    // steps recorded for this task at launch are the only source left.
+    const entry = ui.historyList.find((item) => item.taskId === ui.taskId);
+    return entry?.pipeline_steps ?? [];
   });
 
   function deriveStepStatesFromHistory(stepIds: string[]): {
     completed: Set<string>;
     failed: Set<string>;
     runningAgents: Set<string>;
+    started: Set<string>;
   } {
     const completed = new Set<string>();
     const failed = new Set<string>();
     const runningAgents = new Set<string>();
+    const started = new Set<string>();
     const stepIdSet = new Set(stepIds);
     for (const event of events.value) {
       const agent = (event.agent ?? "").trim();
       if (!agent || !stepIdSet.has(agent)) continue;
+      started.add(agent);
       const status = (event.status ?? "").toLowerCase();
       if (status === "completed") {
         completed.add(agent);
@@ -110,7 +119,24 @@ export function useRunLiveSteps({
         }
       }
     }
-    return { completed, failed, runningAgents };
+    return { completed, failed, runningAgents, started };
+  }
+
+  // Exactly one step can be running. `ui.activeStep` is the live truth; after a
+  // reload it may be absent, so the furthest step that reported progress wins.
+  function resolveActiveStepId(
+    stepIds: string[],
+    runningAgents: Set<string>,
+    settled: Set<string>,
+  ): string | null {
+    const selectable = (id: string): boolean => !settled.has(id);
+    const live = (ui.activeStep ?? "").trim();
+    if (live && stepIds.includes(live) && selectable(live)) return live;
+    for (let index = stepIds.length - 1; index >= 0; index -= 1) {
+      const id = stepIds[index];
+      if (runningAgents.has(id) && selectable(id)) return id;
+    }
+    return stepIds.find(selectable) ?? null;
   }
 
   const stepRows = computed<StepRow[]>(() => {
@@ -134,22 +160,23 @@ export function useRunLiveSteps({
     if (snapshotFailedStep && !completedSet.has(snapshotFailedStep)) {
       failedSet.add(snapshotFailedStep);
     }
-    const activeId = isHistory ? null : ui.activeStep;
-    let activeAssigned = false;
-    return stepIds.map((id) => {
+    const settled = new Set([...completedSet, ...failedSet]);
+    const activeId =
+      isHistory || !isRunning.value
+        ? null
+        : resolveActiveStepId(stepIds, derived.runningAgents, settled);
+    const activeIndex = activeId ? stepIds.indexOf(activeId) : -1;
+    return stepIds.map((id, index) => {
       if (failedSet.has(id)) return { id, state: "failed" as const };
       if (completedSet.has(id)) return { id, state: "completed" as const };
-      if (id === activeId && isRunning.value) {
-        activeAssigned = true;
-        return { id, state: "active" as const };
-      }
-      if (derived.runningAgents.has(id) && isRunning.value) {
-        activeAssigned = true;
-        return { id, state: "active" as const };
-      }
-      if (!activeAssigned && !activeId && isRunning.value) {
-        activeAssigned = true;
-        return { id, state: "active" as const };
+      if (id === activeId) return { id, state: "active" as const };
+      // The pipeline is sequential: a step that reported progress and sits
+      // before the running one has finished, even though its "completed" event
+      // never reached this client (orchestrator events are live-only, so a run
+      // restored after a reload has none). Steps with no events at all stay
+      // pending — a skipped step must not be reported as done.
+      if (activeIndex >= 0 && index < activeIndex && derived.started.has(id)) {
+        return { id, state: "completed" as const };
       }
       return { id, state: "pending" as const };
     });

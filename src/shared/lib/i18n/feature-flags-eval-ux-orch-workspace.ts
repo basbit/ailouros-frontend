@@ -20,16 +20,9 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
   "featureFlags.field.swarm_ux_streaming_partial_rag.label": "Streaming partial RAG",
   "featureFlags.field.swarm_ux_streaming_partial_rag.hint":
     "Emit a retrieval_done SSE event so the UI can render evidence early.",
-  "featureFlags.field.swarm_ux_feedback_collection.label": "Feedback collection",
-  "featureFlags.field.swarm_ux_feedback_collection.hint":
-    "Show thumbs-up/down chips on agent answers and persist verdicts.",
   "featureFlags.field.swarm_ux_inline_citations.label": "Inline citations",
   "featureFlags.field.swarm_ux_inline_citations.hint":
     "Render [chunk_id:X] markers as clickable citations.",
-  "featureFlags.field.swarm_ux_follow_up_suggestions_count.label":
-    "Follow-up suggestions",
-  "featureFlags.field.swarm_ux_follow_up_suggestions_count.hint":
-    "How many follow-up question chips to render (0 disables the feature).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.label": "Skill dispatcher",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.hint":
     "Classifier mode for the /dispatch slash command and auto-inject (off disables both; heuristic = rule-based; llm = model-based).",
@@ -83,16 +76,9 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
   "featureFlags.field.swarm_ux_streaming_partial_rag.label": "Потоковый partial-RAG",
   "featureFlags.field.swarm_ux_streaming_partial_rag.hint":
     "Эмитить retrieval_done SSE-событие, чтобы UI показал evidence раньше.",
-  "featureFlags.field.swarm_ux_feedback_collection.label": "Сбор обратной связи",
-  "featureFlags.field.swarm_ux_feedback_collection.hint":
-    "Показывать thumbs-up/down чипы на ответах и сохранять оценки.",
   "featureFlags.field.swarm_ux_inline_citations.label": "Инлайн-цитаты",
   "featureFlags.field.swarm_ux_inline_citations.hint":
     "Рендерить маркеры [chunk_id:X] как кликабельные цитаты.",
-  "featureFlags.field.swarm_ux_follow_up_suggestions_count.label":
-    "Follow-up-предложения",
-  "featureFlags.field.swarm_ux_follow_up_suggestions_count.hint":
-    "Сколько follow-up чипов рендерить (0 отключает фичу).",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.label": "Skill dispatcher",
   "featureFlags.field.swarm_orchestration_skill_dispatcher.hint":
     "Режим классификатора для /dispatch и авто-инжекции (off отключает оба; heuristic — по правилам; llm — модель).",

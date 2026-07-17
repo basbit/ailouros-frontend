@@ -3,18 +3,7 @@
     <PaneHeader
       :title="t('configure.models.title')"
       :subtitle="t('configure.models.subtitle')"
-    >
-      <template #actions>
-        <button
-          type="button"
-          class="models-pane__auto"
-          :disabled="autoAssigning"
-          @click="onAutoAssign"
-        >
-          {{ t("configure.models.autoAssign") }}
-        </button>
-      </template>
-    </PaneHeader>
+    />
 
     <p class="models-pane__banner">{{ t("configure.apiKeysBanner") }}</p>
 
@@ -24,7 +13,7 @@
       :profile-options="profileOptions"
       :workspace-root="settings.form.workspace_root"
       :catalog-ids="skillsCatalogIds"
-      :on-auto-assign="onAutoAssign"
+      :on-auto-assign="handlers.onAutoAssignModels"
       :media-form="mediaForm"
       :bulk-model-choices="settings.rolesState.bulkModelChoices.value"
       :bulk-model-fetch-error="settings.rolesState.bulkModelFetchError.value"
@@ -82,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import AgentRoles from "@/features/agent-roles/AgentRoles.vue";
@@ -122,16 +111,6 @@ watch(
 
 const handlers = useRoleHandlers(settings);
 const { profileOptions, skillsCatalogIds, mediaForm } = useSwarmUiDerived(settings);
-const autoAssigning = ref(false);
-
-async function onAutoAssign(): Promise<void> {
-  autoAssigning.value = true;
-  try {
-    await handlers.onAutoAssignModels();
-  } finally {
-    autoAssigning.value = false;
-  }
-}
 
 function onBulkPickerChange(payload: {
   environment: string;
@@ -206,28 +185,6 @@ function onMediaUpdate(field: string, value: string): void {
   flex-direction: column;
   gap: 16px;
   max-width: 960px;
-}
-
-.models-pane__auto {
-  appearance: none;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink);
-  cursor: pointer;
-  transition: border-color 0.14s;
-}
-
-.models-pane__auto:hover:not(:disabled) {
-  border-color: var(--line-strong);
-}
-
-.models-pane__auto:disabled {
-  opacity: 0.5;
-  cursor: progress;
 }
 
 .models-pane__banner {

@@ -22,7 +22,6 @@ export const settingsEn: Messages = {
   "configure.models.title": "Agent models",
   "configure.models.subtitle":
     "Map every role to a local or cloud model. API keys live in Settings → API keys.",
-  "configure.models.autoAssign": "Auto-assign",
   "configure.apiKeysBanner": "API keys and tokens live in Settings → API keys.",
   "configure.subnav.memory": "Pattern Memory",
   "configure.subnav.mcp": "MCP",
@@ -179,7 +178,6 @@ export const settingsRu: Messages = {
   "configure.models.title": "Модели агентов",
   "configure.models.subtitle":
     "Привяжите каждую роль к локальной или облачной модели. API ключи живут в Настройках → API ключи.",
-  "configure.models.autoAssign": "Авто-назначить",
   "configure.apiKeysBanner": "API ключи и токены — в Настройки → API ключи.",
   "configure.subnav.memory": "Pattern Memory",
   "configure.subnav.mcp": "MCP",
