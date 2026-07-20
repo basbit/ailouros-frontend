@@ -66,3 +66,30 @@ export async function showSpec(
   search.set("spec_id", specId);
   return httpGet<SpecShowDto>(`/v1/spec/show?${search.toString()}`);
 }
+
+export interface SpecGraphDocumentDto {
+  spec_id: string;
+  agent: string;
+  step_id: string;
+  version: number;
+  path: string;
+  depends_on: string[];
+  produces: string[];
+  body: string;
+}
+
+/**
+ * Fetches the parsed content of a spec-graph node from the workspace document
+ * store (`.swarm/docs`). The spec graph is built from these documents, so node
+ * ids resolve here — unlike `/v1/spec/show`, which reads the separate
+ * `.swarm/specs` registry and 404s for graph node ids.
+ */
+export async function getSpecDocument(
+  workspaceRoot: string,
+  specId: string,
+): Promise<SpecGraphDocumentDto> {
+  const search = new URLSearchParams();
+  search.set("workspace_root", workspaceRoot.trim());
+  search.set("spec_id", specId);
+  return httpGet<SpecGraphDocumentDto>(`/v1/spec/document?${search.toString()}`);
+}

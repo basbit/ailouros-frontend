@@ -26,27 +26,29 @@ describe("useSpecDocument", () => {
     http.httpGet.mockReset();
   });
 
-  it("loads the spec body when a node id is selected (the node-content fix)", async () => {
+  it("loads the doc body from /v1/spec/document when a node id is selected", async () => {
     http.httpGet.mockResolvedValue({
-      spec: {
-        spec_id: "spec:auth",
-        title: "Auth Spec",
-        status: "draft",
-        body: "\n# Auth\n\nRequirements go here.",
-        codegen_hash: "abc",
-      },
-      dependencies: [],
-      dependants: [],
+      spec_id: "step:pm",
+      agent: "pm",
+      step_id: "pm",
+      version: 15,
+      path: "pm/pm.md",
+      depends_on: [],
+      produces: [],
+      body: "\n# PM\n\nRequirements go here.",
     });
 
     const { useSpecDocument } = await import("./useSpecDocument");
     const state = useSpecDocument();
-    await state.load("spec:auth", "/workspace");
+    await state.load("step:pm", "/workspace");
 
     expect(http.httpGet).toHaveBeenCalledWith(
-      "/v1/spec/show?workspace_root=%2Fworkspace&spec_id=spec%3Aauth",
+      "/v1/spec/document?workspace_root=%2Fworkspace&spec_id=step%3Apm",
     );
-    expect(state.document.value?.spec_id).toBe("spec:auth");
+    expect(state.document.value?.spec_id).toBe("step:pm");
+    expect(state.document.value?.title).toBe("step:pm");
+    expect(state.document.value?.status).toBe("pm");
+    expect(state.document.value?.version).toBe("15");
     expect(state.document.value?.body).toContain("Requirements go here.");
     expect(state.error.value).toBeNull();
     expect(state.notFound.value).toBe(false);
@@ -82,9 +84,10 @@ describe("useSpecDocument", () => {
 
   it("reset clears all reactive state", async () => {
     http.httpGet.mockResolvedValue({
-      spec: { spec_id: "spec:1", body: "x" },
-      dependencies: [],
-      dependants: [],
+      spec_id: "step:pm",
+      agent: "pm",
+      version: 1,
+      body: "x",
     });
     const { useSpecDocument } = await import("./useSpecDocument");
     const state = useSpecDocument();

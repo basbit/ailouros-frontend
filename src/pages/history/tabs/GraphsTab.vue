@@ -39,33 +39,12 @@
           <header class="graphs-tab__spec-viewer-head">
             <span class="graphs-tab__spec-viewer-id">{{ selectedSpecId }}</span>
             <div class="graphs-tab__spec-viewer-actions">
-              <button
-                v-if="!editing"
-                type="button"
-                class="graphs-tab__btn"
-                @click="editing = true"
-              >
-                {{ t("history.detail.spec.edit") }}
-              </button>
-              <button
-                v-else
-                type="button"
-                class="graphs-tab__btn"
-                @click="editing = false"
-              >
-                {{ t("history.detail.spec.viewOnly") }}
-              </button>
               <button type="button" class="graphs-tab__btn" @click="closeSpec">
                 ×
               </button>
             </div>
           </header>
           <SpecContentViewer
-            :spec-id="selectedSpecId"
-            :workspace-root="workspaceRoot"
-          />
-          <SpecEditorPanel
-            v-if="editing"
             :spec-id="selectedSpecId"
             :workspace-root="workspaceRoot"
           />
@@ -103,7 +82,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import SpecGraphPanel from "@/widgets/spec-graph-panel/SpecGraphPanel.vue";
-import SpecEditorPanel from "@/features/spec-editor/SpecEditorPanel.vue";
 import SpecContentViewer from "@/features/spec-editor/SpecContentViewer.vue";
 import { WikiGraphPanel } from "@/widgets/wiki-graph";
 import CodeGraphCanvas from "@/widgets/code-graph/CodeGraphCanvas.vue";
@@ -127,16 +105,13 @@ const { activeView, views, setActiveView } = useGraphsTab(t, {
 });
 
 const selectedSpecId = ref<string>("");
-const editing = ref(false);
 
 function onSpecNodeClick(nodeId: string): void {
   selectedSpecId.value = nodeId;
-  editing.value = false;
 }
 
 function closeSpec(): void {
   selectedSpecId.value = "";
-  editing.value = false;
 }
 
 function onSelectCodeNode(nodeId: string): void {
@@ -147,7 +122,6 @@ watch(
   () => props.workspaceRoot,
   () => {
     selectedSpecId.value = "";
-    editing.value = false;
   },
 );
 </script>

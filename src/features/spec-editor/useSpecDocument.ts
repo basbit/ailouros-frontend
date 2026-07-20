@@ -1,6 +1,6 @@
 import { ref, type Ref } from "vue";
 import { ApiError } from "@/shared/api/http";
-import { showSpec, type SpecDocumentDto } from "@/shared/api/endpoints/spec";
+import { getSpecDocument, type SpecDocumentDto } from "@/shared/api/endpoints/spec";
 
 export interface UseSpecDocumentState {
   document: Ref<SpecDocumentDto | null>;
@@ -12,11 +12,12 @@ export interface UseSpecDocumentState {
 }
 
 /**
- * Fetches the body + frontmatter of a single spec via `/v1/spec/show`.
+ * Fetches the content of a single spec-graph node via `/v1/spec/document`.
  *
- * The spec graph emits node ids when a node is clicked; this composable turns
- * that id into the spec's actual content so the editor/viewer can render it.
- * Without it the editor only ever shows empty requirement/decision/task tables.
+ * The spec graph is built from the workspace document store (`.swarm/docs`), so
+ * node ids resolve against that store — not the `.swarm/specs` registry behind
+ * `/v1/spec/show`, which 404s for these ids. This composable turns a clicked
+ * node id into the document's rendered content.
  */
 export function useSpecDocument(): UseSpecDocumentState {
   const document = ref<SpecDocumentDto | null>(null);
@@ -35,8 +36,14 @@ export function useSpecDocument(): UseSpecDocumentState {
     error.value = null;
     notFound.value = false;
     try {
-      const dto = await showSpec(root, id);
-      document.value = dto.spec;
+      const dto = await getSpecDocument(root, id);
+      document.value = {
+        spec_id: dto.spec_id,
+        title: dto.spec_id,
+        status: dto.agent,
+        version: dto.version ? String(dto.version) : undefined,
+        body: dto.body ?? "",
+      };
     } catch (err) {
       document.value = null;
       if (err instanceof ApiError && err.status === 404) {
