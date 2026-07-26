@@ -25,6 +25,9 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
   const { t } = useI18n();
 
   const logFilter = ref<LogFilter>("all");
+  // "steps" groups log lines under each pipeline step (default); "flat" is the
+  // classic single stream.
+  const logView = ref<"steps" | "flat">("steps");
 
   const isHistoryView = computed(() => props.historyEntry !== null);
 
@@ -108,6 +111,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
   const {
     filteredEvents,
     stepRows,
+    stepGroups,
     totalSteps,
     currentStepIndex,
     classifyEvent,
@@ -165,6 +169,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
     controller,
     t,
     logFilter,
+    logView,
     isHistoryView,
     isRunning,
     hasActiveTask,
@@ -177,6 +182,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
     filterOptions,
     filteredEvents,
     stepRows,
+    stepGroups,
     classifyEvent,
     formatTime,
     stepStateLabel,

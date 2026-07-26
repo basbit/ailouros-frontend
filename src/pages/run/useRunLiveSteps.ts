@@ -19,6 +19,17 @@ export interface EventRow {
   status?: string;
 }
 
+export interface StepLogGroup {
+  /** Step id, or "__system__" for orchestrator/system events. */
+  id: string;
+  label: string;
+  state: StepState | "system";
+  durationMs: number | null;
+  events: EventRow[];
+}
+
+export const SYSTEM_LOG_GROUP_ID = "__system__";
+
 type UiStore = ReturnType<typeof useUiStore>;
 type SwarmRunController = ReturnType<typeof useInjectedSwarmRunController>;
 
@@ -182,6 +193,43 @@ export function useRunLiveSteps({
     });
   });
 
+  const stepGroups = computed<StepLogGroup[]>(() => {
+    const stepIds = plannedStepIds.value;
+    const stepIdSet = new Set(stepIds);
+    const stateById = new Map(stepRows.value.map((row) => [row.id, row.state]));
+    const byStep = new Map<string, EventRow[]>();
+    for (const id of stepIds) byStep.set(id, []);
+    const systemEvents: EventRow[] = [];
+    for (const event of filteredEvents.value) {
+      const agent = (event.agent ?? "").trim();
+      if (agent && stepIdSet.has(agent)) byStep.get(agent)?.push(event);
+      else systemEvents.push(event);
+    }
+    const durationOf = (rows: EventRow[]): number | null => {
+      const times = rows
+        .map((row) => Date.parse(row.timestamp ?? ""))
+        .filter((value) => !Number.isNaN(value));
+      return times.length >= 2 ? Math.max(...times) - Math.min(...times) : null;
+    };
+    const groups: StepLogGroup[] = stepIds.map((id) => ({
+      id,
+      label: id,
+      state: stateById.get(id) ?? "pending",
+      durationMs: durationOf(byStep.get(id) ?? []),
+      events: byStep.get(id) ?? [],
+    }));
+    if (systemEvents.length) {
+      groups.push({
+        id: SYSTEM_LOG_GROUP_ID,
+        label: "orchestrator",
+        state: "system",
+        durationMs: durationOf(systemEvents),
+        events: systemEvents,
+      });
+    }
+    return groups;
+  });
+
   const totalSteps = computed(() => stepRows.value.length);
   const currentStepIndex = computed(() => {
     const idx = stepRows.value.findIndex((step) => step.state === "active");
@@ -212,6 +260,7 @@ export function useRunLiveSteps({
     filteredEvents,
     plannedStepIds,
     stepRows,
+    stepGroups,
     totalSteps,
     currentStepIndex,
     classifyEvent,

@@ -59,15 +59,47 @@
           :steps="stepRows"
           :label-for="stepStateLabel"
         />
-        <RunLiveLog
-          :filter="logFilter"
-          :filter-options="filterOptions"
-          :events="filteredEvents"
-          :empty-text="t('runLive.logEmpty')"
-          :classify="classifyEvent"
-          :format-time="formatTime"
-          @update:filter="logFilter = $event"
-        />
+        <div class="run-live-body__log">
+          <div class="run-live-body__log-view">
+            <button
+              type="button"
+              class="run-live-body__log-toggle"
+              :class="{ 'run-live-body__log-toggle--active': logView === 'steps' }"
+              @click="logView = 'steps'"
+            >
+              {{ t("runLive.logViewSteps") }}
+            </button>
+            <button
+              type="button"
+              class="run-live-body__log-toggle"
+              :class="{ 'run-live-body__log-toggle--active': logView === 'flat' }"
+              @click="logView = 'flat'"
+            >
+              {{ t("runLive.logViewFlat") }}
+            </button>
+          </div>
+          <RunStepLog
+            v-if="logView === 'steps'"
+            :filter="logFilter"
+            :filter-options="filterOptions"
+            :groups="stepGroups"
+            :empty-text="t('runLive.logEmpty')"
+            :empty-step-text="t('runLive.logStepEmpty')"
+            :classify="classifyEvent"
+            :format-time="formatTime"
+            @update:filter="logFilter = $event"
+          />
+          <RunLiveLog
+            v-else
+            :filter="logFilter"
+            :filter-options="filterOptions"
+            :events="filteredEvents"
+            :empty-text="t('runLive.logEmpty')"
+            :classify="classifyEvent"
+            :format-time="formatTime"
+            @update:filter="logFilter = $event"
+          />
+        </div>
       </div>
 
       <PhaseGateCard :workspace-root="currentWorkspaceRoot" />
@@ -100,6 +132,7 @@ import { TaskMonitor } from "@/widgets/task-monitor";
 import HostMetricsChart from "@/shared/components/HostMetricsChart.vue";
 import RunLiveGates from "./RunLiveGates.vue";
 import RunLiveStepList from "./RunLiveStepList.vue";
+import RunStepLog from "./RunStepLog.vue";
 import RunLiveLog from "./RunLiveLog.vue";
 import RunLiveDiagnostics from "./RunLiveDiagnostics.vue";
 import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
@@ -141,6 +174,7 @@ const {
   controller,
   t,
   logFilter,
+  logView,
   isHistoryView,
   isRunning,
   hasActiveTask,
@@ -153,6 +187,7 @@ const {
   filterOptions,
   filteredEvents,
   stepRows,
+  stepGroups,
   classifyEvent,
   formatTime,
   stepStateLabel,
@@ -253,6 +288,40 @@ const {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 24px;
+}
+
+.run-live-body__log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.run-live-body__log-view {
+  display: inline-flex;
+  gap: 2px;
+  align-self: flex-end;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+
+.run-live-body__log-toggle {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.run-live-body__log-toggle--active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .run-live-body__idle {
