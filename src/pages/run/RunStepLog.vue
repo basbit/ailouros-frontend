@@ -24,7 +24,10 @@
       >
         <summary class="run-step-log__summary">
           <span class="run-step-log__caret" aria-hidden="true">▸</span>
-          <span class="run-step-log__dot" :class="`run-step-log__dot--${group.state}`" />
+          <span
+            class="run-step-log__dot"
+            :class="`run-step-log__dot--${group.state}`"
+          />
           <span class="run-step-log__name">{{ group.label }}</span>
           <span class="run-step-log__meta">
             <span v-if="group.durationMs != null" class="run-step-log__dur">
@@ -74,9 +77,7 @@ defineEmits<{ "update:filter": [filter: LogFilter] }>();
 const visibleGroups = computed(() =>
   props.groups.filter(
     (group) =>
-      group.events.length > 0 ||
-      group.state === "active" ||
-      group.state === "failed",
+      group.events.length > 0 || group.state === "active" || group.state === "failed",
   ),
 );
 

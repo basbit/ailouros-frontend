@@ -66,7 +66,10 @@ describe("useSwarmRunStart pipeline steps", () => {
   it("publishes the run's resolved steps as soon as the task id arrives", async () => {
     const { start, currentPipelineSteps } = makeStart();
     runSwarmChatMock.mockImplementation(
-      async (_settings: unknown, handlers: { onTaskId: (id: string, steps: string[]) => void }) => {
+      async (
+        _settings: unknown,
+        handlers: { onTaskId: (id: string, steps: string[]) => void },
+      ) => {
         handlers.onTaskId("task-1", RESOLVED_STEPS);
       },
     );

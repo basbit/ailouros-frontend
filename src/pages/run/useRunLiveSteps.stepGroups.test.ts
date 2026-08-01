@@ -35,10 +35,30 @@ function setup(history: HistorySource) {
 
 describe("useRunLiveSteps — stepGroups", () => {
   const events: EventRow[] = [
-    { agent: "pm", message: "framed", status: "completed", timestamp: "2026-07-23T10:00:00Z" },
-    { agent: "pm", message: "handoff", status: "completed", timestamp: "2026-07-23T10:00:30Z" },
-    { agent: "dev", message: "wrote code", status: "completed", timestamp: "2026-07-23T10:02:00Z" },
-    { agent: "orchestrator", message: "pipeline done", status: "completed", timestamp: "2026-07-23T10:05:00Z" },
+    {
+      agent: "pm",
+      message: "framed",
+      status: "completed",
+      timestamp: "2026-07-23T10:00:00Z",
+    },
+    {
+      agent: "pm",
+      message: "handoff",
+      status: "completed",
+      timestamp: "2026-07-23T10:00:30Z",
+    },
+    {
+      agent: "dev",
+      message: "wrote code",
+      status: "completed",
+      timestamp: "2026-07-23T10:02:00Z",
+    },
+    {
+      agent: "orchestrator",
+      message: "pipeline done",
+      status: "completed",
+      timestamp: "2026-07-23T10:05:00Z",
+    },
   ];
   const history: HistorySource = { pipelineSteps: ["pm", "ba", "dev"], events };
 

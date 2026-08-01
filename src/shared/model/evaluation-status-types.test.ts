@@ -46,4 +46,23 @@ describe("parseEvaluationStatusPayload", () => {
     const parsed = parseEvaluationStatusPayload({ telemetry: { enabled: true } });
     expect(parsed?.telemetry.exporterKind).toBe("noop");
   });
+
+  it("degrades to exporting: false when an older backend omits readiness", () => {
+    const parsed = parseEvaluationStatusPayload({
+      telemetry: { enabled: true, exporter_kind: "otel" },
+    });
+    expect(parsed?.telemetry.readiness.exporting).toBe(false);
+    expect(parsed?.telemetry.readiness.reason).toBe("");
+  });
+
+  it("parses telemetry readiness when present", () => {
+    const parsed = parseEvaluationStatusPayload({
+      telemetry: {
+        enabled: true,
+        exporter_kind: "otel",
+        readiness: { exporting: true, reason: "" },
+      },
+    });
+    expect(parsed?.telemetry.readiness.exporting).toBe(true);
+  });
 });

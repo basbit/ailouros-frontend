@@ -49,6 +49,43 @@
           </button>
         </span>
       </div>
+      <div v-if="hasSpecIdentity" class="memory-panel-quarantine">
+        <div class="memory-panel-quarantine__title">
+          {{ t("memory.quarantine.title") }}
+        </div>
+        <div class="memory-panel-hint">{{ t("memory.quarantine.lead") }}</div>
+        <div
+          v-if="!quarantinedPatterns.length && !quarantinedEpisodes.length"
+          class="memory-panel-hint"
+        >
+          {{ t("memory.quarantine.empty") }}
+        </div>
+        <template v-else>
+          <div v-if="quarantinedPatterns.length">
+            <div class="memory-panel-quarantine__group">
+              {{ t("memory.quarantine.patterns") }}
+            </div>
+            <ul>
+              <li
+                v-for="entry in quarantinedPatterns"
+                :key="`${entry.namespace}/${entry.key}`"
+              >
+                <code>{{ entry.namespace }}/{{ entry.key }}</code>
+              </li>
+            </ul>
+          </div>
+          <div v-if="quarantinedEpisodes.length">
+            <div class="memory-panel-quarantine__group">
+              {{ t("memory.quarantine.episodes") }}
+            </div>
+            <ul>
+              <li v-for="(entry, index) in quarantinedEpisodes" :key="index">
+                <code>{{ entry.step_id || "—" }}</code>
+              </li>
+            </ul>
+          </div>
+        </template>
+      </div>
       <div class="memory-panel-footer">
         <button
           type="button"
@@ -79,11 +116,19 @@ import {
   deleteMemoryNote,
   listMemoryNotes,
   listQdrantEntries,
+  listQuarantinedMemory,
   type MemoryEntry,
+  type QuarantinedEpisode,
+  type QuarantinedPattern,
 } from "@/shared/api/endpoints/memory";
 import { useI18n } from "@/shared/lib/i18n";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
+const props = defineProps<{
+  specId?: string;
+  specHash?: string;
+  workspaceRoot?: string;
+}>();
 const emit = defineEmits<{
   appendToPrompt: [text: string];
 }>();
@@ -96,6 +141,28 @@ const consolidating = ref(false);
 const consolidateStatus = ref<string | null>(null);
 const searchQuery = ref("");
 let loaded = false;
+
+const quarantinedPatterns = ref<QuarantinedPattern[]>([]);
+const quarantinedEpisodes = ref<QuarantinedEpisode[]>([]);
+
+const hasSpecIdentity = computed(() => !!props.specId && !!props.specHash);
+
+async function loadQuarantine(): Promise<void> {
+  if (!props.specId || !props.specHash) return;
+  try {
+    const data = await listQuarantinedMemory(
+      props.specId,
+      props.specHash,
+      props.workspaceRoot,
+    );
+    quarantinedPatterns.value = data.patterns ?? [];
+    quarantinedEpisodes.value = data.episodes ?? [];
+  } catch (quarantineErr) {
+    // Quarantine is supplementary to the panel's main list; a failure here must
+    // not blank the notes the user opened the panel for.
+    frontendLogger.warn("memory: quarantine unavailable", quarantineErr);
+  }
+}
 
 const filteredEntries = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
@@ -138,6 +205,7 @@ function onToggle(event: Event): void {
   if (details.open && !loaded) {
     loaded = true;
     void loadEntries();
+    void loadQuarantine();
   }
 }
 
@@ -293,6 +361,30 @@ function truncate(text: string, maxLen: number): string {
 .memory-chip-del:hover {
   color: #f03e3e;
   background: rgba(240, 62, 62, 0.1);
+}
+.memory-panel-quarantine {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #3a4a5a;
+}
+.memory-panel-quarantine__title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+}
+.memory-panel-quarantine__group {
+  margin-top: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #888;
+}
+.memory-panel-quarantine ul {
+  margin: 2px 0 4px;
+  padding-left: 16px;
+}
+.memory-panel-quarantine li {
+  font-size: 11px;
+  color: #ccc;
 }
 .memory-panel-footer {
   margin-top: 6px;

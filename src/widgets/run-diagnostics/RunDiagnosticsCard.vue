@@ -103,6 +103,8 @@ const SECTION_KEYS = [
   "ragas_metrics",
   "skill_dispatch",
   "workspace_isolation",
+  "dev_shell_sandbox",
+  "memory",
 ] as const;
 
 const missingSections = computed(() => {
@@ -116,6 +118,8 @@ const missingSections = computed(() => {
   if (current.ragasMetrics) populated.add("ragas_metrics");
   if (current.skillDispatch) populated.add("skill_dispatch");
   if (current.workspaceIsolation) populated.add("workspace_isolation");
+  if (current.devShellSandbox) populated.add("dev_shell_sandbox");
+  if (current.memory) populated.add("memory");
   const hints = current.enableHints ?? {};
   const entries: { key: string; hint: string }[] = [];
   for (const key of SECTION_KEYS) {
@@ -141,12 +145,14 @@ const isVisible = computed(() => {
   return (
     Boolean(
       current.phaseLoop ||
-        current.wikiContextTier ||
-        current.entailmentVerdict ||
-        current.citation ||
-        current.ragasMetrics ||
-        current.skillDispatch ||
-        current.workspaceIsolation,
+      current.wikiContextTier ||
+      current.entailmentVerdict ||
+      current.citation ||
+      current.ragasMetrics ||
+      current.skillDispatch ||
+      current.workspaceIsolation ||
+      current.devShellSandbox ||
+      current.memory,
     ) || missingSections.value.length > 0
   );
 });

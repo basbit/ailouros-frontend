@@ -18,6 +18,18 @@ export const FLAG_GROUP_EVALUATION: FeatureFlagGroup = {
     { kind: "boolean", field: "swarm_otel_enabled", envName: "SWARM_OTEL_ENABLED" },
     {
       kind: "enum",
+      field: "swarm_telemetry_exporter",
+      envName: "SWARM_TELEMETRY_EXPORTER",
+      wired: true,
+      options: [
+        { value: "", i18nSuffix: "default" },
+        { value: "noop", i18nSuffix: "noop" },
+        { value: "console", i18nSuffix: "console" },
+        { value: "otel", i18nSuffix: "otel" },
+      ],
+    },
+    {
+      kind: "enum",
       field: "swarm_sandbox_default_profile",
       envName: "SWARM_SANDBOX_DEFAULT_PROFILE",
       wired: true,

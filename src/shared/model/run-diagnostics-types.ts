@@ -58,6 +58,20 @@ interface WorkspaceIsolation {
   readonly branch: string;
 }
 
+interface MemoryDiagnostics {
+  readonly crossTaskEnabled: boolean;
+  readonly crossTaskDurable: boolean;
+  readonly patternEnabled: boolean;
+  readonly patternEntries: number;
+  readonly wikiArticles: number;
+}
+
+interface DevShellSandbox {
+  readonly requested: boolean;
+  readonly profile: string;
+  readonly active: boolean;
+}
+
 export interface RunDiagnostics {
   readonly taskId: string;
   readonly phaseLoop: PhaseLoopSnapshot | null;
@@ -67,6 +81,8 @@ export interface RunDiagnostics {
   readonly ragasMetrics: RagasMetrics | null;
   readonly skillDispatch: SkillDispatchDiagnostic | null;
   readonly workspaceIsolation: WorkspaceIsolation | null;
+  readonly devShellSandbox: DevShellSandbox | null;
+  readonly memory: MemoryDiagnostics | null;
   readonly enableHints: Readonly<Record<string, string>>;
 }
 
@@ -122,6 +138,8 @@ interface RawPayload {
   ragas_metrics?: unknown;
   skill_dispatch?: unknown;
   workspace_isolation?: unknown;
+  dev_shell_sandbox?: unknown;
+  memory?: unknown;
   enable_hints?: unknown;
 }
 
@@ -233,6 +251,33 @@ function parseWorkspaceIsolation(raw: unknown): WorkspaceIsolation | null {
   return { mode, branch };
 }
 
+function parseDevShellSandbox(raw: unknown): DevShellSandbox | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Record<string, unknown>;
+  const profile = readString(candidate.profile).trim();
+  if (!profile) return null;
+  return {
+    requested: candidate.requested === true,
+    profile,
+    active: candidate.active === true,
+  };
+}
+
+function parseMemoryDiagnostics(raw: unknown): MemoryDiagnostics | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Record<string, unknown>;
+  const cross = (candidate.cross_task ?? {}) as Record<string, unknown>;
+  const pattern = (candidate.pattern ?? {}) as Record<string, unknown>;
+  const wiki = (candidate.wiki ?? {}) as Record<string, unknown>;
+  return {
+    crossTaskEnabled: cross.enabled === true,
+    crossTaskDurable: cross.durable === true,
+    patternEnabled: pattern.enabled === true,
+    patternEntries: typeof pattern.entries === "number" ? pattern.entries : 0,
+    wikiArticles: typeof wiki.articles === "number" ? wiki.articles : 0,
+  };
+}
+
 function parseEnableHints(raw: unknown): Record<string, string> {
   if (!raw || typeof raw !== "object") return {};
   const hints: Record<string, string> = {};
@@ -268,6 +313,8 @@ export function parseRunDiagnosticsPayload(raw: unknown): RunDiagnostics | null 
     ragasMetrics: parseRagasMetrics(candidate.ragas_metrics),
     skillDispatch: parseSkillDispatch(candidate.skill_dispatch),
     workspaceIsolation: parseWorkspaceIsolation(candidate.workspace_isolation),
+    devShellSandbox: parseDevShellSandbox(candidate.dev_shell_sandbox),
+    memory: parseMemoryDiagnostics(candidate.memory),
     enableHints: parseEnableHints(candidate.enable_hints),
   };
 }

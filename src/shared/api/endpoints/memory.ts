@@ -48,3 +48,34 @@ export async function listQdrantEntries(
     `/v1/memory/qdrant?${params.toString()}`,
   );
 }
+
+export interface QuarantinedPattern {
+  namespace: string;
+  key: string;
+  value: string;
+  provenance?: Record<string, unknown>;
+}
+
+export interface QuarantinedEpisode {
+  step_id?: string;
+  text?: string;
+  provenance?: Record<string, unknown>;
+}
+
+export async function listQuarantinedMemory(
+  specId: string,
+  specHash: string,
+  workspaceRoot?: string,
+): Promise<{
+  ok: boolean;
+  patterns: QuarantinedPattern[];
+  episodes: QuarantinedEpisode[];
+}> {
+  const params = new URLSearchParams({ spec_id: specId, spec_hash: specHash });
+  if (workspaceRoot) params.set("workspace_root", workspaceRoot);
+  return httpGet<{
+    ok: boolean;
+    patterns: QuarantinedPattern[];
+    episodes: QuarantinedEpisode[];
+  }>(`/v1/memory/quarantine?${params.toString()}`);
+}

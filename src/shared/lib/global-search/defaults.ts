@@ -106,7 +106,18 @@ export const DEFAULTS: GlobalSearchKeysState = {
   swarm_workspace_snapshots: false,
   swarm_allow_workspace_write: false,
   swarm_allow_command_exec: false,
+  swarm_exec_backend: "",
+  swarm_shell_allowlist: "",
   swarm_goal_scheduler_enabled: false,
+  swarm_dev_shell_use_sandbox_resolver: false,
+  swarm_gate_audit_persist: false,
+  swarm_block_unjustified_full_rewrite_before_apply: false,
+  swarm_tracer_revision_gate: false,
+  swarm_require_dev_writes: true,
+  swarm_require_trusted_gates_pass: true,
+  swarm_research_adversarial: false,
+  swarm_planning_cache: true,
+  swarm_telemetry_exporter: "",
 };
 
 export function isBoolKey(key: StateKey): boolean {

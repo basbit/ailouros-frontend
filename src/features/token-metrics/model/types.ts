@@ -73,7 +73,13 @@ export function parseTokenMetricsPayload(raw: unknown): TokenMetrics | null {
   const task = raw as RawTaskPayload;
   const taskId = typeof task.task_id === "string" ? task.task_id : "";
   if (!taskId) return null;
-  const metrics = (task.pipeline_metrics ?? {}) as RawMetrics;
+  // A task with no metrics yet must read as "no data", not as a measured zero:
+  // during a run the backend has nothing to report until the first step is
+  // recorded, and zero-filling that made the panel look permanently broken.
+  const rawMetrics = task.pipeline_metrics;
+  if (!rawMetrics || typeof rawMetrics !== "object" || Array.isArray(rawMetrics))
+    return null;
+  const metrics = rawMetrics as RawMetrics;
   return {
     taskId,
     totalInputTokens: readInt(metrics.total_input_tokens),

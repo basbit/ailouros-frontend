@@ -3,9 +3,15 @@ interface RagasStatus {
   readonly judgeKind: string;
 }
 
+export interface TelemetryReadiness {
+  readonly exporting: boolean;
+  readonly reason: string;
+}
+
 interface TelemetryStatus {
   readonly enabled: boolean;
   readonly exporterKind: string;
+  readonly readiness: TelemetryReadiness;
 }
 
 interface EntailmentStatus {
@@ -28,6 +34,7 @@ interface RawRagas {
 interface RawTelemetry {
   enabled?: unknown;
   exporter_kind?: unknown;
+  readiness?: unknown;
 }
 
 interface RawEntailment {
@@ -50,6 +57,10 @@ function readNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function readBoolean(value: unknown): boolean {
+  return value === true;
+}
+
 function parseRagas(raw: unknown): RagasStatus {
   const candidate = (raw ?? {}) as RawRagas;
   return {
@@ -63,6 +74,14 @@ function parseTelemetry(raw: unknown): TelemetryStatus {
   return {
     enabled: Boolean(candidate.enabled),
     exporterKind: readString(candidate.exporter_kind) || "noop",
+    readiness: {
+      exporting: readBoolean(
+        (candidate.readiness as Record<string, unknown> | undefined)?.exporting,
+      ),
+      reason: readString(
+        (candidate.readiness as Record<string, unknown> | undefined)?.reason,
+      ),
+    },
   };
 }
 

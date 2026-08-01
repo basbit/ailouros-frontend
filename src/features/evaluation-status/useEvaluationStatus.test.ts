@@ -12,7 +12,11 @@ vi.mock("@/shared/api/endpoints/evaluation-status", () => ({
 function makeStatus(overrides: Partial<EvaluationStatus> = {}): EvaluationStatus {
   return {
     ragas: { enabled: false, judgeKind: "heuristic" },
-    telemetry: { enabled: false, exporterKind: "noop" },
+    telemetry: {
+      enabled: false,
+      exporterKind: "noop",
+      readiness: { exporting: false, reason: "" },
+    },
     entailment: {
       enabled: false,
       judgeKind: "heuristic",

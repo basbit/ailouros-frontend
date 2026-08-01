@@ -1,11 +1,14 @@
 <template>
   <div class="feature-flags">
     <details
-      v-for="group in groups"
+      v-for="group in visibleGroups"
       :key="group.id"
+      :open="isGroupOpen(group) ? true : undefined"
       :class="`feature-flag-group feature-flag-group-${group.id}`"
     >
-      <summary>{{ t(groupTitleKey(group)) }}</summary>
+      <summary @click.prevent="onSummaryClick(group)">
+        {{ t(groupTitleKey(group)) }}
+      </summary>
       <p class="feature-flag-group-description">
         {{ t(groupDescriptionKey(group)) }}
       </p>
@@ -107,11 +110,14 @@
         <slot name="evaluation-status" />
       </div>
     </details>
+    <p v-if="filterActive && !visibleGroups.length" class="feature-flags-empty">
+      {{ t("featureFlags.filter.empty") }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import type { Ref } from "vue";
 import FeatureFlagLabel from "@/features/global-settings/FeatureFlagLabel.vue";
 import FeatureFlagOverrideToggle from "@/features/global-settings/FeatureFlagOverrideToggle.vue";
@@ -124,15 +130,19 @@ import {
   groupDescriptionKey,
   groupTitleKey,
   isFieldWired,
+  type FeatureFlagGroup,
 } from "@/features/global-settings/featureFlagGroups";
 import { useFeatureFlagFields } from "@/features/global-settings/useFeatureFlagFields";
 import { useI18n } from "@/shared/lib/i18n";
+
+type FeatureFlagField = FeatureFlagGroup["fields"][number];
 
 const { t } = useI18n();
 const groups = FEATURE_FLAG_GROUPS;
 
 const props = defineProps<{
   workspaceRoot?: string;
+  filterQuery?: string;
 }>();
 
 const workspaceRootRef = toRef(props, "workspaceRoot") as unknown as Ref<string>;
@@ -144,6 +154,42 @@ const {
   writeStringFieldValue,
   toggleOverride,
 } = useFeatureFlagFields(workspaceRootRef);
+
+const normalizedFilter = computed(() => (props.filterQuery ?? "").trim().toLowerCase());
+const filterActive = computed(() => normalizedFilter.value.length > 0);
+
+// Groups the user opened by clicking their <summary>, independently of any
+// filter. While a filter is active every visible group is force-opened
+// below — that force-open must never be recorded here, otherwise clearing
+// the filter could not tell "the user expanded this" apart from "the search
+// matched this", and every matched group would stay open forever.
+const manuallyOpenGroupIds = ref<Record<string, boolean>>({});
+
+function isGroupOpen(group: FeatureFlagGroup): boolean {
+  if (filterActive.value) return true;
+  return manuallyOpenGroupIds.value[group.id] === true;
+}
+
+function onSummaryClick(group: FeatureFlagGroup): void {
+  manuallyOpenGroupIds.value = {
+    ...manuallyOpenGroupIds.value,
+    [group.id]: !isGroupOpen(group),
+  };
+}
+
+function fieldMatchesFilter(field: FeatureFlagField): boolean {
+  const query = normalizedFilter.value;
+  if (!query) return true;
+  const label = t(fieldLabelKey(field)).toLowerCase();
+  const hint = t(fieldHintKey(field)).toLowerCase();
+  const envName = field.envName.toLowerCase();
+  return label.includes(query) || hint.includes(query) || envName.includes(query);
+}
+
+const visibleGroups = computed(() => {
+  if (!filterActive.value) return groups;
+  return groups.filter((group) => group.fields.some(fieldMatchesFilter));
+});
 </script>
 
 <style scoped>
@@ -270,5 +316,15 @@ const {
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+.feature-flags-empty {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--c-text-muted, #666);
+  border: 1px dashed var(--c-border, #ddd);
+  border-radius: 6px;
+  text-align: center;
 }
 </style>

@@ -26,5 +26,11 @@ export const FLAG_GROUP_EFFICIENCY: FeatureFlagGroup = {
       envName: "SWARM_EFFICIENCY_BATCH_INFERENCE_ENABLED",
       wired: true,
     },
+    {
+      kind: "boolean",
+      field: "swarm_planning_cache",
+      envName: "SWARM_PLANNING_CACHE",
+      wired: true,
+    },
   ],
 };

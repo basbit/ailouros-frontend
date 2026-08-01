@@ -60,10 +60,14 @@ export const settingsEn: Messages = {
   "settings.subnav.about": "About",
   "settings.subnav.modelRegistry": "Model registry",
   "settings.subnav.automation": "Automation",
+  "settings.subnav.featureFlags": "Feature flags",
   "settings.subnav.notifications": "Notifications",
   "settings.automation.title": "Automation",
   "settings.automation.subtitle":
     "Self-verify, auto-approve, deep planning and background agent — applied across every project.",
+  "settings.featureFlags.title": "Feature flags",
+  "settings.featureFlags.subtitle":
+    "Experimental and safety switches. Each names the environment variable it writes.",
   "settings.notifications.title": "Notifications",
   "settings.notifications.subtitle":
     "Run alerts to webhook, email, Telegram, Slack or Discord — global rules with severity and rate limits.",
@@ -217,10 +221,14 @@ export const settingsRu: Messages = {
   "settings.subnav.about": "О приложении",
   "settings.subnav.modelRegistry": "Реестр моделей",
   "settings.subnav.automation": "Автоматизация",
+  "settings.subnav.featureFlags": "Флаги функций",
   "settings.subnav.notifications": "Уведомления",
   "settings.automation.title": "Автоматизация",
   "settings.automation.subtitle":
     "Self-verify, авто-апрув, deep planning и фоновый агент — действуют для всех проектов.",
+  "settings.featureFlags.title": "Флаги функций",
+  "settings.featureFlags.subtitle":
+    "Экспериментальные и защитные переключатели. Каждый называет переменную окружения, которую пишет.",
   "settings.notifications.title": "Уведомления",
   "settings.notifications.subtitle":
     "Алерты прогонов в webhook, email, Telegram, Slack или Discord — глобальные правила с уровнями и лимитами.",

@@ -38,5 +38,11 @@ export const FLAG_GROUP_REASONING: FeatureFlagGroup = {
       envName: "SWARM_REASONING_VERIFIER_ENABLED",
       wired: true,
     },
+    {
+      kind: "boolean",
+      field: "swarm_research_adversarial",
+      envName: "SWARM_RESEARCH_ADVERSARIAL",
+      wired: true,
+    },
   ],
 };

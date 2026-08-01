@@ -14,27 +14,29 @@ export const featureFlagsChromeEn: Messages = {
   "featureFlags.group.memory.title": "Wiki & memory",
   "featureFlags.group.memory.description":
     "Knowledge retrieval and learning across runs. Wiki search, retrieval traces, pattern memory and cross-task episodic memory.",
-  "featureFlags.group.retrieval.title": "Advanced retrieval (Track D / E)",
+  "featureFlags.group.retrieval.title": "Advanced retrieval",
   "featureFlags.group.retrieval.description":
     "Reranking, knowledge graph expansion, Self-RAG, HyDE and other RAG quality features.",
-  "featureFlags.group.reasoning.title": "Reasoning quality (Track G)",
+  "featureFlags.group.reasoning.title": "Reasoning quality",
   "featureFlags.group.reasoning.description":
     "Process reward modelling, verifier model and memory tier routing.",
-  "featureFlags.group.efficiency.title": "Efficiency (Track H)",
+  "featureFlags.group.efficiency.title": "Efficiency",
   "featureFlags.group.efficiency.description":
     "Caching, batching and compression to reduce token usage and latency.",
-  "featureFlags.group.evaluation.title": "Evaluation & observability (Track I)",
+  "featureFlags.group.evaluation.title": "Evaluation & observability",
   "featureFlags.group.evaluation.description":
     "Ragas metrics, NLI entailment verification, sandbox execution and OpenTelemetry export.",
-  "featureFlags.group.ux.title": "UX surfacing (Track J)",
+  "featureFlags.group.ux.title": "UX surfacing",
   "featureFlags.group.ux.description":
     "Streaming partial RAG events, thumbs feedback, inline citations and follow-up suggestions.",
-  "featureFlags.group.orchestration.title": "Orchestration (Track K)",
+  "featureFlags.group.orchestration.title": "Orchestration",
   "featureFlags.group.orchestration.description":
-    "Skill dispatcher, quick-fix fast path, phase loop and spec linter.",
+    "Skill dispatcher, quick-fix fast path, phase loop, spec linter, and the run-completion gates that fail a run when dev writes or trusted verification are missing.",
   "featureFlags.group.workspace.title": "Workspace lifecycle",
   "featureFlags.group.workspace.description":
-    "Snapshots, write permissions and the long-running goal scheduler.",
+    "Snapshots, write permissions, the command execution backend and shell allowlist, and the long-running goal scheduler.",
+  "featureFlags.filter.placeholder": "Search flags, hints, or env vars…",
+  "featureFlags.filter.empty": "No flags match your search.",
 };
 
 export const featureFlagsChromeRu: Messages = {
@@ -51,25 +53,27 @@ export const featureFlagsChromeRu: Messages = {
   "featureFlags.group.memory.title": "Wiki и память",
   "featureFlags.group.memory.description":
     "Поиск знаний и обучение между запусками: wiki, retrieval-трейсы, pattern memory, cross-task episodic memory.",
-  "featureFlags.group.retrieval.title": "Продвинутый retrieval (Track D / E)",
+  "featureFlags.group.retrieval.title": "Продвинутый retrieval",
   "featureFlags.group.retrieval.description":
     "Реранкинг, расширение knowledge graph, Self-RAG, HyDE и другие RAG-улучшения.",
-  "featureFlags.group.reasoning.title": "Качество рассуждений (Track G)",
+  "featureFlags.group.reasoning.title": "Качество рассуждений",
   "featureFlags.group.reasoning.description":
     "Process reward modelling, verifier model и маршрутизация по уровням памяти.",
-  "featureFlags.group.efficiency.title": "Эффективность (Track H)",
+  "featureFlags.group.efficiency.title": "Эффективность",
   "featureFlags.group.efficiency.description":
     "Кэширование, батчинг и сжатие для снижения токенов и латентности.",
-  "featureFlags.group.evaluation.title": "Оценка и наблюдаемость (Track I)",
+  "featureFlags.group.evaluation.title": "Оценка и наблюдаемость",
   "featureFlags.group.evaluation.description":
     "Ragas-метрики, NLI-entailment проверка, sandbox-исполнение и OpenTelemetry-экспорт.",
-  "featureFlags.group.ux.title": "UX поверхности (Track J)",
+  "featureFlags.group.ux.title": "UX поверхности",
   "featureFlags.group.ux.description":
     "Потоковые retrieval_done события, обратная связь, инлайн-цитаты и follow-up-предложения.",
-  "featureFlags.group.orchestration.title": "Оркестрация (Track K)",
+  "featureFlags.group.orchestration.title": "Оркестрация",
   "featureFlags.group.orchestration.description":
-    "Skill dispatcher, quick-fix fast path, phase loop и spec linter.",
+    "Skill dispatcher, quick-fix fast path, phase loop, spec linter и gate-проверки завершения прогона, которые прерывают его при отсутствии dev-записей или доверенной верификации.",
   "featureFlags.group.workspace.title": "Жизненный цикл workspace",
   "featureFlags.group.workspace.description":
-    "Снимки, разрешения записи и долгоживущий планировщик целей.",
+    "Снимки, разрешения записи, бэкенд выполнения команд, allowlist shell-команд и долгоживущий планировщик целей.",
+  "featureFlags.filter.placeholder": "Поиск по флагам, подсказкам или env-переменным…",
+  "featureFlags.filter.empty": "Ничего не найдено по этому запросу.",
 };

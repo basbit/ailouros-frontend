@@ -32,6 +32,8 @@
 
       <StatusLine v-if="!isHistoryView" />
 
+      <SpecStatusChip v-if="!isHistoryView" :status="specStatus" />
+
       <div v-if="!isHistoryView" class="run-live-body__metrics-row">
         <div class="run-live-body__monitor">
           <TaskMonitor />
@@ -42,6 +44,8 @@
           :gpu-name="ui.hostMetrics?.gpu_name ?? null"
         />
       </div>
+
+      <CheckpointPreview v-if="!isHistoryView" :preview="checkpointPreview" />
 
       <RunLiveGates
         v-if="!isHistoryView"
@@ -126,6 +130,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import { TaskMonitor } from "@/widgets/task-monitor";
@@ -139,6 +145,9 @@ import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
 import { RunUnavailableBanner } from "@/features/run-recovery";
 import { type EventRow } from "./useRunLiveSteps";
 import { type HistoryEntry } from "@/shared/store/ui";
+import CheckpointPreview from "@/widgets/checkpoint-preview/CheckpointPreview.vue";
+import SpecStatusChip from "@/widgets/spec-status-chip/SpecStatusChip.vue";
+import { readRunSnapshotSection } from "@/shared/model/run-snapshot";
 import { useRunLiveBody } from "./useRunLiveBody";
 
 const props = withDefaults(
@@ -202,6 +211,14 @@ const {
   onContinuePipeline,
   onRestart,
 } = useRunLiveBody(props);
+
+const checkpointPreview = computed(() =>
+  readRunSnapshotSection(ui.taskPipelinePlan, "checkpoint_preview"),
+);
+
+const specStatus = computed(() =>
+  readRunSnapshotSection(ui.taskPipelinePlan, "session_spec_status"),
+);
 </script>
 
 <style scoped>

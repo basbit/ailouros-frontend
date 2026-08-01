@@ -141,6 +141,78 @@
       </p>
     </section>
 
+    <section v-if="diagnostics.memory" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.memory") }}</h4>
+      <p class="run-diagnostics__meta">
+        <span
+          class="run-diagnostics__pill"
+          :class="
+            diagnostics.memory.crossTaskDurable
+              ? 'run-diagnostics__pill--accept'
+              : 'run-diagnostics__pill--reject'
+          "
+        >
+          {{
+            diagnostics.memory.crossTaskDurable
+              ? t("runDiagnostics.memoryCrossTaskDurable")
+              : t("runDiagnostics.memoryCrossTaskEphemeral")
+          }}
+        </span>
+        <span class="run-diagnostics__pill">
+          {{ t("runDiagnostics.memoryPatterns") }}:
+          {{ diagnostics.memory.patternEntries }}
+        </span>
+        <span class="run-diagnostics__pill">
+          {{ t("runDiagnostics.memoryWiki") }}: {{ diagnostics.memory.wikiArticles }}
+        </span>
+      </p>
+    </section>
+
+    <section v-if="diagnostics.devShellSandbox" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">
+        {{ t("runDiagnostics.devShellSandbox") }}
+      </h4>
+      <p class="run-diagnostics__meta">
+        <span
+          class="run-diagnostics__pill"
+          :class="
+            diagnostics.devShellSandbox.requested ? 'run-diagnostics__pill--accept' : ''
+          "
+        >
+          {{
+            diagnostics.devShellSandbox.requested
+              ? t("runDiagnostics.devShellSandboxRequested")
+              : t("runDiagnostics.devShellSandboxNotRequested")
+          }}
+        </span>
+        <span
+          class="run-diagnostics__pill"
+          :class="
+            diagnostics.devShellSandbox.active
+              ? 'run-diagnostics__pill--accept'
+              : 'run-diagnostics__pill--reject'
+          "
+        >
+          {{
+            diagnostics.devShellSandbox.active
+              ? t("runDiagnostics.devShellSandboxActive")
+              : t("runDiagnostics.devShellSandboxInactive")
+          }}
+        </span>
+        <code class="run-diagnostics__code">{{
+          diagnostics.devShellSandbox.profile
+        }}</code>
+      </p>
+      <p
+        v-if="
+          diagnostics.devShellSandbox.requested && !diagnostics.devShellSandbox.active
+        "
+        class="run-diagnostics__reason"
+      >
+        {{ t("runDiagnostics.devShellSandboxMismatch") }}
+      </p>
+    </section>
+
     <section v-if="missingSections.length > 0" class="run-diagnostics__group">
       <h4 class="run-diagnostics__subtitle">
         {{ t("runDiagnostics.enableHintsHeading") }}

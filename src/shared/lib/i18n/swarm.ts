@@ -57,8 +57,9 @@ export const swarmEn: Messages = {
   "auto.autoApprove.on": "on — approve all gates",
   "auto.autoApproveTimeoutLabel": "Auto-approve timeout, sec (optional)",
   "auto.autoApproveTimeoutHint": "Escalate to supervisor after N seconds. Env:",
-  "auto.autoRetryLabel": "Auto-retry on NEEDS_WORK verdict",
-  "auto.autoRetryHint": "Route back to producing agent with reviewer feedback. Env:",
+  "auto.autoRetryLabel": "Auto-retry on NEEDS_WORK verdict (pipeline-wide default)",
+  "auto.autoRetryHint":
+    "Route back to producing agent with reviewer feedback. Applies across the whole pipeline unless the quality gate below overrides it for a run. Env:",
   "auto.maxRetriesLabel": "Max step retries (optional)",
   "auto.deepPlanningLabel": "Deep planning mode",
   "auto.deepPlanningHint":
@@ -74,9 +75,9 @@ export const swarmEn: Messages = {
   "auto.memoryConsolidationLabel": "Memory consolidation",
   "auto.memoryConsolidationHint":
     "Background job clusters episodes and extracts reusable patterns.",
-  "auto.qualityGateLabel": "Quality gate (retry on NEEDS_WORK)",
+  "auto.qualityGateLabel": "Quality gate (per-run override)",
   "auto.qualityGateHint":
-    "When the reviewer returns NEEDS_WORK, route back to the producing agent. Env:",
+    "Separate on/off switch for the same retry-on-NEEDS_WORK behavior, read from this run's settings before the pipeline-wide default above. Env:",
   "auto.forceRerunLabel": "Force re-run (ignore cache)",
   "auto.forceRerunHint":
     "Skip cached clarify_input result and re-run the full pipeline.",
@@ -145,9 +146,9 @@ export const swarmRu: Messages = {
   "auto.autoApprove.on": "вкл. — подтверждать все gates",
   "auto.autoApproveTimeoutLabel": "Таймаут авто-подтверждения, сек. (необязательно)",
   "auto.autoApproveTimeoutHint": "Эскалировать supervisor после N секунд. Env:",
-  "auto.autoRetryLabel": "Авто-ретрай при вердикте NEEDS_WORK",
+  "auto.autoRetryLabel": "Авто-ретрай при вердикте NEEDS_WORK (общий дефолт pipeline)",
   "auto.autoRetryHint":
-    "Вернуть задачу producing agent вместе с reviewer feedback. Env:",
+    "Вернуть задачу producing agent вместе с reviewer feedback. Действует на весь pipeline, если quality gate ниже не переопределит это для конкретного прогона. Env:",
   "auto.maxRetriesLabel": "Максимум ретраев шага (необязательно)",
   "auto.deepPlanningLabel": "Режим глубокого планирования",
   "auto.deepPlanningHint":
@@ -163,9 +164,9 @@ export const swarmRu: Messages = {
   "auto.memoryConsolidationLabel": "Консолидация памяти",
   "auto.memoryConsolidationHint":
     "Фоновая задача кластеризует эпизоды и извлекает повторно используемые паттерны.",
-  "auto.qualityGateLabel": "Quality gate (ретрай при NEEDS_WORK)",
+  "auto.qualityGateLabel": "Quality gate (переопределение для прогона)",
   "auto.qualityGateHint":
-    "Когда reviewer возвращает NEEDS_WORK, маршрут идёт обратно к producing agent. Env:",
+    "Отдельный переключатель того же поведения retry-on-NEEDS_WORK, читается из настроек этого прогона раньше, чем общий дефолт выше. Env:",
   "auto.forceRerunLabel": "Принудительный перезапуск (игнорировать кеш)",
   "auto.forceRerunHint":
     "Пропустить закешированный результат clarify_input и заново запустить весь pipeline.",

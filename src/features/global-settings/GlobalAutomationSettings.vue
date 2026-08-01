@@ -185,7 +185,7 @@
       </label>
       <div class="hint">
         {{ t("auto.qualityGateHint") }}
-        <code>SWARM_AUTO_RETRY_ON_NEEDS_WORK</code>.
+        <code>SWARM_QUALITY_GATE</code>.
       </div>
     </div>
 

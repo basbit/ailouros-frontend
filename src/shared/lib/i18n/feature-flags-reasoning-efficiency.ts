@@ -20,6 +20,10 @@ export const featureFlagsReasoningEfficiencyEn: Messages = {
   "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
   "featureFlags.field.swarm_reasoning_prm_model.hint":
     "Model id for the process-reward-model per-step scoring.",
+  "featureFlags.field.swarm_research_adversarial.label":
+    "Adversarial research hardening",
+  "featureFlags.field.swarm_research_adversarial.hint":
+    "Attack each research claim against its source before letting it into the context.",
   "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
   "featureFlags.field.swarm_prompt_cache.hint":
     "Reuse provider prompt-cache markers across requests.",
@@ -35,6 +39,9 @@ export const featureFlagsReasoningEfficiencyEn: Messages = {
   "featureFlags.field.swarm_efficiency_batch_inference.label": "Batch inference",
   "featureFlags.field.swarm_efficiency_batch_inference.hint":
     "Group concurrent LLM calls into a single batch where supported.",
+  "featureFlags.field.swarm_planning_cache.label": "Planning & research cache",
+  "featureFlags.field.swarm_planning_cache.hint":
+    "Reuse planning and research output across runs; turn off to force every run to redo it.",
 };
 
 export const featureFlagsReasoningEfficiencyRu: Messages = {
@@ -57,6 +64,10 @@ export const featureFlagsReasoningEfficiencyRu: Messages = {
   "featureFlags.field.swarm_reasoning_prm_model.label": "PRM model",
   "featureFlags.field.swarm_reasoning_prm_model.hint":
     "Идентификатор модели для пошагового скоринга process-reward-model.",
+  "featureFlags.field.swarm_research_adversarial.label":
+    "Состязательная проверка research",
+  "featureFlags.field.swarm_research_adversarial.hint":
+    "Атаковать каждое research-утверждение против его источника, прежде чем пустить его в контекст.",
   "featureFlags.field.swarm_prompt_cache.label": "Prompt cache",
   "featureFlags.field.swarm_prompt_cache.hint":
     "Переиспользовать prompt-cache маркеры провайдера между запросами.",
@@ -72,4 +83,7 @@ export const featureFlagsReasoningEfficiencyRu: Messages = {
   "featureFlags.field.swarm_efficiency_batch_inference.label": "Batch inference",
   "featureFlags.field.swarm_efficiency_batch_inference.hint":
     "Группировать одновременные LLM-вызовы в батч, если поддерживается.",
+  "featureFlags.field.swarm_planning_cache.label": "Кэш планирования и research",
+  "featureFlags.field.swarm_planning_cache.hint":
+    "Переиспользовать результаты планирования и research между прогонами; выключите, чтобы каждый прогон пересчитывал их заново.",
 };

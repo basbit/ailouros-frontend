@@ -2,7 +2,11 @@
   <div class="run-live">
     <AppHeaderContainer />
     <main class="run-live__body">
-      <nav v-if="hasRun" class="run-live__tabs" :aria-label="t('history.detail.tabsAria')">
+      <nav
+        v-if="hasRun"
+        class="run-live__tabs"
+        :aria-label="t('history.detail.tabsAria')"
+      >
         <button
           v-for="tab in tabs"
           :key="tab.key"
@@ -49,9 +53,7 @@ useRunLiveSubscription(ui);
 
 const { activeTab, tabs } = useHistoryDetailTabs(t);
 
-const hasRun = computed(
-  () => !!ui.taskId && ui.runAvailability !== "unavailable",
-);
+const hasRun = computed(() => !!ui.taskId && ui.runAvailability !== "unavailable");
 
 const workspaceRootForRun = computed<string>(() => {
   const entry = ui.historyList.find((item) => item.taskId === ui.taskId);

@@ -9,7 +9,7 @@ vi.mock("@/shared/api/endpoints/run-diagnostics", () => ({
   getRunDiagnostics: (input: unknown) => fetchMock(input),
 }));
 
-function makeDiagnostics(): RunDiagnostics {
+function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostics {
   return {
     taskId: "t-1",
     phaseLoop: null,
@@ -19,7 +19,10 @@ function makeDiagnostics(): RunDiagnostics {
     ragasMetrics: null,
     skillDispatch: null,
     workspaceIsolation: null,
+    devShellSandbox: null,
+    memory: null,
     enableHints: {},
+    ...overrides,
   };
 }
 
@@ -47,6 +50,25 @@ describe("useRunDiagnostics", () => {
     await composable.refresh({ taskId: "t-1", workspaceRoot: "/tmp" });
     expect(composable.diagnostics.value?.taskId).toBe("t-1");
     expect(composable.visible.value).toBe(true);
+  });
+
+  it("stores a populated dev shell sandbox section on success", async () => {
+    fetchMock.mockResolvedValue(
+      makeDiagnostics({
+        devShellSandbox: {
+          requested: true,
+          profile: "restricted-subprocess",
+          active: false,
+        },
+      }),
+    );
+    const composable = useRunDiagnostics();
+    await composable.refresh({ taskId: "t-1", workspaceRoot: "/tmp" });
+    expect(composable.diagnostics.value?.devShellSandbox).toEqual({
+      requested: true,
+      profile: "restricted-subprocess",
+      active: false,
+    });
   });
 
   it("captures errors", async () => {

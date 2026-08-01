@@ -87,7 +87,7 @@
             </p>
           </section>
 
-          <PipelineSpine :steps="pipelineSteps" />
+          <PipelineSpine :steps="pipelineSteps" :planned="hasPlannedPipeline" />
 
           <PatternMemoryHint
             v-if="patternHint"
@@ -147,6 +147,7 @@ const {
   ui,
   header,
   pipelineSteps,
+  hasPlannedPipeline,
   canRun,
   isStarting,
   activeGateBanner,

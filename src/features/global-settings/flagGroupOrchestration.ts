@@ -32,5 +32,29 @@ export const FLAG_GROUP_ORCHESTRATION: FeatureFlagGroup = {
       envName: "SWARM_ORCHESTRATION_PHASE_VERIFICATION_REQUIRED",
       wired: true,
     },
+    {
+      kind: "boolean",
+      field: "swarm_gate_audit_persist",
+      envName: "SWARM_GATE_AUDIT_PERSIST",
+      wired: true,
+    },
+    {
+      kind: "boolean",
+      field: "swarm_tracer_revision_gate",
+      envName: "SWARM_TRACER_REVISION_GATE",
+      wired: true,
+    },
+    {
+      kind: "boolean",
+      field: "swarm_require_dev_writes",
+      envName: "SWARM_REQUIRE_DEV_WRITES",
+      wired: true,
+    },
+    {
+      kind: "boolean",
+      field: "swarm_require_trusted_gates_pass",
+      envName: "SWARM_REQUIRE_TRUSTED_GATES_PASS",
+      wired: true,
+    },
   ],
 };

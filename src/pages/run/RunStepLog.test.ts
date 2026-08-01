@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 
 import RunStepLog from "./RunStepLog.vue";
-import type { EventRow, LogClass, LogFilter, StepLogGroup } from "./useRunLiveSteps";
+import type { LogClass, LogFilter, StepLogGroup } from "./useRunLiveSteps";
 
 const groups: StepLogGroup[] = [
   {
@@ -26,7 +26,9 @@ const groups: StepLogGroup[] = [
     label: "dev",
     state: "active",
     durationMs: null,
-    events: [{ agent: "dev", message: "writing code", status: "in_progress", timestamp: "t2" }],
+    events: [
+      { agent: "dev", message: "writing code", status: "in_progress", timestamp: "t2" },
+    ],
   },
 ];
 

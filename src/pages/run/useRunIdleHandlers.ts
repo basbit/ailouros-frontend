@@ -8,6 +8,7 @@ import { useRunRecovery } from "@/features/run-recovery";
 import { useUiStore } from "@/shared/store/ui";
 import { useScenarioCatalog } from "@/entities/scenario";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
+import { defaultPipelineOrder } from "@/shared/lib/use-swarm-defaults";
 import { useI18n } from "@/shared/lib/i18n";
 import { formatDurationShort, formatRelativeShort } from "@/shared/lib/format-relative";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
@@ -64,13 +65,30 @@ export function useRunIdleHandlers(
 
   const scenarioCatalog = useScenarioCatalog();
 
-  const pipelineSteps = computed<string[]>(() => {
+  interface ScenarioPipelineResolution {
+    steps: string[];
+    /**
+     * True when a selected scenario determines these steps, or when the
+     * pipeline-graph page has been edited away from the untouched default
+     * catalogue. False only for the untouched catalogue itself, which is
+     * not a plan — it's just every step the app knows about.
+     */
+    planned: boolean;
+  }
+
+  function isUntouchedDefaultPipeline(stepIds: string[]): boolean {
+    const catalogue = defaultPipelineOrder();
+    if (stepIds.length !== catalogue.length) return false;
+    return stepIds.every((id, index) => id === catalogue[index]);
+  }
+
+  const scenarioPipelineResolution = computed<ScenarioPipelineResolution>(() => {
     const scenarioId = (settings.form.scenario_id ?? "").trim();
     if (scenarioId && scenarioId !== CUSTOM_SCENARIO_ID) {
       const fromCatalog = scenarioCatalog.scenarios.value.find(
         (entry) => entry.id === scenarioId,
       );
-      if (fromCatalog) return fromCatalog.pipeline_steps;
+      if (fromCatalog) return { steps: fromCatalog.pipeline_steps, planned: true };
       const custom = (
         settings.form.custom_scenarios as Array<{
           id?: string;
@@ -78,13 +96,20 @@ export function useRunIdleHandlers(
         }>
       ).find((entry) => entry?.id === scenarioId);
       if (custom && Array.isArray(custom.pipeline_steps)) {
-        return custom.pipeline_steps;
+        return { steps: custom.pipeline_steps, planned: true };
       }
     }
     const fromState = settings.pipelineState.steps.value;
-    if (!Array.isArray(fromState)) return [];
-    return fromState.map((step) => step.id);
+    const steps = Array.isArray(fromState) ? fromState.map((step) => step.id) : [];
+    return { steps, planned: !isUntouchedDefaultPipeline(steps) };
   });
+
+  const pipelineSteps = computed<string[]>(
+    () => scenarioPipelineResolution.value.steps,
+  );
+  const hasPlannedPipeline = computed<boolean>(
+    () => scenarioPipelineResolution.value.planned,
+  );
 
   const canRun = computed(() => settings.form.prompt.trim().length > 0);
   const isStarting = ref(false);
@@ -264,6 +289,7 @@ export function useRunIdleHandlers(
     ui,
     header,
     pipelineSteps,
+    hasPlannedPipeline,
     canRun,
     isStarting,
     activeGateBanner,

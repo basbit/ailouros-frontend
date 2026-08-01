@@ -22,6 +22,8 @@ function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostic
     ragasMetrics: null,
     skillDispatch: null,
     workspaceIsolation: null,
+    devShellSandbox: null,
+    memory: null,
     enableHints: {},
     ...overrides,
   };
@@ -114,6 +116,41 @@ describe("RunDiagnosticsCard", () => {
     expect(wrapper.text()).not.toContain("Enable hints");
   });
 
+  it("renders the dev shell sandbox section when present", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        devShellSandbox: {
+          requested: true,
+          profile: "restricted-subprocess",
+          active: false,
+        },
+      }),
+    );
+    const text = wrapper.text();
+    expect(text).toContain("Dev shell sandbox");
+    expect(text).toContain("restricted-subprocess");
+    expect(text).toContain("requested");
+    expect(text).toContain("inactive");
+  });
+
+  it("renders the memory section, naming a non-durable cross-task store", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        memory: {
+          crossTaskEnabled: true,
+          crossTaskDurable: false,
+          patternEnabled: true,
+          patternEntries: 0,
+          wikiArticles: 8,
+        },
+      }),
+    );
+    const text = wrapper.text();
+    expect(text).toContain("Project memory");
+    expect(text).toContain("lost after this run");
+    expect(text).toContain("8");
+  });
+
   it("renders the skill dispatch section when present", async () => {
     const wrapper = await mountCard(
       makeDiagnostics({
@@ -198,7 +235,11 @@ describe("RunDiagnosticsCard task selection", () => {
     const { useUiStore } = await import("@/shared/store/ui");
     const store = useUiStore();
     store.historyList.push(
-      { taskId: "task-1", prompt: "current run", workspace_root: "/tmp/current" } as never,
+      {
+        taskId: "task-1",
+        prompt: "current run",
+        workspace_root: "/tmp/current",
+      } as never,
       { taskId: "task-2", prompt: "other run", workspace_root: "/tmp/other" } as never,
     );
     const wrapper = mount(RunDiagnosticsCard, {

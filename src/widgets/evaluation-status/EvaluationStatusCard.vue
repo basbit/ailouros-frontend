@@ -65,6 +65,28 @@
           }}
         </span>
         <code class="eval-status__model">{{ status.telemetry.exporterKind }}</code>
+        <span
+          v-if="status.telemetry.enabled"
+          class="eval-status__pill"
+          :class="
+            status.telemetry.readiness.exporting
+              ? 'eval-status__pill--on'
+              : 'eval-status__pill--off'
+          "
+        >
+          {{
+            status.telemetry.readiness.exporting
+              ? t("evaluationStatus.telemetryExporting")
+              : t("evaluationStatus.telemetryNotExporting")
+          }}
+        </span>
+      </div>
+      <div
+        v-if="status.telemetry.enabled && !status.telemetry.readiness.exporting"
+        class="eval-status__row"
+      >
+        <span class="eval-status__label"></span>
+        <span class="eval-status__hint">{{ status.telemetry.readiness.reason }}</span>
       </div>
 
       <div class="eval-status__row">

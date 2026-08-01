@@ -106,7 +106,18 @@ export interface GlobalSearchKeysState {
   swarm_workspace_snapshots: boolean;
   swarm_allow_workspace_write: boolean;
   swarm_allow_command_exec: boolean;
+  swarm_exec_backend: string;
+  swarm_shell_allowlist: string;
   swarm_goal_scheduler_enabled: boolean;
+  swarm_dev_shell_use_sandbox_resolver: boolean;
+  swarm_gate_audit_persist: boolean;
+  swarm_block_unjustified_full_rewrite_before_apply: boolean;
+  swarm_tracer_revision_gate: boolean;
+  swarm_require_dev_writes: boolean;
+  swarm_require_trusted_gates_pass: boolean;
+  swarm_research_adversarial: boolean;
+  swarm_planning_cache: boolean;
+  swarm_telemetry_exporter: string;
 }
 
 export type StateKey = keyof GlobalSearchKeysState;

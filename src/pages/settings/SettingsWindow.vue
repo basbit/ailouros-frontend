@@ -26,6 +26,7 @@ import ApiKeysPane from "./panes/ApiKeysPane.vue";
 import ScenariosPane from "./panes/ScenariosPane.vue";
 import ModelRegistryPane from "./panes/ModelRegistryPane.vue";
 import AutomationPane from "./panes/AutomationPane.vue";
+import FeatureFlagsPane from "./panes/FeatureFlagsPane.vue";
 import NotificationsPane from "./panes/NotificationsPane.vue";
 import AboutPane from "./panes/AboutPane.vue";
 import { useI18n } from "@/shared/lib/i18n";
@@ -41,6 +42,7 @@ const PANES = {
   profile: ProfilePane,
   "api-keys": ApiKeysPane,
   automation: AutomationPane,
+  "feature-flags": FeatureFlagsPane,
   notifications: NotificationsPane,
   scenarios: ScenariosPane,
   "model-registry": ModelRegistryPane,
@@ -53,6 +55,7 @@ const PANE_ORDER: PaneKey[] = [
   "profile",
   "api-keys",
   "automation",
+  "feature-flags",
   "notifications",
   "scenarios",
   "model-registry",
@@ -63,6 +66,7 @@ const SUBNAV_LABELS: Record<PaneKey, string> = {
   profile: "settings.subnav.profile",
   "api-keys": "settings.subnav.apiKeys",
   automation: "settings.subnav.automation",
+  "feature-flags": "settings.subnav.featureFlags",
   notifications: "settings.subnav.notifications",
   scenarios: "settings.subnav.scenarios",
   "model-registry": "settings.subnav.modelRegistry",
