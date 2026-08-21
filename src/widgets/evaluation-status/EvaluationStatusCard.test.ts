@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 
-import type { EvaluationStatus } from "@/entities/evaluation-status";
+import type { EvaluationStatus } from "@/shared/model/evaluation-status-types";
 import EvaluationStatusCard from "./EvaluationStatusCard.vue";
 import { resetEvaluationStatus } from "@/features/evaluation-status/useEvaluationStatus";
 

@@ -93,7 +93,7 @@ describe("ScenarioQuickLaunch", () => {
     const labels = wrapper
       .findAll(".scenario-quick__btn .scenario-quick__title")
       .map((node) => node.text());
-    expect(labels[0]).toBe("SEO Audit");
+    expect(labels[0]).toBe("SEO / AEO / GEO Audit");
   });
 
   it("emits update:modelValue when a button is clicked", async () => {

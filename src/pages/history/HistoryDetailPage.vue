@@ -51,10 +51,13 @@
               :history-steps="remoteSteps"
               :history-failed-step="remoteFailedStep"
             />
-            <ToolActivityPanel
+            <div
               v-else-if="activeTab === 'activity'"
-              :task-id="entry.taskId ?? null"
-            />
+              class="history-detail-page__activity"
+            >
+              <ToolActivityPanel :task-id="entry.taskId ?? null" />
+              <ConversationPanel :task-id="entry.taskId ?? null" />
+            </div>
             <RunArtifactsTab v-else-if="activeTab === 'artifacts'" />
             <TokensTab
               v-else-if="activeTab === 'tokens'"
@@ -101,6 +104,7 @@ import GraphsTab from "@/pages/history/tabs/GraphsTab.vue";
 import TokensTab from "@/pages/history/tabs/TokensTab.vue";
 import RunArtifactsTab from "@/pages/run/RunArtifactsTab.vue";
 import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
+import ConversationPanel from "@/widgets/task-panel/ConversationPanel.vue";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useHistoryDetailActions } from "@/pages/history/tabs/useHistoryDetailActions";
 import { useHistoryDetailLoad } from "./useHistoryDetailLoad";
@@ -350,6 +354,11 @@ watch(
 
 .history-detail-page__main {
   min-width: 0;
+}
+.history-detail-page__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .history-detail-page__placeholder {

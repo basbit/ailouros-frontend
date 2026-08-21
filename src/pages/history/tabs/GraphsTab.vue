@@ -35,6 +35,12 @@
             @node-click="onSpecNodeClick"
           />
         </div>
+        <SpecListPanel
+          class="graphs-tab__spec-list"
+          :workspace-root="workspaceRoot"
+          :selected-spec-id="selectedSpecId"
+          @select="onSpecNodeClick"
+        />
         <aside v-if="selectedSpecId" class="graphs-tab__spec-viewer">
           <header class="graphs-tab__spec-viewer-head">
             <span class="graphs-tab__spec-viewer-id">{{ selectedSpecId }}</span>
@@ -82,6 +88,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import SpecGraphPanel from "@/widgets/spec-graph-panel/SpecGraphPanel.vue";
+import SpecListPanel from "@/widgets/spec-list-panel/SpecListPanel.vue";
 import SpecContentViewer from "@/features/spec-editor/SpecContentViewer.vue";
 import { WikiGraphPanel } from "@/widgets/wiki-graph";
 import CodeGraphCanvas from "@/widgets/code-graph/CodeGraphCanvas.vue";
@@ -192,7 +199,9 @@ watch(
   min-height: 0;
   display: flex;
 }
-
+.graphs-tab__spec-list {
+  min-width: 0;
+}
 .graphs-tab__spec-graph > * {
   flex: 1 1 auto;
   min-height: 0;

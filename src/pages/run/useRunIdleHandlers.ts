@@ -225,7 +225,7 @@ export function useRunIdleHandlers(
   const slashRunner = useSlashCommandRunner();
 
   async function onStart(): Promise<void> {
-    if (!canRun.value || header.isRunning.value || isStarting.value) return;
+    if (!canRun.value || isStarting.value) return;
     isStarting.value = true;
     try {
       const slashIntent = tryParseDispatchOrQuick(settings.form.prompt);

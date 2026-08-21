@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import RemoteApiProfiles from "./RemoteApiProfiles.vue";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import type { ProviderBalance } from "./provider-balance-api";
 
 const balanceApi = vi.hoisted(() => ({

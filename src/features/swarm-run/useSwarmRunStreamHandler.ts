@@ -1,5 +1,7 @@
 import type { ChatStreamEvent } from "@/shared/lib/chat-stream-events";
 
+import { recordWorkspaceIndexStats } from "./workspaceIndexStats";
+
 type NotifyLevel = "info" | "warning" | "error";
 
 export interface SwarmStreamHandlerDeps {
@@ -75,6 +77,7 @@ export function createSwarmStreamEventHandler(
         handleScenario(event, deps);
         return;
       case "workspace_index_stats":
+        recordWorkspaceIndexStats(event.stats);
         return;
       case "retrieval_done":
         deps.recordRetrievalDone(event.event);

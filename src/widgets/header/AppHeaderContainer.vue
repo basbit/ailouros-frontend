@@ -2,6 +2,7 @@
   <AppHeader
     :task-id="header.taskId.value"
     :is-running="header.isRunning.value"
+    :active-run-ids="header.activeRunIds.value"
     :project-name="header.projectName.value"
     :current-project-id="header.currentProjectId.value"
     :project-list="header.projectList.value"
@@ -9,6 +10,7 @@
     @close-task="header.closeLoadedTask"
     @open-report-problem="openReportProblem"
     @resume-run="onResumeRun"
+    @switch-run="onSwitchRun"
     @project-change="header.projectForm.onProjectChange"
     @project-new="header.projectForm.onNewProject"
     @project-rename="header.projectForm.onRenameProjectById"
@@ -85,6 +87,14 @@ const router = useRouter();
 
 function onResumeRun(): void {
   void router.push("/run/active");
+}
+
+function onSwitchRun(taskIdValue: string): void {
+  if (!taskIdValue) return;
+  if (ui.taskId !== taskIdValue) {
+    ui.taskId = taskIdValue;
+    void router.push(`/run/done/${taskIdValue}`);
+  }
 }
 </script>
 

@@ -24,10 +24,11 @@
       </button>
     </header>
     <div v-if="!taskId" class="tool-activity__hint">no task selected</div>
-    <div v-else-if="loading" class="tool-activity__hint">…</div>
-    <div v-else-if="error" class="tool-activity__error">{{ error }}</div>
+    <div v-else-if="error && entries.length === 0" class="tool-activity__error">
+      {{ error }}
+    </div>
     <div v-else-if="entries.length === 0" class="tool-activity__hint">
-      no activity yet
+      {{ loading ? "…" : "no activity yet" }}
     </div>
     <ul v-else class="tool-activity__list">
       <li
@@ -147,7 +148,11 @@ async function reload(): Promise<void> {
     inflight.abort();
   }
   inflight = new AbortController();
-  loading.value = true;
+  // Keep showing existing entries during a background poll; only show the
+  // spinner/state on the first load (entries empty).
+  if (entries.value.length === 0) {
+    loading.value = true;
+  }
   error.value = null;
   try {
     const response = await getActivityTail(
@@ -183,6 +188,8 @@ function stopPolling(): void {
 function onChannelClick(channel: ActivityChannel): void {
   if (currentChannel.value === channel) return;
   currentChannel.value = channel;
+  entries.value = [];
+  loading.value = true;
   void reload();
 }
 

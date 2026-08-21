@@ -131,6 +131,7 @@
         :clarify-cache-provenance="clarifyCacheProvenance"
         :workspace-identity-resolved="workspaceIdentityResolved"
         :visual-probe-manifest="visualProbeManifest"
+        :e2e-screenshot-paths="e2eScreenshotPaths"
         :research-sources-text="researchSourcesText"
         :code-review-findings-text="codeReviewFindingsText"
         @onboarding-model-assignments="roleHandlers.onOnboardingModelAssignments"
@@ -240,6 +241,7 @@ const {
   skillsCatalogIds,
   mediaForm,
   visualProbeManifest,
+  e2eScreenshotPaths,
   researchSourcesText,
   codeReviewFindingsText,
   backgroundAgentRemoteConfig,

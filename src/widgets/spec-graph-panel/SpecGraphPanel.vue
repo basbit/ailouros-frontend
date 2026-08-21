@@ -56,8 +56,41 @@
         v-model="search"
         class="spec-graph-panel__search"
         type="search"
-        placeholder="filter by title or kind"
+        :placeholder="t('specGraph.filterPlaceholder')"
       />
+      <button type="button" class="spec-graph-panel__toggle" @click="toggleOrphans">
+        {{ t("specGraph.orphans") }}
+      </button>
+    </div>
+
+    <div v-if="relationsVisible" class="spec-graph-panel__relations">
+      <h4 class="spec-graph-panel__relations-title">{{ selectedNodeId }}</h4>
+      <div class="spec-graph-panel__relations-group">
+        <strong>{{ t("specGraph.ancestors") }}</strong>
+        <span v-if="!ancestors.length" class="spec-graph-panel__relations-empty">
+          —
+        </span>
+        <ul v-else class="spec-graph-panel__relations-list">
+          <li v-for="item in ancestors" :key="item">{{ item }}</li>
+        </ul>
+      </div>
+      <div class="spec-graph-panel__relations-group">
+        <strong>{{ t("specGraph.dependants") }}</strong>
+        <span v-if="!dependants.length" class="spec-graph-panel__relations-empty">
+          —
+        </span>
+        <ul v-else class="spec-graph-panel__relations-list">
+          <li v-for="item in dependants" :key="item">{{ item }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div v-if="orphansVisible" class="spec-graph-panel__orphans">
+      <h4 class="spec-graph-panel__relations-title">{{ t("specGraph.orphans") }}</h4>
+      <span v-if="!orphans.length" class="spec-graph-panel__relations-empty">—</span>
+      <ul v-else class="spec-graph-panel__relations-list">
+        <li v-for="item in orphans" :key="item">{{ item }}</li>
+      </ul>
     </div>
   </section>
 </template>
@@ -65,8 +98,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { GraphCanvas } from "@/features/graph-canvas";
+import { useI18n } from "@/shared/lib/i18n";
 import { SPEC_NODE_PALETTE, useSpecGraph } from "./useSpecGraph";
-
 const props = withDefaults(
   defineProps<{
     workspaceRoot?: string;
@@ -78,8 +111,29 @@ const props = withDefaults(
 
 const emit = defineEmits<{ nodeClick: [nodeId: string] }>();
 
-const { nodes, edges, data, loading, error, notImplemented, load } = useSpecGraph();
+const {
+  nodes,
+  edges,
+  data,
+  loading,
+  error,
+  notImplemented,
+  load,
+  ancestors,
+  dependants,
+  orphans,
+  loadNodeRelations,
+  loadOrphans,
+  clearRelations,
+} = useSpecGraph();
 const search = ref("");
+const selectedNodeId = ref("");
+const showOrphans = ref(false);
+
+const relationsVisible = computed(() => selectedNodeId.value.length > 0);
+const orphansVisible = computed(() => showOrphans.value);
+
+const { t } = useI18n();
 
 const legendEntries = computed(() =>
   Object.entries(SPEC_NODE_PALETTE).map(([kind, color]) => ({ kind, color })),
@@ -87,10 +141,26 @@ const legendEntries = computed(() =>
 
 async function reload(): Promise<void> {
   await load(props.workspaceRoot, props.persist);
+  if (props.workspaceRoot && showOrphans.value) {
+    await loadOrphans(props.workspaceRoot);
+  }
 }
 
 function onNodeClick(nodeId: string): void {
+  selectedNodeId.value = nodeId;
+  if (nodeId && props.workspaceRoot) {
+    void loadNodeRelations(props.workspaceRoot, nodeId);
+  }
   emit("nodeClick", nodeId);
+}
+
+function toggleOrphans(): void {
+  showOrphans.value = !showOrphans.value;
+  if (showOrphans.value && props.workspaceRoot) {
+    void loadOrphans(props.workspaceRoot);
+  } else if (!showOrphans.value) {
+    orphans.value = [];
+  }
 }
 
 onMounted(() => {
@@ -100,6 +170,8 @@ onMounted(() => {
 watch(
   () => props.workspaceRoot,
   () => {
+    selectedNodeId.value = "";
+    clearRelations();
     if (props.autoLoad) void reload();
   },
 );
@@ -202,5 +274,57 @@ watch(
   font-size: 12px;
   background: var(--bg, transparent);
   color: inherit;
+}
+
+.spec-graph-panel__toggle {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--border, #d4d4d8);
+  border-radius: 4px;
+  font-size: 12px;
+  background: var(--bg, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.spec-graph-panel__relations,
+.spec-graph-panel__orphans {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e2e2e6);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.spec-graph-panel__relations-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  color: var(--text1, inherit);
+}
+
+.spec-graph-panel__relations-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-graph-panel__relations-empty {
+  color: var(--text2, #888);
+}
+
+.spec-graph-panel__relations-list {
+  margin: 0;
+  padding-left: 16px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.spec-graph-panel__relations-list li {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
 }
 </style>

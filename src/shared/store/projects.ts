@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import {
   LS_PROJECTS,
-  LS_SETTINGS,
   LS_HISTORY,
   LS_ACTIVE_TASK,
   LS_EVENTS_VIEW,
@@ -15,7 +14,10 @@ import {
   defaultPromptPathForRole,
   defaultRemoteApiProvider,
 } from "@/shared/lib/use-swarm-defaults";
-import { loadJSON, writeRawString, removeKey } from "@/shared/lib/storage-utils";
+import {
+  persistenceAdapter,
+  readLegacySettings,
+} from "@/shared/lib/persistence-adapter";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 export type {
@@ -158,7 +160,7 @@ export const useProjectsStore = defineStore("projects", () => {
 
   function _save(d: ProjectsData): void {
     try {
-      writeRawString(LS_PROJECTS, JSON.stringify(d));
+      persistenceAdapter.write(LS_PROJECTS, d);
     } catch (e) {
       frontendLogger.warn("projects: localStorage quota exceeded when saving", e);
     }
@@ -166,7 +168,7 @@ export const useProjectsStore = defineStore("projects", () => {
 
   function _load(): ProjectsData | null {
     try {
-      const d = loadJSON<ProjectsData | null>(LS_PROJECTS, null);
+      const d = persistenceAdapter.read(LS_PROJECTS) as ProjectsData | null;
       if (!d || d.v !== 1 || typeof d.projects !== "object") return null;
       return d;
     } catch (e) {
@@ -177,7 +179,7 @@ export const useProjectsStore = defineStore("projects", () => {
 
   function _migrateLegacy(): ProjectsData | null {
     try {
-      const snap = loadJSON<SettingsSnap | null>(LS_SETTINGS, null);
+      const snap = readLegacySettings() as SettingsSnap | null;
       if (!snap || snap.v !== 1) return null;
       const id = "default";
       const pdata: ProjectsData = {
@@ -259,9 +261,9 @@ export const useProjectsStore = defineStore("projects", () => {
     const ids = Object.keys(data.value.projects);
     if (ids.length <= 1) return null;
     try {
-      removeKey(LS_HISTORY + "_" + id);
-      removeKey(LS_ACTIVE_TASK + "_" + id);
-      removeKey(LS_EVENTS_VIEW + "_" + id);
+      persistenceAdapter.remove(LS_HISTORY + "_" + id);
+      persistenceAdapter.remove(LS_ACTIVE_TASK + "_" + id);
+      persistenceAdapter.remove(LS_EVENTS_VIEW + "_" + id);
     } catch (e) {
       frontendLogger.warn(
         "projects: failed to remove project-scoped storage keys for",

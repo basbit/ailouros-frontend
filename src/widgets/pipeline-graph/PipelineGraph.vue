@@ -26,23 +26,6 @@
         @select-custom="(id) => $emit('scenario:select-custom', id)"
         @save-custom="$emit('scenario:save-custom')"
       />
-      <PipelineGraphTopologySelector
-        :active-topology="topo"
-        :show-heavy-hint="!!editorSteps && steps.length > recommendedCount * 2"
-        :layout-label="t('graph.layout')"
-        :layout-help="t('graph.layoutHelp')"
-        :heavy-hint="
-          t('graph.pipelineHeavyHint', {
-            n: steps.length,
-            recommended: recommendedCount,
-          })
-        "
-        :reset-recommended-label="t('graph.resetRecommended')"
-        :reset-recommended-title="t('graph.resetRecommendedTitle')"
-        @update:topology="(value) => $emit('update:topology', value)"
-        @reset-recommended="$emit('editor:reset-recommended')"
-      />
-
       <template v-if="steps.length">
         <div
           v-if="topo === 'linear'"
@@ -140,7 +123,6 @@ import HostMetricsChart from "@/shared/components/HostMetricsChart.vue";
 import StepCard from "@/widgets/pipeline-graph/StepCard.vue";
 import PipelineSummary from "@/widgets/pipeline-graph/PipelineSummary.vue";
 import PipelineGraphLegend from "@/widgets/pipeline-graph/PipelineGraphLegend.vue";
-import PipelineGraphTopologySelector from "@/widgets/pipeline-graph/PipelineGraphTopologySelector.vue";
 import PipelineGraphHeader from "@/widgets/pipeline-graph/PipelineGraphHeader.vue";
 import PipelineGraphEdges from "@/widgets/pipeline-graph/PipelineGraphEdges.vue";
 import { useTopologyConnections } from "@/widgets/pipeline-graph/useTopologyConnections";
@@ -199,20 +181,13 @@ const emit = defineEmits<{
 const open = ref(true);
 const sortableContainer = ref<HTMLElement | null>(null);
 
-const {
-  topo,
-  recommendedCount,
-  editorStepIds,
-  editorEnabled,
-  stepSignal,
-  stepKey,
-  orderViolationFor,
-} = usePipelineGraphEditor({
-  steps: computed(() => props.steps),
-  editorSteps: computed(() => props.editorSteps),
-  topology: computed(() => props.topology),
-  t,
-});
+const { topo, editorStepIds, editorEnabled, stepSignal, stepKey, orderViolationFor } =
+  usePipelineGraphEditor({
+    steps: computed(() => props.steps),
+    editorSteps: computed(() => props.editorSteps),
+    topology: computed(() => props.topology),
+    t,
+  });
 
 const { stepRefs, parallelStages, stepStatus } = usePipelineGraphLayout(
   props,

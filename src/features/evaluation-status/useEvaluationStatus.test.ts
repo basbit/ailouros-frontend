@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { EvaluationStatus } from "@/entities/evaluation-status";
+import type { EvaluationStatus } from "@/shared/model/evaluation-status-types";
 import { resetEvaluationStatus, useEvaluationStatus } from "./useEvaluationStatus";
 
 const fetchMock = vi.fn<() => Promise<EvaluationStatus>>();

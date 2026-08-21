@@ -27,7 +27,7 @@ export function useTokenMetrics() {
     lastError.value = null;
     try {
       const raw = await httpGet<Record<string, unknown>>(
-        `/tasks/${encodeURIComponent(taskId)}`,
+        `/v1/tasks/${encodeURIComponent(taskId)}`,
       );
       metrics.value = parseTokenMetricsPayload(raw);
     } catch (requestError: unknown) {

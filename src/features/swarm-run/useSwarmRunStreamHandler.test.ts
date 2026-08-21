@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   createSwarmStreamEventHandler,
   type SwarmStreamHandlerDeps,
 } from "./useSwarmRunStreamHandler";
+import { resetWorkspaceIndexStats, workspaceIndexLatest } from "./workspaceIndexStats";
 
 function makeDeps() {
   const notify = vi.fn();
@@ -20,6 +21,10 @@ function makeDeps() {
 }
 
 describe("createSwarmStreamEventHandler", () => {
+  beforeEach(() => {
+    resetWorkspaceIndexStats();
+  });
+
   it("surfaces a failed preflight (401) as an error toast and marks the task failed", () => {
     const { deps, notify, markTaskFailed } = makeDeps();
     createSwarmStreamEventHandler(deps)({
@@ -98,14 +103,13 @@ describe("createSwarmStreamEventHandler", () => {
     expect(recordRetrievalDone).toHaveBeenCalledWith(retrievalEvent);
   });
 
-  it("ignores workspace_index_stats without throwing", () => {
-    const { deps, notify } = makeDeps();
-    expect(() =>
-      createSwarmStreamEventHandler(deps)({
-        kind: "workspace_index_stats",
-        stats: { files: 1 },
-      }),
-    ).not.toThrow();
-    expect(notify).not.toHaveBeenCalled();
+  it("records workspace_index_stats into the shared store", () => {
+    const { deps } = makeDeps();
+    createSwarmStreamEventHandler(deps)({
+      kind: "workspace_index_stats",
+      stats: { total_files: 42, omitted_files: 3 },
+    });
+    expect(workspaceIndexLatest.value?.total_files).toBe(42);
+    expect(workspaceIndexLatest.value?.omitted_files).toBe(3);
   });
 });

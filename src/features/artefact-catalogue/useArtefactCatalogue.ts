@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { ArtefactCatalogueReport } from "@/entities/artefact-catalogue";
+import type { ArtefactCatalogueReport } from "@/shared/model/artefact-catalogue-types";
 import { getArtefactReport } from "@/shared/api/endpoints/artefact-catalogue";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

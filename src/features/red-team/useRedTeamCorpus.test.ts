@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RedTeamCorpus } from "@/entities/red-team";
+import type { RedTeamCorpus } from "@/shared/model/red-team-types";
 import { resetRedTeamCorpus, useRedTeamCorpus } from "./useRedTeamCorpus";
 
 const fetchMock = vi.fn<() => Promise<RedTeamCorpus>>();

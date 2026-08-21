@@ -109,4 +109,77 @@ describe("useSpecGraph", () => {
     await state.load("");
     expect(http.httpGet).toHaveBeenCalledWith("/v1/spec/graph?persist=false");
   });
+
+  it("loadNodeRelations fetches ancestors and dependants", async () => {
+    const { useSpecGraph } = await import("./useSpecGraph");
+    const state = useSpecGraph();
+    http.httpGet.mockImplementation((path: string) => {
+      if (path.includes("/ancestors")) {
+        return Promise.resolve({
+          spec_id: "spec:auth",
+          depth: 1,
+          ancestors: ["spec:base"],
+        });
+      }
+      return Promise.resolve({
+        spec_id: "spec:auth",
+        depth: 1,
+        dependants: ["code:auth.ts"],
+      });
+    });
+
+    await state.loadNodeRelations("/workspace", "spec:auth", 1);
+
+    expect(http.httpGet).toHaveBeenCalledWith(
+      "/v1/spec/spec%3Aauth/ancestors?workspace_root=%2Fworkspace&depth=1",
+    );
+    expect(http.httpGet).toHaveBeenCalledWith(
+      "/v1/spec/spec%3Aauth/dependants?workspace_root=%2Fworkspace&depth=1",
+    );
+    expect(state.ancestors.value).toEqual(["spec:base"]);
+    expect(state.dependants.value).toEqual(["code:auth.ts"]);
+  });
+
+  it("loadNodeRelations is a no-op for a blank spec id", async () => {
+    const { useSpecGraph } = await import("./useSpecGraph");
+    const state = useSpecGraph();
+    await state.loadNodeRelations("/workspace", "");
+    expect(http.httpGet).not.toHaveBeenCalled();
+  });
+
+  it("loadOrphans fetches and stores orphans", async () => {
+    const { useSpecGraph } = await import("./useSpecGraph");
+    const state = useSpecGraph();
+    http.httpGet.mockResolvedValueOnce({
+      anchor: "_project",
+      orphans: ["spec:lonely"],
+    });
+
+    await state.loadOrphans("/workspace");
+
+    expect(http.httpGet).toHaveBeenCalledWith(
+      "/v1/spec/orphans?workspace_root=%2Fworkspace&anchor=_project",
+    );
+    expect(state.orphans.value).toEqual(["spec:lonely"]);
+  });
+
+  it("clearRelations empties all relation state", async () => {
+    const { useSpecGraph } = await import("./useSpecGraph");
+    const state = useSpecGraph();
+    state.ancestors.value = ["a"];
+    state.dependants.value = ["b"];
+    state.orphans.value = ["c"];
+    state.clearRelations();
+    expect(state.ancestors.value).toEqual([]);
+    expect(state.dependants.value).toEqual([]);
+    expect(state.orphans.value).toEqual([]);
+  });
+
+  it("reset clears relations too", async () => {
+    const { useSpecGraph } = await import("./useSpecGraph");
+    const state = useSpecGraph();
+    state.ancestors.value = ["a"];
+    state.reset();
+    expect(state.ancestors.value).toEqual([]);
+  });
 });

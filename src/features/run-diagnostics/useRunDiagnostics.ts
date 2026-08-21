@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { RunDiagnostics } from "@/entities/run-diagnostics";
+import type { RunDiagnostics } from "@/shared/model/run-diagnostics-types";
 import { getRunDiagnostics } from "@/shared/api/endpoints/run-diagnostics";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

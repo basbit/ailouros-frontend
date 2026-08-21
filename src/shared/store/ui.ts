@@ -28,6 +28,7 @@ export const useUiStore = defineStore("ui", () => {
     runAvailability: taskParts.runAvailability,
     runAvailabilityError: taskParts.runAvailabilityError,
     taskError: taskParts.taskError,
+    activeRunIds: taskParts.activeRunIds,
     taskHistory: taskParts.taskHistory,
     taskAgents: taskParts.taskAgents,
     taskScenarioId: taskParts.taskScenarioId,
@@ -75,5 +76,6 @@ export const useUiStore = defineStore("ui", () => {
     blockedReason: gateParts.blockedReason,
     blockedCode: gateParts.blockedCode,
     blockedStep: gateParts.blockedStep,
+    trackRun: taskParts.trackRun,
   };
 });

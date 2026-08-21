@@ -1,6 +1,6 @@
 import { computed, readonly, ref, type Ref } from "vue";
 
-import type { ResolvedCitation } from "@/entities/resolved-citation";
+import type { ResolvedCitation } from "@/shared/model/resolved-citation-types";
 import { resolveCitation } from "@/shared/api/endpoints/citations";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

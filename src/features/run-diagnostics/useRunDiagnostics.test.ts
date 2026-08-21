@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RunDiagnostics } from "@/entities/run-diagnostics";
+import type { RunDiagnostics } from "@/shared/model/run-diagnostics-types";
 import { resetRunDiagnostics, useRunDiagnostics } from "./useRunDiagnostics";
 
 const fetchMock = vi.fn();

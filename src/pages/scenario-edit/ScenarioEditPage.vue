@@ -56,17 +56,6 @@
           />
         </section>
 
-        <label class="scenario-edit-page__field">
-          <span class="scenario-edit-page__label">
-            {{ t("configure.pipeline.topologyLabel") }}
-          </span>
-          <select v-model="form.topology" class="scenario-edit-page__input">
-            <option v-for="opt in topologyOptions" :key="opt.id" :value="opt.id">
-              {{ opt.label }}
-            </option>
-          </select>
-        </label>
-
         <label class="scenario-edit-page__toggle">
           <input v-model="form.workspaceWriteDefault" type="checkbox" />
           <span>{{ t("settings.scenarios.editor.workspaceWriteDefault") }}</span>
@@ -111,7 +100,6 @@ const scenarioIdRef = toRef(props, "scenarioId");
 const {
   form,
   stepOptions,
-  topologyOptions,
   isEditMode,
   validationError,
   pageTitle,

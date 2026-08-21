@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { RetrievalSettings } from "@/entities/retrieval-settings";
+import type { RetrievalSettings } from "@/shared/model/retrieval-settings-types";
 import { getRetrievalSettings } from "@/shared/api/endpoints/retrieval-settings";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

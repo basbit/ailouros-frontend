@@ -75,6 +75,7 @@ export const scenariosEn: Messages = {
   "scenarioFindings.severity.low": "low",
   "scenarioShots.title": "Screenshots",
   "scenarioShots.viewport": "Viewport: {viewport}",
+  "scenarioShots.e2e": "E2E",
   "rolePicker.searchPlaceholder": "Search roles…",
   "rolePicker.empty": "No matching roles.",
   "rolePicker.openLabel": "Pick role",
@@ -177,6 +178,42 @@ export const scenariosEn: Messages = {
   "scenarios.pickerOpenSettings": "Open scenario settings",
   "scenarios.currentlySelected": "Selected:",
   "scenarios.tab.custom": "Custom",
+  "scenarios.catalog.build_feature.title": "Build Feature",
+  "scenarios.catalog.build_feature.description":
+    "Implements a feature in an existing codebase end to end: PM, BA, architect, spec, DevOps, development, QA, reviewers and a final manual gate.",
+  "scenarios.catalog.code_review.title": "Code Review",
+  "scenarios.catalog.code_review.description":
+    "Reviews the workspace read-only: analyzes the code, finds problems, prepares a refactor plan and stops at a manual review without writing files.",
+  "scenarios.catalog.competitor_analysis.title": "Competitor Analysis",
+  "scenarios.catalog.competitor_analysis.description":
+    "Compares the product against competitors: defines the market, collects data, rates sources, analyzes positioning and pricing, and shapes opportunities.",
+  "scenarios.catalog.content_article.title": "Article",
+  "scenarios.catalog.content_article.description":
+    "Readies an article for publication: defines audience and tone, collects structure, writes a draft, edits and checks SEO.",
+  "scenarios.catalog.data_analysis.title": "Data Analysis",
+  "scenarios.catalog.data_analysis.description":
+    "Plans and documents a reproducible data analysis: profiles the dataset, defines deterministic transforms, runs the analysis, plans charts and records findings with caveats.",
+  "scenarios.catalog.deep_research_report.title": "Deep Research Report",
+  "scenarios.catalog.deep_research_report.description":
+    "Prepares a thorough research report: clarifies the topic, plans analysis angles, runs parallel research, rates sources, fact-checks and assembles an executive summary.",
+  "scenarios.catalog.fix_bug.title": "Fix Bug",
+  "scenarios.catalog.fix_bug.description":
+    "Diagnoses and fixes a defect with the smallest change radius: clarifies the symptom, analyzes the code, plans a small patch, implements and verifies through QA before a manual gate.",
+  "scenarios.catalog.product_prd.title": "Product PRD",
+  "scenarios.catalog.product_prd.description":
+    "Turns an idea into a PRD: clarifies the goal, describes users and personas, sets requirements and acceptance criteria, sketches a roadmap and records risks.",
+  "scenarios.catalog.research_brief.title": "Research Brief",
+  "scenarios.catalog.research_brief.description":
+    "Prepares a brief with sources: clarifies the question, plans angles through PM/BA, gathers material via web_researcher, checks source trust and verifies every claim.",
+  "scenarios.catalog.seo_aeo_geo_audit.title": "SEO / AEO / GEO Audit",
+  "scenarios.catalog.seo_aeo_geo_audit.description":
+    "Audits a site or content for search, AI citation (AEO/GEO) and app-store discoverability. Read-only, with prioritized recommendations.",
+  "scenarios.catalog.support_triage.title": "Support Triage",
+  "scenarios.catalog.support_triage.description":
+    "Classifies a support request and prepares a safe customer reply: rates urgency, searches the knowledge base, checks escalation conditions and requires a manual confirmation.",
+  "scenarios.catalog.website_visual_qa.title": "Website Visual QA",
+  "scenarios.catalog.website_visual_qa.description":
+    "Loads the site in a browser, captures screenshots and judges the UI against the spec and design intent, with a manual review of the evidence.",
 };
 
 export const scenariosRu: Messages = {
@@ -290,6 +327,7 @@ export const scenariosRu: Messages = {
   "scenarioFindings.severity.low": "низкая",
   "scenarioShots.title": "Скриншоты",
   "scenarioShots.viewport": "Viewport: {viewport}",
+  "scenarioShots.e2e": "E2E",
   "rolePicker.searchPlaceholder": "Поиск ролей…",
   "rolePicker.empty": "Подходящих ролей не найдено.",
   "rolePicker.openLabel": "Выбрать роль",

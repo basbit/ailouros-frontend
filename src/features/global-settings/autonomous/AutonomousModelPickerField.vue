@@ -29,7 +29,7 @@ import {
 } from "@/shared/lib/use-model-list";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import ModelPickerField from "@/shared/components/ModelPickerField.vue";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 interface CloudConnection {
   remote_api_provider: string;

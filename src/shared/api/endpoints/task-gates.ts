@@ -43,6 +43,37 @@ export async function postRetryStream(
   });
 }
 
+export interface ContinueProposal {
+  proposed_steps: string[];
+  rationale: string;
+}
+
+export async function postContinuePropose(
+  taskId: string,
+  message: string,
+): Promise<ContinueProposal> {
+  return await httpPost<ContinueProposal>(
+    `/v1/tasks/${encodeURIComponent(taskId)}/continue/propose`,
+    { message, stream: false },
+  );
+}
+
+export async function postContinueStream(
+  taskId: string,
+  message: string,
+  confirmedSteps: string[],
+): Promise<Response> {
+  return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/continue`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message,
+      stream: true,
+      confirmed_steps: confirmedSteps,
+    }),
+  });
+}
+
 export async function postConfirmShell(
   taskId: string,
   approved: boolean,

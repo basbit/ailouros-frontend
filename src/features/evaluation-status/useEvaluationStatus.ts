@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { EvaluationStatus } from "@/entities/evaluation-status";
+import type { EvaluationStatus } from "@/shared/model/evaluation-status-types";
 import { getEvaluationStatus } from "@/shared/api/endpoints/evaluation-status";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

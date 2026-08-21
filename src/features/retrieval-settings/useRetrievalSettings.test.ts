@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RetrievalSettings } from "@/entities/retrieval-settings";
+import type { RetrievalSettings } from "@/shared/model/retrieval-settings-types";
 import { resetRetrievalSettings, useRetrievalSettings } from "./useRetrievalSettings";
 
 const fetchMock = vi.fn<() => Promise<RetrievalSettings>>();

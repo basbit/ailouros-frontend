@@ -5,7 +5,10 @@ import {
   LS_HISTORY,
   HISTORY_LIMIT,
 } from "@/shared/lib/swarm-constants";
-import { readRawString, writeRawString, removeKey } from "@/shared/lib/storage-utils";
+import {
+  persistenceAdapter,
+  readWithLegacyCopy,
+} from "@/shared/lib/persistence-adapter";
 import { safeWarn, parseJsonOr } from "@/shared/lib/safe-async";
 
 export interface HistoryEntry {
@@ -40,15 +43,7 @@ export function createHistoryRefs() {
   function loadHistory(pid: string): void {
     let raw: string | null = null;
     safeWarn("ui-history: failed to load history", () => {
-      const key = historyKey(pid);
-      raw = readRawString(key);
-      if (!raw && pid === "default") {
-        const leg = readRawString(LS_HISTORY);
-        if (leg) {
-          writeRawString(key, leg);
-          raw = leg;
-        }
-      }
+      raw = readWithLegacyCopy(historyKey(pid), pid === "default" ? LS_HISTORY : null);
     });
     const arr = parseJsonOr<unknown>(raw, [], "ui-history: failed to load history");
     historyList.value = Array.isArray(arr) ? arr : [];
@@ -65,7 +60,7 @@ export function createHistoryRefs() {
       historyList.value = historyList.value.slice(0, HISTORY_LIMIT);
     }
     safeWarn("ui-history: failed to persist history entry", () =>
-      writeRawString(historyKey(pid), JSON.stringify(historyList.value)),
+      persistenceAdapter.write(historyKey(pid), JSON.stringify(historyList.value)),
     );
   }
 
@@ -80,35 +75,30 @@ export function createHistoryRefs() {
     });
     historyList.value = next;
     safeWarn("ui-history: failed to persist updated history", () =>
-      writeRawString(historyKey(pid), JSON.stringify(historyList.value)),
+      persistenceAdapter.write(historyKey(pid), JSON.stringify(historyList.value)),
     );
   }
 
   function clearHistory(pid: string): void {
     historyList.value = [];
     safeWarn("ui-history: failed to clear history from storage", () =>
-      removeKey(historyKey(pid)),
+      persistenceAdapter.remove(historyKey(pid)),
     );
   }
 
   function loadEventsView(pid: string): void {
     safeWarn("ui-history: failed to load events view preference", () => {
-      const key = eventsViewKey(pid);
-      let v = readRawString(key);
-      if (v == null && pid === "default") {
-        const leg = readRawString(LS_EVENTS_VIEW);
-        if (leg != null) {
-          writeRawString(key, leg);
-          v = leg;
-        }
-      }
+      const v = readWithLegacyCopy(
+        eventsViewKey(pid),
+        pid === "default" ? LS_EVENTS_VIEW : null,
+      );
       eventsViewMode.value = v === "raw" ? "raw" : "preview";
     });
   }
 
   function saveEventsView(pid: string): void {
     safeWarn("ui-history: failed to save events view preference", () =>
-      writeRawString(eventsViewKey(pid), eventsViewMode.value),
+      persistenceAdapter.write(eventsViewKey(pid), eventsViewMode.value),
     );
   }
 

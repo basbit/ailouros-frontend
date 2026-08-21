@@ -58,12 +58,17 @@
 import { computed, reactive } from "vue";
 import { useSystemHealth } from "@/features/system-health/useSystemHealth";
 import type { SubsystemHealth } from "@/shared/api/endpoints/health";
+import { useInjectedAppSettings } from "@/entities/app-settings/contract";
 
 const props = defineProps<{
   pollIntervalMs?: number;
 }>();
 
-const state = useSystemHealth(props.pollIntervalMs ?? 30_000);
+const settings = useInjectedAppSettings();
+const state = useSystemHealth(
+  props.pollIntervalMs ?? 30_000,
+  () => settings.form.workspace_root,
+);
 void state.reload();
 
 const expanded = reactive<Record<string, boolean>>({});

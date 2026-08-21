@@ -11,6 +11,7 @@ export const headerEn: Messages = {
   "header.locale": "Language",
   "header.closeTask": "Close loaded run",
   "header.resumeRun": "Open the running pipeline",
+  "header.activeRuns": "Active runs",
   "header.tabs.run": "Run",
   "header.tabs.configure": "Configure",
   "header.tabs.history": "History",
@@ -32,4 +33,5 @@ export const headerRu: Messages = {
   "header.tabs.settings": "Общие настройки",
   "header.closeTask": "Закрыть загруженный прогон",
   "header.resumeRun": "Открыть страницу работающего пайплайна",
+  "header.activeRuns": "Активные прогоны",
 };

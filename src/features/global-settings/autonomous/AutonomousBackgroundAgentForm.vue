@@ -89,7 +89,7 @@ import AutonomousModelPickerField from "./AutonomousModelPickerField.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 interface CloudConnection {
   remote_api_provider: string;

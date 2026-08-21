@@ -27,6 +27,7 @@ function emptyState(): SystemHealth {
 
 export function useSystemHealth(
   intervalMs: number = DEFAULT_INTERVAL_MS,
+  workspaceRoot?: string | (() => string),
 ): UseSystemHealthState {
   const status = ref<HealthStatus | null>(null);
   const subsystems = ref<SubsystemHealth[]>([]);
@@ -37,11 +38,16 @@ export function useSystemHealth(
 
   let timer: ReturnType<typeof setInterval> | null = null;
 
+  function resolveRoot(): string {
+    if (typeof workspaceRoot === "function") return workspaceRoot();
+    return workspaceRoot ?? "";
+  }
+
   async function reload(): Promise<void> {
     loading.value = true;
     error.value = null;
     try {
-      const payload = await getHealth();
+      const payload = await getHealth(undefined, resolveRoot());
       const merged: SystemHealth = {
         status: payload.status ?? "ok",
         subsystems: Array.isArray(payload.subsystems) ? payload.subsystems : [],

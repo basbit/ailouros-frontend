@@ -40,7 +40,10 @@
       />
       <ScenarioSourcesPanel :raw-agent-text="researchSourcesText" />
       <ScenarioFindingsPanel :raw-agent-text="codeReviewFindingsText" />
-      <ScenarioScreenshotGalleryPanel :visual-manifest="visualProbeManifest" />
+      <ScenarioScreenshotGalleryPanel
+        :visual-manifest="visualProbeManifest"
+        :e2e-screenshot-paths="e2eScreenshotPaths"
+      />
     </div>
   </details>
 </template>
@@ -53,7 +56,7 @@ import ScenarioSourcesPanel from "@/widgets/task-panel/ScenarioSourcesPanel.vue"
 import ScenarioFindingsPanel from "@/widgets/task-panel/ScenarioFindingsPanel.vue";
 import ScenarioScreenshotGalleryPanel from "@/widgets/task-panel/ScenarioScreenshotGalleryPanel.vue";
 import { useI18n } from "@/shared/lib/i18n";
-import type { TaskStatus } from "@/entities/task";
+import type { TaskStatus } from "@/shared/model/task-types";
 
 defineProps<{
   open: boolean;
@@ -61,6 +64,7 @@ defineProps<{
   clarifyCacheProvenance: string;
   workspaceIdentityResolved: string;
   visualProbeManifest: Record<string, unknown> | null;
+  e2eScreenshotPaths?: string[];
   taskId: string | null;
   taskScenarioId: string | null;
   taskStatus: TaskStatus | null;

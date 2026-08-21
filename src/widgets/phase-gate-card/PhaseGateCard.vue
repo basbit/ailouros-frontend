@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, watch } from "vue";
 
-import type { PhaseGate, PhaseGateDecision } from "@/entities/phase-gate";
+import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-types";
 import { usePhaseGates } from "@/features/phase-gates/usePhaseGates";
 import { useI18n } from "@/shared/lib/i18n";
 

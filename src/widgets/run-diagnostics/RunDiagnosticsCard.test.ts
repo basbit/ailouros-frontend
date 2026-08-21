@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 
-import type { RunDiagnostics } from "@/entities/run-diagnostics";
+import type { RunDiagnostics } from "@/shared/model/run-diagnostics-types";
 import RunDiagnosticsCard from "./RunDiagnosticsCard.vue";
 import { resetRunDiagnostics } from "@/features/run-diagnostics/useRunDiagnostics";
 

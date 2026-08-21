@@ -84,6 +84,7 @@
       :clarify-cache-provenance="clarifyCacheProvenance"
       :workspace-identity-resolved="workspaceIdentityResolved"
       :visual-probe-manifest="visualProbeManifest"
+      :e2e-screenshot-paths="e2eScreenshotPaths"
       :task-id="ui.taskId"
       :task-scenario-id="ui.taskScenarioId"
       :task-status="ui.taskStatus"
@@ -152,6 +153,7 @@ defineProps<{
   clarifyCacheProvenance: string;
   workspaceIdentityResolved: string;
   visualProbeManifest: Record<string, unknown> | null;
+  e2eScreenshotPaths: string[];
   researchSourcesText: string;
   codeReviewFindingsText: string;
 }>();

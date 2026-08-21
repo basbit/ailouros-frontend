@@ -1,5 +1,5 @@
 import { useProjectsStore } from "@/shared/store/projects";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useUxStore } from "@/shared/store/ux";

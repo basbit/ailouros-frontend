@@ -1,5 +1,5 @@
 import { httpPost } from "@/shared/api/http";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 type ProviderBalanceStatus = "ok" | "unknown" | "error";
 

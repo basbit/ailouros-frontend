@@ -5,7 +5,7 @@ import { defaultModelForRole } from "@/shared/lib/use-swarm-defaults";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 import { getOnboardingModels } from "@/shared/api/endpoints/onboarding";
 import type { RoleSnapshot } from "@/entities/role";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import { useRoleState, type ModelMode } from "./useRoleState";
 import { useRoleModelSelector } from "./useRoleModelSelector";
 import { useRolePromptSelector } from "./useRolePromptSelector";

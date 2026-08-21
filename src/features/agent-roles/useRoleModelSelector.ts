@@ -4,7 +4,7 @@ import {
   ensureModelChoicesForEnv,
   fetchCloudModelsForProfile,
 } from "@/shared/lib/use-model-list";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import type { RoleState } from "./useRoleState";
 
 export interface RoleModelSelectorDeps {

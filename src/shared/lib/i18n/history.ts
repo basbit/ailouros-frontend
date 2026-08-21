@@ -33,6 +33,10 @@ export const historyEn: Messages = {
   "graphsTab.view.spec": "Specifications",
   "graphsTab.view.wiki": "Wiki graph",
   "graphsTab.view.code": "Code graph",
+  "specGraph.filterPlaceholder": "filter by title or kind",
+  "specGraph.ancestors": "Ancestors",
+  "specGraph.dependants": "Dependants",
+  "specGraph.orphans": "Orphans",
   "specContent.loading": "Loading spec…",
   "specContent.notFound": "Spec not found in this workspace.",
   "specContent.empty": "Select a spec node to view its content.",
@@ -72,6 +76,16 @@ export const historyEn: Messages = {
   "history.detail.resume.failed": "Resume failed: {error}",
   "history.detail.resume.noState":
     "Saved run state is not available — the run cannot be resumed.",
+  "conversation.title": "Conversation",
+  "conversation.noTask": "This run has no task id yet.",
+  "conversation.loading": "Loading conversation…",
+  "conversation.empty": "No conversation messages recorded for this run yet.",
+  "conversation.disabled": "Shared history is disabled on this server.",
+  "specList.title": "Spec list",
+  "specList.noWorkspace": "This run has no workspace_root recorded.",
+  "specList.loading": "Loading spec list…",
+  "specList.empty": "No specs initialised in this workspace yet.",
+  "specList.init": "Init specs",
 };
 
 export const historyRu: Messages = {
@@ -107,6 +121,10 @@ export const historyRu: Messages = {
   "graphsTab.view.spec": "Спецификации",
   "graphsTab.view.wiki": "Вики-граф",
   "graphsTab.view.code": "Граф кода",
+  "specGraph.filterPlaceholder": "фильтр по заголовку или типу",
+  "specGraph.ancestors": "Предки",
+  "specGraph.dependants": "Зависимые",
+  "specGraph.orphans": "Сироты",
   "specContent.loading": "Загружаю спецификацию…",
   "specContent.notFound": "Спецификация не найдена в этом workspace.",
   "specContent.empty": "Выберите узел спецификации, чтобы увидеть его содержимое.",
@@ -146,4 +164,14 @@ export const historyRu: Messages = {
   "history.detail.resume.failed": "Возобновление не удалось: {error}",
   "history.detail.resume.noState":
     "Сохранённое состояние прогона недоступно — возобновление невозможно.",
+  "conversation.title": "Переписка",
+  "conversation.noTask": "У этого прогона ещё нет task id.",
+  "conversation.loading": "Загружаю переписку…",
+  "conversation.empty": "Для этого прогона сообщения переписки не записаны.",
+  "conversation.disabled": "Общая история отключена на этом сервере.",
+  "specList.title": "Список spec",
+  "specList.noWorkspace": "Для этого прогона не сохранён workspace_root.",
+  "specList.loading": "Загружаю список spec…",
+  "specList.empty": "В этом workspace ещё не инициализированы spec.",
+  "specList.init": "Инициализировать spec",
 };

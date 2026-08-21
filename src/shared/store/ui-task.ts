@@ -2,7 +2,10 @@ import { ref } from "vue";
 import type { RunAvailability, TaskStatus } from "@/shared/model/task-types";
 import type { PipelinePlanSnapshot } from "@/shared/api/endpoints/pipeline";
 import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-constants";
-import { readRawString, writeRawString, removeKey } from "@/shared/lib/storage-utils";
+import {
+  persistenceAdapter,
+  readWithLegacyCopy,
+} from "@/shared/lib/persistence-adapter";
 import { safeWarn, parseJsonOr } from "@/shared/lib/safe-async";
 
 export interface ServerCapabilities {
@@ -43,6 +46,10 @@ export function createTaskRefs() {
   const runAvailability = ref<RunAvailability>("unresolved");
   const runAvailabilityError = ref<string | null>(null);
   const taskError = ref<unknown>(null);
+  // Parallel runs: every task started in this session (running or recently
+  // finished) is kept here so the header switcher can jump back to it. The
+  // single active task (taskId above) is the one currently rendered.
+  const activeRunIds = ref<string[]>([]);
   const taskHistory = ref<
     {
       id?: string;
@@ -107,12 +114,20 @@ export function createTaskRefs() {
     hostMetricsHistory.value = [];
   }
 
+  function trackRun(taskIdValue: string): void {
+    if (!taskIdValue) return;
+    const list = activeRunIds.value;
+    if (!list.includes(taskIdValue)) list.unshift(taskIdValue);
+    activeRunIds.value = list.slice(0, 20);
+  }
+
   return {
     taskId,
     taskStatus,
     runAvailability,
     runAvailabilityError,
     taskError,
+    activeRunIds,
     taskHistory,
     taskAgents,
     taskScenarioId,
@@ -133,6 +148,7 @@ export function createTaskRefs() {
     isVerificationRunning,
     pushHostMetricsSample,
     clearHostMetricsHistory,
+    trackRun,
   };
 }
 
@@ -143,11 +159,14 @@ function activeTaskKey(pid: string): string {
 export function persistActiveTask(taskIdValue: string | null, pid: string): void {
   if (!taskIdValue) {
     safeWarn("ui-task: failed to remove active task key", () =>
-      removeKey(activeTaskKey(pid)),
+      persistenceAdapter.remove(activeTaskKey(pid)),
     );
   } else {
     safeWarn("ui-task: failed to persist active task", () =>
-      writeRawString(activeTaskKey(pid), JSON.stringify({ taskId: taskIdValue })),
+      persistenceAdapter.write(
+        activeTaskKey(pid),
+        JSON.stringify({ taskId: taskIdValue }),
+      ),
     );
   }
 }
@@ -155,15 +174,10 @@ export function persistActiveTask(taskIdValue: string | null, pid: string): void
 export function restoreActiveTask(pid: string): string | null {
   let raw: string | null = null;
   safeWarn("ui-task: failed to restore active task", () => {
-    const key = activeTaskKey(pid);
-    raw = readRawString(key);
-    if (!raw && pid === "default") {
-      const leg = readRawString(LS_ACTIVE_TASK);
-      if (leg) {
-        writeRawString(key, leg);
-        raw = leg;
-      }
-    }
+    raw = readWithLegacyCopy(
+      activeTaskKey(pid),
+      pid === "default" ? LS_ACTIVE_TASK : null,
+    );
   });
   const parsed = parseJsonOr<{ taskId?: unknown } | null>(
     raw,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import type { ResolvedCitation } from "@/entities/resolved-citation";
+import type { ResolvedCitation } from "@/shared/model/resolved-citation-types";
 import { resetInlineCitationsCache, useInlineCitations } from "./useInlineCitations";
 
 const resolveMock =

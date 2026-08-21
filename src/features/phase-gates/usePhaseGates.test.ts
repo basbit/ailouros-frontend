@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PhaseGate, PhaseGateDecision } from "@/entities/phase-gate";
+import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-types";
 
 import { resetPhaseGates, usePhaseGates } from "./usePhaseGates";
 

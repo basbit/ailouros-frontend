@@ -1,5 +1,5 @@
 <template>
-  <section v-if="grouped.length" class="scenario-shots">
+  <section v-if="grouped.length || e2eShots.length" class="scenario-shots">
     <header class="scenario-shots__head">
       <span class="scenario-shots__title">{{ t("scenarioShots.title") }}</span>
       <span class="scenario-shots__count">{{ totalCount }}</span>
@@ -16,6 +16,24 @@
         <a
           v-for="(shot, index) in bucket.items"
           :key="`${bucket.viewport}-${index}`"
+          class="scenario-shots__item"
+          :href="resolveLink(shot.url)"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img :src="resolveLink(shot.url)" :alt="shot.label" loading="lazy" />
+          <span>{{ shot.label }}</span>
+        </a>
+      </div>
+    </div>
+    <div v-if="e2eShots.length" class="scenario-shots__bucket">
+      <div class="scenario-shots__bucket-label">
+        {{ t("scenarioShots.e2e") }}
+      </div>
+      <div class="scenario-shots__grid">
+        <a
+          v-for="(shot, index) in e2eShots"
+          :key="`e2e-${index}`"
           class="scenario-shots__item"
           :href="resolveLink(shot.url)"
           target="_blank"
@@ -47,9 +65,18 @@ interface Bucket {
 
 const props = defineProps<{
   visualManifest: Record<string, unknown> | null | undefined;
+  e2eScreenshotPaths?: string[];
 }>();
 
 const { t } = useI18n();
+
+const e2eShots = computed<Shot[]>(() =>
+  (props.e2eScreenshotPaths ?? []).map((url, index) => ({
+    url,
+    viewport: "e2e",
+    label: `e2e ${index + 1}`,
+  })),
+);
 
 const shots = computed<Shot[]>(() => {
   const manifest = props.visualManifest;
@@ -90,7 +117,7 @@ const grouped = computed<Bucket[]>(() => {
   }));
 });
 
-const totalCount = computed(() => shots.value.length);
+const totalCount = computed(() => shots.value.length + e2eShots.value.length);
 
 function resolveLink(value: string): string {
   if (!value) return "";

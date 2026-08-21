@@ -113,7 +113,7 @@ import { useI18n } from "@/shared/lib/i18n";
 import GlobalAutomationSettings from "./GlobalAutomationSettings.vue";
 import GlobalFeatureFlagsSettings from "./GlobalFeatureFlagsSettings.vue";
 import GlobalNotificationSettings from "./GlobalNotificationSettings.vue";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 const { t } = useI18n();
 const { state, setKey } = useGlobalSettings();

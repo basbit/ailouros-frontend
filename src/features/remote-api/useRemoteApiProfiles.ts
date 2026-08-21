@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import {
   defaultRemoteApiBaseUrl,
   defaultRemoteApiProvider,

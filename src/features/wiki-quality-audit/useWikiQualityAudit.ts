@@ -2,7 +2,7 @@ import { ref } from "vue";
 import type { Ref } from "vue";
 import { initApiBase } from "@/shared/api/base";
 import { getWikiQualityReport } from "@/shared/api/endpoints/wiki-quality";
-import type { WikiQualityReport } from "@/entities/wiki-quality";
+import type { WikiQualityReport } from "@/shared/model/wiki-quality-types";
 
 export interface WikiQualityAuditApi {
   report: Ref<WikiQualityReport | null>;

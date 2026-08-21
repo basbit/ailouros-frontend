@@ -5,7 +5,7 @@ import { nextTick, reactive, ref } from "vue";
 import ApiKeysPane from "./ApiKeysPane.vue";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
 import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 
 function makeSettingsStub() {
   const profiles = ref<RemoteProfileRow[]>([

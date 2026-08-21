@@ -1,7 +1,10 @@
 import { ref, type Ref } from "vue";
 import { ApiError } from "@/shared/api/http";
 import {
+  getSpecAncestors,
+  getSpecDependants,
   getSpecGraph,
+  getSpecOrphans,
   type SpecGraphDto,
   type SpecGraphEdgeDto,
   type SpecGraphNodeDto,
@@ -47,6 +50,16 @@ export interface UseSpecGraphState {
   notImplemented: Ref<boolean>;
   load: (workspaceRoot: string, persist?: boolean) => Promise<void>;
   reset: () => void;
+  ancestors: Ref<string[]>;
+  dependants: Ref<string[]>;
+  orphans: Ref<string[]>;
+  loadNodeRelations: (
+    workspaceRoot: string,
+    specId: string,
+    depth?: number,
+  ) => Promise<void>;
+  loadOrphans: (workspaceRoot: string) => Promise<void>;
+  clearRelations: () => void;
 }
 
 function pickTitle(node: SpecGraphNodeDto): string {
@@ -89,6 +102,9 @@ export function useSpecGraph(): UseSpecGraphState {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const notImplemented = ref(false);
+  const ancestors = ref<string[]>([]);
+  const dependants = ref<string[]>([]);
+  const orphans = ref<string[]>([]);
 
   async function load(workspaceRoot: string, persist = false): Promise<void> {
     loading.value = true;
@@ -126,6 +142,53 @@ export function useSpecGraph(): UseSpecGraphState {
     loading.value = false;
     error.value = null;
     notImplemented.value = false;
+    clearRelations();
+  }
+
+  async function loadNodeRelations(
+    workspaceRoot: string,
+    specId: string,
+    depth = 1,
+  ): Promise<void> {
+    if (!specId) return;
+    error.value = null;
+    try {
+      const [ancestorsDto, dependantsDto] = await Promise.all([
+        getSpecAncestors(workspaceRoot, specId, depth),
+        getSpecDependants(workspaceRoot, specId, depth),
+      ]);
+      ancestors.value = ancestorsDto.ancestors;
+      dependants.value = dependantsDto.dependants;
+    } catch (err) {
+      if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = "Failed to load node relations.";
+      }
+      ancestors.value = [];
+      dependants.value = [];
+    }
+  }
+
+  async function loadOrphans(workspaceRoot: string): Promise<void> {
+    error.value = null;
+    try {
+      const dto = await getSpecOrphans(workspaceRoot);
+      orphans.value = dto.orphans;
+    } catch (err) {
+      if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = "Failed to load orphans.";
+      }
+      orphans.value = [];
+    }
+  }
+
+  function clearRelations(): void {
+    ancestors.value = [];
+    dependants.value = [];
+    orphans.value = [];
   }
 
   return {
@@ -137,5 +200,11 @@ export function useSpecGraph(): UseSpecGraphState {
     notImplemented,
     load,
     reset,
+    ancestors,
+    dependants,
+    orphans,
+    loadNodeRelations,
+    loadOrphans,
+    clearRelations,
   };
 }

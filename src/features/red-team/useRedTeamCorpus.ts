@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { RedTeamCorpus } from "@/entities/red-team";
+import type { RedTeamCorpus } from "@/shared/model/red-team-types";
 import { getRedTeamCorpus } from "@/shared/api/endpoints/red-team";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 

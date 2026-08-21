@@ -1,6 +1,6 @@
 import { computed, readonly, ref } from "vue";
 
-import type { PhaseGate, PhaseGateDecision } from "@/entities/phase-gate";
+import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-types";
 import {
   decidePhaseGate,
   listPendingPhaseGates,

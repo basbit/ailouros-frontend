@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { PresentArtefact } from "@/entities/artefact-catalogue";
+import type { PresentArtefact } from "@/shared/model/artefact-catalogue-types";
 import { useArtefactCatalogue } from "@/features/artefact-catalogue/useArtefactCatalogue";
 import { useI18n } from "@/shared/lib/i18n";
 

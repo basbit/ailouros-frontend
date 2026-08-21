@@ -24,12 +24,12 @@ export interface CodeGraphEdge {
   call_site_line: number | null;
 }
 
-interface CodeGraphTopCalled {
+export interface CodeGraphTopCalled {
   qualified_name: string;
   callers: number;
 }
 
-interface CodeGraphReport {
+export interface CodeGraphReport {
   node_count: number;
   edge_count: number;
   top_called: CodeGraphTopCalled[];
@@ -48,7 +48,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function parseCodeGraphReport(raw: unknown): CodeGraphReport | null {
+export function parseCodeGraphReport(raw: unknown): CodeGraphReport | null {
   if (!isRecord(raw)) return null;
   if (typeof raw.node_count !== "number" || typeof raw.edge_count !== "number") {
     return null;

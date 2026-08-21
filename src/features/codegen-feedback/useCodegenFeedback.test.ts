@@ -3,6 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const feedbackApi = vi.hoisted(() => ({
   submitCodegenFeedback:
     vi.fn<(payload: unknown) => Promise<{ id: string; recorded_at: string }>>(),
+  listCodegenFeedback:
+    vi.fn<
+      (
+        specId: string,
+        targetFile: string,
+        k?: number,
+      ) => Promise<{ items: unknown[]; count: number }>
+    >(),
 }));
 
 vi.mock("@/shared/api/endpoints/feedback", () => feedbackApi);
@@ -14,6 +22,7 @@ afterEach(() => {
 describe("useCodegenFeedback", () => {
   beforeEach(() => {
     feedbackApi.submitCodegenFeedback.mockReset();
+    feedbackApi.listCodegenFeedback.mockReset();
   });
 
   it("returns submission id on success", async () => {
@@ -120,5 +129,44 @@ describe("useCodegenFeedback", () => {
       reason: "minor fix",
       tags: ["auth", "login"],
     });
+  });
+
+  it("returns previous feedback items on list success", async () => {
+    const items = [
+      {
+        id: "fb-1",
+        spec_id: "auth/login",
+        agent: "coder",
+        target_file: "src/auth/login.py",
+        verdict: "accept",
+        user_edit_diff: null,
+        reason: null,
+        recorded_at: "2026-01-01T00:00:00Z",
+        tags: [],
+      },
+    ];
+    feedbackApi.listCodegenFeedback.mockResolvedValue({ items, count: 1 });
+    const { useCodegenFeedback } = await import("./useCodegenFeedback");
+    const state = useCodegenFeedback();
+    const result = await state.list("auth/login", "src/auth/login.py");
+    expect(result).toEqual(items);
+    expect(state.previous.value).toEqual(items);
+    expect(state.listing.value).toBe(false);
+    expect(feedbackApi.listCodegenFeedback).toHaveBeenCalledWith(
+      "auth/login",
+      "src/auth/login.py",
+      10,
+    );
+  });
+
+  it("returns empty array on list failure without throwing", async () => {
+    feedbackApi.listCodegenFeedback.mockRejectedValue(new Error("server down"));
+    const { useCodegenFeedback } = await import("./useCodegenFeedback");
+    const state = useCodegenFeedback();
+    const result = await state.list("auth/login", "src/auth/login.py", 5);
+    expect(result).toEqual([]);
+    expect(state.previous.value).toEqual([]);
+    expect(state.error.value).toBe("server down");
+    expect(state.listing.value).toBe(false);
   });
 });

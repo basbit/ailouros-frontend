@@ -233,7 +233,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "@/shared/lib/i18n";
-import type { RunDiagnostics } from "@/entities/run-diagnostics";
+import type { RunDiagnostics } from "@/shared/model/run-diagnostics-types";
 
 defineProps<{
   diagnostics: RunDiagnostics;

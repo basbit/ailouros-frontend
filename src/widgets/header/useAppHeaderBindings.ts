@@ -24,6 +24,7 @@ export function useAppHeaderBindings() {
 
   const taskId = computed(() => ui.taskId);
   const isRunning = computed(() => controller.isRunning.value);
+  const activeRunIds = computed(() => ui.activeRunIds);
   const currentProjectId = computed(() => projects.currentId);
   const projectList = computed(() => projects.projectList);
   const projectName = computed(() => {
@@ -42,6 +43,7 @@ export function useAppHeaderBindings() {
   return {
     taskId,
     isRunning,
+    activeRunIds,
     currentProjectId,
     projectList,
     projectName,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { ROLES } from "@/shared/lib/pipeline-schema";
-import type { RemoteProfileRow } from "@/entities/remote-profile";
+import type { RemoteProfileRow } from "@/shared/model/project-types";
 import { useAgentRoles } from "./useAgentRoles";
 
 const { fetchCloudModelsForProfileMock, ensureModelChoicesForEnvMock } = vi.hoisted(

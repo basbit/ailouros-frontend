@@ -15,6 +15,11 @@ export interface SystemHealth {
   subsystems: SubsystemHealth[];
 }
 
-export async function getHealth(signal?: AbortSignal): Promise<SystemHealth> {
-  return httpGet<SystemHealth>("/v1/health", { signal });
+export async function getHealth(
+  signal?: AbortSignal,
+  workspaceRoot?: string,
+): Promise<SystemHealth> {
+  const root = (workspaceRoot ?? "").trim();
+  const query = root ? `?workspace_root=${encodeURIComponent(root)}` : "";
+  return httpGet<SystemHealth>(`/v1/health${query}`, { signal });
 }

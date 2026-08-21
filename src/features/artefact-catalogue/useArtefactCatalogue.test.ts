@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ArtefactCatalogueReport } from "@/entities/artefact-catalogue";
+import type { ArtefactCatalogueReport } from "@/shared/model/artefact-catalogue-types";
 
 import { resetArtefactCatalogue, useArtefactCatalogue } from "./useArtefactCatalogue";
 

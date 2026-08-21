@@ -23,6 +23,7 @@ export interface SwarmUiDerived {
     media_license_policy: string;
   }>;
   visualProbeManifest: ComputedRef<Record<string, unknown> | null>;
+  e2eScreenshotPaths: ComputedRef<string[]>;
   researchSourcesText: ComputedRef<string>;
   codeReviewFindingsText: ComputedRef<string>;
   backgroundAgentRemoteConfig: ComputedRef<{
@@ -74,6 +75,18 @@ export function useSwarmUiDerived(settings: SettingsApi): SwarmUiDerived {
       }
     }
     return null;
+  });
+
+  const e2eScreenshotPaths = computed<string[]>(() => {
+    const plan = ui.taskPipelinePlan as Record<string, unknown> | null;
+    const direct = plan?.e2e_screenshot_urls;
+    if (Array.isArray(direct)) return direct.map(String).filter(Boolean);
+    const partialState = plan?.partial_state;
+    if (partialState && typeof partialState === "object") {
+      const urls = (partialState as Record<string, unknown>).e2e_screenshot_urls;
+      if (Array.isArray(urls)) return urls.map(String).filter(Boolean);
+    }
+    return [];
   });
 
   function pickHistoryAgentText(agentName: string): string {
@@ -148,6 +161,7 @@ export function useSwarmUiDerived(settings: SettingsApi): SwarmUiDerived {
     skillsCatalogIds,
     mediaForm,
     visualProbeManifest,
+    e2eScreenshotPaths,
     researchSourcesText,
     codeReviewFindingsText,
     backgroundAgentRemoteConfig,

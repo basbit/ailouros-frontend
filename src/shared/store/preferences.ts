@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
-import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { persistenceAdapter } from "@/shared/lib/persistence-adapter";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 type Theme = "dark" | "light";
@@ -32,18 +32,21 @@ function applyDensity(density: Density): void {
 
 export const usePreferencesStore = defineStore("preferences", () => {
   const locale = ref<Locale>(
-    (readRawString(STORAGE_KEYS.preferenceLocale.key) as Locale | null) ??
-      detectLocale(),
+    (persistenceAdapter.readString(
+      STORAGE_KEYS.preferenceLocale.key,
+    ) as Locale | null) ?? detectLocale(),
   );
   const theme = ref<Theme>(
-    (readRawString(STORAGE_KEYS.preferenceTheme.key) as Theme | null) ?? "dark",
+    (persistenceAdapter.readString(STORAGE_KEYS.preferenceTheme.key) as Theme | null) ??
+      "dark",
   );
   const isSidebarCollapsed = ref<boolean>(
-    readRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key) === "1",
+    persistenceAdapter.readString(STORAGE_KEYS.preferenceSidebarCollapsed.key) === "1",
   );
   const density = ref<Density>(
-    (readRawString(STORAGE_KEYS.preferenceDensity.key) as Density | null) ??
-      "comfortable",
+    (persistenceAdapter.readString(
+      STORAGE_KEYS.preferenceDensity.key,
+    ) as Density | null) ?? "comfortable",
   );
 
   const isDark = computed(() => theme.value === "dark");
@@ -71,7 +74,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     locale,
     (value) => {
-      writeRawString(STORAGE_KEYS.preferenceLocale.key, value);
+      persistenceAdapter.write(STORAGE_KEYS.preferenceLocale.key, value);
       if (typeof document !== "undefined") {
         document.documentElement.lang = value;
       }
@@ -82,7 +85,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     theme,
     (value) => {
-      writeRawString(STORAGE_KEYS.preferenceTheme.key, value);
+      persistenceAdapter.write(STORAGE_KEYS.preferenceTheme.key, value);
       applyTheme(value);
     },
     { immediate: true },
@@ -91,7 +94,10 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     isSidebarCollapsed,
     (value) => {
-      writeRawString(STORAGE_KEYS.preferenceSidebarCollapsed.key, value ? "1" : "0");
+      persistenceAdapter.write(
+        STORAGE_KEYS.preferenceSidebarCollapsed.key,
+        value ? "1" : "0",
+      );
     },
     { immediate: true },
   );
@@ -99,7 +105,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   watch(
     density,
     (value) => {
-      writeRawString(STORAGE_KEYS.preferenceDensity.key, value);
+      persistenceAdapter.write(STORAGE_KEYS.preferenceDensity.key, value);
       applyDensity(value);
     },
     { immediate: true },

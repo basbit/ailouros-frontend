@@ -80,6 +80,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
             currentPipelineSteps.value = pipelineSteps;
             ui.taskId = taskId;
             ui.persistActiveTask(taskId, projectsStore.currentId);
+            ui.trackRun(taskId);
             taskStore.setTaskId(taskId);
             sendWsSubscribe();
             ui.pushHistory(

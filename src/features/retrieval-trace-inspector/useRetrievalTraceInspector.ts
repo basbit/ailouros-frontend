@@ -8,7 +8,7 @@ import {
 import type {
   RetrievalTraceDetail,
   RetrievalTraceSummary,
-} from "@/entities/retrieval-trace";
+} from "@/shared/model/retrieval-trace-types";
 
 export interface RetrievalTraceInspectorApi {
   summaries: Ref<RetrievalTraceSummary[]>;

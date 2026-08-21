@@ -29,10 +29,7 @@
       @edit="emit('project-edit', $event)"
     />
 
-    <div
-      class="task-pill"
-      :class="{ running: isRunning, 'task-pill--clickable': taskId && isRunning }"
-    >
+    <div class="task-pill" :class="{ running: isRunning }">
       <span class="dot"></span>
       <button
         v-if="taskId && isRunning"
@@ -57,6 +54,20 @@
       >
         &#10005;
       </button>
+    </div>
+
+    <div v-if="(activeRunIds ?? []).length > 1" class="active-runs">
+      <select
+        class="active-runs__select"
+        :title="t('header.activeRuns')"
+        :aria-label="t('header.activeRuns')"
+        :value="taskId ?? ''"
+        @change="emit('switch-run', ($event.target as HTMLSelectElement).value)"
+      >
+        <option v-for="id in activeRunIds" :key="id" :value="id">
+          {{ id }}
+        </option>
+      </select>
     </div>
 
     <div class="hdr-spacer"></div>
@@ -126,6 +137,7 @@ import { useSystemHealth } from "@/features/system-health/useSystemHealth";
 defineProps<{
   taskId: string | null;
   isRunning: boolean;
+  activeRunIds?: string[];
   projectName?: string | null;
   currentProjectId: string;
   projectList: { id: string; name: string }[];
@@ -136,6 +148,7 @@ const emit = defineEmits<{
   "close-task": [];
   "open-report-problem": [];
   "resume-run": [];
+  "switch-run": [id: string];
   "project-change": [id: string];
   "project-new": [];
   "project-rename": [id: string];
@@ -250,6 +263,20 @@ const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
   min-width: 66px;
   padding: 6px 26px 6px 10px;
   border-radius: 999px;
+}
+
+.active-runs {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.active-runs__select {
+  max-width: 160px;
+  padding: 5px 24px 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-family: var(--font-mono);
 }
 
 .task-pill__close {
