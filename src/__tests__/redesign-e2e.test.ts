@@ -65,7 +65,6 @@ const ROUTES_TO_VISIT = [
   "/configure/notify",
   "/history",
   "/history/run-x",
-  "/settings/profile",
   "/settings/api-keys",
   "/settings/automation",
   "/settings/notifications",
@@ -163,7 +162,7 @@ describe("redesign e2e — real App + real router", () => {
       }),
     );
     await flushPromises();
-    expect(router.currentRoute.value.path).toBe("/settings/profile");
+    expect(router.currentRoute.value.path).toBe("/settings/api-keys");
     wrapper.unmount();
   });
 

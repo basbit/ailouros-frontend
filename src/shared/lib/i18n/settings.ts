@@ -53,7 +53,6 @@ export const settingsEn: Messages = {
   "configure.visualQa.subtitle":
     "Project-scoped visual probe targets and capture flags.",
   "settings.title": "Settings",
-  "settings.subnav.profile": "Profile",
   "settings.subnav.apiKeys": "API keys",
   "settings.subnav.scenarios": "Scenarios",
   "settings.subnav.about": "About",
@@ -80,14 +79,6 @@ export const settingsEn: Messages = {
   "settings.modelRegistry.local": "Local",
   "settings.modelRegistry.cloud": "Cloud",
   "settings.modelRegistry.refresh": "Refresh",
-  "settings.profile.title": "Profile",
-  "settings.profile.subtitle": "Workspace defaults that apply to every project.",
-  "settings.profile.locale": "Interface language",
-  "settings.profile.localeEn": "English",
-  "settings.profile.localeRu": "Русский",
-  "settings.profile.theme": "Theme",
-  "settings.profile.themeLight": "Light",
-  "settings.profile.themeDark": "Dark",
   "settings.apiKeys.title": "API keys",
   "settings.apiKeys.subtitle":
     "Provider tokens shared across every project. Stored locally; never sent to other backends.",
@@ -213,7 +204,6 @@ export const settingsRu: Messages = {
   "configure.visualQa.subtitle":
     "Цели визуальных проверок и флаги захвата для этого проекта.",
   "settings.title": "Настройки",
-  "settings.subnav.profile": "Профиль",
   "settings.subnav.apiKeys": "API ключи",
   "settings.subnav.scenarios": "Сценарии",
   "settings.subnav.about": "О приложении",
@@ -240,15 +230,6 @@ export const settingsRu: Messages = {
   "settings.modelRegistry.local": "Локальная",
   "settings.modelRegistry.cloud": "Облачная",
   "settings.modelRegistry.refresh": "Обновить",
-  "settings.profile.title": "Профиль",
-  "settings.profile.subtitle":
-    "Параметры рабочего пространства, действующие для всех проектов.",
-  "settings.profile.locale": "Язык интерфейса",
-  "settings.profile.localeEn": "English",
-  "settings.profile.localeRu": "Русский",
-  "settings.profile.theme": "Тема",
-  "settings.profile.themeLight": "Светлая",
-  "settings.profile.themeDark": "Тёмная",
   "settings.apiKeys.title": "API ключи",
   "settings.apiKeys.subtitle":
     "Токены провайдеров, общие для всех проектов. Хранятся локально и не отправляются на сторонние сервера.",

@@ -109,11 +109,6 @@ const NAV_ITEMS: Array<{ id: string; titleKey: string; hint: string; target: str
 
 const SETTINGS_ITEMS: Array<{ id: string; titleKey: string; target: string }> = [
   {
-    id: "set-profile",
-    titleKey: "settings.subnav.profile",
-    target: "/settings/profile",
-  },
-  {
     id: "set-apikeys",
     titleKey: "settings.subnav.apiKeys",
     target: "/settings/api-keys",

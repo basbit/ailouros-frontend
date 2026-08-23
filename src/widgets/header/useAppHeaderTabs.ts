@@ -41,7 +41,7 @@ export function useAppHeaderTabs(t: TranslatorLike) {
       {
         key: "settings",
         label: t("header.tabs.settings"),
-        target: "/settings/profile",
+        target: "/settings/api-keys",
       },
     ];
   });

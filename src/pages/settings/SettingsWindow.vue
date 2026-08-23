@@ -21,7 +21,6 @@ import { useRouter } from "vue-router";
 import AppShell from "@/widgets/app-shell/AppShell.vue";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import SubNav, { type SubNavEntry } from "@/widgets/app-shell/SubNav.vue";
-import ProfilePane from "./panes/ProfilePane.vue";
 import ApiKeysPane from "./panes/ApiKeysPane.vue";
 import ScenariosPane from "./panes/ScenariosPane.vue";
 import ModelRegistryPane from "./panes/ModelRegistryPane.vue";
@@ -39,7 +38,6 @@ const router = useRouter();
 const { t } = useI18n();
 
 const PANES = {
-  profile: ProfilePane,
   "api-keys": ApiKeysPane,
   automation: AutomationPane,
   "feature-flags": FeatureFlagsPane,
@@ -52,7 +50,6 @@ const PANES = {
 type PaneKey = keyof typeof PANES;
 
 const PANE_ORDER: PaneKey[] = [
-  "profile",
   "api-keys",
   "automation",
   "feature-flags",
@@ -63,7 +60,6 @@ const PANE_ORDER: PaneKey[] = [
 ];
 
 const SUBNAV_LABELS: Record<PaneKey, string> = {
-  profile: "settings.subnav.profile",
   "api-keys": "settings.subnav.apiKeys",
   automation: "settings.subnav.automation",
   "feature-flags": "settings.subnav.featureFlags",
@@ -76,7 +72,7 @@ const SUBNAV_LABELS: Record<PaneKey, string> = {
 const activePane = computed<PaneKey>(() => {
   return (PANE_ORDER as string[]).includes(props.pane)
     ? (props.pane as PaneKey)
-    : "profile";
+    : "api-keys";
 });
 
 const activePaneComponent = computed(() => PANES[activePane.value]);
@@ -92,7 +88,7 @@ watch(
   () => props.pane,
   (next) => {
     if (!(PANE_ORDER as string[]).includes(next)) {
-      void router.replace("/settings/profile");
+      void router.replace("/settings/api-keys");
     }
   },
   { immediate: true },

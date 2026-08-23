@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
     props: true,
     meta: { topTab: "history" },
   },
-  { path: "/settings", redirect: "/settings/profile" },
+  { path: "/settings", redirect: "/settings/api-keys" },
   {
     path: "/settings/:pane",
     component: () => import("@/pages/settings/SettingsWindow.vue"),

@@ -94,6 +94,21 @@
       <option value="ru">RU</option>
     </select>
 
+    <select
+      class="header-locale header-theme"
+      :title="t('header.theme')"
+      :aria-label="t('header.theme')"
+      :value="preferences.theme"
+      @change="
+        preferences.setTheme(
+          ($event.target as HTMLSelectElement).value as 'light' | 'dark',
+        )
+      "
+    >
+      <option value="light">{{ t("header.themeLight") }}</option>
+      <option value="dark">{{ t("header.themeDark") }}</option>
+    </select>
+
     <button
       type="button"
       class="report-problem-button"
@@ -263,6 +278,10 @@ const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
   min-width: 66px;
   padding: 6px 26px 6px 10px;
   border-radius: 999px;
+}
+
+.header-theme {
+  min-width: 92px;
 }
 
 .active-runs {

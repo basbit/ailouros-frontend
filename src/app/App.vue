@@ -71,7 +71,7 @@ function handleGlobalShortcut(event: KeyboardEvent): void {
   }
   if (key === ",") {
     event.preventDefault();
-    void router.push("/settings/profile");
+    void router.push("/settings/api-keys");
   }
 }
 

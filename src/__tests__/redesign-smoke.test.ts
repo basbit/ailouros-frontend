@@ -197,10 +197,10 @@ describe("redesign smoke", () => {
     }
   });
 
-  it("SettingsWindow falls back to profile when pane is bogus", async () => {
+  it("SettingsWindow falls back to the first pane when pane is bogus", async () => {
     const { wrapper, router } = await mountAt("/settings/nope", SettingsWindow);
     await flushPromises();
-    expect(router.currentRoute.value.path).toBe("/settings/profile");
+    expect(router.currentRoute.value.path).toBe("/settings/api-keys");
     wrapper.unmount();
   });
 
