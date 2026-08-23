@@ -1,21 +1,21 @@
-export interface CheckpointConcern {
+interface CheckpointConcern {
   readonly path: string;
   readonly tags: readonly string[];
 }
 
-export interface CheckpointHotspot {
+interface CheckpointHotspot {
   readonly what: string;
   readonly where: readonly string[];
   readonly tags: readonly string[];
   readonly severity: string;
 }
 
-export interface CheckpointManualCheck {
+interface CheckpointManualCheck {
   readonly do: string;
   readonly expect: string;
 }
 
-export interface CheckpointDeferred {
+interface CheckpointDeferred {
   readonly title: string;
   readonly stepId: string;
 }

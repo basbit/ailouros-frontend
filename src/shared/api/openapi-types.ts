@@ -642,6 +642,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/memory/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Memory Quarantine */
+        get: operations["get_memory_quarantine_v1_memory_quarantine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/observability/cross-project": {
         parameters: {
             query?: never;
@@ -1265,6 +1282,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/spec/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Spec Document */
+        get: operations["get_spec_document_v1_spec_document_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/spec/graph": {
         parameters: {
             query?: never;
@@ -1565,6 +1599,40 @@ export interface paths {
         put?: never;
         /** Confirm Shell */
         post: operations["confirm_shell_v1_tasks__task_id__confirm_shell_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/continue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Continue Task */
+        post: operations["continue_task_v1_tasks__task_id__continue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/continue/propose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Continue Propose */
+        post: operations["continue_propose_v1_tasks__task_id__continue_propose_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2116,6 +2184,27 @@ export interface components {
             content: string;
             /** Role */
             role: string;
+        };
+        /** ContinueRequest */
+        ContinueRequest: {
+            /** Agent Config */
+            agent_config?: {
+                [key: string]: unknown;
+            } | null;
+            /** Confirmed Steps */
+            confirmed_steps?: string[] | null;
+            /** Message */
+            message: string;
+            /**
+             * Model
+             * @default swarm-orchestrator
+             */
+            model: string;
+            /**
+             * Stream
+             * @default true
+             */
+            stream: boolean;
         };
         /** CreateGoalRequest */
         CreateGoalRequest: {
@@ -3679,7 +3768,9 @@ export interface operations {
     };
     system_health_v1_health_get: {
         parameters: {
-            query?: never;
+            query?: {
+                workspace_root?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3695,11 +3786,22 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     system_health_subsystem_v1_health__subsystem__get: {
         parameters: {
-            query?: never;
+            query?: {
+                workspace_root?: string;
+            };
             header?: never;
             path: {
                 subsystem: string;
@@ -3940,6 +4042,39 @@ export interface operations {
                 /** @description Specific collection name */
                 collection?: string | null;
                 limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_memory_quarantine_v1_memory_quarantine_get: {
+        parameters: {
+            query: {
+                spec_id: string;
+                spec_hash: string;
+                workspace_root?: string;
             };
             header?: never;
             path?: never;
@@ -5170,6 +5305,40 @@ export interface operations {
             };
         };
     };
+    get_spec_document_v1_spec_document_get: {
+        parameters: {
+            query: {
+                workspace_root: string;
+                spec_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_spec_graph_v1_spec_graph_get: {
         parameters: {
             query: {
@@ -5750,6 +5919,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ShellConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    continue_task_v1_tasks__task_id__continue_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContinueRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    continue_propose_v1_tasks__task_id__continue_propose_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContinueRequest"];
             };
         };
         responses: {

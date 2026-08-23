@@ -3,7 +3,7 @@ interface RagasStatus {
   readonly judgeKind: string;
 }
 
-export interface TelemetryReadiness {
+interface TelemetryReadiness {
   readonly exporting: boolean;
   readonly reason: string;
 }

@@ -32,12 +32,6 @@ export interface SpecDocumentDto {
   codegen_hash?: string;
 }
 
-export interface SpecShowDto {
-  spec: SpecDocumentDto;
-  dependencies: string[];
-  dependants: string[];
-}
-
 function buildWorkspaceQuery(workspaceRoot: string, persist?: boolean): string {
   const search = new URLSearchParams();
   if (workspaceRoot.trim()) {
@@ -55,16 +49,6 @@ export async function getSpecGraph(
 ): Promise<SpecGraphDto> {
   const qs = buildWorkspaceQuery(workspaceRoot, persist);
   return httpGet<SpecGraphDto>(`/v1/spec/graph${qs}`);
-}
-
-export async function showSpec(
-  workspaceRoot: string,
-  specId: string,
-): Promise<SpecShowDto> {
-  const search = new URLSearchParams();
-  search.set("workspace_root", workspaceRoot.trim());
-  search.set("spec_id", specId);
-  return httpGet<SpecShowDto>(`/v1/spec/show?${search.toString()}`);
 }
 
 export interface SpecGraphDocumentDto {

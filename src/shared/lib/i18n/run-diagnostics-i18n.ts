@@ -37,8 +37,6 @@ export const runDiagnosticsI18nEn: Messages = {
   "runDiagnostics.headline": "Pipeline diagnostics",
   "runDiagnostics.refresh": "Refresh",
   "runDiagnostics.refreshing": "Refreshing…",
-  "runDiagnostics.empty": "No diagnostics persisted for this run yet.",
-  "runDiagnostics.needsRun": "Start a run to see pipeline diagnostics here.",
   "runDiagnostics.phaseLoop": "Phase loop",
   "runDiagnostics.phaseSummary": "{scenario} · current {phase}",
   "runDiagnostics.memoryTier": "Memory tier",
@@ -84,9 +82,6 @@ export const runDiagnosticsI18nEn: Messages = {
   "runPlan.headline": "Run plan",
   "runPlan.refresh": "Refresh",
   "runPlan.refreshing": "Refreshing…",
-  "runPlan.empty": "No run plan was recorded for this run.",
-  "runPlan.unavailable": "The orchestrator did not produce a plan for this run.",
-  "runPlan.needsRun": "Run a task to see its orchestrator plan.",
   "runPlan.source": "source",
 };
 
@@ -129,8 +124,6 @@ export const runDiagnosticsI18nRu: Messages = {
   "runDiagnostics.headline": "Диагностика пайплайна",
   "runDiagnostics.refresh": "Обновить",
   "runDiagnostics.refreshing": "Обновляю…",
-  "runDiagnostics.empty": "Для этого прогона диагностика ещё не записана.",
-  "runDiagnostics.needsRun": "Запусти прогон — здесь появится диагностика.",
   "runDiagnostics.phaseLoop": "Фазовый цикл",
   "runDiagnostics.phaseSummary": "{scenario} · текущая {phase}",
   "runDiagnostics.memoryTier": "Memory-tier",
@@ -177,8 +170,5 @@ export const runDiagnosticsI18nRu: Messages = {
   "runPlan.headline": "План прогона",
   "runPlan.refresh": "Обновить",
   "runPlan.refreshing": "Обновление…",
-  "runPlan.empty": "Для этого прогона план не записан.",
-  "runPlan.unavailable": "Оркестратор не построил план для этого прогона.",
-  "runPlan.needsRun": "Запусти задачу, чтобы увидеть план оркестратора.",
   "runPlan.source": "источник",
 };

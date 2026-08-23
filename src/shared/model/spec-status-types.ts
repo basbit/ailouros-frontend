@@ -1,4 +1,4 @@
-export type SpecStatusName =
+type SpecStatusName =
   | "draft"
   | "ready-for-dev"
   | "in-progress"

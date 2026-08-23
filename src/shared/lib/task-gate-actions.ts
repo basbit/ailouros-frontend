@@ -46,7 +46,7 @@ function apiErrorMessage(error: unknown, prefix: string): string {
   return String(error);
 }
 
-async function drainStream(
+export async function drainStream(
   body: ReadableStream<Uint8Array> | null | undefined,
   onEvent?: (event: ChatStreamEvent) => void,
 ): Promise<void> {

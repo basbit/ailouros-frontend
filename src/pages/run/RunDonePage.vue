@@ -41,6 +41,8 @@
         <p v-else class="run-done__artifact-path">{{ artifactPath }}</p>
       </section>
 
+      <RunContinueSection :run-id="runId" />
+
       <div class="run-done__actions">
         <button type="button" class="run-done__btn" @click="onBackToRun">
           {{ t("runDone.backToRun") }}
@@ -63,6 +65,7 @@ import { useRouter } from "vue-router";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useRunDoneSummary } from "./useRunDoneSummary";
+import RunContinueSection from "./RunContinueSection.vue";
 
 const props = defineProps<{
   runId: string;

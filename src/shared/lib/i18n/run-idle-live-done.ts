@@ -67,6 +67,16 @@ export const runIdleLiveDoneEn: Messages = {
   "runDone.status": "Status",
   "runDone.artifacts": "Artifacts",
   "runDone.artifactsEmpty": "No artifacts emitted by this run.",
+  "runDone.continue.heading": "Refine & Continue",
+  "runDone.continue.description":
+    "Enter follow-up instructions to selectively re-run needed steps.",
+  "runDone.continue.placeholder": "e.g. Update button color or add export feature...",
+  "runDone.continue.proposeBtn": "Infer target steps",
+  "runDone.continue.inferring": "Analyzing...",
+  "runDone.continue.rationale": "Orchestrator plan",
+  "runDone.continue.stepsLabel": "Steps to re-run",
+  "runDone.continue.runBtn": "Run continuation",
+  "runDone.continue.running": "Starting...",
 };
 
 export const runIdleLiveDoneRu: Messages = {
@@ -136,4 +146,15 @@ export const runIdleLiveDoneRu: Messages = {
   "runDone.status": "Статус",
   "runDone.artifacts": "Артефакты",
   "runDone.artifactsEmpty": "Прогон не выдал артефактов.",
+  "runDone.continue.heading": "Доработать задачу",
+  "runDone.continue.description":
+    "Укажите, что нужно доработать, чтобы пересчитать только нужные шаги.",
+  "runDone.continue.placeholder":
+    "Например: Добавь экспорт в PDF или поправь стиль кнопки...",
+  "runDone.continue.proposeBtn": "Определить шаги",
+  "runDone.continue.inferring": "Анализ...",
+  "runDone.continue.rationale": "План оркестратора",
+  "runDone.continue.stepsLabel": "Шаги для повторного запуска",
+  "runDone.continue.runBtn": "Запустить доработку",
+  "runDone.continue.running": "Запуск...",
 };

@@ -48,4 +48,3 @@ export function resetWorkspaceIndexStats(): void {
 }
 
 export const workspaceIndexLatest = readonly(latestStats);
-export const workspaceIndexHistory = readonly(historyStats);

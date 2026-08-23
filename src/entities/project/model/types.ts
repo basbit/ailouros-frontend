@@ -1,5 +1,4 @@
 export type {
-  RemoteProfileRow,
   RoleSnapshot,
   CustomRoleSnap,
   CustomScenarioSnap,

@@ -2,17 +2,9 @@ import type { Messages } from "./types";
 
 export const pipelineEn: Messages = {
   "graph.title": "Pipeline",
-  "graph.layout": "Layout",
-  "graph.layoutHelp":
-    "Topology shapes both the layout and how steps run: ring re-runs the pipeline while blocking defects remain (bounded by SWARM_RING_MAX_RESTARTS); mesh additionally runs QA subtasks in parallel. If you manually grouped steps in the editor, that grouping wins.",
   "graph.empty": "No steps configured",
   "graph.add": "Add step",
   "graph.reset": "Reset to default",
-  "graph.resetRecommended": "Use recommended",
-  "graph.resetRecommendedTitle":
-    "Replace your current pipeline with the minimal recommended set for this topology (drops reviewers and human gates you can add back individually).",
-  "graph.pipelineHeavyHint":
-    "Your pipeline has {n} steps — the recommended minimum for this topology is {recommended}. Extra reviewers/human gates slow local models and burn tokens.",
   "graph.scenarioLabel": "Scenario",
   "graph.customScenario": "Custom",
   "graph.customScenarioCurrent": "Unsaved custom",
@@ -51,17 +43,9 @@ export const pipelineEn: Messages = {
 
 export const pipelineRu: Messages = {
   "graph.title": "Пайплайн",
-  "graph.layout": "Вид",
-  "graph.layoutHelp":
-    "Топология задаёт и вид, и то как шаги реально исполняются: ring перезапускает пайплайн, пока остаются блокирующие дефекты (ограничено SWARM_RING_MAX_RESTARTS); mesh дополнительно параллелит QA-подзадачи. Если вы вручную сгруппировали шаги в редакторе — ваша группировка важнее пресета.",
   "graph.empty": "Шаги не настроены",
   "graph.add": "Добавить шаг",
   "graph.reset": "Сбросить к умолчанию",
-  "graph.resetRecommended": "Оставить рекомендованные",
-  "graph.resetRecommendedTitle":
-    "Заменить текущий пайплайн минимальным рекомендованным набором для этой топологии (убирает ревьюеров и human-gate — можно добавить обратно по одному).",
-  "graph.pipelineHeavyHint":
-    "В пайплайне {n} шагов — рекомендованный минимум для этой топологии — {recommended}. Лишние ревьюеры/human-gate замедляют локальные модели и тратят токены.",
   "graph.scenarioLabel": "Сценарий",
   "graph.customScenario": "Свой",
   "graph.customScenarioCurrent": "Несохранённый свой",

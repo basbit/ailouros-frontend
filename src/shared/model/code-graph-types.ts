@@ -24,7 +24,7 @@ export interface CodeGraphEdge {
   call_site_line: number | null;
 }
 
-export interface CodeGraphTopCalled {
+interface CodeGraphTopCalled {
   qualified_name: string;
   callers: number;
 }

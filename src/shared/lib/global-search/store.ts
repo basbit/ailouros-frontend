@@ -7,6 +7,8 @@ import {
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 import type { GlobalSearchKeysState, StateKey } from "./types";
 import { DEFAULTS, isBoolKey } from "./defaults";
+
+export type { GlobalSearchKeysState, StateKey };
 import { isMaskedSecret } from "./secret-policy";
 import { loadFromStorage, saveToStorage } from "./persistence";
 import { buildSyncPayload as buildPayload } from "./sync-payload";
