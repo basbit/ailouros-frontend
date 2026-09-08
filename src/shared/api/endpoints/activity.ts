@@ -5,7 +5,8 @@ export type ActivityChannel =
   | "web_searches"
   | "page_fetches"
   | "qdrant_ops"
-  | "rag_hits";
+  | "rag_hits"
+  | "file_ops";
 
 export interface ActivityEntry {
   ts: string;

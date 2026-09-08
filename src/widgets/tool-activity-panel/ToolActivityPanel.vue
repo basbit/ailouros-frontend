@@ -41,14 +41,49 @@
           <span v-if="entry.step" class="tool-activity__step">{{ entry.step }}</span>
           <span class="tool-activity__channel">{{ entry.channel }}</span>
         </div>
-        <div class="tool-activity__entry-body">{{ summariseEntry(entry) }}</div>
+        <div v-if="entry.channel === 'file_ops'" class="tool-activity__file">
+          <div class="tool-activity__file-head">
+            <span
+              class="tool-activity__file-op"
+              :class="`tool-activity__file-op--${entry.op}`"
+            >
+              {{ entry.op }}
+            </span>
+            <span class="tool-activity__file-path">{{ entry.path }}</span>
+          </div>
+          <pre v-if="entry.content" class="tool-activity__file-content">{{
+            entry.content
+          }}</pre>
+          <div v-else-if="entry.edits" class="tool-activity__file-edits">
+            <div
+              v-for="(edit, i) in fileEdits(entry)"
+              :key="i"
+              class="tool-activity__file-edit"
+            >
+              <div class="tool-activity__file-edit-search">
+                - {{ edit.old_string || edit.search || edit.oldText }}
+              </div>
+              <div class="tool-activity__file-edit-replace">
+                + {{ edit.new_string || edit.replace || edit.newText }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="tool-activity__entry-body">{{ summariseEntry(entry) }}</div>
       </li>
     </ul>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import {
   type ActivityChannel,
   type ActivityEntry,
@@ -74,6 +109,7 @@ const availableChannels: ActivityChannel[] = [
   "page_fetches",
   "qdrant_ops",
   "rag_hits",
+  "file_ops",
 ];
 
 const currentChannel = ref<ActivityChannel>(props.defaultChannel);
@@ -95,6 +131,8 @@ function channelLabel(channel: ActivityChannel): string {
       return "Qdrant";
     case "rag_hits":
       return "RAG";
+    case "file_ops":
+      return "Files";
     default:
       return channel;
   }
@@ -102,6 +140,21 @@ function channelLabel(channel: ActivityChannel): string {
 
 function entryKey(entry: ActivityEntry, index: number): string {
   return `${entry.ts}-${index}`;
+}
+
+interface FileEdit {
+  old_string?: string;
+  new_string?: string;
+  search?: string;
+  replace?: string;
+  oldText?: string;
+  newText?: string;
+}
+
+function fileEdits(entry: ActivityEntry): FileEdit[] {
+  const edits = entry.edits;
+  if (!Array.isArray(edits)) return [];
+  return edits.filter((e): e is FileEdit => !!e && typeof e === "object");
 }
 
 function formatTime(raw: string): string {
@@ -211,6 +264,15 @@ onBeforeUnmount(() => {
   stopPolling();
   if (inflight) inflight.abort();
 });
+
+onDeactivated(() => {
+  stopPolling();
+  if (inflight) inflight.abort();
+});
+
+onActivated(() => {
+  startPolling();
+});
 </script>
 
 <style scoped>
@@ -303,5 +365,86 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   word-break: break-word;
   color: var(--ink);
+}
+.tool-activity__file {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tool-activity__file-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tool-activity__file-op {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+}
+.tool-activity__file-op--write,
+.tool-activity__file-op--edit {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.tool-activity__file-op--read {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
+.tool-activity__file-op--delete {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 45%, transparent);
+}
+.tool-activity__file-path {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  word-break: break-all;
+}
+.tool-activity__file-content {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink);
+}
+.tool-activity__file-edits {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tool-activity__file-edit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.tool-activity__file-edit-search {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+  padding: 4px 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.tool-activity__file-edit-replace {
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  color: var(--ok);
+  padding: 4px 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 </style>

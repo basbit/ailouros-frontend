@@ -69,6 +69,9 @@ const emptyState: Omit<AgentConfigSettings, "form"> = {
   devRolesState: {
     collectForApi: () => [],
   },
+  crossValidationState: {
+    collectForApi: () => null,
+  },
   customRolesState: {
     collectSnap: () => [],
   },

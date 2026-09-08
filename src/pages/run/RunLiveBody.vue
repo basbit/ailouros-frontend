@@ -47,7 +47,7 @@
 
       <CheckpointPreview v-if="!isHistoryView" :preview="checkpointPreview" />
 
-      <RunLiveGates
+      <TaskGatesOverlay
         v-if="!isHistoryView"
         :current-pipeline-steps="controller.currentPipelineSteps.value"
         @human-resume="onHumanResume"
@@ -55,6 +55,12 @@
         @confirm-manual-shell="onConfirmManualShell"
         @retry="onRetry"
         @continue-pipeline="onContinuePipeline"
+      />
+
+      <TerminalPanel
+        v-if="!isHistoryView"
+        class="run-live-body__terminal"
+        :workspace-root="currentWorkspaceRoot ?? undefined"
       />
 
       <div class="run-live-body__layout">
@@ -136,7 +142,8 @@ import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import StatusLine from "@/widgets/status-line/StatusLine.vue";
 import { TaskMonitor } from "@/widgets/task-monitor";
 import HostMetricsChart from "@/shared/components/HostMetricsChart.vue";
-import RunLiveGates from "./RunLiveGates.vue";
+import TaskGatesOverlay from "@/features/task-gate/TaskGatesOverlay.vue";
+import TerminalPanel from "@/widgets/terminal/TerminalPanel.vue";
 import RunLiveStepList from "./RunLiveStepList.vue";
 import RunStepLog from "./RunStepLog.vue";
 import RunLiveLog from "./RunLiveLog.vue";

@@ -37,7 +37,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { ApiError, httpPost } from "@/shared/api/http";
+import { httpPost } from "@/shared/api/http";
+import { describeUploadError } from "@/shared/api/endpoints/asset-upload";
 import { useI18n } from "@/shared/lib/i18n";
 
 const props = defineProps<{
@@ -74,23 +75,6 @@ async function onDrop(event: DragEvent): Promise<void> {
   const file = event.dataTransfer?.files?.[0];
   if (!file) return;
   await sendFile(file);
-}
-
-function extractDetailFromApiErrorBody(body: string | null | undefined): string | null {
-  if (!body) return null;
-  try {
-    const parsed = JSON.parse(body) as { detail?: string };
-    return typeof parsed?.detail === "string" ? parsed.detail : null;
-  } catch {
-    return null;
-  }
-}
-
-function describeUploadError(err: unknown): string {
-  if (err instanceof ApiError) {
-    return extractDetailFromApiErrorBody(err.body) ?? `HTTP ${err.status}`;
-  }
-  return err instanceof Error ? err.message : String(err);
 }
 
 async function sendFile(file: File): Promise<void> {

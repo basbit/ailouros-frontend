@@ -22,12 +22,7 @@
 
     <div v-if="corpus" class="red-team__body">
       <p class="red-team__meta">
-        {{
-          t("redTeam.summary", {
-            count: corpus.count,
-            schedule: corpus.schedule,
-          })
-        }}
+        {{ t("redTeam.summary", { count: corpus.count }) }}
       </p>
       <ul class="red-team__list">
         <li v-for="probe in corpus.probes" :key="probe.probeId" class="red-team__probe">

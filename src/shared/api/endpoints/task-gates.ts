@@ -51,10 +51,13 @@ export interface ContinueProposal {
 export async function postContinuePropose(
   taskId: string,
   message: string,
+  agentConfig?: Record<string, unknown> | null,
 ): Promise<ContinueProposal> {
+  const body: Record<string, unknown> = { message, stream: false };
+  if (agentConfig) body.agent_config = agentConfig;
   return await httpPost<ContinueProposal>(
     `/v1/tasks/${encodeURIComponent(taskId)}/continue/propose`,
-    { message, stream: false },
+    body,
   );
 }
 
@@ -62,15 +65,18 @@ export async function postContinueStream(
   taskId: string,
   message: string,
   confirmedSteps: string[],
+  agentConfig?: Record<string, unknown> | null,
 ): Promise<Response> {
+  const body: Record<string, unknown> = {
+    message,
+    stream: true,
+    confirmed_steps: confirmedSteps,
+  };
+  if (agentConfig) body.agent_config = agentConfig;
   return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/continue`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message,
-      stream: true,
-      confirmed_steps: confirmedSteps,
-    }),
+    body: JSON.stringify(body),
   });
 }
 

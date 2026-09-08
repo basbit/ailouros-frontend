@@ -40,6 +40,7 @@ interface RunSwarmChatHandlers {
   onDone: () => void;
   sendWsSubscribe: () => void;
   onEvent?: (event: ChatStreamEvent) => void;
+  onWarning?: (message: string) => void;
 }
 
 interface NormalizedForm {
@@ -153,6 +154,41 @@ function confirmStepOrderOrCancel(
   return true;
 }
 
+const VISUAL_STEP_IDS = new Set(["visual_probe", "e2e"]);
+
+function warnIfVisualStepsWithoutWorkspace(
+  selection: PipelineSelection,
+  normalized: NormalizedForm,
+  handlers: RunSwarmChatHandlers,
+): void {
+  if (!handlers.onWarning) return;
+  const hasVisualStep = selection.stepIds.some((id) => VISUAL_STEP_IDS.has(id));
+  if (!hasVisualStep) return;
+  if (normalized.workspaceRoot.trim()) return;
+  handlers.onWarning(
+    "This run includes visual_probe/e2e, but no workspace path is set — " +
+      "those steps will be skipped. Set the project's Workspace root to capture " +
+      "real browser screenshots.",
+  );
+}
+
+function warnIfImageAttachmentsWithoutPmStep(
+  form: RunSwarmChatSettings["form"],
+  selection: PipelineSelection,
+  handlers: RunSwarmChatHandlers,
+): void {
+  if (!handlers.onWarning) return;
+  const imageAttachments = form.image_attachments ?? [];
+  if (!imageAttachments.length) return;
+  if (selection.stepIds.includes("pm")) return;
+  handlers.onWarning(
+    "This run has image attachments, but its pipeline has no 'pm' step — " +
+      "only the pm step pre-processes images via vision tools, so the " +
+      "screenshots will be ignored. Add the pm step or describe the image " +
+      "contents in text.",
+  );
+}
+
 function selectionFromScenario(scenario: ScenarioSummary): PipelineSelection {
   const steps = scenario.pipeline_steps ?? [];
   const stepIds = steps.includes(CLARIFY_INPUT_STEP_ID)
@@ -196,6 +232,16 @@ function buildSwarmChatPayload(
     normalized.scenarioId && overrideForActive
       ? { [normalized.scenarioId]: overrideForActive }
       : null;
+  const attachments = Array.isArray(form.attachments)
+    ? form.attachments
+        .filter((att) => att?.name?.trim() && att?.content)
+        .map((att) => ({ name: att.name.trim(), content: att.content }))
+    : [];
+  const imageAttachments = Array.isArray(form.image_attachments)
+    ? form.image_attachments
+        .filter((att) => att?.name?.trim() && att?.path?.trim())
+        .map((att) => ({ name: att.name.trim(), path: att.path.trim() }))
+    : [];
   return {
     model: SWARM_CHAT_MODEL_ID,
     stream: true,
@@ -208,6 +254,8 @@ function buildSwarmChatPayload(
     workspace_root: normalized.workspaceRoot || null,
     project_context_file: normalized.projectContextFile || null,
     workspace_write: form.workspace_write,
+    ...(attachments.length ? { attachments } : {}),
+    ...(imageAttachments.length ? { image_attachments: imageAttachments } : {}),
   };
 }
 
@@ -271,6 +319,9 @@ export async function runSwarmChat(
   if (!ensurePipelineStepsPresent(selection, translate)) return;
   if (!ensurePipelineRolesHaveModels(selection, settings, translate)) return;
   if (!confirmStepOrderOrCancel(selection, translate)) return;
+
+  warnIfVisualStepsWithoutWorkspace(selection, normalized, handlers);
+  warnIfImageAttachmentsWithoutPmStep(form, selection, handlers);
 
   const payload = buildSwarmChatPayload(
     form,

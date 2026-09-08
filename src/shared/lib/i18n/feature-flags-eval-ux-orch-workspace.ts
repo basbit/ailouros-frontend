@@ -52,6 +52,18 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
   "featureFlags.field.swarm_gate_audit_persist.label": "Persist gate decisions",
   "featureFlags.field.swarm_gate_audit_persist.hint":
     "Append every human-gate decision to an audit ledger on disk, instead of keeping it in memory only.",
+  "featureFlags.field.swarm_dev_qa_task_count.label": "Dev/QA subtask count target",
+  "featureFlags.field.swarm_dev_qa_task_count.hint":
+    "Target number of subtasks for Dev Lead decomposition. Empty / auto lets Dev Lead decide dynamically based on scope.",
+  "featureFlags.field.swarm_max_parallel_tasks.label": "Max parallel Dev tasks",
+  "featureFlags.field.swarm_max_parallel_tasks.hint":
+    "Maximum number of Dev subtasks executed in parallel concurrently (default 4).",
+  "featureFlags.field.swarm_force_sequential.label": "Force sequential subtasks",
+  "featureFlags.field.swarm_force_sequential.hint":
+    "Run all Dev subtasks one after another in sequence instead of in parallel.",
+  "featureFlags.field.swarm_tracer_bullet_enabled.label": "Tracer bullet phase",
+  "featureFlags.field.swarm_tracer_bullet_enabled.hint":
+    "Run the core cross-layer tracer story first alone to establish the foundation before running remaining stories in parallel.",
   "featureFlags.field.swarm_tracer_revision_gate.label": "Tracer revision gate",
   "featureFlags.field.swarm_tracer_revision_gate.hint":
     "Pause for a human to review the epic plan after the tracer story runs, before the remaining stories run.",
@@ -95,6 +107,18 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Block unjustified full-file rewrites",
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.hint":
     "Block a full-file overwrite before it is applied when the agent gave no justification for it.",
+  "featureFlags.field.swarm_computer_control_enabled.label": "Computer control tools",
+  "featureFlags.field.swarm_computer_control_enabled.hint":
+    "Give agents interactive browser tools (navigate, click, type, screenshot, accessibility tree) and supervised background processes. Starting a process additionally requires \"Allow shell commands\" and passes the shell allowlist.",
+  "featureFlags.field.swarm_chrome_cdp_url.label": "Attach to running Chrome",
+  "featureFlags.field.swarm_chrome_cdp_url.hint":
+    "Drive a Chrome you already run with remote debugging (start it with --remote-debugging-port=9222) instead of a managed headless browser. Empty = managed headless Chromium.",
+  "featureFlags.field.swarm_visual_baselines_enabled.label": "Visual baseline comparison",
+  "featureFlags.field.swarm_visual_baselines_enabled.hint":
+    "Compare every visual-probe screenshot against the stored baseline; drift becomes a P1 visual-regression defect.",
+  "featureFlags.field.swarm_visual_baselines_update.label": "Overwrite visual baselines",
+  "featureFlags.field.swarm_visual_baselines_update.hint":
+    "Replace stored baselines with this run's screenshots instead of comparing. Turn on once after an intentional redesign, then turn it back off.",
 };
 
 export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
@@ -149,6 +173,20 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
   "featureFlags.field.swarm_gate_audit_persist.label": "Сохранять решения gate",
   "featureFlags.field.swarm_gate_audit_persist.hint":
     "Дописывать каждое решение human-gate в журнал аудита на диске, а не хранить только в памяти.",
+  "featureFlags.field.swarm_dev_qa_task_count.label": "Целевое число подзадач Dev/QA",
+  "featureFlags.field.swarm_dev_qa_task_count.hint":
+    "Желаемое количество подзадач при декомпозиции Dev Lead. Пусто / авто позволяет Dev Lead определять число динамически по масштабу.",
+  "featureFlags.field.swarm_max_parallel_tasks.label":
+    "Максимум параллельных задач Dev",
+  "featureFlags.field.swarm_max_parallel_tasks.hint":
+    "Максимальное количество параллельно выполняемых подзадач Dev (по умолчанию 4).",
+  "featureFlags.field.swarm_force_sequential.label":
+    "Принудительно последовательные подзадачи",
+  "featureFlags.field.swarm_force_sequential.hint":
+    "Выполнять все подзадачи Dev по очереди одна за другой вместо параллельного запуска.",
+  "featureFlags.field.swarm_tracer_bullet_enabled.label": "Фаза Tracer Bullet",
+  "featureFlags.field.swarm_tracer_bullet_enabled.hint":
+    "Сначала запускать базовую сквозную tracer-историю изолированно для создания фундамента, а затем выполнять остальные истории параллельно.",
   "featureFlags.field.swarm_tracer_revision_gate.label": "Gate ревизии tracer",
   "featureFlags.field.swarm_tracer_revision_gate.hint":
     "Останавливаться для проверки человеком epic-плана после tracer-истории, перед запуском остальных историй.",
@@ -194,4 +232,17 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Блокировать необоснованный full-rewrite",
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.hint":
     "Блокировать полную перезапись файла перед применением, если агент не дал для неё обоснования.",
+  "featureFlags.field.swarm_computer_control_enabled.label":
+    "Инструменты управления компьютером",
+  "featureFlags.field.swarm_computer_control_enabled.hint":
+    "Дать агентам интерактивные браузерные инструменты (навигация, клик, ввод, скриншот, дерево доступности) и фоновые процессы под супервизором. Запуск процесса дополнительно требует «Разрешить shell-команды» и проходит проверку allowlist.",
+  "featureFlags.field.swarm_chrome_cdp_url.label": "Подключаться к запущенному Chrome",
+  "featureFlags.field.swarm_chrome_cdp_url.hint":
+    "Управлять уже запущенным Chrome с remote debugging (запустите его с --remote-debugging-port=9222) вместо управляемого headless-браузера. Пусто = управляемый headless Chromium.",
+  "featureFlags.field.swarm_visual_baselines_enabled.label": "Сравнение с эталонами",
+  "featureFlags.field.swarm_visual_baselines_enabled.hint":
+    "Сравнивать каждый скриншот visual-probe с сохранённым эталоном; расхождение становится дефектом P1 visual-regression.",
+  "featureFlags.field.swarm_visual_baselines_update.label": "Перезаписать эталоны",
+  "featureFlags.field.swarm_visual_baselines_update.hint":
+    "Заменить сохранённые эталоны скриншотами этого прогона вместо сравнения. Включите один раз после намеренного редизайна и выключите обратно.",
 };

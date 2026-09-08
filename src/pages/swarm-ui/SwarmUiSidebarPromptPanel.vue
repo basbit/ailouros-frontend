@@ -39,9 +39,13 @@
     <PromptInput
       :model-value="settings.form.prompt"
       :workspace-root="settings.form.workspace_root"
+      :attachments="settings.form.attachments ?? []"
+      :image-attachments="settings.form.image_attachments ?? []"
       :rows="5"
       :placeholder="t('prompt.placeholder')"
       @update:model-value="onPromptUpdate"
+      @update:attachments="onAttachmentsUpdate"
+      @update:image-attachments="onImageAttachmentsUpdate"
     />
     <ScenarioInputs
       :inputs="scenarioInputs"
@@ -162,6 +166,7 @@ import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import type { AppSettings } from "@/entities/app-settings/contract";
 import type { ScenarioInputSpec } from "@/entities/scenario";
+import type { ImageAttachment, TextAttachment } from "@/shared/model/project-types";
 
 type SettingsApi = AppSettings;
 
@@ -184,6 +189,8 @@ const emit = defineEmits<{
   (e: "open-asset-upload"): void;
   (e: "open-report-problem"): void;
   (e: "update:prompt", val: string): void;
+  (e: "swarm-form-update-attachments", val: TextAttachment[]): void;
+  (e: "swarm-form-update-image-attachments", val: ImageAttachment[]): void;
   (e: "scenario-input-update", key: string, val: string | boolean): void;
   (e: "toggle-advanced-sidebar"): void;
   (e: "append-to-prompt", text: string): void;
@@ -205,6 +212,14 @@ const promptCoachOpen = ref(false);
 
 function onPromptUpdate(val: string): void {
   emit("update:prompt", val);
+}
+
+function onAttachmentsUpdate(attachments: TextAttachment[]): void {
+  emit("swarm-form-update-attachments", attachments);
+}
+
+function onImageAttachmentsUpdate(attachments: ImageAttachment[]): void {
+  emit("swarm-form-update-image-attachments", attachments);
 }
 
 function onPromptCoachApply(body: string): void {

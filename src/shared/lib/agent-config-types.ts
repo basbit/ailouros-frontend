@@ -7,6 +7,8 @@ import type {
 export type AgentConfigForm = Pick<
   SettingsSnap,
   | "human_manual_review"
+  | "attachments"
+  | "image_attachments"
   | "swarm_languages"
   | "swarm_topology"
   | "swarm_pattern_memory"
@@ -74,6 +76,10 @@ export interface DevRolesStateLike {
   collectForApi(): DevRoleSnap[];
 }
 
+interface CrossValidationStateLike {
+  collectForApi(): { validators: Record<string, unknown>[] } | null;
+}
+
 export interface CustomRolesStateLike {
   collectSnap(): CustomRoleSnap[];
 }
@@ -87,6 +93,7 @@ export interface AgentConfigSettings {
   profilesState: ProfilesStateLike;
   rolesState: RolesStateLike;
   devRolesState: DevRolesStateLike;
+  crossValidationState: CrossValidationStateLike;
   customRolesState: CustomRolesStateLike;
   skillsState: SkillsStateLike;
 }

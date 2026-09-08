@@ -23,7 +23,9 @@ export function usePhaseGates() {
   async function refresh(workspaceRoot: string): Promise<void> {
     const trimmedRoot = workspaceRoot.trim();
     if (!trimmedRoot) return;
-    loading.value = true;
+    if (pendingGates.value.length === 0) {
+      loading.value = true;
+    }
     lastError.value = null;
     try {
       pendingGates.value = await listPendingPhaseGates(trimmedRoot);

@@ -4,19 +4,27 @@ const routes: RouteRecordRaw[] = [
   { path: "/", redirect: "/run" },
   {
     path: "/run",
-    component: () => import("@/pages/run/RunIdlePage.vue"),
+    component: () => import("@/pages/chat/ChatPage.vue"),
     meta: { topTab: "run" },
   },
   {
+    path: "/chat",
+    redirect: "/run",
+  },
+  {
     path: "/run/active",
-    component: () => import("@/pages/run/RunLivePage.vue"),
+    component: () => import("@/pages/chat/ChatPage.vue"),
     meta: { topTab: "run" },
   },
   {
     path: "/run/done/:runId",
-    component: () => import("@/pages/run/RunDonePage.vue"),
+    component: () => import("@/pages/chat/ChatPage.vue"),
     props: true,
     meta: { topTab: "run" },
+  },
+  {
+    path: "/run/classic",
+    component: () => import("@/pages/run/RunIdlePage.vue"),
   },
   { path: "/configure", redirect: "/configure/project" },
   {

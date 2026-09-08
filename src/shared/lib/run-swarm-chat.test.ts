@@ -33,7 +33,11 @@ vi.mock("@/shared/lib/pipeline-schema", () => ({
   roleRefForStep: (id: string) => (id === "needs-model" ? "dev" : null),
 }));
 
-function makeSettings(scenarioId: string, roleModel = "gemma"): RunSwarmChatSettings {
+function makeSettings(
+  scenarioId: string,
+  roleModel = "gemma",
+  attachments?: { name: string; content: string }[],
+): RunSwarmChatSettings {
   return {
     form: {
       prompt: "do it",
@@ -42,6 +46,7 @@ function makeSettings(scenarioId: string, roleModel = "gemma"): RunSwarmChatSett
       workspace_write: false,
       scenario_id: scenarioId,
       scenario_overrides: {},
+      attachments,
     },
     pipelineState: {
       collectStepIds: () => [],
@@ -200,5 +205,102 @@ describe("runSwarmChat scenario resolution", () => {
       expect.arrayContaining(["spec", "build"]),
     );
     expect(handlers.onDone).not.toHaveBeenCalled();
+  });
+
+  it("embeds filtered attachments into the launch payload", async () => {
+    const scenario = makeScenario();
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(
+      makeSettings("s1", "gemma", [
+        { name: "spec.md", content: "## spec" },
+        { name: "  ", content: "bad" }, // blank name → filtered out
+        { name: "empty.txt", content: "" }, // empty content → filtered out
+      ]),
+      handlers,
+      { resolveScenario },
+    );
+
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+    const payload = startStreamMock.mock.calls[0][0] as {
+      attachments: { name: string; content: string }[];
+    };
+    expect(payload.attachments).toEqual([{ name: "spec.md", content: "## spec" }]);
+  });
+
+  it("omits attachments when the form has none", async () => {
+    const scenario = makeScenario();
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+
+    await runSwarmChat(makeSettings("s1"), handlers, { resolveScenario });
+
+    const payload = startStreamMock.mock.calls[0][0] as { attachments?: unknown };
+    expect(payload.attachments).toBeUndefined();
+  });
+
+  it("embeds filtered image attachments into the launch payload", async () => {
+    const scenario = makeScenario();
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const handlers = { onTaskId: vi.fn(), onDone: vi.fn(), sendWsSubscribe: vi.fn() };
+    const settings = makeSettings("s1");
+    settings.form.image_attachments = [
+      { name: "shot.png", path: " /ws/assets/shot.png " },
+      { name: "  ", path: "/ws/blank-name.png" }, // blank name → filtered out
+      { name: "no-path.png", path: "" }, // blank path → filtered out
+    ];
+
+    await runSwarmChat(settings, handlers, { resolveScenario });
+
+    const payload = startStreamMock.mock.calls[0][0] as {
+      image_attachments?: { name: string; path: string }[];
+    };
+    expect(payload.image_attachments).toEqual([
+      { name: "shot.png", path: "/ws/assets/shot.png" },
+    ]);
+  });
+
+  it("warns when image attachments ride a pipeline without a pm step", async () => {
+    // Only the pm node pre-processes images through vision tools (pm_vision);
+    // a run without pm would silently ignore the screenshots otherwise.
+    const scenario = makeScenario({ pipeline_steps: ["spec", "build"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const onWarning = vi.fn();
+    const handlers = {
+      onTaskId: vi.fn(),
+      onDone: vi.fn(),
+      sendWsSubscribe: vi.fn(),
+      onWarning,
+    };
+    const settings = makeSettings("s1");
+    settings.form.image_attachments = [
+      { name: "shot.png", path: "/ws/assets/shot.png" },
+    ];
+
+    await runSwarmChat(settings, handlers, { resolveScenario });
+
+    expect(onWarning).toHaveBeenCalledTimes(1);
+    expect(String(onWarning.mock.calls[0][0])).toContain("no 'pm' step");
+  });
+
+  it("does not warn about image attachments when pm is in the pipeline", async () => {
+    const scenario = makeScenario({ pipeline_steps: ["pm", "build"] });
+    const resolveScenario = vi.fn().mockResolvedValue({ scenario, isCustom: false });
+    const onWarning = vi.fn();
+    const handlers = {
+      onTaskId: vi.fn(),
+      onDone: vi.fn(),
+      sendWsSubscribe: vi.fn(),
+      onWarning,
+    };
+    const settings = makeSettings("s1");
+    settings.form.image_attachments = [
+      { name: "shot.png", path: "/ws/assets/shot.png" },
+    ];
+
+    await runSwarmChat(settings, handlers, { resolveScenario });
+
+    expect(onWarning).not.toHaveBeenCalled();
   });
 });

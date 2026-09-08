@@ -25,6 +25,13 @@
         </template>
       </GlobalFeatureFlagsSettings>
     </div>
+
+    <details class="feature-flags-pane__advanced">
+      <summary>{{ t("envCatalog.summary") }}</summary>
+      <div class="feature-flags-pane__card">
+        <EnvCatalogPanel />
+      </div>
+    </details>
   </section>
 </template>
 
@@ -35,6 +42,7 @@ import GlobalFeatureFlagsSettings from "@/features/global-settings/GlobalFeature
 import RetrievalSettingsCard from "@/widgets/retrieval-settings-card/RetrievalSettingsCard.vue";
 import EvaluationStatusCard from "@/widgets/evaluation-status/EvaluationStatusCard.vue";
 import RedTeamCorpusCard from "@/widgets/red-team-corpus/RedTeamCorpusCard.vue";
+import { EnvCatalogPanel } from "@/features/env-catalog";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -44,6 +52,16 @@ const filterQuery = ref("");
 </script>
 
 <style scoped>
+.feature-flags-pane__advanced {
+  margin-top: 14px;
+}
+
+.feature-flags-pane__advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
 .feature-flags-pane {
   display: flex;
   flex-direction: column;

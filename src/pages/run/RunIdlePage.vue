@@ -14,7 +14,19 @@
             <PromptInput
               v-model="settings.form.prompt"
               :workspace-root="settings.form.workspace_root"
+              :attachments="settings.form.attachments ?? []"
+              :image-attachments="settings.form.image_attachments ?? []"
               :rows="5"
+              @update:attachments="
+                (next) => {
+                  settings.form.attachments = next;
+                }
+              "
+              @update:image-attachments="
+                (next) => {
+                  settings.form.image_attachments = next;
+                }
+              "
             />
             <div class="run-idle__prompt-actions">
               <ScenarioQuickLaunch

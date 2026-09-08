@@ -1,6 +1,7 @@
 export type {
   RoleSnapshot,
   CustomRoleSnap,
+  CrossValidatorSnap,
   CustomScenarioSnap,
   DevRoleSnap,
   SettingsSnap,

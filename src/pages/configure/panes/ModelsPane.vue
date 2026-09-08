@@ -67,6 +67,22 @@
         />
       </template>
     </AgentRoles>
+
+    <section class="models-pane__block">
+      <h3 class="cfg-section-title">{{ t("crossValidation.title") }}</h3>
+      <CrossValidation
+        :validators="settings.crossValidationState.validators.value"
+        :ui-states="settings.crossValidationState.uiStates"
+        :roles="roleIds"
+        :profile-options="profileOptions"
+        @add="settings.crossValidationState.add()"
+        @remove="(idx) => settings.crossValidationState.remove(idx)"
+        @move="(idx, delta) => settings.crossValidationState.move(idx, delta)"
+        @update="
+          (idx, field, value) => settings.crossValidationState.update(idx, field, value)
+        "
+      />
+    </section>
   </section>
 </template>
 
@@ -78,10 +94,12 @@ import AgentRoles from "@/features/agent-roles/AgentRoles.vue";
 import DevRoles from "@/features/dev-roles/DevRoles.vue";
 import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
+import CrossValidation from "@/features/cross-validation/CrossValidation.vue";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useRoleHandlers } from "@/pages/swarm-ui/useRoleHandlers";
 import { useSwarmUiDerived } from "@/pages/swarm-ui/useSwarmUiDerived";
 import { useI18n } from "@/shared/lib/i18n";
+import { ROLES } from "@/shared/lib/pipeline-schema";
 
 const settings = useInjectedAppSettings();
 const { t } = useI18n();
@@ -108,6 +126,8 @@ watch(
     void scrollToHashAnchor(next);
   },
 );
+
+const roleIds = ROLES;
 
 const handlers = useRoleHandlers(settings);
 const { profileOptions, skillsCatalogIds, mediaForm } = useSwarmUiDerived(settings);
@@ -185,6 +205,12 @@ function onMediaUpdate(field: string, value: string): void {
   flex-direction: column;
   gap: 16px;
   max-width: 960px;
+}
+
+.models-pane__block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .models-pane__banner {

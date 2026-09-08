@@ -15,6 +15,8 @@ describe("useHistoryDetailTabs", () => {
       "artifacts",
       "tokens",
       "graphs",
+      "visual",
+      "trace",
     ]);
   });
 
@@ -38,6 +40,8 @@ describe("useHistoryDetailTabs", () => {
       "history.detail.tab.artifacts",
       "history.detail.tab.tokens",
       "history.detail.tab.graphs",
+      "history.detail.tab.visual",
+      "history.detail.tab.trace",
     ]);
   });
 });

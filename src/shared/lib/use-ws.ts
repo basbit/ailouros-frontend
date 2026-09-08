@@ -4,11 +4,15 @@ import { getUiWebSocketUrl } from "@/shared/api/endpoints/ws";
 
 interface WsTick {
   type: "tick";
-  task_id?: string;
-  status?: string;
-  history?: { agent?: string; message?: string }[];
-  agents?: string[];
-  error?: unknown;
+  task?: {
+    task_id?: string;
+    status?: string;
+    history?: { agent?: string; message?: string }[];
+    agents?: string[];
+    error?: unknown;
+  };
+  metrics?: Record<string, unknown>;
+  capabilities?: { workspace_write?: boolean; command_exec?: boolean };
 }
 
 type WsMessage = WsTick | Record<string, unknown>;

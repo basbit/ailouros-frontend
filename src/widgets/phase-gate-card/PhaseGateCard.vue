@@ -41,15 +41,6 @@
           </li>
         </ul>
         <label class="phase-gate-card__field">
-          {{ t("phaseGates.decidedByLabel") }}
-          <input
-            v-model.trim="decidedByByGate[gate.gateId]"
-            type="text"
-            class="phase-gate-card__input"
-            :placeholder="t('phaseGates.decidedByPlaceholder')"
-          />
-        </label>
-        <label class="phase-gate-card__field">
           {{ t("phaseGates.rationaleLabel") }}
           <textarea
             v-model.trim="rationaleByGate[gate.gateId]"
@@ -82,7 +73,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, watch } from "vue";
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  reactive,
+  watch,
+} from "vue";
 
 import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-types";
 import { usePhaseGates } from "@/features/phase-gates/usePhaseGates";
@@ -93,7 +91,10 @@ const props = defineProps<{ workspaceRoot: string | null }>();
 const { t } = useI18n();
 const gates = usePhaseGates();
 
-const decidedByByGate = reactive<Record<string, string>>({});
+// Only a human ever decides a gate, so there is nothing to ask for. This used
+// to be a required text field that disabled the approve/reject buttons until
+// it was filled in.
+const DECIDED_BY = "human";
 const rationaleByGate = reactive<Record<string, string>>({});
 
 // Gates only exist for scenarios that run phase_acceptance_gate with phase
@@ -136,10 +137,16 @@ watch(
 
 onBeforeUnmount(stopPolling);
 
+onDeactivated(stopPolling);
+
+onActivated(() => {
+  const workspaceRoot = (props.workspaceRoot ?? "").trim();
+  if (workspaceRoot) startPolling(workspaceRoot);
+});
+
 function canDecide(gateId: string): boolean {
   if (gates.decidingGateId.value === gateId) return false;
-  const decidedBy = (decidedByByGate[gateId] ?? "").trim();
-  return Boolean(decidedBy) && Boolean(props.workspaceRoot);
+  return Boolean(props.workspaceRoot);
 }
 
 async function onRefresh(): Promise<void> {
@@ -149,17 +156,14 @@ async function onRefresh(): Promise<void> {
 
 async function onDecide(gate: PhaseGate, decision: PhaseGateDecision): Promise<void> {
   if (!props.workspaceRoot) return;
-  const decidedBy = (decidedByByGate[gate.gateId] ?? "").trim();
-  if (!decidedBy) return;
   const rationale = (rationaleByGate[gate.gateId] ?? "").trim();
   const ok = await gates.decide(gate.gateId, {
     workspaceRoot: props.workspaceRoot,
     decision,
-    decidedBy,
+    decidedBy: DECIDED_BY,
     rationale,
   });
   if (ok) {
-    delete decidedByByGate[gate.gateId];
     delete rationaleByGate[gate.gateId];
   }
 }
@@ -290,7 +294,6 @@ async function onDecide(gate: PhaseGate, decision: PhaseGateDecision): Promise<v
   color: var(--ink-3);
 }
 
-.phase-gate-card__input,
 .phase-gate-card__textarea {
   background: var(--card);
   border: 1px solid var(--line);

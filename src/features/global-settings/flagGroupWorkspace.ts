@@ -51,5 +51,26 @@ export const FLAG_GROUP_WORKSPACE: FeatureFlagGroup = {
       field: "swarm_block_unjustified_full_rewrite_before_apply",
       envName: "SWARM_BLOCK_UNJUSTIFIED_FULL_REWRITE_BEFORE_APPLY",
     },
+    {
+      kind: "boolean",
+      field: "swarm_computer_control_enabled",
+      envName: "SWARM_COMPUTER_CONTROL_ENABLED",
+    },
+    {
+      kind: "string",
+      field: "swarm_chrome_cdp_url",
+      envName: "SWARM_CHROME_CDP_URL",
+      placeholder: "http://localhost:9222",
+    },
+    {
+      kind: "boolean",
+      field: "swarm_visual_baselines_enabled",
+      envName: "SWARM_VISUAL_BASELINES_ENABLED",
+    },
+    {
+      kind: "boolean",
+      field: "swarm_visual_baselines_update",
+      envName: "SWARM_VISUAL_BASELINES_UPDATE",
+    },
   ],
 };

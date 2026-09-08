@@ -80,6 +80,8 @@ export function baseSettingsDefaults(): BaseSettingsDefaults {
     workspace_write: true,
     workspace_context_mode: WORKSPACE_CONTEXT_MODE_DEFAULT,
     human_manual_review: false,
+    attachments: [],
+    image_attachments: [],
     swarm_languages: "",
     swarm_topology: "",
     swarm_pattern_memory: false,

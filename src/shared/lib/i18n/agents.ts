@@ -65,6 +65,33 @@ export const agentsEn: Messages = {
   "devRoles.scopeLabel": "scope (optional)",
   "devRoles.scopePlaceholder": "e.g. API and backend, no frontend",
   "devRoles.add": "+ Dev Role",
+  "crossValidation.title": "Cross-validation (models discuss, then edit)",
+  "crossValidation.hint":
+    "Models run in order; each one sees every previous critique and builds on it. The last one can apply the fixes the chain agreed on. Leave the list empty to use the scenario's own defaults.",
+  "crossValidation.empty":
+    "No chain configured — the Cross-Validation scenario falls back to its own defaults.",
+  "crossValidation.sourceLabel": "Model source",
+  "crossValidation.sourceRole": "Reuse a role's model",
+  "crossValidation.sourceModel": "Pick a model",
+  "crossValidation.roleLabel": "Role",
+  "crossValidation.rolePlaceholder": "— role —",
+  "crossValidation.envLabel": "env",
+  "crossValidation.profileLabel": "Cloud profile",
+  "crossValidation.modelLabel": "model",
+  "crossValidation.customModelLabel": "custom model id",
+  "crossValidation.promptLabel": "Instruction (optional)",
+  "crossValidation.promptPlaceholder":
+    "What should this model look for? Empty uses the default critic prompt.",
+  "crossValidation.applyEdits":
+    "This model applies the agreed edits to workspace files",
+  "crossValidation.multipleEditorsWarning":
+    "More than one editor is selected. Each will edit the same files in turn, and the later ones will most likely conflict.",
+  "crossValidation.noEditorWarning":
+    "No editor selected — the chain will only produce a critique and change no files.",
+  "crossValidation.moveUp": "Move earlier",
+  "crossValidation.moveDown": "Move later",
+  "crossValidation.remove": "Remove from the chain",
+  "crossValidation.add": "+ Add model to the discussion",
   "customRoles.idLabel": "id (a-z, _)",
   "customRoles.listName": "List name",
   "customRoles.envLabel": "env",
@@ -177,6 +204,33 @@ export const agentsRu: Messages = {
   "devRoles.scopeLabel": "scope (необязательно)",
   "devRoles.scopePlaceholder": "например API и backend, без frontend",
   "devRoles.add": "+ Dev Role",
+  "crossValidation.title": "Кросс-валидация (модели обсуждают и вносят правки)",
+  "crossValidation.hint":
+    "Модели идут по порядку; каждая видит все предыдущие критики и опирается на них. Последняя может внести правки, о которых договорилась цепочка. Пустой список — сценарий берёт свои значения по умолчанию.",
+  "crossValidation.empty":
+    "Цепочка не настроена — сценарий Cross-Validation использует свои значения по умолчанию.",
+  "crossValidation.sourceLabel": "Источник модели",
+  "crossValidation.sourceRole": "Взять модель роли",
+  "crossValidation.sourceModel": "Выбрать модель",
+  "crossValidation.roleLabel": "Роль",
+  "crossValidation.rolePlaceholder": "— роль —",
+  "crossValidation.envLabel": "env",
+  "crossValidation.profileLabel": "Cloud profile",
+  "crossValidation.modelLabel": "модель",
+  "crossValidation.customModelLabel": "свой id модели",
+  "crossValidation.promptLabel": "Инструкция (необязательно)",
+  "crossValidation.promptPlaceholder":
+    "Что именно должна искать эта модель? Пусто — промпт критика по умолчанию.",
+  "crossValidation.applyEdits":
+    "Эта модель вносит согласованные правки в файлы workspace",
+  "crossValidation.multipleEditorsWarning":
+    "Выбрано больше одного редактора. Они будут править одни и те же файлы по очереди, и последующие, скорее всего, конфликтуют.",
+  "crossValidation.noEditorWarning":
+    "Редактор не выбран — цепочка только напишет критику и не изменит ни одного файла.",
+  "crossValidation.moveUp": "Сдвинуть выше",
+  "crossValidation.moveDown": "Сдвинуть ниже",
+  "crossValidation.remove": "Убрать из цепочки",
+  "crossValidation.add": "+ Добавить модель в обсуждение",
   "customRoles.idLabel": "id (a-z, _)",
   "customRoles.listName": "Название в списке",
   "customRoles.envLabel": "env",

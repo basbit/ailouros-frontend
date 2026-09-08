@@ -6,6 +6,7 @@ import { useRemoteApiProfiles } from "@/features/remote-api/useRemoteApiProfiles
 import { usePipeline } from "@/features/pipeline/usePipeline";
 import { useCustomRoles } from "@/features/custom-roles/useCustomRoles";
 import { useDevRoles } from "@/features/dev-roles/useDevRoles";
+import { useCrossValidation } from "@/features/cross-validation/useCrossValidation";
 import { useSkillsCatalog } from "@/features/skills-catalog/useSkillsCatalog";
 import { useProjectLifecycle } from "@/features/project-settings/useProjectLifecycle";
 import {
@@ -27,6 +28,9 @@ export function useSettings() {
     saveSettingsSoon(),
   );
   const devRolesState = useDevRoles(() => saveSettingsSoon());
+  const crossValidationState = useCrossValidation(profilesState.profiles, () =>
+    saveSettingsSoon(),
+  );
   const skillsState = useSkillsCatalog(() => saveSettingsSoon());
 
   function collectSnap(): SettingsSnap {
@@ -39,6 +43,8 @@ export function useSettings() {
       workspace_write: form.workspace_write,
       workspace_context_mode: form.workspace_context_mode,
       human_manual_review: form.human_manual_review,
+      attachments: JSON.parse(JSON.stringify(form.attachments ?? [])),
+      image_attachments: JSON.parse(JSON.stringify(form.image_attachments ?? [])),
       swarm_languages: form.swarm_languages,
       swarm_topology: form.swarm_topology,
       swarm_pattern_memory: form.swarm_pattern_memory,
@@ -90,6 +96,7 @@ export function useSettings() {
       remote_api_profile_rows: [],
       custom_roles: customRolesState.collectSnap(),
       dev_roles: devRolesState.collectSnap(),
+      cross_validation: crossValidationState.collectSnap(),
       skills_catalog: skillsState.collectSnap(),
       roles: rolesState.collectRolesSnap(),
     };
@@ -130,6 +137,7 @@ export function useSettings() {
     skillsState.applySnap(snap.skills_catalog ?? []);
     customRolesState.applySnap(snap.custom_roles ?? []);
     devRolesState.applySnap(snap.dev_roles ?? []);
+    crossValidationState.applySnap(snap.cross_validation);
 
     if (snap.pipeline && snap.pipeline.length) {
       pipelineState.applySnap(snap.pipeline);
@@ -185,6 +193,7 @@ export function useSettings() {
     customRolesState,
     pipelineState,
     devRolesState,
+    crossValidationState,
     skillsState,
     collectSnap,
     saveSettingsSoon,

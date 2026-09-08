@@ -8,16 +8,14 @@ describe("parseRedTeamCorpusPayload", () => {
     expect(parseRedTeamCorpusPayload(42)).toBeNull();
   });
 
-  it("defaults to empty corpus with manual schedule", () => {
+  it("defaults to an empty corpus", () => {
     const parsed = parseRedTeamCorpusPayload({});
-    expect(parsed?.schedule).toBe("manual");
     expect(parsed?.count).toBe(0);
     expect(parsed?.probes).toEqual([]);
   });
 
   it("parses a full payload", () => {
     const parsed = parseRedTeamCorpusPayload({
-      schedule: "daily",
       count: 2,
       probes: [
         {
@@ -34,7 +32,6 @@ describe("parseRedTeamCorpusPayload", () => {
         },
       ],
     });
-    expect(parsed?.schedule).toBe("daily");
     expect(parsed?.probes).toHaveLength(2);
     expect(parsed?.probes[0]?.category).toBe("prompt_injection");
   });
@@ -51,8 +48,9 @@ describe("parseRedTeamCorpusPayload", () => {
     expect(parsed?.probes[0]?.probeId).toBe("X-2");
   });
 
-  it("defaults unknown schedule to manual", () => {
-    const parsed = parseRedTeamCorpusPayload({ schedule: "hourly" });
-    expect(parsed?.schedule).toBe("manual");
+  it("ignores unknown top-level fields", () => {
+    const parsed = parseRedTeamCorpusPayload({ schedule: "hourly", count: 3 });
+    expect(parsed).not.toHaveProperty("schedule");
+    expect(parsed?.count).toBe(3);
   });
 });

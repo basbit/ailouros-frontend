@@ -522,6 +522,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/index/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Index Status */
+        get: operations["index_status_v1_index_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/memory/consolidate": {
         parameters: {
             query?: never;
@@ -1861,6 +1878,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/trace/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Task Trace */
+        get: operations["get_task_trace_v1_trace__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/ui/models": {
         parameters: {
             query?: never;
@@ -2142,6 +2176,10 @@ export interface components {
                     [key: string]: unknown;
                 };
             } | null;
+            /** Attachments */
+            attachments?: components["schemas"]["TextAttachment"][] | null;
+            /** Image Attachments */
+            image_attachments?: components["schemas"]["ImageAttachment"][] | null;
             /** Messages */
             messages: components["schemas"]["ChatMessage"][];
             /**
@@ -2272,6 +2310,8 @@ export interface components {
         GoalTriggerPayload: {
             /** Cron */
             cron?: string | null;
+            /** Event */
+            event?: string | null;
             /**
              * Kind
              * @default manual
@@ -2310,6 +2350,13 @@ export interface components {
              * @default true
              */
             stream: boolean;
+        };
+        /** ImageAttachment */
+        ImageAttachment: {
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
         };
         /** MCPServerSpecSchema */
         MCPServerSpecSchema: {
@@ -2602,6 +2649,13 @@ export interface components {
              */
             workspace_root: string;
         };
+        /** TextAttachment */
+        TextAttachment: {
+            /** Content */
+            content: string;
+            /** Name */
+            name: string;
+        };
         /** UiProviderBalanceRequest */
         UiProviderBalanceRequest: {
             /** Api Key */
@@ -2712,10 +2766,25 @@ export interface components {
              */
             swarm_deep_planning_remote_profile: string;
             /**
+             * Swarm Dev Qa Task Count
+             * @default
+             */
+            swarm_dev_qa_task_count: string;
+            /**
              * Swarm Dream Enabled
              * @default false
              */
             swarm_dream_enabled: boolean;
+            /**
+             * Swarm Force Sequential
+             * @default false
+             */
+            swarm_force_sequential: boolean;
+            /**
+             * Swarm Max Parallel Tasks
+             * @default
+             */
+            swarm_max_parallel_tasks: string;
             /**
              * Swarm Max Step Retries
              * @default
@@ -2841,6 +2910,16 @@ export interface components {
              * @default
              */
             swarm_self_verify_remote_profile: string;
+            /**
+             * Swarm Tracer Bullet Enabled
+             * @default true
+             */
+            swarm_tracer_bullet_enabled: boolean;
+            /**
+             * Swarm Tracer Revision Gate
+             * @default false
+             */
+            swarm_tracer_revision_gate: boolean;
             /**
              * Tavily Api Key
              * @default
@@ -3806,6 +3885,37 @@ export interface operations {
             path: {
                 subsystem: string;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_status_v1_index_status_get: {
+        parameters: {
+            query?: {
+                workspace_root?: string;
+            };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -6452,6 +6562,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_trace_v1_trace__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

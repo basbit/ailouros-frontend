@@ -101,6 +101,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
           },
           onDone: () => undefined,
           sendWsSubscribe,
+          onWarning: (message) => ux.notify(message, "warning", 6000),
           onEvent: createSwarmStreamEventHandler({
             notify: (message, level, durationMs) =>
               ux.notify(message, level, durationMs),

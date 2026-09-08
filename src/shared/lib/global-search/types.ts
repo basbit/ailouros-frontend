@@ -112,6 +112,14 @@ export interface GlobalSearchKeysState {
   swarm_dev_shell_use_sandbox_resolver: boolean;
   swarm_gate_audit_persist: boolean;
   swarm_block_unjustified_full_rewrite_before_apply: boolean;
+  swarm_computer_control_enabled: boolean;
+  swarm_chrome_cdp_url: string;
+  swarm_visual_baselines_enabled: boolean;
+  swarm_visual_baselines_update: boolean;
+  swarm_dev_qa_task_count: string;
+  swarm_max_parallel_tasks: string;
+  swarm_force_sequential: boolean;
+  swarm_tracer_bullet_enabled: boolean;
   swarm_tracer_revision_gate: boolean;
   swarm_require_dev_writes: boolean;
   swarm_require_trusted_gates_pass: boolean;

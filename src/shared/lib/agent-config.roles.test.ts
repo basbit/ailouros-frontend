@@ -69,6 +69,9 @@ const emptyState: Omit<AgentConfigSettings, "form"> = {
   devRolesState: {
     collectForApi: () => [],
   },
+  crossValidationState: {
+    collectForApi: () => null,
+  },
   customRolesState: {
     collectSnap: () => [],
   },
@@ -97,6 +100,36 @@ beforeEach(() => {
 });
 
 describe("buildAgentConfig roles + dev_roles + custom roles + skills", () => {
+  it("omits cross_validation when no chain is configured", () => {
+    const config = buildAgentConfig({ ...emptyState, form: baseForm() });
+
+    // Absent — not empty — so the scenario's own validator defaults win in
+    // resolve_scenario_overrides instead of being overwritten with nothing.
+    expect(config).not.toHaveProperty("cross_validation");
+  });
+
+  it("passes the configured validator chain through as cross_validation", () => {
+    const config = buildAgentConfig({
+      ...emptyState,
+      crossValidationState: {
+        collectForApi: () => ({
+          validators: [
+            { model_from_role: "pm" },
+            { model: "claude-opus-5", environment: "cloud", apply_edits: true },
+          ],
+        }),
+      },
+      form: baseForm(),
+    });
+
+    expect(config?.cross_validation).toEqual({
+      validators: [
+        { model_from_role: "pm" },
+        { model: "claude-opus-5", environment: "cloud", apply_edits: true },
+      ],
+    });
+  });
+
   it("includes dev_roles array when devRolesState returns non-empty", () => {
     const config = buildAgentConfig({
       ...emptyState,

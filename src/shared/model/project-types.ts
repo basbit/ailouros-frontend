@@ -45,12 +45,42 @@ export interface SkillCatalogSnap {
   path: string;
 }
 
+/** One model in the cross-validation discussion chain.
+ *
+ * `source: "role"` reuses the model already assigned to `role` on this page,
+ * so the chain follows role reassignments. `source: "model"` pins an explicit
+ * model, which is what lets the same role appear twice with different models. */
+export interface CrossValidatorSnap {
+  source: "role" | "model";
+  role: string;
+  environment: string;
+  model: string;
+  remote_profile: string;
+  prompt: string;
+  apply_edits: boolean;
+}
+
 export interface CustomScenarioSnap {
   id: string;
   title: string;
   pipeline_steps: string[];
   workspace_write_default: boolean;
   topology?: string;
+}
+
+/** Request-only text attachment (never persisted). Holds a file name and its
+ *  raw content; embedded inline into the user prompt on launch. */
+export interface TextAttachment {
+  name: string;
+  content: string;
+}
+
+/** Request-only image attachment (never persisted). Holds a file name and the
+ *  absolute path of an image already uploaded to the workspace; the backend
+ *  embeds the path so the vision pre-processor (pm_vision) can read it. */
+export interface ImageAttachment {
+  name: string;
+  path: string;
 }
 
 // Flat default-valued fields shared across SettingsSnap (project store) and
@@ -63,6 +93,8 @@ export interface BaseSettingsFields {
   workspace_write: boolean;
   workspace_context_mode?: WorkspaceContextMode;
   human_manual_review: boolean;
+  attachments?: TextAttachment[];
+  image_attachments?: ImageAttachment[];
   swarm_languages: string;
   swarm_topology: string;
   swarm_pattern_memory: boolean;
@@ -120,6 +152,7 @@ export interface SettingsSnap extends BaseSettingsFields {
   remote_api_profile_rows: RemoteProfileRow[];
   custom_roles: CustomRoleSnap[];
   dev_roles: DevRoleSnap[];
+  cross_validation?: CrossValidatorSnap[];
   skills_catalog: SkillCatalogSnap[];
   roles: Record<string, RoleSnapshot>;
 }

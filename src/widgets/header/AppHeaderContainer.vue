@@ -70,6 +70,7 @@ import SystemHealthPanel from "@/features/system-health/SystemHealthPanel.vue";
 import { useAppHeaderBindings } from "./useAppHeaderBindings";
 import { useUiStore } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
+import { isTaskActive } from "@/shared/lib/task-status";
 
 const ui = useUiStore();
 const header = useAppHeaderBindings();
@@ -93,7 +94,18 @@ function onSwitchRun(taskIdValue: string): void {
   if (!taskIdValue) return;
   if (ui.taskId !== taskIdValue) {
     ui.taskId = taskIdValue;
-    void router.push(`/run/done/${taskIdValue}`);
+    // A run is "active" only while its status is non-terminal. activeRunIds
+    // keeps every run started this session (including finished ones), so it
+    // cannot be used to decide the route — consult the history entry instead.
+    const entry = ui.historyList.find(
+      (item) => (item.taskId ?? "").trim() === taskIdValue,
+    );
+    const isActive = entry ? isTaskActive(entry.status ?? "") : true;
+    if (isActive) {
+      void router.push("/run/active");
+    } else {
+      void router.push(`/run/done/${taskIdValue}`);
+    }
   }
 }
 </script>

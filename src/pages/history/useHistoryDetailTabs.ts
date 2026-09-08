@@ -1,6 +1,13 @@
 import { computed, ref } from "vue";
 
-export type HistoryTabKey = "run" | "activity" | "artifacts" | "tokens" | "graphs";
+export type HistoryTabKey =
+  | "run"
+  | "activity"
+  | "artifacts"
+  | "tokens"
+  | "graphs"
+  | "visual"
+  | "trace";
 
 type TranslatorArgs = Record<string, string | number | null | undefined>;
 
@@ -17,6 +24,8 @@ export function useHistoryDetailTabs(t: TranslatorLike) {
     { key: "artifacts", label: t("history.detail.tab.artifacts") },
     { key: "tokens", label: t("history.detail.tab.tokens") },
     { key: "graphs", label: t("history.detail.tab.graphs") },
+    { key: "visual", label: t("history.detail.tab.visual") },
+    { key: "trace", label: t("history.detail.tab.trace") },
   ]);
 
   return {

@@ -18,6 +18,7 @@
           @update:model-value="onWorkspaceRootChange"
         />
       </div>
+      <IndexStatusCard :workspace-root="form.workspace_root" />
       <div class="project-pane__field">
         <span class="project-pane__label">
           {{ t("configure.project.contextFile") }}
@@ -113,6 +114,7 @@
 import { computed } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";
+import IndexStatusCard from "@/widgets/index-status/IndexStatusCard.vue";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useI18n } from "@/shared/lib/i18n";
 

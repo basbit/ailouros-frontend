@@ -46,6 +46,13 @@ function copyTextFields(form: SettingsForm, snap: SettingsSnap): void {
   form.project_context_file = snap.project_context_file ?? "";
   form.workspace_context_mode =
     snap.workspace_context_mode ?? WORKSPACE_CONTEXT_MODE_DEFAULT;
+  // Request-only attachments ride the snap so the chips survive a reload and
+  // project switches (the wiki documents them as "next launch only", which is
+  // exactly this form's lifetime, not the tab's).
+  form.attachments = Array.isArray(snap.attachments) ? snap.attachments : [];
+  form.image_attachments = Array.isArray(snap.image_attachments)
+    ? snap.image_attachments
+    : [];
   form.swarm_languages = snap.swarm_languages ?? "";
   form.swarm_topology = snap.swarm_topology ?? "";
   form.swarm_pipeline_hooks_module = snap.swarm_pipeline_hooks_module ?? "";

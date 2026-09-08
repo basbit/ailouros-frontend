@@ -1,5 +1,5 @@
 <template>
-  <div class="run-live-gates">
+  <div class="task-gates-overlay">
     <HumanGate
       :visible="ui.humanGateVisible"
       :title="ui.humanGateTitle"
@@ -33,10 +33,10 @@
 </template>
 
 <script setup lang="ts">
-import HumanGate from "@/features/task-gate/HumanGate.vue";
-import ShellGate from "@/features/task-gate/ShellGate.vue";
-import ManualShellGate from "@/features/task-gate/ManualShellGate.vue";
-import RetryGate from "@/features/task-gate/RetryGate.vue";
+import HumanGate from "./HumanGate.vue";
+import ShellGate from "./ShellGate.vue";
+import ManualShellGate from "./ManualShellGate.vue";
+import RetryGate from "./RetryGate.vue";
 import { useUiStore } from "@/shared/store/ui";
 
 defineProps<{ currentPipelineSteps: string[] }>();

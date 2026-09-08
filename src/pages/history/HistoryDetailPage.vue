@@ -67,6 +67,14 @@
               v-else-if="activeTab === 'graphs'"
               :workspace-root="workspaceRootForRun"
             />
+            <VisualTab
+              v-else-if="activeTab === 'visual'"
+              :task-id="entry.taskId ?? null"
+            />
+            <TraceTimeline
+              v-else-if="activeTab === 'trace'"
+              :task-id="entry.taskId ?? ''"
+            />
           </section>
 
           <HistoryDetailSidebar
@@ -102,6 +110,8 @@ import HistoryDetailHeaderActions from "./HistoryDetailHeaderActions.vue";
 import RunTab from "@/pages/history/tabs/RunTab.vue";
 import GraphsTab from "@/pages/history/tabs/GraphsTab.vue";
 import TokensTab from "@/pages/history/tabs/TokensTab.vue";
+import VisualTab from "@/pages/history/tabs/VisualTab.vue";
+import TraceTimeline from "@/widgets/trace-timeline/TraceTimeline.vue";
 import RunArtifactsTab from "@/pages/run/RunArtifactsTab.vue";
 import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
 import ConversationPanel from "@/widgets/task-panel/ConversationPanel.vue";

@@ -67,6 +67,13 @@
       </template>
       <span v-else class="model-picker__auto-indicator">{{ autoIndicatorText }}</span>
     </div>
+    <div
+      v-if="!isAutoMode && modelNotInProvider"
+      class="model-picker__warn"
+      role="alert"
+    >
+      ⚠ {{ modelNotInProvider }}
+    </div>
     <slot name="hint" />
     <input
       v-if="!isAutoMode && modelSel === '__custom__'"
@@ -85,6 +92,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
+import { useI18n } from "@/shared/lib/i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -134,6 +142,7 @@ const emit = defineEmits<{
 }>();
 
 const isDesktopShell = isDesktop();
+const { t } = useI18n();
 
 const showProfile = computed(
   () => props.showProfileSelect ?? Boolean(props.profileOptions?.length),
@@ -141,6 +150,24 @@ const showProfile = computed(
 const isAutoMode = computed(
   () => props.showModelModeToggle && props.modelMode === "auto",
 );
+
+// The effective model id the user has selected (custom text or a list entry).
+const effectiveModelId = computed(() =>
+  props.modelSel === "__custom__" ? props.modelCustom.trim() : props.modelSel,
+);
+
+// Warn when the selected model is not present in the provider's model list
+// (e.g. it was removed from Ollama / the cloud provider). A custom entry is
+// always allowed, so it never triggers this warning.
+const modelNotInProvider = computed(() => {
+  if (isAutoMode.value) return "";
+  const model = effectiveModelId.value;
+  if (!model) return "";
+  if (props.modelSel === "__custom__") return "";
+  const known = props.modelChoices.some(([val]) => val === model);
+  if (known) return "";
+  return t("errors.modelNotInProvider", { model });
+});
 </script>
 
 <style scoped>
@@ -181,5 +208,10 @@ const isAutoMode = computed(
   font-size: 11px;
   font-style: italic;
   color: var(--text3, #6b7280);
+}
+.model-picker__warn {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--warn, #d97706);
 }
 </style>

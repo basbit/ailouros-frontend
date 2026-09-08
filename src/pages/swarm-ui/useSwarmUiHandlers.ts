@@ -1,5 +1,9 @@
 import { useProjectsStore } from "@/shared/store/projects";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type {
+  ImageAttachment,
+  RemoteProfileRow,
+  TextAttachment,
+} from "@/shared/model/project-types";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useUxStore } from "@/shared/store/ux";
@@ -13,6 +17,8 @@ export interface SwarmUiHandlers {
   onResetRecommendedSteps: () => void;
   onProfileUpdate: (idx: number, field: keyof RemoteProfileRow, val: string) => void;
   onPromptUpdate: (val: string) => void;
+  onAttachmentsUpdate: (attachments: TextAttachment[]) => void;
+  onImageAttachmentsUpdate: (attachments: ImageAttachment[]) => void;
   onAppendToPrompt: (text: string) => void;
   onHumanManualReviewUpdate: (val: boolean) => void;
   onEventsViewMode: (mode: "preview" | "raw") => void;
@@ -52,6 +58,18 @@ export function useSwarmUiHandlers(
   function onPromptUpdate(val: string): void {
     settings.form.prompt = val;
     settings.saveSettingsSoon();
+  }
+
+  function onAttachmentsUpdate(attachments: TextAttachment[]): void {
+    // Request-only: stored on the live form for the next launch, never in the
+    // persisted SettingsSnap (GATE-2 request-only default).
+    settings.form.attachments = attachments;
+  }
+
+  function onImageAttachmentsUpdate(attachments: ImageAttachment[]): void {
+    // Same request-only contract as text attachments; pm_vision re-reads the
+    // absolute path from the prompt, nothing is persisted to localStorage.
+    settings.form.image_attachments = attachments;
   }
 
   function onAppendToPrompt(text: string): void {
@@ -124,6 +142,8 @@ export function useSwarmUiHandlers(
     onResetRecommendedSteps,
     onProfileUpdate,
     onPromptUpdate,
+    onAttachmentsUpdate,
+    onImageAttachmentsUpdate,
     onAppendToPrompt,
     onHumanManualReviewUpdate,
     onEventsViewMode,

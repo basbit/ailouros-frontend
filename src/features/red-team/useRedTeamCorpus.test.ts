@@ -11,7 +11,6 @@ vi.mock("@/shared/api/endpoints/red-team", () => ({
 
 function makeCorpus(overrides: Partial<RedTeamCorpus> = {}): RedTeamCorpus {
   return {
-    schedule: "manual",
     count: 1,
     probes: [
       {

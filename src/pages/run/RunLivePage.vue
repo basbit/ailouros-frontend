@@ -30,6 +30,7 @@
         v-else-if="hasRun && activeTab === 'graphs'"
         :workspace-root="workspaceRootForRun"
       />
+      <VisualTab v-else-if="hasRun && activeTab === 'visual'" :task-id="ui.taskId" />
     </main>
   </div>
 </template>
@@ -41,6 +42,7 @@ import RunLiveBody from "./RunLiveBody.vue";
 import RunArtifactsTab from "./RunArtifactsTab.vue";
 import GraphsTab from "@/pages/history/tabs/GraphsTab.vue";
 import TokensTab from "@/pages/history/tabs/TokensTab.vue";
+import VisualTab from "@/pages/history/tabs/VisualTab.vue";
 import { ToolActivityPanel } from "@/widgets/tool-activity-panel";
 import { useHistoryDetailTabs } from "@/pages/history/useHistoryDetailTabs";
 import { useUiStore } from "@/shared/store/ui";

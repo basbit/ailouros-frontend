@@ -140,7 +140,7 @@ const error = ref<string | null>(null);
 const consolidating = ref(false);
 const consolidateStatus = ref<string | null>(null);
 const searchQuery = ref("");
-let loaded = false;
+const loaded = ref(false);
 
 const quarantinedPatterns = ref<QuarantinedPattern[]>([]);
 const quarantinedEpisodes = ref<QuarantinedEpisode[]>([]);
@@ -202,8 +202,8 @@ async function loadEntries(): Promise<void> {
 
 function onToggle(event: Event): void {
   const details = event.target as HTMLDetailsElement;
-  if (details.open && !loaded) {
-    loaded = true;
+  if (details.open && !loaded.value) {
+    loaded.value = true;
     void loadEntries();
     void loadQuarantine();
   }

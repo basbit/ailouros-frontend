@@ -76,6 +76,8 @@
             @append-to-prompt="onAppendToPrompt"
             @update:human-manual-review="onHumanManualReviewUpdate"
             @swarm-form-update="roleHandlers.onSwarmFormUpdate"
+            @swarm-form-update-attachments="onAttachmentsUpdate"
+            @swarm-form-update-image-attachments="onImageAttachmentsUpdate"
             @start-run="onStartRun"
             @stop-run="onStopRun"
             @human-resume="onHumanResume"
@@ -179,7 +181,6 @@ import { useArtifactsPanelState } from "@/pages/swarm-ui/useArtifactsPanelState"
 import { useScenarioGraphData } from "@/pages/swarm-ui/useScenarioGraphData";
 import { useSwarmUiDerived } from "@/pages/swarm-ui/useSwarmUiDerived";
 import { useSwarmUiHandlers } from "@/pages/swarm-ui/useSwarmUiHandlers";
-
 const settings = inject(APP_SETTINGS_KEY);
 const controller = inject(SWARM_RUN_CONTROLLER_KEY);
 const globalSettings = inject(GLOBAL_SETTINGS_KEY);
@@ -290,6 +291,8 @@ const {
   onResetRecommendedSteps,
   onProfileUpdate,
   onPromptUpdate,
+  onAttachmentsUpdate,
+  onImageAttachmentsUpdate,
   onAppendToPrompt,
   onHumanManualReviewUpdate,
   onEventsViewMode,

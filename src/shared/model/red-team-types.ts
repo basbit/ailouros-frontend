@@ -1,7 +1,5 @@
 type RedTeamCategory = "prompt_injection" | "off_topic" | "citation_required";
 
-type RedTeamSchedule = "manual" | "daily" | "weekly";
-
 interface RedTeamProbeSummary {
   readonly probeId: string;
   readonly category: RedTeamCategory;
@@ -10,7 +8,6 @@ interface RedTeamProbeSummary {
 }
 
 export interface RedTeamCorpus {
-  readonly schedule: RedTeamSchedule;
   readonly count: number;
   readonly probes: readonly RedTeamProbeSummary[];
 }
@@ -23,7 +20,6 @@ interface RawProbe {
 }
 
 interface RawCorpus {
-  schedule?: unknown;
   count?: unknown;
   probes?: unknown;
 }
@@ -34,12 +30,6 @@ const KNOWN_CATEGORIES: ReadonlySet<RedTeamCategory> = new Set([
   "citation_required",
 ]);
 
-const KNOWN_SCHEDULES: ReadonlySet<RedTeamSchedule> = new Set([
-  "manual",
-  "daily",
-  "weekly",
-]);
-
 function readString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
@@ -47,11 +37,6 @@ function readString(value: unknown): string {
 function readCategory(value: unknown): RedTeamCategory | null {
   const candidate = readString(value) as RedTeamCategory;
   return KNOWN_CATEGORIES.has(candidate) ? candidate : null;
-}
-
-function readSchedule(value: unknown): RedTeamSchedule {
-  const candidate = readString(value) as RedTeamSchedule;
-  return KNOWN_SCHEDULES.has(candidate) ? candidate : "manual";
 }
 
 function readNonNegativeInt(value: unknown): number {
@@ -84,7 +69,6 @@ export function parseRedTeamCorpusPayload(raw: unknown): RedTeamCorpus | null {
         .filter((entry): entry is RedTeamProbeSummary => entry !== null)
     : [];
   return {
-    schedule: readSchedule(candidate.schedule),
     count: readNonNegativeInt(candidate.count),
     probes,
   };

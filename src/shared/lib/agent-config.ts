@@ -64,6 +64,7 @@ export function buildAgentConfig(
     rolesState,
     devRolesState,
     customRolesState,
+    crossValidationState,
     skillsState,
     profilesState,
   } = settings;
@@ -92,6 +93,11 @@ export function buildAgentConfig(
   if (Object.keys(profilesObject).length) {
     config.remote_api_profiles = profilesObject;
   }
+
+  // Omitted when the user configured no chain, so a scenario's own
+  // validator defaults survive the merge in resolve_scenario_overrides.
+  const crossValidation = crossValidationState.collectForApi();
+  if (crossValidation) config.cross_validation = crossValidation;
 
   const { customRoles, skills } = buildCustomRolesSection(
     customRolesState,

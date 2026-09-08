@@ -39,6 +39,32 @@ export const FLAG_GROUP_ORCHESTRATION: FeatureFlagGroup = {
       wired: true,
     },
     {
+      kind: "string",
+      field: "swarm_dev_qa_task_count",
+      envName: "SWARM_DEV_QA_TASK_COUNT",
+      placeholder: "auto (e.g. 3)",
+      wired: true,
+    },
+    {
+      kind: "string",
+      field: "swarm_max_parallel_tasks",
+      envName: "SWARM_MAX_PARALLEL_TASKS",
+      placeholder: "4",
+      wired: true,
+    },
+    {
+      kind: "boolean",
+      field: "swarm_force_sequential",
+      envName: "SWARM_FORCE_SEQUENTIAL",
+      wired: true,
+    },
+    {
+      kind: "boolean",
+      field: "swarm_tracer_bullet_enabled",
+      envName: "SWARM_TRACER_BULLET_ENABLED",
+      wired: true,
+    },
+    {
       kind: "boolean",
       field: "swarm_tracer_revision_gate",
       envName: "SWARM_TRACER_REVISION_GATE",
