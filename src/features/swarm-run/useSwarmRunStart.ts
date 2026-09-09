@@ -27,10 +27,13 @@ export interface SwarmRunStartDeps {
   ux: ReturnType<typeof useUxStore>;
   t: ReturnType<typeof useI18n>["t"];
   preflight: ReturnType<typeof useSwarmRunPreflight>;
+  /** Called when the run's SSE stream pauses awaiting clarification. */
+  onAwaitingClarification?: () => void;
 }
 
 export function useSwarmRunStart(deps: SwarmRunStartDeps) {
   const { state, tickHandler, sendWsSubscribe, settings, ux, t, preflight } = deps;
+  const { onAwaitingClarification } = deps;
   const {
     ui,
     taskStore,
@@ -113,6 +116,10 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
               `${t("toast.autoApproved", { step })}${rule ? ` (${rule})` : ""}`,
             applyOrchestratorEvent,
             recordRetrievalDone,
+            onAwaitingClarification: () => {
+              ui.taskStatus = "awaiting_human";
+              onAwaitingClarification?.();
+            },
           }),
         },
         { resolveScenario },

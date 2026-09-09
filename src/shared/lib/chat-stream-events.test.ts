@@ -428,6 +428,35 @@ describe("parseChatStreamSiblingExtra — preflight, scenario, index stats", () 
   it("ignores a preflight payload that is not an object", () => {
     expect(parseChatStreamSiblingExtra({ model_preflight: "boom" })).toBeNull();
   });
+
+  it("maps awaiting_clarification to a typed event with questions", () => {
+    const event = parseChatStreamSiblingExtra({
+      awaiting_clarification: {
+        type: "awaiting_clarification",
+        step_id: "clarify_input",
+        questions: [
+          { index: 1, text: "Which stack?", options: ["Vue", "React"] },
+          { index: 2, text: "Deadline?", options: [] },
+        ],
+      },
+    });
+    expect(event).toEqual({
+      kind: "awaiting_clarification",
+      stepId: "clarify_input",
+      questions: [
+        { index: 1, text: "Which stack?", options: ["Vue", "React"] },
+        { index: 2, text: "Deadline?", options: [] },
+      ],
+    });
+  });
+
+  it("ignores awaiting_clarification without questions", () => {
+    expect(
+      parseChatStreamSiblingExtra({
+        awaiting_clarification: { type: "awaiting_clarification", step_id: "pm" },
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("parseChatStreamEvent — fallthrough cases", () => {
@@ -443,5 +472,35 @@ describe("parseChatStreamEvent — fallthrough cases", () => {
 
   it("returns null when leading non-bracket-non-brace content", () => {
     expect(parseChatStreamEvent('"just a string"')).toBeNull();
+  });
+
+  it("parses the plain [orchestrator] awaiting_human status line", () => {
+    expect(
+      parseChatStreamEvent(
+        "[orchestrator] awaiting_human: Waiting for manual approval of step pm",
+      ),
+    ).toEqual({
+      kind: "orchestrator_status_line",
+      status: "awaiting_human",
+      detail: "Waiting for manual approval of step pm",
+    });
+  });
+
+  it("keeps parsing other plain [orchestrator] status lines", () => {
+    expect(parseChatStreamEvent("[orchestrator] cancelled: stopped by user")).toEqual({
+      kind: "orchestrator_status_line",
+      status: "cancelled",
+      detail: "stopped by user",
+    });
+    expect(parseChatStreamEvent("[orchestrator] failed: boom")).toEqual({
+      kind: "orchestrator_status_line",
+      status: "failed",
+      detail: "boom",
+    });
+  });
+
+  it("does not misread ordinary prose as an orchestrator status line", () => {
+    expect(parseChatStreamEvent("[pm] Here is the plan: we ship.")).toBeNull();
+    expect(parseChatStreamEvent("random text")).toBeNull();
   });
 });

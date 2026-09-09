@@ -17,23 +17,22 @@
       <span
         v-else-if="hasFailure"
         class="turn-pipeline-bar__mark turn-pipeline-bar__mark--fail"
-      >✕</span>
+        >✕</span
+      >
       <span v-else class="turn-pipeline-bar__mark turn-pipeline-bar__mark--ok">✓</span>
     </span>
 
     <span class="turn-pipeline-bar__main">
       <span class="turn-pipeline-bar__row">
         <span class="turn-pipeline-bar__label">{{ headline }}</span>
-        <span
-          v-if="summary.totalSteps.value"
-          class="turn-pipeline-bar__counter"
-        >
+        <span v-if="summary.totalSteps.value" class="turn-pipeline-bar__counter">
           {{ stepCounter }}
         </span>
         <span
           class="turn-pipeline-bar__status"
           :class="`turn-pipeline-bar__status--${statusKind}`"
-        >{{ statusText }}</span>
+          >{{ statusText }}</span
+        >
       </span>
 
       <span class="turn-pipeline-bar__track" aria-hidden="true">
@@ -44,17 +43,14 @@
         />
       </span>
 
-      <span
-        v-if="summary.latestLog.value"
-        class="turn-pipeline-bar__log"
-      >{{ summary.latestLog.value }}</span>
+      <span v-if="summary.latestLog.value" class="turn-pipeline-bar__log">{{
+        summary.latestLog.value
+      }}</span>
     </span>
 
-    <span
-      v-if="hasDetailRoute"
-      class="turn-pipeline-bar__chevron"
-      aria-hidden="true"
-    >›</span>
+    <span v-if="hasDetailRoute" class="turn-pipeline-bar__chevron" aria-hidden="true"
+      >›</span
+    >
   </button>
 </template>
 

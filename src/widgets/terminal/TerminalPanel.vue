@@ -57,9 +57,7 @@
       <!-- Terminal Output Screen -->
       <div ref="outputRef" class="terminal-screen">
         <pre v-if="logs" class="terminal-text">{{ logs }}</pre>
-        <div v-else class="terminal-empty">
-          No logs or active background processes.
-        </div>
+        <div v-else class="terminal-empty">No logs or active background processes.</div>
       </div>
 
       <!-- Quick Command Bar -->
@@ -172,7 +170,7 @@ async function onRunCommand(): Promise<void> {
   scrollToBottom();
 
   try {
-    const res = await executeShell(cmd, true, props.workspaceRoot);
+    const res = await executeShell(cmd, props.workspaceRoot);
     logs.value += res.output || "";
     if (res.error) {
       logs.value += `\n[Error]: ${res.error}\n`;

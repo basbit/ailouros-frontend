@@ -56,12 +56,22 @@
             <li
               v-for="entry in filesFor(category)"
               :key="entry.filename"
-              class="artefact-browser__file"
+              class="artefact-browser__file artefact-browser__file--clickable"
+              @click="openEditor(entry.filename)"
             >
               <code>{{ entry.filename }}</code>
               <span class="artefact-browser__size">
                 {{ t("artefactBrowser.bytes", { size: entry.contentLength }) }}
               </span>
+              <button
+                v-if="ui.taskId"
+                type="button"
+                class="artefact-browser__edit-btn"
+                :title="t('artefactBrowser.edit')"
+                @click.stop="openEditor(entry.filename)"
+              >
+                &#9998; {{ t("artefactBrowser.edit") }}
+              </button>
             </li>
           </ul>
         </li>
@@ -80,30 +90,63 @@
           <li
             v-for="filename in report.uncategorised"
             :key="filename"
-            class="artefact-browser__file"
+            class="artefact-browser__file artefact-browser__file--clickable"
+            @click="openEditor(filename)"
           >
             <code>{{ filename }}</code>
+            <button
+              v-if="ui.taskId"
+              type="button"
+              class="artefact-browser__edit-btn"
+              :title="t('artefactBrowser.edit')"
+              @click.stop="openEditor(filename)"
+            >
+              &#9998; {{ t("artefactBrowser.edit") }}
+            </button>
           </li>
         </ul>
       </div>
     </template>
+
+    <ArtefactEditorModal
+      :visible="isEditorOpen"
+      :task-id="ui.taskId"
+      :file-path="activeEditingFile ?? ''"
+      @close="isEditorOpen = false"
+      @saved="onFileSaved"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 import type { PresentArtefact } from "@/shared/model/artefact-catalogue-types";
 import { useArtefactCatalogue } from "@/features/artefact-catalogue/useArtefactCatalogue";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUiStore } from "@/shared/store/ui";
+import ArtefactEditorModal from "@/features/artifact-editor/ArtefactEditorModal.vue";
 
 type CategoryStatus = "present" | "empty" | "missing";
 
 const props = defineProps<{ scenario: string; workspaceRoot: string | null }>();
 
 const { t } = useI18n();
+const ui = useUiStore();
 const catalogue = useArtefactCatalogue();
 const report = computed(() => catalogue.report.value);
+
+const activeEditingFile = ref<string | null>(null);
+const isEditorOpen = ref(false);
+
+function openEditor(filename: string): void {
+  activeEditingFile.value = filename;
+  isEditorOpen.value = true;
+}
+
+async function onFileSaved(): Promise<void> {
+  await onRefresh();
+}
 
 const canRefresh = computed(
   () => Boolean(props.scenario.trim()) && Boolean(props.workspaceRoot),
@@ -291,5 +334,37 @@ async function onRefresh(): Promise<void> {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-3);
+}
+
+.artefact-browser__file--clickable {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.artefact-browser__file--clickable:hover {
+  background: var(--card-soft, rgba(80, 60, 30, 0.06));
+}
+
+.artefact-browser__edit-btn {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--r-sm, 4px);
+  border: 1px solid var(--line-strong, rgba(80, 60, 30, 0.2));
+  background: var(--card, #f7f1e3);
+  color: var(--ink-2, #3d342a);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+
+.artefact-browser__file:hover .artefact-browser__edit-btn {
+  opacity: 1;
+  border-color: var(--accent, #e16a3a);
+  color: var(--accent, #e16a3a);
 }
 </style>

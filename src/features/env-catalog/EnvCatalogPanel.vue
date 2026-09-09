@@ -52,7 +52,10 @@
             <span v-if="variable.managed_by_ui_field" class="env-catalog__badge">
               {{ t("envCatalog.alsoInFeatureFlags") }}
             </span>
-            <span v-if="variable.is_set" class="env-catalog__badge env-catalog__badge--set">
+            <span
+              v-if="variable.is_set"
+              class="env-catalog__badge env-catalog__badge--set"
+            >
               {{ t("envCatalog.overridden") }}
             </span>
           </label>

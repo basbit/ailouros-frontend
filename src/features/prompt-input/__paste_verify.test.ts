@@ -12,12 +12,16 @@ const httpPostMock = vi.fn().mockResolvedValue({
   absolute_path: "/ws/assets/pasted-1.png",
   relative_path: "assets/pasted-1.png",
 });
-vi.mock("@/shared/api/http", () => ({ httpPost: (...a: unknown[]) => httpPostMock(...a) }));
+vi.mock("@/shared/api/http", () => ({
+  httpPost: (...a: unknown[]) => httpPostMock(...a),
+}));
 
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 
 function pngFile(name = "paste.png"): File {
-  return new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], name, { type: "image/png" });
+  return new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], name, {
+    type: "image/png",
+  });
 }
 
 describe("pasted-file chips (scratch)", () => {
@@ -28,8 +32,13 @@ describe("pasted-file chips (scratch)", () => {
     await wrapper.find("textarea").trigger("paste", {
       clipboardData: { files: [pngFile()] },
     });
-    await vi.waitFor(() => expect(wrapper.emitted("update:imageAttachments")).toBeTruthy());
-    const val = wrapper.emitted("update:imageAttachments")![0][0] as { name: string; path: string }[];
+    await vi.waitFor(() =>
+      expect(wrapper.emitted("update:imageAttachments")).toBeTruthy(),
+    );
+    const val = wrapper.emitted("update:imageAttachments")![0][0] as {
+      name: string;
+      path: string;
+    }[];
     await wrapper.setProps({ imageAttachments: val });
     expect(wrapper.find(".attachments-list").exists()).toBe(true);
     expect(wrapper.findAll(".attachment-chip").length).toBe(1);

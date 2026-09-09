@@ -11,20 +11,35 @@
     <div v-else class="run-artifacts__stack">
       <StreamingRagCard v-if="rag.visible.value" />
       <InlineCitationList v-if="citations.visible.value" />
+      <PeerReviewReportPanel
+        v-if="peerReview.report.value"
+        :report="peerReview.report.value"
+        :loading="peerReview.loading.value"
+        @inspect-file="onInspectFile"
+      />
       <ArtefactBrowser
         :scenario="currentScenario"
         :workspace-root="currentWorkspaceRoot"
+      />
+      <ArtefactEditorModal
+        :visible="isEditorOpen"
+        :task-id="ui.taskId"
+        :file-path="inspectFilePath ?? ''"
+        @close="isEditorOpen = false"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import StreamingRagCard from "@/widgets/streaming-rag-card/StreamingRagCard.vue";
 import InlineCitationList from "@/widgets/inline-citation-list/InlineCitationList.vue";
 import ArtefactBrowser from "@/widgets/artefact-browser/ArtefactBrowser.vue";
+import ArtefactEditorModal from "@/features/artifact-editor/ArtefactEditorModal.vue";
+import PeerReviewReportPanel from "@/features/peer-review-display/PeerReviewReportPanel.vue";
+import { usePeerReview } from "@/features/peer-review-display/usePeerReview";
 import { useStreamingRagCard } from "@/features/streaming-rag/useStreamingRagCard";
 import { useInlineCitations } from "@/features/inline-citations/useInlineCitations";
 import { useUiStore } from "@/shared/store/ui";
@@ -33,6 +48,15 @@ const { t } = useI18n();
 const rag = useStreamingRagCard();
 const citations = useInlineCitations();
 const ui = useUiStore();
+const peerReview = usePeerReview(() => ui.taskId);
+
+const inspectFilePath = ref<string | null>(null);
+const isEditorOpen = ref(false);
+
+function onInspectFile(payload: { path: string; line: number }): void {
+  inspectFilePath.value = payload.path;
+  isEditorOpen.value = true;
+}
 
 const currentScenario = computed(() => ui.taskScenarioId ?? "default");
 const currentWorkspaceRoot = computed(() => {
@@ -41,7 +65,11 @@ const currentWorkspaceRoot = computed(() => {
 });
 
 const hasContent = computed(
-  () => rag.visible.value || citations.visible.value || Boolean(ui.taskId),
+  () =>
+    rag.visible.value ||
+    citations.visible.value ||
+    Boolean(peerReview.report.value) ||
+    Boolean(ui.taskId),
 );
 </script>
 

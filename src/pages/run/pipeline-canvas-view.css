@@ -1,0 +1,103 @@
+.pipeline-canvas-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-1, #0c0d12);
+  overflow: hidden;
+}
+
+.pipeline-canvas-view__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--card, #14151c);
+  border-bottom: 1px solid var(--line, #282936);
+  z-index: 10;
+}
+
+.pipeline-canvas-view__title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipeline-canvas-view__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink, #fff);
+}
+
+.pipeline-canvas-view__count-badge {
+  background: var(--bg-2, #26262e);
+  color: var(--ink-2, #bbb);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.pipeline-canvas-view__modes {
+  display: inline-flex;
+  background: var(--bg-2, #1f1f27);
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
+  border: 1px solid var(--line, #333);
+}
+
+.pipeline-canvas-view__mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-3, #888);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pipeline-canvas-view__mode-btn:hover {
+  color: var(--ink, #fff);
+}
+
+.pipeline-canvas-view__mode-btn--active {
+  background: var(--card, #2c2c38);
+  color: var(--ink, #fff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pipeline-canvas-view__canvas-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.remote-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  transition: transform 0.08s linear;
+}
+
+.remote-cursor__icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+.remote-cursor__name {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

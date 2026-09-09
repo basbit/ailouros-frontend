@@ -8,10 +8,7 @@ interface TurnRunLinkOptions {
   activeTurnId: Ref<string | null>;
   /** Task id already stored on that turn, used to avoid redundant patches. */
   linkedTaskId: (turnId: string) => string | null;
-  patchTurn: (
-    turnId: string,
-    updates: { task_id: string; status: "running" },
-  ) => void;
+  patchTurn: (turnId: string, updates: { task_id: string; status: "running" }) => void;
 }
 
 /**

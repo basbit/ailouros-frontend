@@ -3,14 +3,19 @@
     <!-- Header Controls & Status -->
     <div class="visual-diff-viewer__header">
       <div class="visual-diff-viewer__meta">
-        <span class="visual-diff-viewer__title">{{ title || "Visual Regression Inspection" }}</span>
+        <span class="visual-diff-viewer__title">{{
+          title || "Visual Regression Inspection"
+        }}</span>
         <span
           class="visual-diff-viewer__badge"
           :class="`visual-diff-viewer__badge--${statusColor}`"
         >
           {{ statusLabel }}
         </span>
-        <span v-if="mismatchPercentage !== undefined" class="visual-diff-viewer__mismatch">
+        <span
+          v-if="mismatchPercentage !== undefined"
+          class="visual-diff-viewer__mismatch"
+        >
           Diff: <strong>{{ mismatchPercentage.toFixed(2) }}%</strong>
           <span v-if="diffPixels !== undefined" class="visual-diff-viewer__pixels">
             ({{ diffPixels }} px)
@@ -118,7 +123,9 @@
           />
           <div
             class="split-overlay"
-            :style="{ clipPath: `polygon(${splitPosition}% 0, 100% 0, 100% 100%, ${splitPosition}% 100%)` }"
+            :style="{
+              clipPath: `polygon(${splitPosition}% 0, 100% 0, 100% 100%, ${splitPosition}% 100%)`,
+            }"
           >
             <img
               v-if="currentUrl"

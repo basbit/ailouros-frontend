@@ -29,8 +29,12 @@
       @edit="emit('project-edit', $event)"
     />
 
-    <div class="task-pill" :class="{ running: isRunning }">
-      <span class="dot"></span>
+    <div
+      class="task-pill"
+      :class="{ running: isRunning, 'attention-required--glow': isAttentionRequired }"
+    >
+      <span v-if="isAttentionRequired" class="attention-required--badge"></span>
+      <span v-else class="dot"></span>
       <button
         v-if="taskId && isRunning"
         type="button"
@@ -56,9 +60,13 @@
       </button>
     </div>
 
+    <TaskBudgetBadge :task-id="taskId" :is-running="isRunning" />
+
     <div v-if="(activeRunIds ?? []).length > 1" class="active-runs">
+      <span v-if="isAttentionRequired" class="attention-required--badge"></span>
       <select
         class="active-runs__select"
+        :class="{ 'attention-required--glow': isAttentionRequired }"
         :title="t('header.activeRuns')"
         :aria-label="t('header.activeRuns')"
         :value="taskId ?? ''"
@@ -69,6 +77,48 @@
         </option>
       </select>
     </div>
+
+    <div v-if="isRunRoute" class="header-view-modes">
+      <button
+        type="button"
+        class="header-view-mode-btn"
+        :class="{
+          'header-view-mode-btn--active':
+            currentPath === '/run' ||
+            currentPath === '/run/active' ||
+            currentPath.startsWith('/run/done') ||
+            currentPath === '/run/classic',
+        }"
+        :title="t('runView.modes.focus')"
+        @click="router.push('/run')"
+      >
+        {{ t("runView.modes.focus") }}
+      </button>
+      <button
+        type="button"
+        class="header-view-mode-btn"
+        :class="{ 'header-view-mode-btn--active': currentPath === '/run/grid' }"
+        :title="t('runView.modes.grid')"
+        @click="router.push('/run/grid')"
+      >
+        {{ t("runView.modes.grid") }}
+      </button>
+      <button
+        type="button"
+        class="header-view-mode-btn"
+        :class="{ 'header-view-mode-btn--active': currentPath === '/run/canvas' }"
+        :title="t('runView.modes.canvas')"
+        @click="router.push('/run/canvas')"
+      >
+        {{ t("runView.modes.canvas") }}
+      </button>
+    </div>
+
+    <CoworkingPeersBadge
+      :local-user="coworking.localUser.value"
+      :peers="coworking.peers.value"
+      @update-profile="coworking.updateLocalUserProfile($event.name, $event.color)"
+    />
 
     <div class="hdr-spacer"></div>
 
@@ -111,6 +161,25 @@
 
     <button
       type="button"
+      class="header-sound-btn"
+      :class="{ 'header-sound-btn--muted': !preferences.soundAlerts }"
+      :title="
+        preferences.soundAlerts
+          ? t('preferences.soundAlertsOn')
+          : t('preferences.soundAlertsOff')
+      "
+      :aria-label="
+        preferences.soundAlerts
+          ? t('preferences.soundAlertsOn')
+          : t('preferences.soundAlertsOff')
+      "
+      @click="preferences.toggleSoundAlerts"
+    >
+      {{ preferences.soundAlerts ? "🔔" : "🔕" }}
+    </button>
+
+    <button
+      type="button"
       class="report-problem-button"
       :title="t('header.reportProblem')"
       :aria-label="t('header.reportProblem')"
@@ -141,13 +210,45 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUiStore } from "@/shared/store/ui";
 import ProjectSwitcher from "@/features/project-settings/ProjectSwitcher.vue";
 import AppHeaderLogo from "./AppHeaderLogo.vue";
 import AppHeaderHealthBadge from "./AppHeaderHealthBadge.vue";
 import { useAppHeaderTabs } from "./useAppHeaderTabs";
 import { useSystemHealth } from "@/features/system-health/useSystemHealth";
+import { useCoworking } from "@/features/coworking/useCoworking";
+import CoworkingPeersBadge from "@/features/coworking/CoworkingPeersBadge.vue";
+import TaskBudgetBadge from "@/features/task-budget/TaskBudgetBadge.vue";
+
+const route = useRoute();
+const router = useRouter();
+const currentPath = computed(() => route?.path ?? "");
+const isRunRoute = computed(
+  () => currentPath.value.startsWith("/run") || currentPath.value.startsWith("/chat"),
+);
+
+const coworking = useCoworking();
+
+const ui = useUiStore();
+const isAttentionRequired = computed(() => {
+  return (
+    ui.humanGateVisible ||
+    ui.shellGateVisible ||
+    ui.manualShellGateVisible ||
+    ui.retryGateVisible ||
+    ui.taskStatus === "awaiting_human" ||
+    ui.historyList.some(
+      (entry) =>
+        entry.status === "awaiting_human" &&
+        Boolean(entry.taskId) &&
+        (ui.activeRunIds ?? []).includes(entry.taskId as string),
+    )
+  );
+});
 
 defineProps<{
   taskId: string | null;
@@ -333,5 +434,62 @@ const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
   .header-status {
     display: none;
   }
+}
+
+.header-view-modes {
+  display: inline-flex;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+  margin-left: 6px;
+}
+
+.header-view-mode-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 550;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.header-view-mode-btn:hover {
+  color: var(--ink);
+}
+
+.header-view-mode-btn--active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-sound-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.header-sound-btn:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+
+.header-sound-btn--muted {
+  opacity: 0.55;
+  filter: grayscale(1);
 }
 </style>

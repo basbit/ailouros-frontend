@@ -9,66 +9,98 @@
       >
         {{ status }}
       </span>
+
+      <!-- Subtab Selector -->
+      <div class="visual-tab__subtabs">
+        <button
+          type="button"
+          class="visual-tab__subtab-btn"
+          :class="{ 'visual-tab__subtab-btn--active': subTab === 'screencast' }"
+          @click="subTab = 'screencast'"
+        >
+          {{ t("liveBrowser.title") }}
+        </button>
+        <button
+          type="button"
+          class="visual-tab__subtab-btn"
+          :class="{ 'visual-tab__subtab-btn--active': subTab === 'manifest' }"
+          @click="subTab = 'manifest'"
+        >
+          {{ t("visualTab.title") }}
+        </button>
+      </div>
     </header>
 
-    <div v-if="loading" class="visual-tab__hint">{{ t("visualTab.loading") }}</div>
-    <div v-else-if="error" class="visual-tab__error">{{ error }}</div>
-    <div v-else-if="!hasManifest" class="visual-tab__hint">
-      {{ t("visualTab.empty") }}
+    <!-- Live Browser Screencast Viewport -->
+    <div v-if="subTab === 'screencast' && taskId" class="visual-tab__screencast-wrap">
+      <LiveBrowserViewport :task-id="taskId" />
     </div>
-    <template v-else>
-      <div v-if="summary" class="visual-tab__summary">{{ summary }}</div>
 
-      <div v-if="screenshots.length" class="visual-tab__section">
-        <div class="visual-tab__subhead">
-          {{ t("visualTab.screenshots") }} ({{ screenshots.length }})
+    <!-- Static Test Evidence Manifest -->
+    <template v-else>
+      <div v-if="loading" class="visual-tab__hint">{{ t("visualTab.loading") }}</div>
+      <div v-else-if="error" class="visual-tab__error">{{ error }}</div>
+      <div v-else-if="!hasManifest" class="visual-tab__hint">
+        {{ t("visualTab.empty") }}
+      </div>
+      <template v-else>
+        <div v-if="summary" class="visual-tab__summary">{{ summary }}</div>
+
+        <div v-if="screenshots.length" class="visual-tab__section">
+          <div class="visual-tab__subhead">
+            {{ t("visualTab.screenshots") }} ({{ screenshots.length }})
+          </div>
+          <div class="visual-tab__grid">
+            <figure
+              v-for="shot in screenshots"
+              :key="shot.href"
+              class="visual-tab__shot"
+            >
+              <a
+                :href="shot.href"
+                target="_blank"
+                rel="noreferrer"
+                class="visual-tab__shot-link"
+              >
+                <img :src="shot.href" :alt="shot.label" loading="lazy" />
+              </a>
+              <figcaption class="visual-tab__shot-label">{{ shot.label }}</figcaption>
+            </figure>
+          </div>
         </div>
-        <div class="visual-tab__grid">
-          <figure v-for="shot in screenshots" :key="shot.href" class="visual-tab__shot">
+
+        <div v-if="baselineComparisons.length" class="visual-tab__section">
+          <div class="visual-tab__subhead">
+            {{ t("visualTab.baselines") }} ({{ baselineComparisons.length }})
+          </div>
+          <VisualDiffViewer
+            v-for="comparison in baselineComparisons"
+            :key="`${comparison.page}-${comparison.viewport}`"
+            :title="`${comparison.page} — ${comparison.viewport}`"
+            :baseline-url="comparison.baselineUrl"
+            :current-url="comparison.currentUrl"
+            :diff-url="comparison.diffUrl"
+            :mismatch-percentage="comparison.diffPercent"
+            :diff-pixels="comparison.diffPixels"
+            :can-approve="false"
+          />
+        </div>
+
+        <div v-if="networkArtifacts.length" class="visual-tab__section">
+          <div class="visual-tab__subhead">{{ t("visualTab.harTrace") }}</div>
+          <div class="visual-tab__links">
             <a
-              :href="shot.href"
+              v-for="item in networkArtifacts"
+              :key="item.href"
+              :href="item.href"
               target="_blank"
               rel="noreferrer"
-              class="visual-tab__shot-link"
             >
-              <img :src="shot.href" :alt="shot.label" loading="lazy" />
+              {{ item.label }}
             </a>
-            <figcaption class="visual-tab__shot-label">{{ shot.label }}</figcaption>
-          </figure>
+          </div>
         </div>
-      </div>
-
-      <div v-if="baselineComparisons.length" class="visual-tab__section">
-        <div class="visual-tab__subhead">
-          {{ t("visualTab.baselines") }} ({{ baselineComparisons.length }})
-        </div>
-        <VisualDiffViewer
-          v-for="comparison in baselineComparisons"
-          :key="`${comparison.page}-${comparison.viewport}`"
-          :title="`${comparison.page} — ${comparison.viewport}`"
-          :baseline-url="comparison.baselineUrl"
-          :current-url="comparison.currentUrl"
-          :diff-url="comparison.diffUrl"
-          :mismatch-percentage="comparison.diffPercent"
-          :diff-pixels="comparison.diffPixels"
-          :can-approve="false"
-        />
-      </div>
-
-      <div v-if="networkArtifacts.length" class="visual-tab__section">
-        <div class="visual-tab__subhead">{{ t("visualTab.harTrace") }}</div>
-        <div class="visual-tab__links">
-          <a
-            v-for="item in networkArtifacts"
-            :key="item.href"
-            :href="item.href"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {{ item.label }}
-          </a>
-        </div>
-      </div>
+      </template>
     </template>
   </section>
 </template>
@@ -79,11 +111,13 @@ import { apiUrl } from "@/shared/api/base";
 import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
 import { useI18n } from "@/shared/lib/i18n";
 import VisualDiffViewer from "@/widgets/visual-testing/VisualDiffViewer.vue";
+import LiveBrowserViewport from "@/widgets/browser-viewport/LiveBrowserViewport.vue";
 
 const props = defineProps<{ taskId: string | null }>();
 
 const { t } = useI18n();
 
+const subTab = ref<"screencast" | "manifest">("screencast");
 const manifest = ref<Record<string, unknown> | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -298,5 +332,43 @@ watch(
 .visual-tab__links a {
   font-size: 12px;
   color: var(--accent);
+}
+
+.visual-tab__subtabs {
+  display: inline-flex;
+  margin-left: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.visual-tab__subtab-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 550;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.visual-tab__subtab-btn:hover {
+  color: var(--ink);
+}
+
+.visual-tab__subtab-btn--active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.visual-tab__screencast-wrap {
+  width: 100%;
+  height: 520px;
+  min-height: 400px;
 }
 </style>

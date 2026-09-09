@@ -32,7 +32,7 @@ export interface ConversationTurnDto {
   created_at: string;
   attachments?: Array<{ name: string; content?: string }>;
   image_attachments?: Array<{ name: string; path: string }>;
-  status: "pending" | "running" | "completed" | "failed" | "awaiting_human";
+  status: "pending" | "running" | "completed" | "failed" | "blocked" | "awaiting_human";
   task_id?: string | null;
   orchestrator_decision?: Record<string, unknown> | null;
   step_progress?: Array<Record<string, unknown>>;

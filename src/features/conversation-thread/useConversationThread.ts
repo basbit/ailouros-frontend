@@ -52,7 +52,9 @@ export function useConversationThread() {
     }
   }
 
-  async function startNewThread(title = "New Conversation"): Promise<ConversationThreadDto> {
+  async function startNewThread(
+    title = "New Conversation",
+  ): Promise<ConversationThreadDto> {
     threadError.value = null;
     const res = await createConversationThread({
       title,
@@ -100,7 +102,13 @@ export function useConversationThread() {
   async function patchTurn(
     turnId: string,
     updates: {
-      status?: "pending" | "running" | "completed" | "failed" | "awaiting_human";
+      status?:
+        | "pending"
+        | "running"
+        | "completed"
+        | "failed"
+        | "blocked"
+        | "awaiting_human";
       task_id?: string | null;
       assistant_message?: string;
       orchestrator_decision?: Record<string, unknown> | null;

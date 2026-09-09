@@ -32,7 +32,13 @@
 
       <StatusLine v-if="!isHistoryView" />
 
-      <SpecStatusChip v-if="!isHistoryView" :status="specStatus" />
+      <div v-if="!isHistoryView" class="run-live-body__chips-row">
+        <SpecStatusChip :status="specStatus" />
+        <GitStatusMicroWidget
+          :workspace-root="currentWorkspaceRoot ?? undefined"
+          :task-id="ui.taskId ?? undefined"
+        />
+      </div>
 
       <div v-if="!isHistoryView" class="run-live-body__metrics-row">
         <div class="run-live-body__monitor">
@@ -154,6 +160,7 @@ import { type EventRow } from "./useRunLiveSteps";
 import { type HistoryEntry } from "@/shared/store/ui";
 import CheckpointPreview from "@/widgets/checkpoint-preview/CheckpointPreview.vue";
 import SpecStatusChip from "@/widgets/spec-status-chip/SpecStatusChip.vue";
+import GitStatusMicroWidget from "@/widgets/git-status/GitStatusMicroWidget.vue";
 import { readRunSnapshotSection } from "@/shared/model/run-snapshot";
 import { useRunLiveBody } from "./useRunLiveBody";
 
@@ -301,6 +308,13 @@ const specStatus = computed(() =>
 .run-live-body__stop:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.run-live-body__chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* No flex-shrink here: with `flex: 1 1 auto; min-height: 0` the grid used to

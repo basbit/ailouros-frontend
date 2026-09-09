@@ -51,6 +51,10 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   const isDark = computed(() => theme.value === "dark");
 
+  const soundAlerts = ref<boolean>(
+    persistenceAdapter.readString("swarm_pref_sound_alerts") !== "0",
+  );
+
   function setLocale(next: Locale): void {
     locale.value = next;
   }
@@ -61,6 +65,11 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   function toggleTheme(): void {
     theme.value = theme.value === "dark" ? "light" : "dark";
+  }
+
+  function toggleSoundAlerts(): void {
+    soundAlerts.value = !soundAlerts.value;
+    persistenceAdapter.write("swarm_pref_sound_alerts", soundAlerts.value ? "1" : "0");
   }
 
   function toggleSidebar(): void {
@@ -117,9 +126,11 @@ export const usePreferencesStore = defineStore("preferences", () => {
     isDark,
     isSidebarCollapsed,
     density,
+    soundAlerts,
     setLocale,
     setTheme,
     toggleTheme,
+    toggleSoundAlerts,
     toggleSidebar,
     setDensity,
   };

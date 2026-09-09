@@ -119,6 +119,8 @@ export const DEFAULTS: GlobalSearchKeysState = {
   swarm_dev_qa_task_count: "",
   swarm_max_parallel_tasks: "4",
   swarm_force_sequential: false,
+  swarm_parallel_safe_auto: false,
+  swarm_engine: "linear",
   swarm_tracer_bullet_enabled: true,
   swarm_tracer_revision_gate: false,
   swarm_require_dev_writes: true,

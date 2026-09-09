@@ -26,6 +26,16 @@ const routes: RouteRecordRaw[] = [
     path: "/run/classic",
     component: () => import("@/pages/run/RunIdlePage.vue"),
   },
+  {
+    path: "/run/grid",
+    component: () => import("@/pages/run/RunGridPage.vue"),
+    meta: { topTab: "run" },
+  },
+  {
+    path: "/run/canvas",
+    component: () => import("@/pages/run/RunCanvasPage.vue"),
+    meta: { topTab: "run" },
+  },
   { path: "/configure", redirect: "/configure/project" },
   {
     path: "/configure/:pane",

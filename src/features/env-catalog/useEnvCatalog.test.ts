@@ -34,7 +34,11 @@ describe("useEnvCatalog", () => {
   it("groups variables and filters them by the search query", async () => {
     fetchEnvCatalog.mockResolvedValue([
       variable(),
-      variable({ name: "SWARM_ALLOW_COMMAND_EXEC", group: "Security", kind: "boolean" }),
+      variable({
+        name: "SWARM_ALLOW_COMMAND_EXEC",
+        group: "Security",
+        kind: "boolean",
+      }),
     ]);
     const catalog = useEnvCatalog();
     await catalog.load();
@@ -50,8 +54,15 @@ describe("useEnvCatalog", () => {
   });
 
   it("only sends variables whose value actually changed", async () => {
-    fetchEnvCatalog.mockResolvedValue([variable({ value: "300" }), variable({ name: "SWARM_OTHER" })]);
-    saveEnvOverrides.mockResolvedValue({ status: "ok", updated: ["SWARM_COMMAND_TIMEOUT"], rejected: [] });
+    fetchEnvCatalog.mockResolvedValue([
+      variable({ value: "300" }),
+      variable({ name: "SWARM_OTHER" }),
+    ]);
+    saveEnvOverrides.mockResolvedValue({
+      status: "ok",
+      updated: ["SWARM_COMMAND_TIMEOUT"],
+      rejected: [],
+    });
     const catalog = useEnvCatalog();
     await catalog.load();
 

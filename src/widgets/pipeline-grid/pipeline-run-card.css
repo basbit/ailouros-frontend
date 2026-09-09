@@ -1,0 +1,243 @@
+.pipeline-run-card {
+  background: var(--card, #1e1e24);
+  border: 1px solid var(--line, #333);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  min-width: 280px;
+  box-sizing: border-box;
+}
+
+.pipeline-run-card:hover {
+  border-color: var(--line-strong, #555);
+  transform: translateY(-2px);
+}
+
+.pipeline-run-card--active {
+  border-color: var(--accent, #6366f1);
+  box-shadow: 0 0 0 1px var(--accent, #6366f1);
+}
+
+.pipeline-run-card--compact {
+  padding: 10px;
+  gap: 6px;
+  min-width: 240px;
+}
+
+.pipeline-run-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pipeline-run-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.pipeline-run-card__id {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.pipeline-run-card__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pipeline-run-card__status-dot--running {
+  background: var(--accent, #6366f1);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.pipeline-run-card__status-dot--completed {
+  background: var(--ok, #10b981);
+}
+
+.pipeline-run-card__status-dot--failed {
+  background: var(--error, #ef4444);
+}
+
+.pipeline-run-card__status-dot--attention {
+  background: var(--vermillion-alert, #ff4500);
+  box-shadow: 0 0 6px var(--vermillion-alert, #ff4500);
+}
+
+.pipeline-run-card__status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-2, #2a2a32);
+  color: var(--ink-3, #888);
+}
+
+.pipeline-run-card__status-badge--completed {
+  background: color-mix(in srgb, var(--ok, #10b981) 15%, transparent);
+  color: var(--ok, #10b981);
+}
+
+.pipeline-run-card__status-badge--attention {
+  background: color-mix(in srgb, var(--vermillion-alert, #ff4500) 20%, transparent);
+  color: var(--vermillion-alert, #ff4500);
+}
+
+.pipeline-run-card__status-badge--failed {
+  background: color-mix(in srgb, var(--error, #ef4444) 15%, transparent);
+  color: var(--error, #ef4444);
+}
+
+.pipeline-run-card__scenario {
+  font-size: 12px;
+  color: var(--ink-2, #aaa);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-run-card__claimed-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--accent, #6366f1);
+  background: color-mix(in srgb, var(--accent, #6366f1) 12%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.pipeline-run-card__claimed-badge--other {
+  color: var(--warn, #f59e0b);
+  background: color-mix(in srgb, var(--warn, #f59e0b) 14%, transparent);
+}
+
+.pipeline-run-card__current-step {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  background: var(--bg-1, #141418);
+  padding: 4px 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pipeline-run-card__step-prefix {
+  color: var(--ink-4, #777);
+}
+
+.pipeline-run-card__step-name {
+  color: var(--ink, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-run-card__gate-banner {
+  background: color-mix(in srgb, var(--vermillion-alert, #ff4500) 12%, transparent);
+  border: 1px solid var(--vermillion-alert, #ff4500);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pipeline-run-card__gate-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vermillion-alert, #ff4500);
+}
+
+.pipeline-run-card__gate-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pipeline-run-card__btn {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.pipeline-run-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pipeline-run-card__btn--approve {
+  background: var(--ok, #10b981);
+  color: #fff;
+}
+
+.pipeline-run-card__btn--reject {
+  background: var(--error, #ef4444);
+  color: #fff;
+}
+
+.pipeline-run-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.pipeline-run-card__browser-btn {
+  background: transparent;
+  border: 1px solid var(--line, #333);
+  color: var(--ink-2, #aaa);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pipeline-run-card__browser-btn:hover {
+  background: var(--bg-2, #2a2a35);
+  color: var(--ink, #fff);
+  border-color: var(--accent, #6366f1);
+}
+
+.pipeline-run-card__open-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent, #6366f1);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.pipeline-run-card__open-btn:hover {
+  text-decoration: underline;
+}

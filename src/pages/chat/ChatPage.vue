@@ -170,7 +170,11 @@
               :attachments="settings.form.attachments ?? []"
               :image-attachments="settings.form.image_attachments ?? []"
               :rows="3"
-              :placeholder="t('chat.inputPlaceholder')"
+              :placeholder="
+                isAwaitingHuman
+                  ? t('chat.inputPlaceholderGate')
+                  : t('chat.inputPlaceholder')
+              "
               @update:attachments="
                 (next) => {
                   settings.form.attachments = next;
@@ -205,7 +209,13 @@
                 :disabled="!canSend || isStarting"
                 @click="onSendPrompt"
               >
-                {{ isStarting ? t("chat.starting") : t("chat.send") }}
+                {{
+                  isStarting
+                    ? t("chat.starting")
+                    : isAwaitingHuman
+                      ? t("chat.sendAnswer")
+                      : t("chat.send")
+                }}
               </button>
             </div>
           </div>
@@ -234,7 +244,9 @@ import { useSwarmRunState } from "@/features/swarm-run/useSwarmRunState";
 import { useSwarmRunTickHandler } from "@/features/swarm-run/useSwarmRunTickHandler";
 import { useSwarmRunPreflight } from "@/features/swarm-run/useSwarmRunPreflight";
 import { useSwarmRunGateActions } from "@/features/swarm-run/useSwarmRunGateActions";
+import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useTurnRunLink } from "./useTurnRunLink";
+import { findActiveTurn, resolveTurnStatusUpdate } from "./turnStatusEffects";
 import TaskGatesOverlay from "@/features/task-gate/TaskGatesOverlay.vue";
 import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
 
@@ -263,6 +275,8 @@ const isStarting = ref(false);
 const isRunning = computed(
   () => ui.taskStatus === "running" || ui.taskStatus === "in_progress",
 );
+
+const isAwaitingHuman = computed(() => ui.taskStatus === "awaiting_human");
 
 const canSend = computed(() => !!settings.form.prompt?.trim());
 
@@ -327,6 +341,12 @@ async function onNewConversation(): Promise<void> {
   await selectThread(th.id);
 }
 
+// The app bootstrap provides ONE run controller owning the WebSocket. Reusing
+// it (instead of composing a page-local runner stack with a stubbed WS
+// subscribe) is what keeps live ticks flowing: without the real subscribe,
+// the backend ws pump never learns the new task id, applyTick gets
+// task: null and awaiting_human / gate forms never reach the UI.
+const controller = useInjectedSwarmRunController();
 const runState = useSwarmRunState();
 const tickHandler = useSwarmRunTickHandler(runState);
 const preflight = useSwarmRunPreflight(runState, settings);
@@ -334,24 +354,46 @@ const preflight = useSwarmRunPreflight(runState, settings);
 const runner = useSwarmRunStart({
   state: runState,
   tickHandler,
-  sendWsSubscribe: () => undefined,
+  sendWsSubscribe: controller.sendWsSubscribe,
   settings,
   ux,
   t,
   preflight,
+  onAwaitingClarification: () => {
+    // The stream paused on a clarify form — surface it before the next WS
+    // tick so the user sees the questions immediately.
+    ui.humanGateVisible = true;
+    ui.shellGateVisible = false;
+    ui.retryGateVisible = false;
+  },
 });
 
 const gateActions = useSwarmRunGateActions({
   state: runState,
   tickHandler,
-  sendWsSubscribe: () => undefined,
+  sendWsSubscribe: controller.sendWsSubscribe,
   settings,
   ux,
 });
 
 async function onSendPrompt(): Promise<void> {
   const promptText = settings.form.prompt.trim();
-  if (!promptText || isRunning.value || isStarting.value) return;
+  if (!promptText) return;
+
+  // Gate is open: the same input bar answers it directly in the chat, no need
+  // to touch the gate form. The message becomes the human-resume feedback and
+  // lands in the thread as the user's own bubble; the status watcher flips
+  // the paused turn back to "running" as soon as the run resumes.
+  if (isAwaitingHuman.value) {
+    if (!ui.taskId) return;
+    settings.form.prompt = "";
+    await addTurn(promptText, [], []).catch(() => undefined);
+    await gateActions.onHumanResume(promptText);
+    scrollToBottom();
+    return;
+  }
+
+  if (isRunning.value || isStarting.value) return;
 
   isStarting.value = true;
   try {
@@ -403,32 +445,30 @@ useTurnRunLink({
   patchTurn: (turnId, updates) => void patchTurn(turnId, updates),
 });
 
-// Watch active task status completion to update the turn assistant message
+// Watch active task status: map the run's live status onto the chat turn it
+// belongs to. All branching lives in the pure resolveTurnStatusUpdate — the
+// guards there keep the once-per-second WS ticks from re-PATCHing the turn.
 watch(
   () => ui.taskStatus,
   async (status) => {
-    if (
-      activeRunningTurnId.value &&
-      (status === "completed" ||
-        status === "completed_no_writes" ||
-        status === "completed_with_failures")
-    ) {
-      await patchTurn(activeRunningTurnId.value, {
-        status: "completed",
-        assistant_message:
-          "Pipeline completed successfully. Artifacts and code updates are ready.",
-      });
-      scrollToBottom();
-    } else if (
-      activeRunningTurnId.value &&
-      (status === "failed" || status === "cancelled")
-    ) {
-      await patchTurn(activeRunningTurnId.value, {
-        status: "failed",
-        assistant_message: String(ui.taskError || "Pipeline execution failed."),
-      });
-      scrollToBottom();
-    }
+    const turn = findActiveTurn(activeThread.value?.turns, activeRunningTurnId.value);
+    const update = resolveTurnStatusUpdate({
+      taskStatus: status,
+      turnStatus: turn?.status ?? null,
+      blockedReason: ui.blockedReason,
+      taskError: ui.taskError,
+      copy: {
+        doneWithFailures: t("chat.doneWithFailures"),
+        blockedBubble: (reason) => t("chat.blockedBubble", { reason }),
+        blockedTitle: t("chat.blockedTitle"),
+      },
+    });
+    if (!update || !turn) return;
+    await patchTurn(turn.id, {
+      status: update.status,
+      assistant_message: update.assistantMessage,
+    });
+    if (update.scroll) scrollToBottom();
   },
 );
 

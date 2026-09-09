@@ -71,7 +71,9 @@ export type ChatStreamEvent =
   | RetrievalDoneStreamEvent
   | PreflightStreamEvent
   | ScenarioStreamEvent
-  | WorkspaceIndexStatsStreamEvent;
+  | WorkspaceIndexStatsStreamEvent
+  | AwaitingClarificationStreamEvent
+  | OrchestratorStatusLineStreamEvent;
 
 const ORCHESTRATOR_EVENT_LINE_PREFIX = "[orchestrator-event]";
 
@@ -132,6 +134,34 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+interface AwaitingClarificationStreamEvent {
+  kind: "awaiting_clarification";
+  stepId: string;
+  questions: { index: number; text: string; options: string[] }[];
+}
+
+function buildAwaitingClarificationEvent(
+  raw: Record<string, unknown>,
+): AwaitingClarificationStreamEvent | null {
+  const rawQuestions = Array.isArray(raw["questions"]) ? raw["questions"] : [];
+  const questions: { index: number; text: string; options: string[] }[] = [];
+  for (const question of rawQuestions) {
+    const record = asRecord(question);
+    if (!record) continue;
+    questions.push({
+      index: Number(record["index"] ?? 0),
+      text: String(record["text"] ?? ""),
+      options: Array.isArray(record["options"]) ? record["options"].map(String) : [],
+    });
+  }
+  if (!questions.length) return null;
+  return {
+    kind: "awaiting_clarification",
+    stepId: String(raw["step_id"] ?? ""),
+    questions,
+  };
+}
+
 function buildPreflightStreamEvent(
   phase: PreflightPhase,
   raw: Record<string, unknown>,
@@ -170,6 +200,11 @@ export function parseChatStreamSiblingExtra(
     const event = parseRetrievalDonePayload(retrievalDoneRaw);
     if (event) return { kind: "retrieval_done", event };
   }
+  const awaitingClarificationRaw = asRecord(payload["awaiting_clarification"]);
+  if (awaitingClarificationRaw) {
+    const event = buildAwaitingClarificationEvent(awaitingClarificationRaw);
+    if (event) return event;
+  }
   for (const [key, phase] of PREFLIGHT_SIBLING_KEYS) {
     if (key in payload) {
       const raw = asRecord(payload[key]);
@@ -183,12 +218,41 @@ export function parseChatStreamSiblingExtra(
   return null;
 }
 
+export interface OrchestratorStatusLineStreamEvent {
+  kind: "orchestrator_status_line";
+  status: string;
+  detail: string;
+}
+
+const ORCHESTRATOR_STATUS_LINE_PREFIX = "[orchestrator] ";
+
+/**
+ * Fallback for the plain-text status lines the pipeline emits on stream
+ * failure/pause (e.g. "[orchestrator] awaiting_human: ..."). The WS ticks are
+ * the primary channel; this only makes the status land instantly on streams
+ * that end before the first tick (resume/retry paths).
+ */
+function parseOrchestratorStatusLine(
+  content: string,
+): OrchestratorStatusLineStreamEvent | null {
+  const trimmed = content.trim();
+  if (!trimmed.startsWith(ORCHESTRATOR_STATUS_LINE_PREFIX)) return null;
+  const rest = trimmed.slice(ORCHESTRATOR_STATUS_LINE_PREFIX.length);
+  const colonIndex = rest.indexOf(":");
+  const status = colonIndex === -1 ? rest.trim() : rest.slice(0, colonIndex).trim();
+  if (!/^[a-z_]+$/.test(status)) return null;
+  const detail = colonIndex === -1 ? "" : rest.slice(colonIndex + 1).trim();
+  return { kind: "orchestrator_status_line", status, detail };
+}
+
 export function parseChatStreamEvent(content: string): ChatStreamEvent | null {
   const trimmed = content.trim();
   if (!trimmed) return null;
   const orchestratorLine = parseOrchestratorEventLine(trimmed);
   if (orchestratorLine) return orchestratorLine;
-  if (trimmed.charAt(0) !== "{") return null;
+  if (trimmed.charAt(0) !== "{") {
+    return parseOrchestratorStatusLine(trimmed);
+  }
   try {
     const obj = JSON.parse(trimmed) as Record<string, unknown>;
     if (obj["agent"] === "orchestrator") {

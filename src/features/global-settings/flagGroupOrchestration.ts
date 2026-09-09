@@ -60,6 +60,22 @@ export const FLAG_GROUP_ORCHESTRATION: FeatureFlagGroup = {
     },
     {
       kind: "boolean",
+      field: "swarm_parallel_safe_auto",
+      envName: "SWARM_PARALLEL_SAFE_AUTO",
+      wired: true,
+    },
+    {
+      kind: "enum",
+      field: "swarm_engine",
+      envName: "SWARM_ENGINE",
+      wired: true,
+      options: [
+        { value: "linear", i18nSuffix: "linear" },
+        { value: "graph", i18nSuffix: "graph" },
+      ],
+    },
+    {
+      kind: "boolean",
       field: "swarm_tracer_bullet_enabled",
       envName: "SWARM_TRACER_BULLET_ENABLED",
       wired: true,

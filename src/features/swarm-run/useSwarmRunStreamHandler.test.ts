@@ -10,14 +10,23 @@ function makeDeps() {
   const markTaskFailed = vi.fn();
   const applyOrchestratorEvent = vi.fn();
   const recordRetrievalDone = vi.fn();
+  const onAwaitingClarification = vi.fn();
   const deps: SwarmStreamHandlerDeps = {
     notify,
     markTaskFailed,
     autoApprovedMessage: (step, rule) => `approved ${step}${rule ? ` (${rule})` : ""}`,
     applyOrchestratorEvent,
     recordRetrievalDone,
+    onAwaitingClarification,
   };
-  return { deps, notify, markTaskFailed, applyOrchestratorEvent, recordRetrievalDone };
+  return {
+    deps,
+    notify,
+    markTaskFailed,
+    applyOrchestratorEvent,
+    recordRetrievalDone,
+    onAwaitingClarification,
+  };
 }
 
 describe("createSwarmStreamEventHandler", () => {
@@ -111,5 +120,26 @@ describe("createSwarmStreamEventHandler", () => {
     });
     expect(workspaceIndexLatest.value?.total_files).toBe(42);
     expect(workspaceIndexLatest.value?.omitted_files).toBe(3);
+  });
+
+  it("surfaces the gate on an awaiting_human orchestrator status line", () => {
+    const { deps, onAwaitingClarification } = makeDeps();
+    createSwarmStreamEventHandler(deps)({
+      kind: "orchestrator_status_line",
+      status: "awaiting_human",
+      detail: "Waiting for manual approval of step pm",
+    });
+    expect(onAwaitingClarification).toHaveBeenCalledOnce();
+  });
+
+  it("ignores non-gate orchestrator status lines", () => {
+    const { deps, notify, markTaskFailed } = makeDeps();
+    createSwarmStreamEventHandler(deps)({
+      kind: "orchestrator_status_line",
+      status: "cancelled",
+      detail: "stopped by user",
+    });
+    expect(notify).not.toHaveBeenCalled();
+    expect(markTaskFailed).not.toHaveBeenCalled();
   });
 });

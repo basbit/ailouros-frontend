@@ -24,6 +24,7 @@ import CommandPalette from "@/widgets/command-palette/CommandPalette.vue";
 import { DesktopBackendBanner } from "@/features/desktop-backend-status";
 import ErrorBoundary from "@/shared/components/ErrorBoundary.vue";
 import { useCommandPaletteStore } from "@/shared/store/command-palette";
+import { useAttentionAlert } from "@/features/attention-alert/useAttentionAlert";
 import {
   useAppBootstrap,
   APP_SETTINGS_KEY,
@@ -31,6 +32,8 @@ import {
   GLOBAL_SETTINGS_KEY,
   PROJECT_FORM_ACTIONS_KEY,
 } from "./use-app-bootstrap";
+
+useAttentionAlert();
 
 const router = useRouter();
 

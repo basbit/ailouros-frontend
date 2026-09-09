@@ -119,6 +119,8 @@ export interface GlobalSearchKeysState {
   swarm_dev_qa_task_count: string;
   swarm_max_parallel_tasks: string;
   swarm_force_sequential: boolean;
+  swarm_parallel_safe_auto: boolean;
+  swarm_engine: string;
   swarm_tracer_bullet_enabled: boolean;
   swarm_tracer_revision_gate: boolean;
   swarm_require_dev_writes: boolean;

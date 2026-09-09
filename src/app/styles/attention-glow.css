@@ -1,0 +1,47 @@
+@keyframes pulse-vermillion {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(215, 86, 63, 0.55),
+      0 0 16px rgba(215, 86, 63, 0.35);
+    border-color: rgba(215, 86, 63, 0.85);
+  }
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(215, 86, 63, 0),
+      0 0 28px rgba(215, 86, 63, 0.65);
+    border-color: rgba(215, 86, 63, 1);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(215, 86, 63, 0),
+      0 0 16px rgba(215, 86, 63, 0.35);
+    border-color: rgba(215, 86, 63, 0.85);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+}
+
+.attention-required--glow {
+  animation: pulse-vermillion 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+.attention-required--badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #d7563f;
+  box-shadow: 0 0 8px #d7563f;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}

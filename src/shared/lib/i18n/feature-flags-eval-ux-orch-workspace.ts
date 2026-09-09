@@ -61,6 +61,14 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
   "featureFlags.field.swarm_force_sequential.label": "Force sequential subtasks",
   "featureFlags.field.swarm_force_sequential.hint":
     "Run all Dev subtasks one after another in sequence instead of in parallel.",
+  "featureFlags.field.swarm_parallel_safe_auto.label": "Parallel PLAN stages",
+  "featureFlags.field.swarm_parallel_safe_auto.hint":
+    "Automatically run independent planning steps (pm, ba, design, documentation, ...) in parallel stages. Steps that depend on an earlier step (ba depends on pm) always run after it.",
+  "featureFlags.field.swarm_engine.label": "Pipeline engine",
+  "featureFlags.field.swarm_engine.hint":
+    "Execution engine for pipeline runs: linear (sequential runner, default) or graph (LangGraph step nodes with durable human-gate interrupts).",
+  "featureFlags.field.swarm_engine.option.linear": "linear (sequential runner)",
+  "featureFlags.field.swarm_engine.option.graph": "graph (LangGraph step nodes)",
   "featureFlags.field.swarm_tracer_bullet_enabled.label": "Tracer bullet phase",
   "featureFlags.field.swarm_tracer_bullet_enabled.hint":
     "Run the core cross-layer tracer story first alone to establish the foundation before running remaining stories in parallel.",
@@ -109,14 +117,16 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Block a full-file overwrite before it is applied when the agent gave no justification for it.",
   "featureFlags.field.swarm_computer_control_enabled.label": "Computer control tools",
   "featureFlags.field.swarm_computer_control_enabled.hint":
-    "Give agents interactive browser tools (navigate, click, type, screenshot, accessibility tree) and supervised background processes. Starting a process additionally requires \"Allow shell commands\" and passes the shell allowlist.",
+    'Give agents interactive browser tools (navigate, click, type, screenshot, accessibility tree) and supervised background processes. Starting a process additionally requires "Allow shell commands" and passes the shell allowlist.',
   "featureFlags.field.swarm_chrome_cdp_url.label": "Attach to running Chrome",
   "featureFlags.field.swarm_chrome_cdp_url.hint":
     "Drive a Chrome you already run with remote debugging (start it with --remote-debugging-port=9222) instead of a managed headless browser. Empty = managed headless Chromium.",
-  "featureFlags.field.swarm_visual_baselines_enabled.label": "Visual baseline comparison",
+  "featureFlags.field.swarm_visual_baselines_enabled.label":
+    "Visual baseline comparison",
   "featureFlags.field.swarm_visual_baselines_enabled.hint":
     "Compare every visual-probe screenshot against the stored baseline; drift becomes a P1 visual-regression defect.",
-  "featureFlags.field.swarm_visual_baselines_update.label": "Overwrite visual baselines",
+  "featureFlags.field.swarm_visual_baselines_update.label":
+    "Overwrite visual baselines",
   "featureFlags.field.swarm_visual_baselines_update.hint":
     "Replace stored baselines with this run's screenshots instead of comparing. Turn on once after an intentional redesign, then turn it back off.",
 };
@@ -184,6 +194,14 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Принудительно последовательные подзадачи",
   "featureFlags.field.swarm_force_sequential.hint":
     "Выполнять все подзадачи Dev по очереди одна за другой вместо параллельного запуска.",
+  "featureFlags.field.swarm_parallel_safe_auto.label": "Параллельные PLAN-стадии",
+  "featureFlags.field.swarm_parallel_safe_auto.hint":
+    "Автоматически выполнять независимые шаги планирования (pm, ba, design, documentation, ...) параллельными стадиями. Шаги, зависящие от предыдущего (ba зависит от pm), всегда выполняются после него.",
+  "featureFlags.field.swarm_engine.label": "Движок пайплайна",
+  "featureFlags.field.swarm_engine.hint":
+    "Движок выполнения пайплайнов: linear (последовательный runner, по умолчанию) или graph (LangGraph step-ноды с durable human-gate interrupt'ами).",
+  "featureFlags.field.swarm_engine.option.linear": "linear (последовательный runner)",
+  "featureFlags.field.swarm_engine.option.graph": "graph (LangGraph step-ноды)",
   "featureFlags.field.swarm_tracer_bullet_enabled.label": "Фаза Tracer Bullet",
   "featureFlags.field.swarm_tracer_bullet_enabled.hint":
     "Сначала запускать базовую сквозную tracer-историю изолированно для создания фундамента, а затем выполнять остальные истории параллельно.",

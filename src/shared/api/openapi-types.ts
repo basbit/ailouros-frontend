@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/api/shell/exec": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exec Shell Command */
+        post: operations["exec_shell_command_api_shell_exec_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shell/processes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Supervised Processes */
+        get: operations["list_supervised_processes_api_shell_processes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shell/processes/{pid}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Supervised Process Logs */
+        get: operations["get_supervised_process_logs_api_shell_processes__pid__logs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shell/processes/{pid}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop Supervised Process */
+        post: operations["stop_supervised_process_api_shell_processes__pid__stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -320,6 +388,96 @@ export interface paths {
         };
         /** Conversation For Task */
         get: operations["conversation_for_task_v1_conversation__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conversations */
+        get: operations["list_conversations_v1_conversations_get"];
+        put?: never;
+        /** Create Conversation */
+        post: operations["create_conversation_v1_conversations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation_v1_conversations__thread_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Conversation */
+        delete: operations["delete_conversation_v1_conversations__thread_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{thread_id}/turn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Append Turn */
+        post: operations["append_turn_v1_conversations__thread_id__turn_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{thread_id}/turns/{turn_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Turn */
+        patch: operations["update_turn_v1_conversations__thread_id__turns__turn_id__patch"];
+        trace?: never;
+    };
+    "/v1/conversations/{thread_id}/turns/{turn_id}/attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Turn Attachment
+         * @description Serve a turn's image attachment (inline preview or download).
+         */
+        get: operations["download_turn_attachment_v1_conversations__thread_id__turns__turn_id__attachment_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1946,6 +2104,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/user/env-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Env Catalog */
+        get: operations["get_env_catalog_v1_user_env_catalog_get"];
+        /** Put Env Catalog */
+        put: operations["put_env_catalog_v1_user_env_catalog_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/user/settings": {
         parameters: {
             query?: never;
@@ -2097,6 +2273,30 @@ export interface components {
             source: string;
             /** Text */
             text: string;
+        };
+        /** AppendTurnRequest */
+        AppendTurnRequest: {
+            /** Attachments */
+            attachments?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Image Attachments */
+            image_attachments?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Orchestrator Decision */
+            orchestrator_decision?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Status
+             * @default running
+             */
+            status: string;
+            /** Task Id */
+            task_id?: string | null;
+            /** User Message */
+            user_message: string;
         };
         /** BackgroundAgentRequest */
         BackgroundAgentRequest: {
@@ -2268,6 +2468,18 @@ export interface components {
             /** Workspace Root */
             workspace_root?: string | null;
         };
+        /** CreateThreadRequest */
+        CreateThreadRequest: {
+            /** Project Id */
+            project_id?: string | null;
+            /**
+             * Title
+             * @default New Conversation
+             */
+            title: string;
+            /** Workspace Root */
+            workspace_root?: string | null;
+        };
         /** DecideGateBody */
         DecideGateBody: {
             /** Decided By */
@@ -2285,6 +2497,13 @@ export interface components {
         DesktopProjectInitRequest: {
             /** Project Id */
             project_id: string;
+        };
+        /** EnvOverridesPayload */
+        EnvOverridesPayload: {
+            /** Values */
+            values: {
+                [key: string]: string;
+            };
         };
         /** FeedbackBody */
         FeedbackBody: {
@@ -2590,6 +2809,13 @@ export interface components {
             /** Approved */
             approved: boolean;
         };
+        /** ShellExecRequest */
+        ShellExecRequest: {
+            /** Command */
+            command: string;
+            /** Workspace Root */
+            workspace_root?: string | null;
+        };
         /** SkillDispatchRequest */
         SkillDispatchRequest: {
             /**
@@ -2682,6 +2908,27 @@ export interface components {
             success_criteria?: string[] | null;
             /** Workspace Root */
             workspace_root?: string | null;
+        };
+        /** UpdateTurnRequest */
+        UpdateTurnRequest: {
+            /** Append Progress */
+            append_progress?: {
+                [key: string]: unknown;
+            } | null;
+            /** Artifacts */
+            artifacts?: string[] | null;
+            /** Assistant Message */
+            assistant_message?: string | null;
+            /** Gate */
+            gate?: {
+                [key: string]: unknown;
+            } | null;
+            /** Orchestrator Decision */
+            orchestrator_decision?: {
+                [key: string]: unknown;
+            } | null;
+            /** Status */
+            status?: string | null;
         };
         /** UserSettingsPayload */
         UserSettingsPayload: {
@@ -2971,6 +3218,123 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    exec_shell_command_api_shell_exec_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShellExecRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_supervised_processes_api_shell_processes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_supervised_process_logs_api_shell_processes__pid__logs_get: {
+        parameters: {
+            query?: {
+                tail?: number;
+            };
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_supervised_process_api_shell_processes__pid__stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -3540,6 +3904,252 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_conversations_v1_conversations_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+                workspace_root?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_conversation_v1_conversations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateThreadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_v1_conversations__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_conversation_v1_conversations__thread_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    append_turn_v1_conversations__thread_id__turn_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppendTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_turn_v1_conversations__thread_id__turns__turn_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+                turn_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_turn_attachment_v1_conversations__thread_id__turns__turn_id__attachment_get: {
+        parameters: {
+            query: {
+                /** @description Attachment file name */
+                name: string;
+            };
+            header?: never;
+            path: {
+                thread_id: string;
+                turn_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -6682,6 +7292,59 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UiRemoteModelsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_env_catalog_v1_user_env_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    put_env_catalog_v1_user_env_catalog_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvOverridesPayload"];
             };
         };
         responses: {

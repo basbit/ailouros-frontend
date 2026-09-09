@@ -1,4 +1,4 @@
-import { ApiError, httpGet, httpPatch } from "@/shared/api/http";
+import { ApiError, httpGet, httpPatch, httpPost } from "@/shared/api/http";
 
 export interface WorkspaceFilePayload {
   path: string;
@@ -10,6 +10,12 @@ export interface WorkspaceDiffPayload {
   files_changed?: string[];
   stats?: { added?: number; removed?: number; files?: number };
   source?: string;
+}
+
+export interface ApproveWithEditsResponse {
+  ok: boolean;
+  path: string;
+  gate_approved: boolean;
 }
 
 export interface ClarifyQuestionDto {
@@ -40,6 +46,18 @@ export async function patchWorkspaceFile(
   await httpPatch<{ ok: boolean }>(
     `/v1/tasks/${encodeURIComponent(taskId)}/workspace-file`,
     { path, content },
+  );
+}
+
+export async function approveWithEdits(
+  taskId: string,
+  path: string,
+  content: string,
+  feedback = "Approved with operator edits",
+): Promise<ApproveWithEditsResponse> {
+  return httpPost<ApproveWithEditsResponse>(
+    `/v1/tasks/${encodeURIComponent(taskId)}/approve-with-edits`,
+    { path, content, feedback },
   );
 }
 
@@ -77,4 +95,36 @@ export async function tryGetWorkspaceFile(
     }
     throw error;
   }
+}
+
+export interface GitCommitDto {
+  sha: string;
+  message: string;
+  author: string;
+  time_ago: string;
+}
+
+export interface GitStatusPayload {
+  is_git: boolean;
+  branch?: string | null;
+  is_worktree?: boolean;
+  head_sha?: string | null;
+  clean?: boolean;
+  staged_count?: number;
+  unstaged_count?: number;
+  insertions?: number;
+  deletions?: number;
+  files_changed?: number;
+  recent_commits?: GitCommitDto[];
+}
+
+export async function getGitStatus(params?: {
+  workspaceRoot?: string | null;
+  taskId?: string | null;
+}): Promise<GitStatusPayload> {
+  const query = new URLSearchParams();
+  if (params?.workspaceRoot) query.set("workspace_root", params.workspaceRoot);
+  if (params?.taskId) query.set("task_id", params.taskId);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return httpGet<GitStatusPayload>(`/v1/workspace/git-status${qs}`);
 }

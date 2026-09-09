@@ -19,7 +19,6 @@ export interface SupervisedProcessDto {
 
 export async function executeShell(
   command: string,
-  _requireApproval = true,
   workspaceRoot?: string,
 ): Promise<ShellExecResult> {
   return httpPost<ShellExecResult>("/api/shell/exec", {
@@ -28,7 +27,9 @@ export async function executeShell(
   });
 }
 
-export async function listSupervisedProcesses(): Promise<{ processes: SupervisedProcessDto[] }> {
+export async function listSupervisedProcesses(): Promise<{
+  processes: SupervisedProcessDto[];
+}> {
   return httpGet<{ processes: SupervisedProcessDto[] }>("/api/shell/processes");
 }
 

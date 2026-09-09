@@ -14,6 +14,8 @@ export interface SwarmStreamHandlerDeps {
   recordRetrievalDone: (
     event: Extract<ChatStreamEvent, { kind: "retrieval_done" }>["event"],
   ) => void;
+  /** Surfaces the clarify form immediately when the stream pauses on it. */
+  onAwaitingClarification: () => void;
 }
 
 function handleMcpStatus(
@@ -81,6 +83,14 @@ export function createSwarmStreamEventHandler(
         return;
       case "retrieval_done":
         deps.recordRetrievalDone(event.event);
+        return;
+      case "awaiting_clarification":
+        deps.onAwaitingClarification();
+        return;
+      case "orchestrator_status_line":
+        if (event.status === "awaiting_human") {
+          deps.onAwaitingClarification();
+        }
         return;
     }
   };
