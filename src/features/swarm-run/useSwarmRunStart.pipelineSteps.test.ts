@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 const runSwarmChatMock = vi.fn();
 
-vi.mock("@/shared/lib/run-swarm-chat", () => ({
+vi.mock("@/features/swarm-run/run-swarm-chat", () => ({
   runSwarmChat: (...args: unknown[]) => runSwarmChatMock(...args),
 }));
 

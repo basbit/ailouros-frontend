@@ -1,4 +1,4 @@
-import type { TextAttachment } from "@/shared/model/project-types";
+import type { TextAttachment } from "@/entities/project";
 
 /** Text attachments only, for now: the chat path sends file content inline.
  *
@@ -23,12 +23,13 @@ export function looksBinary(text: string): boolean {
 
 export interface AttachmentReadResult {
   accepted: TextAttachment[];
-  rejected: { name: string; reason: "binary" | "unreadable" | "duplicate" }[];
+  rejected: { name: string; reason: "binary" | "unreadable" | "duplicate" | "too_large" }[];
 }
 
 export async function readAttachments(
   files: File[],
   existing: TextAttachment[],
+  maxChars?: number,
 ): Promise<AttachmentReadResult> {
   const accepted: TextAttachment[] = [];
   const rejected: AttachmentReadResult["rejected"] = [];
@@ -48,6 +49,12 @@ export async function readAttachments(
     }
     if (looksBinary(text)) {
       rejected.push({ name: file.name, reason: "binary" });
+      continue;
+    }
+    // Refuse here rather than let the chat endpoint truncate past
+    // SWARM_ATTACHMENT_MAX_CHARS with a marker the user never sees.
+    if (maxChars !== undefined && maxChars > 0 && text.length > maxChars) {
+      rejected.push({ name: file.name, reason: "too_large" });
       continue;
     }
     taken.add(file.name);

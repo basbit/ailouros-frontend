@@ -1,9 +1,25 @@
 <template>
-  <div v-if="visible" class="budget-modal-overlay" @keydown.esc="onClose">
-    <div class="budget-modal" role="dialog" aria-modal="true">
+  <div
+    v-if="visible"
+    class="budget-modal-overlay dialog-backdrop"
+    @click.self="onClose"
+  >
+    <div
+      ref="dialogRef"
+      class="budget-modal dialog-card"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="t('budget.increaseTitle')"
+      @keydown="onDialogKeydown"
+    >
       <header class="budget-modal__header">
         <h3 class="budget-modal__title">{{ t("budget.increaseTitle") }}</h3>
-        <button type="button" class="budget-modal__close" @click="onClose">
+        <button
+          type="button"
+          class="budget-modal__close"
+          :aria-label="t('common.close')"
+          @click="onClose"
+        >
           &#10005;
         </button>
       </header>
@@ -24,7 +40,7 @@
         <div class="budget-modal__quick-actions">
           <button
             type="button"
-            class="budget-btn budget-btn--quick"
+            class="budget-btn budget-btn--quick btn-secondary"
             :disabled="isSubmitting"
             @click="handleQuickAdd(1.0)"
           >
@@ -32,7 +48,7 @@
           </button>
           <button
             type="button"
-            class="budget-btn budget-btn--quick"
+            class="budget-btn budget-btn--quick btn-secondary"
             :disabled="isSubmitting"
             @click="handleQuickAdd(5.0)"
           >
@@ -40,7 +56,7 @@
           </button>
           <button
             type="button"
-            class="budget-btn budget-btn--quick"
+            class="budget-btn budget-btn--quick btn-secondary"
             :disabled="isSubmitting"
             @click="handleQuickAdd(10.0)"
           >
@@ -62,18 +78,22 @@
           </label>
         </div>
 
-        <p v-if="submitError" class="budget-modal__error">
+        <p v-if="submitError" class="budget-modal__error" role="alert">
           {{ submitError }}
         </p>
       </div>
 
       <footer class="budget-modal__footer">
-        <button type="button" class="budget-btn budget-btn--ghost" @click="onClose">
+        <button
+          type="button"
+          class="budget-btn budget-btn--ghost btn-ghost"
+          @click="onClose"
+        >
           {{ t("budget.cancel") }}
         </button>
         <button
           type="button"
-          class="budget-btn budget-btn--primary"
+          class="budget-btn budget-btn--primary btn-primary"
           :disabled="isSubmitting || customAmount <= 0"
           @click="handleCustomAdd"
         >
@@ -85,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useTaskBudget } from "./useTaskBudget";
 import BudgetProgressBar from "./BudgetProgressBar.vue";
@@ -105,19 +125,85 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { increaseBudget } = useTaskBudget();
+const { increaseBudget, lastError } = useTaskBudget();
 
+const dialogRef = ref<HTMLDivElement | null>(null);
 const customAmount = ref<number>(1.0);
 const isSubmitting = ref(false);
 const submitError = ref<string | null>(null);
+let focusOrigin: HTMLElement | null = null;
+
+function focusableElements(): HTMLElement[] {
+  if (!dialogRef.value) return [];
+  return Array.from(
+    dialogRef.value.querySelectorAll<HTMLElement>(
+      "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])",
+    ),
+  );
+}
+
+function trapTab(event: KeyboardEvent): void {
+  const focusable = focusableElements();
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement as HTMLElement | null;
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function onDialogKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    onClose();
+    return;
+  }
+  if (event.key === "Tab") trapTab(event);
+}
+
+// A keydown on a div only fires once something inside it has focus, so Escape
+// also needs a window listener while the dialog is open.
+function onWindowKeydown(event: KeyboardEvent): void {
+  if (props.visible && event.key === "Escape") {
+    event.preventDefault();
+    onClose();
+  }
+}
+
+watch(
+  () => props.visible,
+  (isVisible) => {
+    if (isVisible) {
+      focusOrigin = document.activeElement as HTMLElement | null;
+      window.addEventListener("keydown", onWindowKeydown);
+      void nextTick(() => {
+        focusableElements()[0]?.focus();
+      });
+    } else {
+      window.removeEventListener("keydown", onWindowKeydown);
+      focusOrigin?.focus();
+      focusOrigin = null;
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onWindowKeydown);
+});
 
 function onClose(): void {
   submitError.value = null;
   emit("close");
 }
 
-async function handleQuickAdd(amount: number): Promise<void> {
-  if (isSubmitting.value || !props.taskId) return;
+async function applyIncrease(amount: number): Promise<void> {
+  if (isSubmitting.value || amount <= 0 || !props.taskId) return;
   isSubmitting.value = true;
   submitError.value = null;
   const success = await increaseBudget(props.taskId, amount, 0);
@@ -125,44 +211,31 @@ async function handleQuickAdd(amount: number): Promise<void> {
   if (success) {
     emit("increased");
     emit("close");
-  } else {
-    submitError.value = "Failed to update budget";
+    return;
   }
+  // Show what actually went wrong instead of a hardcoded English sentence.
+  submitError.value = t("budget.increaseFailed", {
+    error: lastError.value ?? t("budget.unknownError"),
+  });
 }
 
-async function handleCustomAdd(): Promise<void> {
-  if (isSubmitting.value || customAmount.value <= 0 || !props.taskId) return;
-  isSubmitting.value = true;
-  submitError.value = null;
-  const success = await increaseBudget(props.taskId, customAmount.value, 0);
-  isSubmitting.value = false;
-  if (success) {
-    emit("increased");
-    emit("close");
-  } else {
-    submitError.value = "Failed to update budget";
-  }
+function handleQuickAdd(amount: number): void {
+  void applyIncrease(amount);
+}
+
+function handleCustomAdd(): void {
+  void applyIncrease(customAmount.value);
 }
 </script>
 
 <style scoped>
+/* Backdrop and card chrome come from the shared .dialog-backdrop / .dialog-card. */
 .budget-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 9999;
 }
 
 .budget-modal {
-  background: var(--bg-surface, #1e1e24);
-  border: 1px solid var(--border-color, #2e2e38);
-  border-radius: 8px;
-  width: 90%;
-  max-width: 440px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  width: min(100%, 440px);
   display: flex;
   flex-direction: column;
 }
@@ -172,21 +245,28 @@ async function handleCustomAdd(): Promise<void> {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color, #2e2e38);
+  border-bottom: 1px solid var(--line);
 }
 
 .budget-modal__title {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .budget-modal__close {
   background: transparent;
   border: none;
-  color: var(--text-muted, #888);
+  color: var(--ink-3);
   font-size: 16px;
+  padding: 2px 6px;
   cursor: pointer;
+}
+
+.budget-modal__close:hover {
+  color: var(--ink);
 }
 
 .budget-modal__body {
@@ -199,10 +279,10 @@ async function handleCustomAdd(): Promise<void> {
 .budget-modal__warning {
   margin: 0;
   padding: 8px 12px;
-  background: rgba(220, 53, 69, 0.15);
-  border: 1px solid rgba(220, 53, 69, 0.4);
-  border-radius: 6px;
-  color: #ff6b6b;
+  background: color-mix(in srgb, var(--error) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  border-radius: var(--r-sm);
+  color: var(--error);
   font-size: 13px;
 }
 
@@ -212,34 +292,18 @@ async function handleCustomAdd(): Promise<void> {
 }
 
 .budget-btn {
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #333);
-  background: var(--bg-elevated, #2a2a34);
-  color: var(--text-normal, #eee);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s;
+  border-radius: var(--r-md);
 }
 
-.budget-btn:hover:not(:disabled) {
-  background: var(--bg-hover, #363644);
+.budget-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .budget-btn--quick {
   flex: 1;
+  justify-content: center;
   font-weight: 600;
-}
-
-.budget-btn--primary {
-  background: var(--accent-primary, #3b82f6);
-  border-color: var(--accent-primary, #3b82f6);
-  color: #fff;
-}
-
-.budget-btn--ghost {
-  background: transparent;
-  border-color: transparent;
 }
 
 .budget-modal__custom {
@@ -249,23 +313,16 @@ async function handleCustomAdd(): Promise<void> {
 
 .budget-modal__label {
   font-size: 12px;
-  color: var(--text-muted, #aaa);
+  color: var(--ink-3);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.budget-modal__input {
-  padding: 8px 12px;
-  background: var(--bg-input, #16161c);
-  border: 1px solid var(--border-color, #333);
-  border-radius: 6px;
-  color: var(--text-normal, #eee);
-  font-size: 14px;
-}
+/* .budget-modal__input inherits the global input[type="number"] styling. */
 
 .budget-modal__error {
-  color: #ff6b6b;
+  color: var(--error);
   font-size: 12px;
   margin: 0;
 }
@@ -275,6 +332,6 @@ async function handleCustomAdd(): Promise<void> {
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 18px;
-  border-top: 1px solid var(--border-color, #2e2e38);
+  border-top: 1px solid var(--line);
 }
 </style>

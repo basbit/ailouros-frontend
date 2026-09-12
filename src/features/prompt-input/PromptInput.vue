@@ -1,5 +1,15 @@
 <template>
-  <div ref="wrapRef" class="prompt-input-wrap">
+  <div
+    ref="wrapRef"
+    class="prompt-input-wrap"
+    :class="{ 'prompt-input-wrap--dropping': isDropping }"
+    @dragover.prevent="onDragOver"
+    @dragleave="onDragLeave"
+    @drop.prevent="onDrop"
+  >
+    <p v-if="isDropping" class="prompt-input-drop" aria-hidden="true">
+      {{ t("prompt.attach.dropHere") }}
+    </p>
     <textarea
       ref="taRef"
       :rows="rows"
@@ -52,6 +62,9 @@
     />
     <p v-if="attachmentNotice" class="attachment-notice" role="alert">
       {{ attachmentNotice }}
+    </p>
+    <p v-if="attachmentLimit" class="attachment-limit-hint">
+      {{ t("prompt.attach.limitHint", { limit: attachmentLimit }) }}
     </p>
     <div
       v-if="props.attachments.length || props.imageAttachments.length"
@@ -113,11 +126,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
+import { onMounted, ref, watch, nextTick } from "vue";
 import { listWorkspaceFiles } from "@/shared/api/endpoints/workspace";
 import { useI18n } from "@/shared/lib/i18n";
-import type { ImageAttachment, TextAttachment } from "@/shared/model/project-types";
+import type { ImageAttachment, TextAttachment } from "@/entities/project";
 import { readAttachments } from "./attachment-reader";
+import { getRuntimeCapabilities } from "@/shared/api/endpoints/runtime";
 import { looksLikeImage, uploadImageFiles } from "./image-uploader";
 import { useVoiceDictation } from "./useVoiceDictation";
 
@@ -149,6 +163,33 @@ const { t } = useI18n();
 const taRef = ref<HTMLTextAreaElement | null>(null);
 const wrapRef = ref<HTMLDivElement | null>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const isDropping = ref(false);
+// The backend truncates past this and the user never sees the marker, so the
+// limit has to be known here, before a file is attached.
+const attachmentLimit = ref(0);
+
+onMounted(async () => {
+  try {
+    const capabilities = await getRuntimeCapabilities();
+    attachmentLimit.value = capabilities.attachment_max_chars ?? 0;
+  } catch {
+    // An unreachable backend must not disable attaching; the limit is then
+    // enforced server-side only, as it was before.
+  }
+});
+
+function onDragOver(): void {
+  isDropping.value = true;
+}
+
+function onDragLeave(): void {
+  isDropping.value = false;
+}
+
+async function onDrop(event: DragEvent): Promise<void> {
+  isDropping.value = false;
+  await addFiles(Array.from(event.dataTransfer?.files ?? []));
+}
 
 async function onFilesPicked(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
@@ -167,13 +208,20 @@ async function addFiles(files: File[]): Promise<void> {
     await addImageFiles(images);
   }
   if (!texts.length) return;
-  const { accepted, rejected } = await readAttachments(texts, props.attachments);
+  const { accepted, rejected } = await readAttachments(
+    texts,
+    props.attachments,
+    attachmentLimit.value || undefined,
+  );
   // A refused file must say so. Dropping it quietly leaves the user believing
   // the model received something it never got.
   attachmentNotice.value = rejected.length
     ? rejected
         .map((entry) =>
-          t(`prompt.attach.rejected.${entry.reason}`, { name: entry.name }),
+          t(`prompt.attach.rejected.${entry.reason}`, {
+            name: entry.name,
+            limit: attachmentLimit.value,
+          }),
         )
         .join(" ")
     : "";
@@ -495,6 +543,30 @@ function onKeydown(e: KeyboardEvent): void {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--error, #f45b5b);
+}
+.attachment-limit-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--ink-4);
+}
+.prompt-input-wrap--dropping {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.prompt-input-drop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-glow);
+  color: var(--ink-2);
+  font-size: 12px;
+  pointer-events: none;
+  border-radius: 6px;
+  z-index: 2;
 }
 @keyframes prompt-input-mic-pulse {
   0%,

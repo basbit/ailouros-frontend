@@ -7,7 +7,8 @@
   box-sizing: border-box;
   overflow-y: auto;
   gap: 16px;
-  background: var(--bg-1, #0f0f13);
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .pipeline-grid-view__toolbar {
@@ -25,49 +26,51 @@
 
 .pipeline-grid-view__title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
-  color: var(--ink, #fff);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .pipeline-grid-view__count-badge {
-  background: var(--bg-2, #26262e);
-  color: var(--ink-2, #bbb);
+  background: var(--bg-2);
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 999px;
 }
 
 .pipeline-grid-view__modes {
   display: inline-flex;
-  background: var(--bg-2, #1f1f27);
+  background: var(--card-soft);
   padding: 3px;
-  border-radius: 8px;
+  border-radius: 999px;
   gap: 2px;
-  border: 1px solid var(--line, #333);
+  border: 1px solid var(--line);
 }
 
 .pipeline-grid-view__mode-btn {
   background: transparent;
   border: none;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
   font-size: 12px;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .pipeline-grid-view__mode-btn:hover {
-  color: var(--ink, #fff);
+  color: var(--ink);
 }
 
 .pipeline-grid-view__mode-btn--active {
-  background: var(--card, #2c2c38);
-  color: var(--ink, #fff);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
 }
 
 .pipeline-grid-view__filter-bar {
@@ -85,8 +88,8 @@
 
 .pipeline-grid-view__filter-tab {
   background: transparent;
-  border: 1px solid var(--line, #333);
-  color: var(--ink-3, #888);
+  border: 1px solid var(--line);
+  color: var(--ink-3);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -95,30 +98,31 @@
 }
 
 .pipeline-grid-view__filter-tab:hover {
-  border-color: var(--line-strong, #555);
-  color: var(--ink, #fff);
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
 .pipeline-grid-view__filter-tab--active {
-  background: var(--accent, #6366f1);
-  border-color: var(--accent, #6366f1);
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #17110c;
   font-weight: 600;
 }
 
 .pipeline-grid-view__search {
-  background: var(--bg-2, #1f1f27);
-  border: 1px solid var(--line, #333);
-  color: var(--ink, #fff);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
   min-width: 220px;
   outline: none;
 }
 
 .pipeline-grid-view__search:focus {
-  border-color: var(--accent, #6366f1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .pipeline-grid-view__grid {
@@ -133,23 +137,23 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
-  border: 1px dashed var(--line, #333);
-  border-radius: 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
   gap: 12px;
   margin-top: 24px;
 }
 
 .pipeline-grid-view__empty-text {
-  color: var(--ink-3, #777);
+  color: var(--ink-3);
   font-size: 14px;
   margin: 0;
 }
 
 .pipeline-grid-view__create-btn {
-  background: var(--accent, #6366f1);
-  color: #fff;
+  background: var(--accent);
+  color: #17110c;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;

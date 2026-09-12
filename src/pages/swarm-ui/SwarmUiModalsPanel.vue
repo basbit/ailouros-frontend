@@ -76,7 +76,7 @@ import PromptLibraryPopover from "@/features/prompt-input/PromptLibraryPopover.v
 import type { PromptEntry } from "@/features/prompt-input/usePromptLibrary";
 import AssetUploadDialog from "@/features/asset-upload/AssetUploadDialog.vue";
 import SudoPromptDialog from "@/features/sudo-prompt/SudoPromptDialog.vue";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 
 defineProps<{
   projectFormOpen: boolean;

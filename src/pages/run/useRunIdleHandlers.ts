@@ -1,14 +1,16 @@
-import { computed, onActivated, onDeactivated, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { HistoryGlimpseEntry } from "@/widgets/run-idle/HistoryGlimpse.vue";
 import { useAppHeaderBindings } from "@/widgets/header/useAppHeaderBindings";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
 import { useSlashCommandRunner } from "@/features/slash-commands/useSlashCommandRunner";
 import { useRunRecovery } from "@/features/run-recovery";
+import { useRunEcosystemHandlers } from "@/pages/run/useRunEcosystemHandlers";
+import { useRunShortcut } from "@/pages/run/useRunShortcut";
 import { useUiStore } from "@/shared/store/ui";
 import { useScenarioCatalog } from "@/entities/scenario";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
-import { defaultPipelineOrder } from "@/shared/lib/use-swarm-defaults";
+import { defaultPipelineOrder } from "@/entities/pipeline";
 import { useI18n } from "@/shared/lib/i18n";
 import { formatDurationShort, formatRelativeShort } from "@/shared/lib/format-relative";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
@@ -253,20 +255,12 @@ export function useRunIdleHandlers(
     }
   }
 
-  function handleRunShortcut(event: KeyboardEvent): void {
-    const isMod = event.metaKey || event.ctrlKey;
-    if (!isMod || event.key !== "Enter") return;
-    event.preventDefault();
-    void onStart();
-  }
+  const { onPlaybookStarted, onIssueImported } = useRunEcosystemHandlers(
+    settings,
+    onStart,
+  );
 
-  onActivated(() => {
-    window.addEventListener("keydown", handleRunShortcut);
-  });
-
-  onDeactivated(() => {
-    window.removeEventListener("keydown", handleRunShortcut);
-  });
+  useRunShortcut(onStart);
 
   watch(
     () => settings.form.prompt,
@@ -309,6 +303,8 @@ export function useRunIdleHandlers(
     onApplyPatternHint,
     onDismissPatternHint,
     onStart,
+    onPlaybookStarted,
+    onIssueImported,
     slashRunner,
     isRunUnavailable,
     onResetUnavailableRun: resetUnavailableRun,

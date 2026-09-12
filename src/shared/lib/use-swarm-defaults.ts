@@ -112,47 +112,26 @@ export function useSwarmDefaults() {
   return { defaults: readonly(_defaults) };
 }
 
-function getStoredSwarmDefaults(): SwarmDefaults {
+/**
+ * Raw `/v1/defaults` snapshot as last fetched (or restored from storage).
+ *
+ * This module is the transport + storage adapter for that resource only.
+ * Domain readers over the payload live in the owning slices:
+ * role defaults in `@/entities/role`, pipeline order and step dependencies
+ * in `@/entities/pipeline`.
+ */
+export function swarmDefaultsSnapshot(): SwarmDefaults {
   return _defaults.value;
 }
 
-export function defaultEnvironmentForRole(): string {
-  return getStoredSwarmDefaults().default_role_environment;
-}
-
-export function defaultModelForRole(roleId: string, environment: string): string {
-  return getStoredSwarmDefaults().model_defaults[roleId]?.[environment] ?? "";
-}
-
-export function defaultPromptPathForRole(roleId: string): string {
-  return getStoredSwarmDefaults().prompt_defaults[roleId] ?? "";
-}
-
-export function promptChoicesForRole(roleId: string): [string, string][] {
-  return (getStoredSwarmDefaults().prompt_choices[roleId] ?? []) as [string, string][];
-}
-
-export function defaultPipelineOrder(): string[] {
-  return [...(getStoredSwarmDefaults().default_pipeline_order || [])];
-}
-
-export function pipelineStepDependencies(): Record<string, string[]> {
-  const raw = getStoredSwarmDefaults().step_dependencies || {};
-  const out: Record<string, string[]> = {};
-  for (const [stepId, prerequisites] of Object.entries(raw)) {
-    out[stepId] = Array.isArray(prerequisites) ? [...prerequisites] : [];
-  }
-  return out;
-}
-
 export function defaultRemoteApiProvider(): string {
-  return getStoredSwarmDefaults().default_remote_api_provider;
+  return swarmDefaultsSnapshot().default_remote_api_provider;
 }
 
 export function defaultRemoteApiBaseUrl(provider: string): string {
-  return getStoredSwarmDefaults().remote_api_base_presets[provider] ?? "";
+  return swarmDefaultsSnapshot().remote_api_base_presets[provider] ?? "";
 }
 
 export function remoteProfileProviderOptions(): [string, string][] {
-  return [...getStoredSwarmDefaults().remote_profile_provider_options];
+  return [...swarmDefaultsSnapshot().remote_profile_provider_options];
 }

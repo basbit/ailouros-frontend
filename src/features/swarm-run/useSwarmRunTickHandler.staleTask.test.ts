@@ -3,8 +3,8 @@ import { ref } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
-import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-constants";
+import { useProjectsStore } from "@/entities/project";
+import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-ui-constants";
 import * as hydrateModule from "@/shared/lib/hydrate-task";
 import { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 import { useSwarmRunState } from "./useSwarmRunState";

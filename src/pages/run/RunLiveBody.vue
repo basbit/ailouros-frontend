@@ -74,6 +74,7 @@
           :heading="t('runLive.stepsHeading')"
           :steps="stepRows"
           :label-for="stepStateLabel"
+          :task-id="props.historyEntry?.taskId ?? ui.taskId"
         />
         <div class="run-live-body__log">
           <div class="run-live-body__log-view">
@@ -118,7 +119,11 @@
         </div>
       </div>
 
-      <PhaseGateCard :workspace-root="currentWorkspaceRoot" />
+      <PhaseGateCard
+        v-if="!isHistoryView"
+        :workspace-root="currentWorkspaceRoot"
+        :task-id="diagnosticsTaskId"
+      />
 
       <RunLiveDiagnostics
         :task-id="diagnosticsTaskId"
@@ -367,7 +372,6 @@ const specStatus = computed(() =>
   text-align: center;
   padding: 48px 16px;
 }
-
 .run-live-body__idle-title {
   font-family: var(--font-display);
   font-size: 22px;
@@ -375,7 +379,6 @@ const specStatus = computed(() =>
   color: var(--ink);
   margin-bottom: 6px;
 }
-
 .run-live-body__idle-hint {
   font-size: 13px;
   color: var(--ink-3);

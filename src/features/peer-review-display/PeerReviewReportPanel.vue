@@ -1,5 +1,5 @@
 <template>
-  <div v-if="report || loading" class="peer-review-panel">
+  <div v-if="report || loading || error" class="peer-review-panel">
     <header class="peer-review-header">
       <div class="peer-review-header__title-group">
         <span class="peer-review-icon">&#128737;</span>
@@ -21,7 +21,15 @@
     </header>
 
     <div v-if="loading" class="peer-review-loading">
-      <span>Loading review findings…</span>
+      <span>{{ t("peerReview.loading") }}</span>
+    </div>
+
+    <div v-else-if="error" class="peer-review-error" role="alert">
+      <span class="chip chip--failed">{{ t("peerReview.loadFailed") }}</span>
+      <p class="peer-review-error__detail">{{ error }}</p>
+      <button type="button" class="btn-secondary" @click="emit('retry')">
+        {{ t("peerReview.retry") }}
+      </button>
     </div>
 
     <div v-else-if="report" class="peer-review-body">
@@ -79,10 +87,12 @@ import type { PeerReviewReport } from "@/entities/review/model/types";
 const props = defineProps<{
   report: PeerReviewReport | null;
   loading?: boolean;
+  error?: string | null;
 }>();
 
 const emit = defineEmits<{
   inspectFile: [{ path: string; line: number }];
+  retry: [];
 }>();
 
 const { t } = useI18n();
@@ -97,9 +107,9 @@ const criticalCount = computed(
 
 <style scoped>
 .peer-review-panel {
-  border: 1px solid var(--line, rgba(255, 235, 200, 0.12));
-  border-radius: var(--r-md, 8px);
-  background: var(--card, #1d1814);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -124,37 +134,37 @@ const criticalCount = computed(
 
 .peer-review-title {
   margin: 0;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink, #f3ece0);
+  color: var(--ink);
 }
 
 .peer-review-badge {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .peer-review-badge--success {
-  background: rgba(74, 138, 78, 0.2);
-  color: #81c784;
-  border: 1px solid rgba(74, 138, 78, 0.4);
+  background: color-mix(in srgb, var(--ok) 20%, transparent);
+  color: var(--ok);
+  border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent);
 }
 
 .peer-review-badge--danger {
-  background: rgba(225, 106, 58, 0.2);
-  color: #ff8a65;
-  border: 1px solid rgba(225, 106, 58, 0.4);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .peer-review-summary {
   margin: 0;
   font-size: 12px;
-  color: var(--ink-2, #d1c7b7);
+  color: var(--ink-2);
   line-height: 1.5;
 }
 
@@ -169,8 +179,9 @@ const criticalCount = computed(
   margin: 0;
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .peer-review-findings-list {
@@ -187,32 +198,32 @@ const criticalCount = computed(
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  border-radius: 4px;
-  background: var(--bg-2, #25201a);
-  border: 1px solid var(--line, rgba(255, 235, 200, 0.08));
+  border-radius: var(--r-sm);
+  background: var(--card-soft);
+  border: 1px solid var(--line);
 }
 
 .peer-review-severity-chip {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
 }
 
 .peer-review-severity-chip--critical {
-  background: rgba(244, 67, 54, 0.2);
-  color: #ef5350;
+  background: color-mix(in srgb, var(--error) 20%, transparent);
+  color: var(--error);
 }
 
 .peer-review-severity-chip--warning {
-  background: rgba(255, 167, 38, 0.2);
-  color: #ffa726;
+  background: color-mix(in srgb, var(--warn) 20%, transparent);
+  color: var(--warn);
 }
 
 .peer-review-severity-chip--info {
-  background: rgba(41, 182, 246, 0.2);
-  color: #4fc3f7;
+  background: color-mix(in srgb, var(--info) 20%, transparent);
+  color: var(--info);
 }
 
 .peer-review-finding-details {
@@ -224,44 +235,44 @@ const criticalCount = computed(
 }
 
 .peer-review-finding-location code {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
 }
 
 .peer-review-finding-message {
   font-size: 12px;
-  color: var(--ink, #f3ece0);
+  color: var(--ink);
   word-break: break-word;
 }
 
 .peer-review-inspect-btn {
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-sans);
   font-size: 11px;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: transparent;
-  border: 1px solid var(--line, rgba(255, 235, 200, 0.2));
-  color: var(--ink-2, #d1c7b7);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
 
 .peer-review-inspect-btn:hover {
-  background: var(--card, #2b251f);
-  color: var(--ink, #f3ece0);
+  background: var(--card-soft);
+  color: var(--ink);
 }
 
 .peer-review-empty {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #81c784;
+  color: var(--ok);
 }
 
 .peer-review-loading {
   font-size: 12px;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
   font-style: italic;
 }
 </style>

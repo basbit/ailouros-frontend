@@ -5,8 +5,8 @@ import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
 import {
   agentConfigErrorMessage,
   type RunSwarmChatSettings,
-} from "@/shared/lib/agent-config";
-import { runSwarmChat } from "@/shared/lib/run-swarm-chat";
+} from "@/entities/agent-config";
+import { runSwarmChat } from "@/features/swarm-run/run-swarm-chat";
 import { createSwarmStreamEventHandler } from "./useSwarmRunStreamHandler";
 import { tryParseGoalCommand } from "@/shared/lib/slash-commands";
 import { httpPost } from "@/shared/api/http";

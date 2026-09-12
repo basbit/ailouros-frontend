@@ -28,7 +28,6 @@
       {{ scenarioTitle }}
     </div>
 
-    <!-- Coworking Lock Badge -->
     <div
       v-if="claimedBy"
       class="pipeline-run-card__claimed-badge"
@@ -38,20 +37,19 @@
       <span>{{ claimedBadgeText }}</span>
     </div>
 
-    <!-- Mini LangGraph Pipeline Progress Track -->
     <PipelineStageTrack
+      :steps="steps"
       :status="status"
       :active-step="activeStep"
+      :completed-steps="completedSteps"
       :is-attention-required="isAttentionRequired"
     />
 
-    <!-- Active Step Snippet -->
     <div v-if="activeStep" class="pipeline-run-card__current-step">
       <span class="pipeline-run-card__step-prefix">{{ t("pipelineCard.step") }}:</span>
       <span class="pipeline-run-card__step-name">{{ activeStep }}</span>
     </div>
 
-    <!-- Attention / Human Gate Quick Response Banner -->
     <div v-if="isAttentionRequired" class="pipeline-run-card__gate-banner">
       <div class="pipeline-run-card__gate-text">
         <span class="attention-required--badge" />
@@ -83,7 +81,6 @@
       </div>
     </div>
 
-    <!-- Card Footer -->
     <div class="pipeline-run-card__footer">
       <button
         type="button"
@@ -108,16 +105,17 @@
 import { computed, ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { postConfirmHuman } from "@/shared/api/endpoints/task-gates";
-import PipelineStageTrack, { type StageInfo } from "./PipelineStageTrack.vue";
-
-export type { StageInfo };
+import { useUxStore } from "@/shared/store/ux";
+import PipelineStageTrack from "./PipelineStageTrack.vue";
 
 const props = withDefaults(
   defineProps<{
     taskId: string;
     scenarioTitle?: string | null;
     status?: string | null;
+    steps?: string[];
     activeStep?: string | null;
+    completedSteps?: string[];
     isSelected?: boolean;
     compact?: boolean;
     claimedBy?: string | null;
@@ -126,7 +124,9 @@ const props = withDefaults(
   {
     scenarioTitle: null,
     status: "running",
+    steps: () => [],
     activeStep: null,
+    completedSteps: () => [],
     isSelected: false,
     compact: false,
     claimedBy: null,
@@ -138,12 +138,11 @@ const emit = defineEmits<{
   select: [taskId: string];
   open: [taskId: string];
   openBrowser: [taskId: string];
-  "open-browser": [taskId: string];
   gateResolved: [taskId: string, approved: boolean];
-  "gate-resolved": [taskId: string, approved: boolean];
 }>();
 
 const { t } = useI18n();
+const ux = useUxStore();
 const isResponding = ref(false);
 
 const isLockedByOther = computed(() => {
@@ -199,30 +198,35 @@ const statusLabel = computed(() => {
   return normalizedStatus.replace(/_/g, " ");
 });
 
-async function onApprove(): Promise<void> {
+// The feedback string reaches the agent prompt, so it must not follow the
+// operator's UI locale. These are stable machine markers, not user copy.
+const APPROVE_FEEDBACK_MARKER = "[multi-run-grid] approved";
+const REJECT_FEEDBACK_MARKER = "[multi-run-grid] rejected";
+
+async function resolveGate(approved: boolean): Promise<void> {
   if (isResponding.value) return;
   isResponding.value = true;
   try {
-    await postConfirmHuman(props.taskId, true, "Approved via Multi-Run Grid");
-    emit("gateResolved", props.taskId, true);
-  } catch (err) {
-    console.error("Failed to approve gate", err);
+    await postConfirmHuman(
+      props.taskId,
+      approved,
+      approved ? APPROVE_FEEDBACK_MARKER : REJECT_FEEDBACK_MARKER,
+    );
+    emit("gateResolved", props.taskId, approved);
+  } catch (gateError: unknown) {
+    const message = gateError instanceof Error ? gateError.message : String(gateError);
+    ux.notify(t("pipelineCard.gateActionFailed", { error: message }), "error");
   } finally {
     isResponding.value = false;
   }
 }
 
-async function onReject(): Promise<void> {
-  if (isResponding.value) return;
-  isResponding.value = true;
-  try {
-    await postConfirmHuman(props.taskId, false, "Rejected via Multi-Run Grid");
-    emit("gateResolved", props.taskId, false);
-  } catch (err) {
-    console.error("Failed to reject gate", err);
-  } finally {
-    isResponding.value = false;
-  }
+function onApprove(): void {
+  void resolveGate(true);
+}
+
+function onReject(): void {
+  void resolveGate(false);
 }
 </script>
 

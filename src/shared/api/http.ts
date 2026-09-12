@@ -1,4 +1,5 @@
 import { apiUrl } from "@/shared/api/base";
+import { getApiToken } from "@/shared/api/token";
 
 export class ApiError extends Error {
   constructor(
@@ -16,6 +17,12 @@ export interface HttpRequestOptions {
   headers?: Record<string, string>;
   rawPath?: boolean;
   timeoutMs?: number;
+  /**
+   * Streaming callers read the status and the body themselves (an SSE error is
+   * a payload, not an exception), so they opt out of the ApiError throw while
+   * keeping auth, cancellation and URL resolution.
+   */
+  throwOnHttpError?: boolean;
 }
 
 function mergeSignals(
@@ -54,6 +61,12 @@ async function performRequest(
     Accept: "application/json",
     ...(options.headers ?? {}),
   };
+  // A token-authenticated backend rejects every call without this header, so
+  // it belongs on the one place all requests pass through, not on call sites.
+  const apiToken = getApiToken();
+  if (apiToken && !headers.Authorization) {
+    headers.Authorization = `Bearer ${apiToken}`;
+  }
   let serialised: BodyInit | null = null;
   if (body !== undefined && body !== null) {
     if (body instanceof FormData || body instanceof Blob || typeof body === "string") {
@@ -72,7 +85,7 @@ async function performRequest(
   };
   try {
     const response = await fetch(url, init);
-    if (!response.ok) {
+    if (!response.ok && options.throwOnHttpError !== false) {
       const errText = await response.text().catch(() => "");
       throw new ApiError(`HTTP ${response.status}`, response.status, errText);
     }
@@ -150,4 +163,22 @@ export async function httpRequestRaw(
   options?: HttpRequestOptions,
 ): Promise<Response> {
   return performRequest(method, path, body, options);
+}
+
+/**
+ * The transport for streaming (SSE / chunked) POSTs.
+ *
+ * Streaming endpoints used to call `fetch` directly, which meant they carried
+ * no `Authorization` header and 401'd against a token-authenticated backend.
+ * Routing them here keeps auth, base-URL resolution, cancellation and timeouts
+ * in the single place every request already passes through; the response is
+ * handed back unread and unthrown so the caller can consume the stream and
+ * decide what a non-2xx status means for its own UI.
+ */
+export async function httpPostStream(
+  path: string,
+  body?: unknown,
+  options?: HttpRequestOptions,
+): Promise<Response> {
+  return performRequest("POST", path, body, { ...options, throwOnHttpError: false });
 }

@@ -1,7 +1,7 @@
 .artefact-editor-overlay {
   position: fixed;
   inset: 0;
-  background: var(--backdrop, rgba(26, 22, 18, 0.65));
+  background: var(--backdrop);
   backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex;
@@ -11,10 +11,10 @@
 }
 
 .artefact-editor-modal {
-  background: var(--card, #1d1814);
-  border: 1px solid var(--line-strong, rgba(255, 235, 200, 0.22));
-  border-radius: var(--r-lg, 14px);
-  box-shadow: var(--shadow-lg, 0 18px 48px rgba(0, 0, 0, 0.4));
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
   width: 90vw;
   max-width: 1080px;
   height: 82vh;
@@ -28,8 +28,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 18px;
-  background: var(--bg-2, #25201a);
-  border-bottom: 1px solid var(--line, rgba(255, 235, 200, 0.1));
+  background: var(--card-soft);
+  border-bottom: 1px solid var(--line);
 }
 
 .artefact-editor-header__meta {
@@ -40,10 +40,10 @@
 }
 
 .artefact-editor-header__path {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
-  color: var(--ink, #f3ece0);
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -52,10 +52,10 @@
 .artefact-editor-header__dirty-badge {
   font-size: 11px;
   font-weight: 600;
-  background: var(--warn, #c98a1a);
-  color: #fff;
+  background: var(--warn);
+  color: #17110c;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
 }
 
 .artefact-editor-header__actions {
@@ -65,14 +65,14 @@
 }
 
 .artefact-btn {
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 500;
-  padding: 6px 12px;
-  border-radius: var(--r-sm, 6px);
-  border: 1px solid var(--line-strong, rgba(80, 60, 30, 0.28));
-  background: var(--card-soft, #efe6d2);
-  color: var(--ink, #1a1612);
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--card-soft);
+  color: var(--ink);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -83,19 +83,19 @@
 }
 
 .artefact-btn--primary {
-  background: var(--accent, #e16a3a);
-  border-color: var(--accent-2, #c84f1f);
-  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent-2);
+  color: #17110c;
 }
 
 .artefact-btn--primary:hover:not(:disabled) {
-  background: var(--accent-2, #c84f1f);
+  background: var(--accent-2);
 }
 
 .artefact-btn--ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--ink-3, #6a5d4d);
+  color: var(--ink-3);
   font-size: 14px;
 }
 
@@ -103,14 +103,14 @@
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
-  background: var(--bg, #15120e);
+  background: var(--bg);
   overflow: hidden;
 }
 
 .artefact-editor-gutter {
   padding: 12px 8px;
-  background: var(--bg-2, #1d1814);
-  border-right: 1px solid var(--line, rgba(255, 235, 200, 0.08));
+  background: var(--bg-2);
+  border-right: 1px solid var(--line);
   user-select: none;
   overflow: hidden;
   text-align: right;
@@ -118,20 +118,20 @@
 }
 
 .artefact-editor-gutter__line {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 20px;
-  color: var(--ink-4, #98897a);
+  color: var(--ink-4);
 }
 
 .artefact-editor-textarea {
   flex: 1 1 auto;
   min-width: 0;
   padding: 12px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 20px;
-  color: var(--ink, #f3ece0);
+  color: var(--ink);
   background: transparent;
   border: none;
   outline: none;
@@ -146,19 +146,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 18px;
-  background: var(--bg-2, #25201a);
-  border-top: 1px solid var(--line, rgba(255, 235, 200, 0.08));
+  background: var(--card-soft);
+  border-top: 1px solid var(--line);
   font-size: 11px;
-  color: var(--ink-3, #6a5d4d);
+  color: var(--ink-3);
 }
 
 .artefact-editor-footer__success {
-  color: var(--ok, #4a8a4e);
+  color: var(--ok);
   font-weight: 600;
 }
 
 .artefact-editor-footer__error {
-  color: var(--accent, #e16a3a);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -170,27 +170,28 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--ink-2, #3d342a);
+  color: var(--ink-2);
 }
 
 .artefact-editor-tabs {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--bg-1, rgba(0, 0, 0, 0.2));
+  background: var(--bg);
+  border: 1px solid var(--line);
   padding: 3px;
-  border-radius: var(--r-sm, 6px);
+  border-radius: 999px;
 }
 
 .artefact-tab-btn {
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
   border: none;
   background: transparent;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -199,58 +200,59 @@
 }
 
 .artefact-tab-btn:hover {
-  color: var(--ink, #f3ece0);
+  color: var(--ink);
 }
 
 .artefact-tab-btn--active {
-  background: var(--card, #2b251f);
-  color: var(--ink, #f3ece0);
+  background: var(--card);
+  color: var(--ink);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .artefact-tab-badge {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 10px;
   padding: 1px 4px;
-  border-radius: 3px;
-  background: rgba(225, 106, 58, 0.2);
-  color: var(--accent, #e16a3a);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
 }
 
 .artefact-btn--success {
-  background: #2e6930;
-  border-color: #3b873e;
-  color: #fff;
+  background: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 70%, var(--ink));
+  color: #0b1017;
 }
 
 .artefact-btn--success:hover:not(:disabled) {
-  background: #3b873e;
+  background: color-mix(in srgb, var(--ok) 85%, #fff);
 }
 
 .artefact-btn--warning {
-  background: #87521c;
-  border-color: #a46422;
-  color: #fff;
+  background: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 70%, var(--ink));
+  color: #17110c;
 }
 
 .artefact-btn--warning:hover:not(:disabled) {
-  background: #a46422;
+  background: color-mix(in srgb, var(--warn) 85%, #fff);
 }
 
 .artefact-diff-container {
   flex: 1 1 auto;
   overflow: auto;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 20px;
-  background: var(--bg-1, #181410);
+  background: var(--bg-1);
   padding: 8px 0;
 }
 
 .artefact-diff-empty {
   padding: 32px;
   text-align: center;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
   font-style: italic;
 }
 
@@ -269,9 +271,9 @@
   width: 36px;
   text-align: right;
   padding: 0 6px;
-  color: var(--ink-4, #665b4f);
+  color: var(--ink-4);
   user-select: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid var(--line);
 }
 
 .artefact-diff-sign {
@@ -289,30 +291,30 @@
 }
 
 .artefact-diff-row--added {
-  background: rgba(46, 125, 50, 0.15);
-  color: #a5d6a7;
+  background: color-mix(in srgb, var(--ok) 15%, transparent);
+  color: var(--ok);
 }
 
 .artefact-diff-row--added .artefact-diff-sign {
-  color: #81c784;
+  color: var(--ok);
 }
 
 .artefact-diff-row--removed {
-  background: rgba(198, 40, 40, 0.15);
-  color: #ef9a9a;
+  background: color-mix(in srgb, var(--error) 15%, transparent);
+  color: var(--error);
 }
 
 .artefact-diff-row--removed .artefact-diff-sign {
-  color: #e57373;
+  color: var(--error);
 }
 
 .artefact-diff-row--unchanged {
-  color: var(--ink-2, #d1c7b7);
+  color: var(--ink-2);
 }
 
 .artefact-reject-box {
-  background: var(--bg-2, #25201a);
-  border-top: 1px solid var(--line, rgba(255, 235, 200, 0.12));
+  background: var(--card-soft);
+  border-top: 1px solid var(--line);
   padding: 10px 18px;
   display: flex;
   align-items: center;
@@ -321,28 +323,28 @@
 
 .artefact-reject-line-label {
   font-size: 11px;
-  color: var(--ink-3, #98897a);
+  color: var(--ink-3);
   white-space: nowrap;
 }
 
 .artefact-reject-line-input {
-  width: 50px;
-  background: var(--bg-1, #181410);
-  border: 1px solid var(--line, rgba(255, 235, 200, 0.2));
-  border-radius: 4px;
-  color: var(--ink, #f3ece0);
-  font-family: var(--font-mono, monospace);
+  width: 56px;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--font-mono);
   font-size: 12px;
-  padding: 4px 6px;
+  padding: 7px 10px;
 }
 
 .artefact-reject-comment-input {
   flex: 1 1 auto;
-  background: var(--bg-1, #181410);
-  border: 1px solid var(--line, rgba(255, 235, 200, 0.2));
-  border-radius: 4px;
-  color: var(--ink, #f3ece0);
-  font-family: var(--font-sans, sans-serif);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--font-sans);
   font-size: 12px;
-  padding: 6px 10px;
+  padding: 7px 10px;
 }

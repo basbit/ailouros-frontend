@@ -164,9 +164,9 @@ import SidebarRunStatus from "./SidebarRunStatus.vue";
 import SidebarTaskGates from "./SidebarTaskGates.vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
-import type { AppSettings } from "@/entities/app-settings/contract";
+import type { AppSettings } from "@/app/providers/settingsContext";
 import type { ScenarioInputSpec } from "@/entities/scenario";
-import type { ImageAttachment, TextAttachment } from "@/shared/model/project-types";
+import type { ImageAttachment, TextAttachment } from "@/entities/project";
 
 type SettingsApi = AppSettings;
 

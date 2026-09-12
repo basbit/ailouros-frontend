@@ -1,5 +1,5 @@
 import { useWs } from "@/shared/lib/use-ws";
-import { type RunSwarmChatSettings } from "@/shared/lib/agent-config";
+import { type RunSwarmChatSettings } from "@/entities/agent-config";
 import { useSwarmRunState } from "./useSwarmRunState";
 import { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 import { useSwarmRunActions } from "./useSwarmRunActions";
@@ -49,5 +49,6 @@ export function useSwarmRunController(settings: RunSwarmChatSettings) {
     onConfirmManualShell: actions.onConfirmManualShell,
     onRetry: actions.onRetry,
     onContinuePipeline: actions.onContinuePipeline,
+    onForkStep: actions.onForkStep,
   };
 }

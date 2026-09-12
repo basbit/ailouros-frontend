@@ -1,11 +1,10 @@
 import { ref } from "vue";
 import { parseSkillIds } from "@/shared/lib/skill-utils";
-import { ROLES } from "@/shared/lib/pipeline-schema";
-import { defaultModelForRole } from "@/shared/lib/use-swarm-defaults";
+import { ROLES, defaultModelForRole } from "@/entities/role";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 import { getOnboardingModels } from "@/shared/api/endpoints/onboarding";
 import type { RoleSnapshot } from "@/entities/role";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import { useRoleState, type ModelMode } from "./useRoleState";
 import { useRoleModelSelector } from "./useRoleModelSelector";
 import { useRolePromptSelector } from "./useRolePromptSelector";

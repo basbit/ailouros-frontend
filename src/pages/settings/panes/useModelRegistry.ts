@@ -1,6 +1,7 @@
 import { computed, onMounted, ref } from "vue";
 import type { ComputedRef, Ref } from "vue";
-import { ApiError, httpGet } from "@/shared/api/http";
+import { ApiError } from "@/shared/api/http";
+import { listUiModels } from "@/shared/api/endpoints/ui-models";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 
 interface ModelEntry {
@@ -12,11 +13,6 @@ export interface ProviderEntry {
   id: string;
   env: "local" | "cloud";
   models: ModelEntry[];
-}
-
-interface DiscoveredModelsResponse {
-  models?: { id: string; label?: string }[];
-  error?: string;
 }
 
 interface RoleState {
@@ -152,10 +148,8 @@ export function useModelRegistry(): {
 
   async function discoverLocalProvider(provider: string): Promise<void> {
     try {
-      const data = await httpGet<DiscoveredModelsResponse>(
-        `/v1/ui/models?provider=${encodeURIComponent(provider)}`,
-      );
-      const ids = (data.models ?? []).map((m) => m.id);
+      const data = await listUiModels(provider);
+      const ids = data.models.map((m) => m.id);
       discovered.value = { ...discovered.value, [provider]: ids };
     } catch (err) {
       let detail = "";

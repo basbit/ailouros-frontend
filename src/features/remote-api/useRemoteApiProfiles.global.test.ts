@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRemoteApiProfiles } from "./useRemoteApiProfiles";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import { LS_REMOTE_PROFILES } from "@/shared/lib/swarm-ui-constants";
 
 function storedRows(): RemoteProfileRow[] {

@@ -1,7 +1,4 @@
-import {
-  defaultPromptPathForRole,
-  promptChoicesForRole,
-} from "@/shared/lib/use-swarm-defaults";
+import { defaultPromptPathForRole, promptChoicesForRole } from "@/entities/role";
 import type { RoleState } from "./useRoleState";
 
 export interface RolePromptSelectorDeps {

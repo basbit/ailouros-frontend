@@ -1,4 +1,4 @@
-import type { FeatureFlagGroup } from "./featureFlagGroups";
+import type { FeatureFlagGroup } from "./featureFlagFieldTypes";
 
 export const FLAG_GROUP_RETRIEVAL: FeatureFlagGroup = {
   id: "retrieval",

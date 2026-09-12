@@ -5,7 +5,7 @@ import { nextTick, reactive, ref } from "vue";
 import ApiKeysPane from "./ApiKeysPane.vue";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
 import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 
 function makeSettingsStub() {
   const profiles = ref<RemoteProfileRow[]>([
@@ -73,5 +73,40 @@ describe("ApiKeysPane", () => {
     expect(document.activeElement).toBe(idInputAfter);
 
     wrapper.unmount();
+  });
+});
+
+describe("ApiKeysPane backend API token", () => {
+  it("persists what the operator types so authenticated deployments are reachable", async () => {
+    const { API_TOKEN_STORAGE_KEY, getApiToken, clearApiToken } = await import(
+      "@/shared/api/token"
+    );
+    clearApiToken();
+
+    const wrapper = mountPane();
+    const field = wrapper.find('[data-testid="backend-api-token"]');
+    expect(field.exists()).toBe(true);
+
+    await field.setValue("s3cret-token");
+    await nextTick();
+
+    expect(localStorage.getItem(API_TOKEN_STORAGE_KEY)).toBe("s3cret-token");
+    expect(getApiToken()).toBe("s3cret-token");
+
+    await field.setValue("");
+    expect(localStorage.getItem(API_TOKEN_STORAGE_KEY)).toBeNull();
+
+    clearApiToken();
+  });
+
+  it("shows the token that is already stored", async () => {
+    const { setApiToken, clearApiToken } = await import("@/shared/api/token");
+    setApiToken("existing-token");
+
+    const wrapper = mountPane();
+    const field = wrapper.find('[data-testid="backend-api-token"]');
+    expect((field.element as HTMLInputElement).value).toBe("existing-token");
+
+    clearApiToken();
   });
 });

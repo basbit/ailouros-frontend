@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import ArtefactEditorModal from "./ArtefactEditorModal.vue";
 import * as workspaceApi from "@/shared/api/endpoints/workspace";
 import * as taskGatesApi from "@/shared/api/endpoints/task-gates";
+import { useUxStore } from "@/shared/store/ux";
 
 vi.mock("@/shared/lib/i18n", () => ({
   useI18n: () => ({ t: (k: string) => k }),
@@ -208,6 +209,54 @@ describe("ArtefactEditorModal", () => {
 
     const closeBtn = wrapper.find(".artefact-btn--ghost");
     await closeBtn.trigger("click");
+    expect(wrapper.emitted("close")).toBeTruthy();
+  });
+
+  it("closes on Escape without needing a click inside first", async () => {
+    vi.mocked(workspaceApi.getWorkspaceFile).mockResolvedValue({
+      path: "app/main.py",
+      content: "print('hello')",
+    });
+
+    const wrapper = mount(ArtefactEditorModal, {
+      props: { visible: true, taskId: "task-123", filePath: "app/main.py" },
+      attachTo: document.body,
+    });
+    await flushPromises();
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await flushPromises();
+
+    expect(wrapper.emitted("close")).toBeTruthy();
+    wrapper.unmount();
+  });
+
+  it("asks before throwing away unsaved edits", async () => {
+    vi.mocked(workspaceApi.getWorkspaceFile).mockResolvedValue({
+      path: "app/main.py",
+      content: "print('hello')",
+    });
+
+    const wrapper = mount(ArtefactEditorModal, {
+      props: { visible: true, taskId: "task-123", filePath: "app/main.py" },
+    });
+    await flushPromises();
+
+    await wrapper.find(".artefact-editor-textarea").setValue("print('edited')");
+    await flushPromises();
+
+    const ux = useUxStore();
+    const confirmSpy = vi.spyOn(ux, "confirmDialog").mockResolvedValue(false);
+
+    await wrapper.find(".artefact-btn--ghost").trigger("click");
+    await flushPromises();
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(wrapper.emitted("close")).toBeFalsy();
+
+    confirmSpy.mockResolvedValue(true);
+    await wrapper.find(".artefact-btn--ghost").trigger("click");
+    await flushPromises();
     expect(wrapper.emitted("close")).toBeTruthy();
   });
 });

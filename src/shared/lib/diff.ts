@@ -1,4 +1,4 @@
-export type DiffLineType = "added" | "removed" | "unchanged";
+type DiffLineType = "added" | "removed" | "unchanged";
 
 export interface DiffLine {
   type: DiffLineType;

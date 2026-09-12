@@ -111,6 +111,9 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Dev shell via sandbox resolver",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.hint":
     "Run dev shell commands inside the sandbox profile instead of the host path.",
+  "featureFlags.field.swarm_enable_code_mode.label": "Code Mode",
+  "featureFlags.field.swarm_enable_code_mode.hint":
+    'Let a generated program run once inside a Docker sandbox profile (no network, no workspace mount) and route anything it proposes through the workspace write gates. Also requires "Allow shell commands". Refuses instead of falling back to the host when Docker is missing.',
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.label":
     "Block unjustified full-file rewrites",
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.hint":
@@ -246,6 +249,9 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Dev shell через sandbox resolver",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.hint":
     "Выполнять команды dev shell внутри sandbox-профиля вместо хостового пути.",
+  "featureFlags.field.swarm_enable_code_mode.label": "Code Mode",
+  "featureFlags.field.swarm_enable_code_mode.hint":
+    "Разрешить однократный запуск сгенерированной программы в Docker-профиле песочницы (без сети и без монтирования воркспейса); всё, что она предлагает записать, проходит через гейты записи. Также требуется «Разрешить shell-команды». При отсутствии Docker — явный отказ, без отката на хост.",
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.label":
     "Блокировать необоснованный full-rewrite",
   "featureFlags.field.swarm_block_unjustified_full_rewrite_before_apply.hint":

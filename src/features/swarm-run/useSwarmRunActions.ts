@@ -1,9 +1,10 @@
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
-import { type RunSwarmChatSettings } from "@/shared/lib/agent-config";
+import { type RunSwarmChatSettings } from "@/entities/agent-config";
 import { useSwarmRunPreflight } from "./useSwarmRunPreflight";
 import { useSwarmRunStart } from "./useSwarmRunStart";
 import { useSwarmRunGateActions } from "./useSwarmRunGateActions";
+import { useSwarmRunForkAction } from "./useSwarmRunForkAction";
 import type { SwarmRunState } from "./useSwarmRunState";
 import type { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 
@@ -52,6 +53,13 @@ export function useSwarmRunActions({
     ux,
   });
 
+  const { onForkStep } = useSwarmRunForkAction({
+    state,
+    sendWsSubscribe,
+    settings,
+    ux,
+  });
+
   return {
     onStartRun,
     onStopRun,
@@ -60,5 +68,6 @@ export function useSwarmRunActions({
     onConfirmManualShell,
     onRetry,
     onContinuePipeline,
+    onForkStep,
   };
 }

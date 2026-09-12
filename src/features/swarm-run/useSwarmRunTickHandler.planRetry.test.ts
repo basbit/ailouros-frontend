@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 
 const planMock = vi.fn();

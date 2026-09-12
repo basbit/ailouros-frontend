@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 
 import PromptInput from "./PromptInput.vue";
 import { sanitizeUploadName, timestampedName, looksLikeImage } from "./image-uploader";
@@ -10,6 +10,12 @@ vi.mock("@/shared/lib/i18n", () => ({
 
 vi.mock("@/shared/api/endpoints/workspace", () => ({
   listWorkspaceFiles: vi.fn().mockResolvedValue({ files: [] }),
+}));
+
+vi.mock("@/shared/api/endpoints/runtime", () => ({
+  getRuntimeCapabilities: vi
+    .fn()
+    .mockResolvedValue({ probes: [], ready: 0, total: 0, attachment_max_chars: 20 }),
 }));
 
 const httpPostMock = vi.fn();
@@ -335,5 +341,69 @@ describe("image name helpers", () => {
     expect(looksLikeImage(pngFile())).toBe(true);
     expect(looksLikeImage(new File(["a"], "x.webp", { type: "" }))).toBe(true);
     expect(looksLikeImage(textFile())).toBe(false);
+  });
+});
+
+describe("PromptInput drag and drop", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("attaches a dropped text file", async () => {
+    const wrapper = mount(PromptInput, {
+      props: { modelValue: "task", attachments: [] },
+    });
+    await flushPromises();
+
+    await wrapper.find(".prompt-input-wrap").trigger("drop", {
+      dataTransfer: { files: [textFile("dropped.txt")] },
+    });
+    await flushPromises();
+
+    const emitted = wrapper.emitted("update:attachments");
+    expect(emitted).toBeTruthy();
+    expect((emitted?.at(-1)?.[0] as { name: string }[]).map((a) => a.name)).toEqual([
+      "dropped.txt",
+    ]);
+  });
+
+  it("shows the drop affordance only while dragging over", async () => {
+    const wrapper = mount(PromptInput, {
+      props: { modelValue: "task", attachments: [] },
+    });
+    const wrap = wrapper.find(".prompt-input-wrap");
+
+    expect(wrapper.find(".prompt-input-drop").exists()).toBe(false);
+    await wrap.trigger("dragover");
+    expect(wrapper.find(".prompt-input-drop").exists()).toBe(true);
+    await wrap.trigger("dragleave");
+    expect(wrapper.find(".prompt-input-drop").exists()).toBe(false);
+  });
+
+  it("refuses a dropped file over the backend limit and says so", async () => {
+    const wrapper = mount(PromptInput, {
+      props: { modelValue: "task", attachments: [] },
+    });
+    await flushPromises();
+
+    const big = new File(["x".repeat(50)], "big.txt", { type: "text/plain" });
+    await wrapper.find(".prompt-input-wrap").trigger("drop", {
+      dataTransfer: { files: [big] },
+    });
+    await flushPromises();
+
+    expect(wrapper.emitted("update:attachments")).toBeFalsy();
+    expect(wrapper.find(".attachment-notice").text()).toContain(
+      "prompt.attach.rejected.too_large",
+    );
+  });
+
+  it("shows the limit before anything is attached", async () => {
+    const wrapper = mount(PromptInput, {
+      props: { modelValue: "task", attachments: [] },
+    });
+    await flushPromises();
+
+    expect(wrapper.find(".attachment-limit-hint").exists()).toBe(true);
   });
 });

@@ -26,6 +26,10 @@
       </GlobalFeatureFlagsSettings>
     </div>
 
+    <div class="feature-flags-pane__card">
+      <CodeModePanel />
+    </div>
+
     <details class="feature-flags-pane__advanced">
       <summary>{{ t("envCatalog.summary") }}</summary>
       <div class="feature-flags-pane__card">
@@ -43,6 +47,7 @@ import RetrievalSettingsCard from "@/widgets/retrieval-settings-card/RetrievalSe
 import EvaluationStatusCard from "@/widgets/evaluation-status/EvaluationStatusCard.vue";
 import RedTeamCorpusCard from "@/widgets/red-team-corpus/RedTeamCorpusCard.vue";
 import { EnvCatalogPanel } from "@/features/env-catalog";
+import CodeModePanel from "@/features/code-mode/CodeModePanel.vue";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useI18n } from "@/shared/lib/i18n";
 

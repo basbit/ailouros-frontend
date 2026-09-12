@@ -1,9 +1,9 @@
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import type {
   ImageAttachment,
   RemoteProfileRow,
   TextAttachment,
-} from "@/shared/model/project-types";
+} from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useUxStore } from "@/shared/store/ux";

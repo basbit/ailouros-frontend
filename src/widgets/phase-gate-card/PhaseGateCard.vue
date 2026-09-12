@@ -22,9 +22,9 @@
       {{ gates.lastError.value }}
     </p>
 
-    <ol v-if="gates.pendingGates.value.length > 0" class="phase-gate-card__list">
+    <ol v-if="filteredGates.length > 0" class="phase-gate-card__list">
       <li
-        v-for="gate in gates.pendingGates.value"
+        v-for="gate in filteredGates"
         :key="gate.gateId"
         class="phase-gate-card__gate"
       >
@@ -86,10 +86,24 @@ import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-typ
 import { usePhaseGates } from "@/features/phase-gates/usePhaseGates";
 import { useI18n } from "@/shared/lib/i18n";
 
-const props = defineProps<{ workspaceRoot: string | null }>();
+const props = withDefaults(
+  defineProps<{
+    workspaceRoot: string | null;
+    taskId?: string | null;
+  }>(),
+  {
+    taskId: null,
+  },
+);
 
 const { t } = useI18n();
 const gates = usePhaseGates();
+
+const filteredGates = computed(() => {
+  const all = gates.pendingGates.value;
+  if (!props.taskId) return all;
+  return all.filter((gate) => !gate.taskId || gate.taskId === props.taskId);
+});
 
 // Only a human ever decides a gate, so there is nothing to ask for. This used
 // to be a required text field that disabled the approve/reject buttons until
@@ -101,7 +115,7 @@ const rationaleByGate = reactive<Record<string, string>>({});
 // verification on. Polling keeps running while hidden, so the card surfaces
 // itself the moment a gate opens.
 const isVisible = computed(
-  () => gates.pendingGates.value.length > 0 || Boolean(gates.lastError.value),
+  () => filteredGates.value.length > 0 || Boolean(gates.lastError.value),
 );
 
 const POLL_INTERVAL_MS = 3000;

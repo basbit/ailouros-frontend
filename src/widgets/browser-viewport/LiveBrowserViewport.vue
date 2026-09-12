@@ -6,7 +6,8 @@
         <button
           type="button"
           class="live-browser-viewport__icon-btn"
-          title="Reload"
+          :title="t('liveBrowser.reload')"
+          :aria-label="t('liveBrowser.reload')"
           @click="onReload"
         >
           ↻
@@ -35,7 +36,7 @@
           :title="t('liveBrowser.viewportDesktop')"
           @click="setViewport('desktop')"
         >
-          🖥️ Desktop
+          🖥️ {{ t("liveBrowser.deviceDesktop") }}
         </button>
         <button
           type="button"
@@ -46,7 +47,7 @@
           :title="t('liveBrowser.viewportMobile')"
           @click="setViewport('mobile')"
         >
-          📱 Mobile
+          📱 {{ t("liveBrowser.deviceMobile") }}
         </button>
       </div>
 
@@ -80,8 +81,9 @@
         class="live-browser-viewport__frame-wrapper"
         :style="{
           width: `${viewportWidth}px`,
-          height: `${viewportHeight}px`,
           maxWidth: '100%',
+          maxHeight: '100%',
+          aspectRatio: `${viewportWidth} / ${viewportHeight}`,
         }"
         @click="onSurfaceClick"
       >
@@ -94,14 +96,30 @@
         />
       </div>
       <div v-else class="live-browser-viewport__placeholder">
-        <p>{{ t("liveBrowser.connecting") }}</p>
+        <p>{{ placeholderText }}</p>
+        <button
+          v-if="connectionStatus === 'disconnected'"
+          type="button"
+          class="btn-secondary"
+          @click="connectStream"
+        >
+          {{ t("liveBrowser.connect") }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { getScreencastWebSocketUrl } from "@/shared/api/endpoints/ws";
 
@@ -114,7 +132,9 @@ const { t } = useI18n();
 const connectionStatus = ref<"disconnected" | "connecting" | "connected">(
   "disconnected",
 );
-const inputUrl = ref("http://localhost:3000");
+// Filled from the screencast "status" packet; guessing a dev-server port here
+// would send the operator to a page that has nothing to do with their run.
+const inputUrl = ref("");
 const frameData = ref<string | null>(null);
 const viewportMode = ref<"desktop" | "mobile">("desktop");
 const viewportWidth = ref(1440);
@@ -129,6 +149,14 @@ const statusLabel = computed(() => {
   if (connectionStatus.value === "connected") return t("liveBrowser.connected");
   if (connectionStatus.value === "connecting") return t("liveBrowser.connecting");
   return t("liveBrowser.disconnected");
+});
+
+// The placeholder must not claim "connecting" once the socket is gone, or a
+// refused/closed stream is indistinguishable from one that is still handshaking.
+const placeholderText = computed(() => {
+  if (connectionStatus.value === "connecting") return t("liveBrowser.connecting");
+  if (connectionStatus.value === "connected") return t("liveBrowser.waitingFrame");
+  return t("liveBrowser.streamFailed");
 });
 
 function setViewport(mode: "desktop" | "mobile"): void {
@@ -151,7 +179,7 @@ function setViewport(mode: "desktop" | "mobile"): void {
   }
 }
 
-function connectStream(): void {
+async function connectStream(): Promise<void> {
   if (!props.taskId) return;
   if (socket) {
     socket.close();
@@ -159,7 +187,13 @@ function connectStream(): void {
   }
 
   connectionStatus.value = "connecting";
-  const url = getScreencastWebSocketUrl(props.taskId);
+  let url: string;
+  try {
+    url = await getScreencastWebSocketUrl(props.taskId);
+  } catch {
+    connectionStatus.value = "disconnected";
+    return;
+  }
 
   try {
     const ws = new WebSocket(url);
@@ -235,23 +269,28 @@ function onSurfaceClick(event: MouseEvent): void {
   );
 }
 
-watch(
-  () => props.taskId,
-  () => {
-    connectStream();
-  },
-);
-
-onMounted(() => {
-  connectStream();
-});
-
-onBeforeUnmount(() => {
+function disconnectStream(): void {
   if (socket) {
     socket.close();
     socket = null;
   }
-});
+  connectionStatus.value = "disconnected";
+}
+
+watch(
+  () => props.taskId,
+  () => {
+    void connectStream();
+  },
+);
+
+onMounted(() => void connectStream());
+
+// Routes live inside <keep-alive>: leaving the page fires onDeactivated, so
+// without this the screencast socket stayed open for the rest of the session.
+onDeactivated(disconnectStream);
+onActivated(() => void connectStream());
+onBeforeUnmount(disconnectStream);
 </script>
 
 <style scoped src="./live-browser-viewport.css"></style>

@@ -1,6 +1,6 @@
 import { computed, ref } from "vue";
 import type { ComputedRef, Ref } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";

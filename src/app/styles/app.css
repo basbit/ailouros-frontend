@@ -35,6 +35,53 @@
       --sidebar-w:      420px;
       --sidebar-collapsed-w: 72px;
       --hdr-h:          44px;
+
+      /* Compatibility aliases, second wave. Components added over the past
+         months reached for token names from other design systems (Tailwind's
+         --bg-surface / --text-muted, a --c-* set, a --color-* set). Those names
+         were defined nowhere, so each one silently fell through to a hardcoded
+         fallback — usually a cool slate or blue — which is why those surfaces
+         looked like they belonged to a different app. Mapping them onto the
+         canonical tokens fixes every one of them in both themes at once.
+         Prefer the canonical token in new code; `npm run test` fails on a
+         var() name that resolves nowhere (see undefined-css-tokens.test.ts). */
+      --bg-surface:           var(--card);
+      --bg-surface-elevated:  var(--card-soft);
+      --bg-surface-hover:     var(--card-soft);
+      --bg-elev:              var(--card-soft);
+      --bg-elevated:          var(--card-soft);
+      --bg-hover:             var(--card-soft);
+      --bg-input:             var(--bg);
+      --bg3:                  var(--bg-3);
+      --surface3:             var(--bg-3);
+      --surface-hover:        var(--card-soft);
+      --text-primary:         var(--ink);
+      --text-normal:          var(--ink);
+      --text-muted:           var(--ink-3);
+      --muted:                var(--ink-3);
+      --border-color:         var(--line);
+      --border-subtle:        var(--line);
+      --color-border:         var(--line);
+      --accent-primary:       var(--accent);
+      --accent-subtle:        var(--accent-soft);
+      --danger:               var(--error);
+      --color-danger:         var(--error);
+      --color-error:          var(--error);
+      --color-danger-subtle:  color-mix(in srgb, var(--error) 15%, transparent);
+      --color-warning:        var(--warn);
+      --warn-soft:            color-mix(in srgb, var(--warn) 15%, transparent);
+      --badge-bg:             var(--card-soft);
+      --badge-fg:             var(--ink-2);
+      --c-border:             var(--line);
+      --c-text-muted:         var(--ink-3);
+      --c-code-bg:            var(--card-soft);
+      --c-disabled-bg:        var(--card-soft);
+      --c-accent-bg:          var(--accent-soft);
+      --c-accent-border:      var(--accent);
+      --c-accent-text:        var(--accent);
+      --c-warning-bg:         color-mix(in srgb, var(--warn) 15%, transparent);
+      --c-warning-border:     var(--warn);
+      --c-warning-text:       var(--warn);
     }
 
     [data-theme="dark"] {
@@ -1485,8 +1532,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .theme-toggle,
-      .sidebar-toggle {
+      .theme-toggle {
         padding: 6px 8px;
       }
       .toast-stack {

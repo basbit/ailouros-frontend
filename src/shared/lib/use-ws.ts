@@ -58,11 +58,11 @@ export function useWs(options: UseWsOptions = {}) {
     );
     retryCount.value += 1;
     reconnectTimer = setTimeout(() => {
-      if (!destroyed) _connect();
+      if (!destroyed) void _connect();
     }, delay);
   }
 
-  function _connect(): void {
+  async function _connect(): Promise<void> {
     if (destroyed) return;
 
     if (unsubscribe) {
@@ -70,7 +70,17 @@ export function useWs(options: UseWsOptions = {}) {
       unsubscribe = null;
     }
 
-    const url = getUiWebSocketUrl();
+    let url: string;
+    try {
+      // The handshake ticket is minted over REST; a backend that refuses to
+      // mint one would also refuse the socket, so retry on the same backoff.
+      url = await getUiWebSocketUrl();
+    } catch {
+      isConnected.value = false;
+      _scheduleReconnect();
+      return;
+    }
+    if (destroyed) return;
     const socket = wsStore.connect(url);
 
     socket.addEventListener("open", () => {
@@ -113,7 +123,7 @@ export function useWs(options: UseWsOptions = {}) {
     isConnected.value = false;
   }
 
-  _connect();
+  void _connect();
 
   onUnmounted(() => {
     disconnect();

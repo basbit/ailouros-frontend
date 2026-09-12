@@ -1,4 +1,8 @@
 import { httpGet } from "@/shared/api/http";
+import type { paths } from "@/shared/api/openapi-types";
+
+type IndexStatusApiResponse =
+  paths["/v1/index/status"]["get"]["responses"][200]["content"]["application/json"];
 
 export interface IndexStatus {
   readonly workspaceRoot: string;
@@ -60,7 +64,7 @@ function parseIndexStatusPayload(raw: unknown): IndexStatus | null {
 export async function getIndexStatus(
   workspaceRoot: string,
 ): Promise<IndexStatus | null> {
-  const raw = await httpGet<Record<string, unknown>>(
+  const raw = await httpGet<IndexStatusApiResponse>(
     `/v1/index/status?workspace_root=${encodeURIComponent(workspaceRoot)}`,
   );
   return parseIndexStatusPayload(raw);

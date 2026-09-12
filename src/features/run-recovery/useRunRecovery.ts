@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useTaskStore } from "@/shared/store/task";
 
 interface RunRecoveryDeps {

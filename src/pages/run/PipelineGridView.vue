@@ -6,7 +6,6 @@
         <span class="pipeline-grid-view__count-badge">{{ filteredRuns.length }}</span>
       </div>
 
-      <!-- View Mode Switcher -->
       <div class="pipeline-grid-view__modes">
         <button
           type="button"
@@ -31,7 +30,6 @@
       </div>
     </div>
 
-    <!-- Filters & Search Bar -->
     <div class="pipeline-grid-view__filter-bar">
       <div class="pipeline-grid-view__filters">
         <button
@@ -56,7 +54,6 @@
       />
     </div>
 
-    <!-- Empty State -->
     <div v-if="filteredRuns.length === 0" class="pipeline-grid-view__empty">
       <p class="pipeline-grid-view__empty-text">{{ t("pipelineCard.noRuns") }}</p>
       <button
@@ -68,7 +65,6 @@
       </button>
     </div>
 
-    <!-- Responsive Card Grid -->
     <div v-else class="pipeline-grid-view__grid">
       <PipelineRunCard
         v-for="run in filteredRuns"
@@ -76,7 +72,9 @@
         :task-id="run.taskId"
         :scenario-title="run.scenarioTitle"
         :status="run.status"
+        :steps="run.steps"
         :active-step="run.activeStep"
+        :completed-steps="run.completedSteps"
         :is-selected="run.taskId === ui.taskId"
         :claimed-by="coworking.gateClaims.value.get(run.taskId)?.userName"
         :current-user-name="coworking.localUser.value.name"
@@ -87,7 +85,6 @@
       />
     </div>
 
-    <!-- Quick Live Browser Modal -->
     <BrowserViewportModal
       v-if="activeBrowserTaskId"
       :task-id="activeBrowserTaskId"
@@ -102,21 +99,20 @@ import { useRouter } from "vue-router";
 import { useUiStore } from "@/shared/store/ui";
 import { useI18n } from "@/shared/lib/i18n";
 import { isTaskActive } from "@/shared/lib/task-status";
-import { useCoworking } from "@/features/coworking/useCoworking";
+import { useCoworking } from "@/entities/coworking/useCoworking";
+import {
+  useMultiRunItems,
+  isAttentionStatus,
+  type MultiRunItem,
+} from "./useMultiRunItems";
 import PipelineRunCard from "@/widgets/pipeline-grid/PipelineRunCard.vue";
 import BrowserViewportModal from "@/widgets/browser-viewport/BrowserViewportModal.vue";
-
-interface RunItem {
-  taskId: string;
-  scenarioTitle: string | null;
-  status: string;
-  activeStep: string | null;
-}
 
 const ui = useUiStore();
 const router = useRouter();
 const { t } = useI18n();
 const coworking = useCoworking();
+const { allRuns, recordGateResolution } = useMultiRunItems();
 
 const activeBrowserTaskId = ref<string | null>(null);
 const currentFilter = ref<"all" | "active" | "attention" | "done">("all");
@@ -129,79 +125,17 @@ const filterTabs = computed(() => [
   { key: "done" as const, label: t("pipelineCard.filterDone") },
 ]);
 
-function mergeHistoryRuns(
-  historyList: typeof ui.historyList,
-  map: Map<string, RunItem>,
-): void {
-  for (const entry of historyList) {
-    const entryTaskId = entry.taskId;
-    if (!entryTaskId) continue;
-    const title = (entry as Record<string, unknown>).scenarioTitle
-      ? String((entry as Record<string, unknown>).scenarioTitle)
-      : entry.prompt || null;
-    const existing = map.get(entryTaskId);
-    if (existing) {
-      if (title) existing.scenarioTitle = title;
-      if (entry.status) existing.status = String(entry.status);
-    } else {
-      map.set(entryTaskId, {
-        taskId: entryTaskId,
-        scenarioTitle: title,
-        status: entry.status ? String(entry.status) : "completed",
-        activeStep: null,
-      });
-    }
-  }
-}
-
-const allRuns = computed<RunItem[]>(() => {
-  const map = new Map<string, RunItem>();
-
-  if (ui.taskId) {
-    map.set(ui.taskId, {
-      taskId: ui.taskId,
-      scenarioTitle: ui.taskScenarioTitle,
-      status: String(ui.taskStatus ?? "running"),
-      activeStep: ui.activeStep,
-    });
-  }
-
-  for (const identifier of ui.activeRunIds ?? []) {
-    if (!map.has(identifier)) {
-      map.set(identifier, {
-        taskId: identifier,
-        scenarioTitle: null,
-        status:
-          identifier === ui.taskId ? String(ui.taskStatus ?? "running") : "in_progress",
-        activeStep: null,
-      });
-    }
-  }
-
-  mergeHistoryRuns(ui.historyList, map);
-  return Array.from(map.values());
-});
-
-const filteredRuns = computed<RunItem[]>(() => {
+const filteredRuns = computed<MultiRunItem[]>(() => {
   let list = allRuns.value;
 
-  // Filter by category
   if (currentFilter.value === "active") {
     list = list.filter((run) => isTaskActive(run.status));
   } else if (currentFilter.value === "attention") {
-    list = list.filter((run) => {
-      const normalizedStatus = run.status.toLowerCase();
-      return (
-        normalizedStatus === "awaiting_human" ||
-        normalizedStatus === "awaiting_shell_confirm" ||
-        normalizedStatus === "blocked"
-      );
-    });
+    list = list.filter((run) => isAttentionStatus(run.status));
   } else if (currentFilter.value === "done") {
     list = list.filter((run) => !isTaskActive(run.status));
   }
 
-  // Search query
   const query = searchQuery.value.trim().toLowerCase();
   if (query) {
     list = list.filter(
@@ -234,14 +168,7 @@ function onOpenRun(taskId: string): void {
 }
 
 function onGateResolved(taskId: string, approved: boolean): void {
-  const item = allRuns.value.find((run) => run.taskId === taskId);
-  if (item) {
-    item.status = approved ? "in_progress" : "blocked";
-  }
-  if (ui.taskId === taskId) {
-    ui.humanGateVisible = false;
-    ui.taskStatus = approved ? "in_progress" : "blocked";
-  }
+  recordGateResolution(taskId, approved);
 }
 </script>
 

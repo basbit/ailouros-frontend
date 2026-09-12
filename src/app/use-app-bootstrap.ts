@@ -20,7 +20,7 @@ import {
   type ProjectFormActions,
   PROJECT_FORM_ACTIONS_KEY,
 } from "@/entities/project-form";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { getRolesCatalog } from "@/shared/api/endpoints/rolesCatalog";

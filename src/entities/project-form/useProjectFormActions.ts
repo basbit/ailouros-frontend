@@ -1,14 +1,15 @@
 import { ref } from "vue";
 import type { Ref } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { useUxStore } from "@/shared/store/ux";
 import { useDesktopStore } from "@/shared/store/desktop";
 import { useI18n } from "@/shared/lib/i18n";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 import { initDesktopProject } from "@/shared/api/endpoints/desktop";
 import type { ProjectFormValues } from "@/entities/project";
-import type { AppSettings } from "@/entities/app-settings/contract";
+import type { AppSettingsContract } from "@/entities/app-settings/contract";
 
 const ADVANCED_FORM_FIELDS = [
   "workspace_root",
@@ -67,7 +68,7 @@ export interface ProjectFormActions {
 }
 
 export function useProjectFormActions(
-  settings: AppSettings,
+  settings: AppSettingsContract,
   options: {
     syncTaskFromServer: (taskId: string) => Promise<unknown>;
     sendWsSubscribe: () => void;
@@ -159,7 +160,19 @@ export function useProjectFormActions(
     requested: string,
   ): Promise<string> {
     if (requested.trim()) return requested;
-    const desktop = await desktopStore.ensureLoaded();
+    // `/v1/desktop/info` is an optional capability probe, not a precondition of
+    // creating a project. Letting its failure propagate reached the app-level
+    // ErrorBoundary and replaced the whole UI with "HTTP 500 / Retry" whenever
+    // the backend was unreachable, so the probe degrades to "not a desktop
+    // build" instead: the project is still created with the requested (empty)
+    // workspace root, which the user can fill in afterwards.
+    let desktop;
+    try {
+      desktop = await desktopStore.ensureLoaded();
+    } catch (err) {
+      frontendLogger.warn("desktop info probe failed; creating project anyway", err);
+      return requested;
+    }
     if (!desktop.is_desktop || !desktop.workspaces_dir) return requested;
     const initialized = await initDesktopProject(projectId);
     return initialized.workspace_root;

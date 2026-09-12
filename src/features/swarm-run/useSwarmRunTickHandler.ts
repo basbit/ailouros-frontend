@@ -8,6 +8,7 @@ import { getTaskPipelinePlan } from "@/shared/api/endpoints/pipeline";
 import { applyOrchestratorEvent as applyOrchestratorEventToUi } from "./swarm-run-orchestrator-applier";
 import { createGateHandlers, hideAllGates } from "./swarm-run-tick-gate-handlers";
 import type { SwarmRunState } from "./useSwarmRunState";
+import { isAuthenticationFailure } from "@/shared/lib/auth-failure";
 
 type TaskRecord = Record<string, unknown>;
 type SetTaskInput = Parameters<SwarmRunState["taskStore"]["setTask"]>[0];
@@ -163,7 +164,15 @@ export function useSwarmRunTickHandler(state: SwarmRunState) {
 
   function notifyRunErrorOnce(errorText: string): void {
     if (lastNotifiedError.value === errorText) return;
-    ux.notify(`${translate("toast.runError")}: ${errorText}`, "error", 4200);
+    if (isAuthenticationFailure(errorText)) {
+      ux.notify(
+        `${translate("toast.authError")} — ${errorText}`,
+        "error",
+        8000,
+      );
+    } else {
+      ux.notify(`${translate("toast.runError")}: ${errorText}`, "error", 4200);
+    }
     lastNotifiedError.value = errorText;
   }
 

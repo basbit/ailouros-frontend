@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import { useCrossValidation } from "./useCrossValidation";
 
 const { fetchCloudModelsForProfileMock, ensureModelChoicesForEnvMock } = vi.hoisted(

@@ -1,7 +1,7 @@
 import { computed, ref } from "vue";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { isTaskActive } from "@/shared/lib/task-status";
 import type { HydrateResult } from "@/shared/lib/hydrate-task";
 

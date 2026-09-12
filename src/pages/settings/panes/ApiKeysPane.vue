@@ -149,23 +149,50 @@
         {{ t("settings.apiKeys.codeHostingHint") }}
       </p>
     </section>
+
+    <section class="api-keys-pane__card">
+      <header class="api-keys-pane__card-head">
+        <h3 class="api-keys-pane__card-title">
+          {{ t("settings.apiKeys.backendToken") }}
+        </h3>
+      </header>
+      <div class="api-keys-pane__token-row">
+        <span class="api-keys-pane__token-label">
+          {{ t("settings.apiKeys.backendTokenLabel") }}
+        </span>
+        <input
+          type="password"
+          autocomplete="off"
+          class="api-keys-pane__input"
+          data-testid="backend-api-token"
+          :value="backendApiToken"
+          @input="onSetBackendApiToken($event)"
+        />
+      </div>
+      <p class="api-keys-pane__token-hint">
+        {{ t("settings.apiKeys.backendTokenHint") }}
+      </p>
+    </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import { useProviderBalances } from "@/features/remote-api/useProviderBalances";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useInjectedGlobalSettings } from "@/features/global-settings/globalSettingsContext";
 import { useI18n } from "@/shared/lib/i18n";
+import { getApiToken, setApiToken } from "@/shared/api/token";
 
 type GlobalKey =
   | "tavily_api_key"
   | "exa_api_key"
   | "scrapingdog_api_key"
   | "github_token";
+
+const backendApiToken = ref(getApiToken());
 
 const settings = useInjectedAppSettings();
 const globalSettings = useInjectedGlobalSettings();
@@ -244,6 +271,12 @@ function onAddProfile(): void {
 
 function onRemoveProfile(index: number): void {
   settings.profilesState.removeProfile(index);
+}
+
+function onSetBackendApiToken(event: Event): void {
+  const value = (event.target as HTMLInputElement).value;
+  backendApiToken.value = value;
+  setApiToken(value);
 }
 
 function onSetSearchKey(key: GlobalKey, event: Event): void {

@@ -130,6 +130,12 @@ module.exports = {
       ],
     },
     tsConfig: { fileName: "tsconfig.json" },
+    // Type-only edges count. A `import type { X } from "./y"` that closes a
+    // cycle is harmless at run time but still a cycle, and it hides real
+    // layering mistakes from `no-circular` / the FSD rules. Turned on once the
+    // 11 pre-existing type-only `no-circular` hits were broken (the feature-flag
+    // group modules and the user-settings ↔ global-search barrel).
+    tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       exportsFields: ["exports"],
       conditionNames: ["import", "require", "node", "default"],

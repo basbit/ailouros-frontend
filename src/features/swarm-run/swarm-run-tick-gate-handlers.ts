@@ -1,13 +1,13 @@
 import type { Ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import {
   fetchPendingShellCommands,
   fetchPendingManualShell,
   fetchFailedStep,
   fetchCurrentPipelineSteps,
-} from "@/shared/lib/task-gate-actions";
+} from "@/features/swarm-run/task-gate-actions";
 
 const HUMAN_GATE_MESSAGE_PREVIEW_LENGTH = 500;
 const NEEDS_CLARIFICATION_MARKER = "NEEDS_CLARIFICATION";

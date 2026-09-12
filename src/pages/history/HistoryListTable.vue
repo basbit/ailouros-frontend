@@ -22,6 +22,18 @@
         {{ formatStartedAt(entry) }}
       </span>
       <span role="cell" class="history-list-table__cell-prompt">
+        <span
+          v-if="entry.parentTaskId"
+          class="history-list-table__fork"
+          :title="
+            t('history.list.forkBadgeTitle', {
+              taskId: entry.parentTaskId,
+              step: entry.forkedFromStep ?? '?',
+            })
+          "
+        >
+          {{ t("history.list.forkBadge") }}
+        </span>
         {{ promptPreview(entry.prompt) }}
       </span>
       <span role="cell" class="history-list-table__cell-status">
@@ -134,6 +146,19 @@ const formatDuration = formatDurationOrDash;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--ink-2);
+}
+
+.history-list-table__fork {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  vertical-align: middle;
 }
 
 .history-list-table__cell-prompt {

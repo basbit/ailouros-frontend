@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import * as hydrateModule from "@/shared/lib/hydrate-task";
 import { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 
@@ -13,7 +13,7 @@ vi.mock("@/shared/api/endpoints/pipeline", () => ({
 vi.mock("@/shared/lib/i18n", () => ({
   useI18n: () => ({ t: (k: string) => k }),
 }));
-vi.mock("@/shared/lib/task-gate-actions", () => ({
+vi.mock("@/features/swarm-run/task-gate-actions", () => ({
   fetchPendingShellCommands: vi.fn().mockResolvedValue({
     commands: ["git init", "chmod +x run.sh"],
     needs_allowlist: true,

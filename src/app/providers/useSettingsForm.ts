@@ -1,11 +1,12 @@
 import { reactive } from "vue";
-import type { SettingsSnap } from "@/entities/project";
+import type { ProjectSettingsFormState, SettingsSnap } from "@/entities/project";
 import {
   defaultRemoteApiBaseUrl,
   defaultRemoteApiProvider,
 } from "@/shared/lib/use-swarm-defaults";
-import { baseSettingsDefaults } from "@/shared/store/projects";
+import { baseSettingsDefaults } from "@/entities/project";
 import { WORKSPACE_CONTEXT_MODE_DEFAULT } from "@/shared/model/workspace-context-mode-types";
+import { CODE_GENERATOR_DEFAULT } from "@/shared/model/code-generator-types";
 
 const DEFAULT_LICENSE_POLICY = "permissive_only";
 const DEFAULT_READY_PATH = "/";
@@ -29,9 +30,9 @@ interface PersistedCustomScenario {
   topology?: string;
 }
 
-export type SettingsForm = ReturnType<typeof createSettingsForm>;
+export type SettingsForm = ProjectSettingsFormState;
 
-export function createSettingsForm() {
+export function createSettingsForm(): SettingsForm {
   return reactive({
     ...baseSettingsDefaults(),
     custom_scenarios: [] as PersistedCustomScenario[],
@@ -40,12 +41,35 @@ export function createSettingsForm() {
   });
 }
 
+/** Snap keys that are plain optional strings, copied verbatim with "" as the
+ * empty value. Listing them keeps `copyTextFields` from growing a branch per
+ * field, which is what pushed it over the complexity budget. */
+const PLAIN_TEXT_SNAP_KEYS = [
+  "prompt",
+  "workspace_root",
+  "project_context_file",
+  "swarm_languages",
+  "swarm_topology",
+  "swarm_pipeline_hooks_module",
+  "swarm_doc_locale",
+  "swarm_documentation_sources",
+  "swarm_database_url",
+  "swarm_database_hint",
+  "mcp_servers_json",
+  "swarm_tavily_api_key",
+  "swarm_exa_api_key",
+  "swarm_scrapingdog_api_key",
+  "swarm_memory_namespace",
+  "swarm_pattern_memory_path",
+] as const satisfies readonly (keyof SettingsForm & keyof SettingsSnap)[];
+
 function copyTextFields(form: SettingsForm, snap: SettingsSnap): void {
-  form.prompt = snap.prompt ?? "";
-  form.workspace_root = snap.workspace_root ?? "";
-  form.project_context_file = snap.project_context_file ?? "";
+  for (const key of PLAIN_TEXT_SNAP_KEYS) {
+    (form[key] as string) = (snap[key] as string | undefined) ?? "";
+  }
   form.workspace_context_mode =
     snap.workspace_context_mode ?? WORKSPACE_CONTEXT_MODE_DEFAULT;
+  form.dev_code_generator = snap.dev_code_generator ?? CODE_GENERATOR_DEFAULT;
   // Request-only attachments ride the snap so the chips survive a reload and
   // project switches (the wiki documents them as "next launch only", which is
   // exactly this form's lifetime, not the tab's).
@@ -53,19 +77,6 @@ function copyTextFields(form: SettingsForm, snap: SettingsSnap): void {
   form.image_attachments = Array.isArray(snap.image_attachments)
     ? snap.image_attachments
     : [];
-  form.swarm_languages = snap.swarm_languages ?? "";
-  form.swarm_topology = snap.swarm_topology ?? "";
-  form.swarm_pipeline_hooks_module = snap.swarm_pipeline_hooks_module ?? "";
-  form.swarm_doc_locale = snap.swarm_doc_locale ?? "";
-  form.swarm_documentation_sources = snap.swarm_documentation_sources ?? "";
-  form.swarm_database_url = snap.swarm_database_url ?? "";
-  form.swarm_database_hint = snap.swarm_database_hint ?? "";
-  form.mcp_servers_json = snap.mcp_servers_json ?? "";
-  form.swarm_tavily_api_key = snap.swarm_tavily_api_key ?? "";
-  form.swarm_exa_api_key = snap.swarm_exa_api_key ?? "";
-  form.swarm_scrapingdog_api_key = snap.swarm_scrapingdog_api_key ?? "";
-  form.swarm_memory_namespace = snap.swarm_memory_namespace ?? "";
-  form.swarm_pattern_memory_path = snap.swarm_pattern_memory_path ?? "";
 }
 
 function copyToggleFields(form: SettingsForm, snap: SettingsSnap): void {

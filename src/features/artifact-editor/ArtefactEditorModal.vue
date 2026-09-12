@@ -1,6 +1,13 @@
 <template>
-  <div v-if="visible" class="artefact-editor-overlay" @keydown.esc="onClose">
-    <div class="artefact-editor-modal" role="dialog" aria-modal="true">
+  <div v-if="visible" class="artefact-editor-overlay" @click.self="onClose">
+    <div
+      ref="dialogRef"
+      class="artefact-editor-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="filePath"
+      @keydown="onDialogKeydown"
+    >
       <header class="artefact-editor-header">
         <div class="artefact-editor-header__meta">
           <span class="artefact-editor-header__icon">&#128196;</span>
@@ -69,6 +76,7 @@
           <button
             type="button"
             class="artefact-btn artefact-btn--ghost"
+            :aria-label="t('common.close')"
             @click="onClose"
           >
             &#10005;
@@ -187,8 +195,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUxStore } from "@/shared/store/ux";
 import { useArtifactEditor } from "./useArtifactEditor";
 
 const props = defineProps<{
@@ -205,7 +214,10 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const ux = useUxStore();
+const dialogRef = ref<HTMLDivElement | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+let focusOrigin: HTMLElement | null = null;
 
 const {
   activeTab,
@@ -243,7 +255,81 @@ function onTextareaKeydown(event: KeyboardEvent): void {
   handleKeydown(event, textareaRef.value);
 }
 
-function onClose(): void {
+function focusableElements(): HTMLElement[] {
+  if (!dialogRef.value) return [];
+  return Array.from(
+    dialogRef.value.querySelectorAll<HTMLElement>(
+      "button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])",
+    ),
+  );
+}
+
+function trapTab(event: KeyboardEvent): void {
+  const focusable = focusableElements();
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement as HTMLElement | null;
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function onDialogKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    void onClose();
+    return;
+  }
+  if (event.key === "Tab") trapTab(event);
+}
+
+// A keydown handler on a div only fires once focus is inside it, so Escape also
+// needs a window listener while the editor is open.
+function onWindowKeydown(event: KeyboardEvent): void {
+  if (props.visible && event.key === "Escape") {
+    event.preventDefault();
+    void onClose();
+  }
+}
+
+watch(
+  () => props.visible,
+  (isVisible) => {
+    if (isVisible) {
+      focusOrigin = document.activeElement as HTMLElement | null;
+      window.addEventListener("keydown", onWindowKeydown);
+      void nextTick(() => {
+        (textareaRef.value ?? focusableElements()[0] ?? null)?.focus();
+      });
+    } else {
+      window.removeEventListener("keydown", onWindowKeydown);
+      focusOrigin?.focus();
+      focusOrigin = null;
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onWindowKeydown);
+});
+
+async function onClose(): Promise<void> {
+  // Closing used to drop unsaved edits without asking.
+  if (isDirty.value) {
+    const discard = await ux.confirmDialog({
+      title: t("artefactEditor.discardTitle"),
+      message: t("artefactEditor.discardMessage"),
+      confirmLabel: t("artefactEditor.discardConfirm"),
+      cancelLabel: t("artefactEditor.cancel"),
+    });
+    if (!discard) return;
+  }
   emit("close");
 }
 </script>

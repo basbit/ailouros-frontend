@@ -1,7 +1,7 @@
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
 import { ApiError, httpGet } from "@/shared/api/http";
-import { defaultPromptPathForRole } from "@/shared/lib/use-swarm-defaults";
+import { defaultPromptPathForRole } from "@/entities/role/model/role-defaults";
 import { useI18n } from "@/shared/lib/i18n";
 
 export function useRolePromptPreview(previewRoleId: Ref<string>) {

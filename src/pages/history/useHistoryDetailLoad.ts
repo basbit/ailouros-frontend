@@ -1,5 +1,15 @@
-import { computed, ref, watch, type ComputedRef, type Ref } from "vue";
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  ref,
+  watch,
+  type ComputedRef,
+  type Ref,
+} from "vue";
 import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
+import { isTaskActive } from "@/shared/lib/task-status";
 import type { HistoryEntry } from "@/shared/store/ui";
 
 export interface RemoteEvent {
@@ -64,9 +74,46 @@ export function useHistoryDetailLoad({
     }
   }
 
+  /**
+   * The snapshot is a point-in-time read, so a run still in flight would freeze
+   * at whatever it had done when the page opened — steps stuck "pending" and no
+   * new log lines, while the chat view kept moving. Poll until the run reaches a
+   * terminal status, then stop.
+   */
+  const REFRESH_INTERVAL_MS = 3000;
+  let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+  function stopPolling(): void {
+    if (refreshTimer === null) return;
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+
+  function isViewedRunActive(): boolean {
+    const status = (remoteStatus.value || entry.value?.status || "").trim();
+    // An unknown status means the first snapshot has not landed yet; keep
+    // polling rather than deciding the run is finished.
+    return !status || isTaskActive(status);
+  }
+
+  function startPolling(): void {
+    stopPolling();
+    const taskId = entry.value?.taskId;
+    if (!taskId || !isViewedRunActive()) return;
+    refreshTimer = setInterval(() => {
+      const currentTaskId = entry.value?.taskId;
+      if (!currentTaskId || !isViewedRunActive()) {
+        stopPolling();
+        return;
+      }
+      void loadRemoteEvents(currentTaskId);
+    }, REFRESH_INTERVAL_MS);
+  }
+
   watch(
     () => entry.value?.taskId,
     (taskId) => {
+      stopPolling();
       remoteEvents.value = [];
       remoteEventsError.value = null;
       remoteSteps.value = [];
@@ -75,12 +122,18 @@ export function useHistoryDetailLoad({
       isResumeAvailable.value = false;
       resumeStepId.value = "";
       if (taskId) {
-        void loadRemoteEvents(taskId);
+        void loadRemoteEvents(taskId).then(startPolling);
         void loadResumeOptions(taskId);
       }
     },
     { immediate: true },
   );
+
+  // The page lives inside <keep-alive>: onBeforeUnmount alone would leave the
+  // poll running against the backend for the rest of the session.
+  onActivated(startPolling);
+  onDeactivated(stopPolling);
+  onBeforeUnmount(stopPolling);
 
   const stepEventIndex = computed<Map<string, RemoteEvent[]>>(() => {
     const map = new Map<string, RemoteEvent[]>();

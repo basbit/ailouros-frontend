@@ -1,10 +1,10 @@
 import { useI18n } from "@/shared/lib/i18n";
-import { defaultModelForRole } from "@/shared/lib/use-swarm-defaults";
+import { defaultModelForRole } from "@/entities/role";
 import {
   ensureModelChoicesForEnv,
   fetchCloudModelsForProfile,
 } from "@/shared/lib/use-model-list";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import type { RoleState } from "./useRoleState";
 
 export interface RoleModelSelectorDeps {

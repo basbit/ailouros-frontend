@@ -3,13 +3,18 @@
     <button
       type="button"
       class="project-switcher__trigger"
+      data-testid="project-switcher-trigger"
       :aria-expanded="open"
       :aria-haspopup="true"
       :title="t('projectSwitcher.openShortcut')"
       @click="toggle"
     >
       <span class="project-switcher__trigger-label">{{ t("header.project") }}</span>
-      <span class="project-switcher__trigger-value">{{ currentName || "—" }}</span>
+      <span
+        class="project-switcher__trigger-value"
+        data-testid="project-switcher-current"
+        >{{ currentName || "—" }}</span
+      >
       <svg
         class="project-switcher__chevron"
         :class="{ 'project-switcher__chevron--open': open }"

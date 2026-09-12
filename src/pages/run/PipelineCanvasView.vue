@@ -3,12 +3,13 @@
     <div class="pipeline-canvas-view__toolbar">
       <div class="pipeline-canvas-view__title-group">
         <h2 class="pipeline-canvas-view__title">
-          {{ t("pipelineCard.parallelPipes") }} (2D Canvas)
+          {{ t("pipelineCard.parallelPipes") }} ({{ t("runView.modes.canvas") }})
         </h2>
-        <span class="pipeline-canvas-view__count-badge">{{ nodes.length }} nodes</span>
+        <span class="pipeline-canvas-view__count-badge">
+          {{ t("pipelineCanvas.nodeCount", { count: nodes.length }) }}
+        </span>
       </div>
 
-      <!-- View Mode Switcher -->
       <div class="pipeline-canvas-view__modes">
         <button
           type="button"
@@ -33,7 +34,6 @@
       </div>
     </div>
 
-    <!-- 2D Spatial Infinite Canvas -->
     <div class="pipeline-canvas-view__canvas-container" @mousemove="onCanvasMouseMove">
       <VueFlow
         :nodes="nodes"
@@ -42,14 +42,13 @@
         fit-view-on-init
         @node-drag-stop="onNodeDragStop"
       >
-        <!-- Default Slot: Canvas Addons & Remote Coworking Peer Cursors -->
         <template #default>
-          <Background :gap="20" color="rgba(255, 255, 255, 0.05)" />
+          <Background :gap="20" :color="canvasPatternColor" :bg-color="canvasBgColor" />
           <MiniMap />
           <Controls />
 
           <div
-            v-for="peer in activeRemotePeers"
+            v-for="peer in coworking.peers.value"
             :key="peer.id"
             class="remote-cursor"
             :style="{
@@ -77,13 +76,14 @@
           </div>
         </template>
 
-        <!-- Custom Node Template for Swarm Pipeline Run -->
         <template #node-run="{ data }">
           <PipelineRunCard
             :task-id="data.taskId"
             :scenario-title="data.scenarioTitle"
             :status="data.status"
+            :steps="data.steps"
             :active-step="data.activeStep"
+            :completed-steps="data.completedSteps"
             :is-selected="data.taskId === ui.taskId"
             :claimed-by="data.claimedBy"
             :current-user-name="coworking.localUser.value.name"
@@ -97,7 +97,6 @@
       </VueFlow>
     </div>
 
-    <!-- Quick Live Browser Modal -->
     <BrowserViewportModal
       v-if="activeBrowserTaskId"
       :task-id="activeBrowserTaskId"
@@ -118,32 +117,32 @@ import "@vue-flow/minimap/dist/style.css";
 import "@vue-flow/controls/dist/style.css";
 
 import { useUiStore } from "@/shared/store/ui";
+import { usePreferencesStore } from "@/shared/store/preferences";
 import { useI18n } from "@/shared/lib/i18n";
 import { isTaskActive } from "@/shared/lib/task-status";
-import { useCoworking, type RemotePeer } from "@/features/coworking/useCoworking";
+import { useCoworking } from "@/entities/coworking/useCoworking";
+import { useMultiRunItems, type MultiRunItem } from "./useMultiRunItems";
 import PipelineRunCard from "@/widgets/pipeline-grid/PipelineRunCard.vue";
 import BrowserViewportModal from "@/widgets/browser-viewport/BrowserViewportModal.vue";
 
-const props = defineProps<{
-  remotePeers?: RemotePeer[];
-}>();
-
-export interface PipelineRunNodeData {
-  taskId: string;
-  scenarioTitle: string | null;
-  status: string;
-  activeStep: string | null;
-  claimedBy?: string | null;
+interface PipelineRunNodeData extends MultiRunItem {
+  claimedBy: string | null;
 }
 
 const ui = useUiStore();
+const preferences = usePreferencesStore();
 const router = useRouter();
 const { t } = useI18n();
 const coworking = useCoworking();
+const { allRuns, recordGateResolution } = useMultiRunItems();
 const activeBrowserTaskId = ref<string | null>(null);
 
-const activeRemotePeers = computed<RemotePeer[]>(() => {
-  return props.remotePeers?.length ? props.remotePeers : coworking.peers.value;
+const canvasPatternColor = computed(() => {
+  return preferences.isDark ? "rgba(255, 235, 200, 0.12)" : "rgba(80, 60, 30, 0.16)";
+});
+
+const canvasBgColor = computed(() => {
+  return preferences.isDark ? "#15120e" : "#f3ece0";
 });
 
 function onCanvasMouseMove(event: MouseEvent): void {
@@ -156,63 +155,9 @@ function onCanvasMouseMove(event: MouseEvent): void {
 const nodes = ref<Node<PipelineRunNodeData>[]>([]);
 const edges = ref<Edge[]>([]);
 
-// Node position cache to preserve user positioning during re-renders
 const positionsCache = new Map<string, { x: number; y: number }>();
 
-function mergeHistoryRuns(
-  historyList: typeof ui.historyList,
-  map: Map<string, PipelineRunNodeData>,
-): void {
-  for (const entry of historyList) {
-    const entryTaskId = entry.taskId;
-    if (!entryTaskId) continue;
-    const title = (entry as Record<string, unknown>).scenarioTitle
-      ? String((entry as Record<string, unknown>).scenarioTitle)
-      : entry.prompt || null;
-    const existing = map.get(entryTaskId);
-    if (existing) {
-      if (title) existing.scenarioTitle = title;
-      if (entry.status) existing.status = String(entry.status);
-    } else {
-      map.set(entryTaskId, {
-        taskId: entryTaskId,
-        scenarioTitle: title,
-        status: entry.status ? String(entry.status) : "completed",
-        activeStep: null,
-      });
-    }
-  }
-}
-
-function collectCanvasRunItems(): PipelineRunNodeData[] {
-  const map = new Map<string, PipelineRunNodeData>();
-
-  if (ui.taskId) {
-    map.set(ui.taskId, {
-      taskId: ui.taskId,
-      scenarioTitle: ui.taskScenarioTitle,
-      status: String(ui.taskStatus ?? "running"),
-      activeStep: ui.activeStep,
-    });
-  }
-
-  for (const identifier of ui.activeRunIds ?? []) {
-    if (!map.has(identifier)) {
-      map.set(identifier, {
-        taskId: identifier,
-        scenarioTitle: null,
-        status:
-          identifier === ui.taskId ? String(ui.taskStatus ?? "running") : "in_progress",
-        activeStep: null,
-      });
-    }
-  }
-
-  mergeHistoryRuns(ui.historyList, map);
-  return Array.from(map.values());
-}
-
-function createCanvasGraph(items: PipelineRunNodeData[]): {
+function createCanvasGraph(items: MultiRunItem[]): {
   newNodes: Node<PipelineRunNodeData>[];
   newEdges: Edge[];
 } {
@@ -233,13 +178,7 @@ function createCanvasGraph(items: PipelineRunNodeData[]): {
       id: item.taskId,
       type: "run",
       position,
-      data: {
-        taskId: item.taskId,
-        scenarioTitle: item.scenarioTitle,
-        status: item.status,
-        activeStep: item.activeStep,
-        claimedBy: claim ? claim.userName : (item.claimedBy ?? null),
-      },
+      data: { ...item, claimedBy: claim ? claim.userName : null },
     });
 
     if (
@@ -252,7 +191,7 @@ function createCanvasGraph(items: PipelineRunNodeData[]): {
         source: items[itemIndex - 1].taskId,
         target: item.taskId,
         animated: true,
-        style: { stroke: "#6366f1", strokeWidth: 2 },
+        style: { stroke: "var(--accent)", strokeWidth: 2 },
       });
     }
   });
@@ -260,25 +199,16 @@ function createCanvasGraph(items: PipelineRunNodeData[]): {
   return { newNodes, newEdges };
 }
 
-function buildCanvasData(): void {
-  const items = collectCanvasRunItems();
-  const { newNodes, newEdges } = createCanvasGraph(items);
-  nodes.value = newNodes;
-  edges.value = newEdges;
-}
-
+// buildCanvasData rebuilds every node, so a gate resolution must be recorded in
+// the run list it reads from — patching nodes.value here would be overwritten.
 watch(
-  () => [
-    ui.taskId,
-    ui.taskStatus,
-    ui.activeRunIds?.length,
-    ui.historyList.length,
-    coworking.gateClaims.value.size,
-  ],
-  () => {
-    buildCanvasData();
+  () => [allRuns.value, coworking.gateClaims.value] as const,
+  ([items]) => {
+    const { newNodes, newEdges } = createCanvasGraph(items);
+    nodes.value = newNodes;
+    edges.value = newEdges;
   },
-  { immediate: true },
+  { immediate: true, deep: false },
 );
 
 function onNodeDragStop(event: NodeDragEvent): void {
@@ -310,16 +240,7 @@ function onOpenRun(taskId: string): void {
 }
 
 function onGateResolved(taskId: string, approved: boolean): void {
-  for (const node of nodes.value) {
-    if (node.id === taskId && node.data) {
-      node.data.status = approved ? "in_progress" : "blocked";
-      break;
-    }
-  }
-  if (ui.taskId === taskId) {
-    ui.humanGateVisible = false;
-    ui.taskStatus = approved ? "in_progress" : "blocked";
-  }
+  recordGateResolution(taskId, approved);
 }
 </script>
 

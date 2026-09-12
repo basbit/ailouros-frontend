@@ -110,6 +110,7 @@ export interface GlobalSearchKeysState {
   swarm_shell_allowlist: string;
   swarm_goal_scheduler_enabled: boolean;
   swarm_dev_shell_use_sandbox_resolver: boolean;
+  swarm_enable_code_mode: boolean;
   swarm_gate_audit_persist: boolean;
   swarm_block_unjustified_full_rewrite_before_apply: boolean;
   swarm_computer_control_enabled: boolean;

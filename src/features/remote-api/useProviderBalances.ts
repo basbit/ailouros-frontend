@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 import { fetchProviderBalance, type ProviderBalance } from "./provider-balance-api";
 
 export interface ProviderBalanceEntry {

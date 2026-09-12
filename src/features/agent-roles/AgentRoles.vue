@@ -199,7 +199,7 @@ import MediaImageFields from "@/shared/components/MediaImageFields.vue";
 import MediaAudioFields from "@/shared/components/MediaAudioFields.vue";
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
-import { splitAgentModelRowsAroundDevSlot } from "@/shared/lib/swarm-constants";
+import { splitAgentModelRowsAroundDevSlot } from "@/features/agent-roles/agent-model-rows";
 import type { AgentRoleEmitMap } from "./agent-role-events";
 
 interface MediaForm {

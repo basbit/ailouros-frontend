@@ -1,6 +1,6 @@
 import { ref, reactive } from "vue";
 import type { DevRoleSnap } from "@/entities/project";
-import { defaultEnvironmentForRole } from "@/shared/lib/use-swarm-defaults";
+import { defaultEnvironmentForRole } from "@/entities/role";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
 
 export type { DevRoleSnap };

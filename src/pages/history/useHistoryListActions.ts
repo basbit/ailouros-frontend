@@ -2,7 +2,7 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useUxStore } from "@/shared/store/ux";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useI18n } from "@/shared/lib/i18n";
 import { httpGet } from "@/shared/api/http";
 import { confirmAndRetryTask } from "./tabs/useHistoryDetailActions";

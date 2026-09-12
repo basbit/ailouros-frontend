@@ -9,13 +9,14 @@
       </p>
     </div>
     <div v-else class="run-artifacts__stack">
-      <StreamingRagCard v-if="rag.visible.value" />
-      <InlineCitationList v-if="citations.visible.value" />
+      <StreamingRagCard v-if="!isHistory && rag.visible.value" />
+      <InlineCitationList v-if="!isHistory && citations.visible.value" />
       <PeerReviewReportPanel
-        v-if="peerReview.report.value"
         :report="peerReview.report.value"
         :loading="peerReview.loading.value"
+        :error="peerReview.error.value"
         @inspect-file="onInspectFile"
+        @retry="peerReview.refresh"
       />
       <ArtefactBrowser
         :scenario="currentScenario"
@@ -23,7 +24,7 @@
       />
       <ArtefactEditorModal
         :visible="isEditorOpen"
-        :task-id="ui.taskId"
+        :task-id="effectiveTaskId"
         :file-path="inspectFilePath ?? ''"
         @close="isEditorOpen = false"
       />
@@ -32,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import StreamingRagCard from "@/widgets/streaming-rag-card/StreamingRagCard.vue";
 import InlineCitationList from "@/widgets/inline-citation-list/InlineCitationList.vue";
@@ -44,32 +45,58 @@ import { useStreamingRagCard } from "@/features/streaming-rag/useStreamingRagCar
 import { useInlineCitations } from "@/features/inline-citations/useInlineCitations";
 import { useUiStore } from "@/shared/store/ui";
 
+const props = withDefaults(
+  defineProps<{
+    taskId?: string | null;
+    workspaceRoot?: string | null;
+    scenario?: string | null;
+    isHistory?: boolean;
+  }>(),
+  {
+    taskId: null,
+    workspaceRoot: null,
+    scenario: null,
+    isHistory: false,
+  },
+);
+
 const { t } = useI18n();
 const rag = useStreamingRagCard();
 const citations = useInlineCitations();
 const ui = useUiStore();
-const peerReview = usePeerReview(() => ui.taskId);
+
+const effectiveTaskId = computed(() => props.taskId ?? ui.taskId);
+const peerReview = usePeerReview(() => effectiveTaskId.value);
 
 const inspectFilePath = ref<string | null>(null);
 const isEditorOpen = ref(false);
+
+watch(
+  () => ui.taskStatus,
+  () => {
+    void peerReview.refresh();
+  },
+);
 
 function onInspectFile(payload: { path: string; line: number }): void {
   inspectFilePath.value = payload.path;
   isEditorOpen.value = true;
 }
 
-const currentScenario = computed(() => ui.taskScenarioId ?? "default");
+const currentScenario = computed(
+  () => props.scenario ?? ui.taskScenarioId ?? "default",
+);
 const currentWorkspaceRoot = computed(() => {
-  const entry = ui.historyList.find((item) => item.taskId === ui.taskId);
+  if (props.workspaceRoot) return props.workspaceRoot;
+  const entry = ui.historyList.find((item) => item.taskId === effectiveTaskId.value);
   return entry?.workspace_root ?? null;
 });
 
 const hasContent = computed(
   () =>
-    rag.visible.value ||
-    citations.visible.value ||
+    (!props.isHistory && (rag.visible.value || citations.visible.value)) ||
     Boolean(peerReview.report.value) ||
-    Boolean(ui.taskId),
+    Boolean(effectiveTaskId.value),
 );
 </script>
 

@@ -19,11 +19,16 @@ import PipelineCanvasView from "./PipelineCanvasView.vue";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  padding-top: var(--hdr-h);
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .run-page-layout__main {
   flex: 1;
   min-height: 0;
   display: flex;
+  background: var(--bg);
+  color: var(--ink);
 }
 </style>

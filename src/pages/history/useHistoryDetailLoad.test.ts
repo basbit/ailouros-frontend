@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { computed, nextTick, ref } from "vue";
 
 import { useHistoryDetailLoad } from "./useHistoryDetailLoad";
@@ -75,5 +75,61 @@ describe("useHistoryDetailLoad — snapshot run context", () => {
     await flush();
     expect(remoteSteps.value).toEqual([]);
     expect(remoteFailedStep.value).toBe("");
+  });
+});
+
+describe("useHistoryDetailLoad — live refresh", () => {
+  beforeEach(() => {
+    getLegacyTaskSnapshot.mockReset();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function setupLive(taskId: string) {
+    const entry = computed(() => makeEntry(taskId));
+    return useHistoryDetailLoad({
+      entry,
+      isResumeAvailable: ref(false),
+      resumeStepId: ref(""),
+      loadResumeOptions: () => {},
+    });
+  }
+
+  it("keeps refreshing while the run is still in flight", async () => {
+    // The regression: the snapshot was read once, so a running pipeline froze
+    // at whatever it had done when the page opened.
+    getLegacyTaskSnapshot.mockResolvedValue({
+      status: "in_progress",
+      history: [{ agent: "cross_validate", message: "still working" }],
+      pipeline_steps: ["clarify_input", "cross_validate"],
+    });
+
+    const state = setupLive("task-live");
+    await flush();
+    expect(getLegacyTaskSnapshot).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(3000);
+    await flush();
+    expect(getLegacyTaskSnapshot.mock.calls.length).toBeGreaterThan(1);
+    expect(state.remoteStatus.value).toBe("in_progress");
+  });
+
+  it("stops refreshing once the run reaches a terminal status", async () => {
+    getLegacyTaskSnapshot.mockResolvedValue({
+      status: "completed",
+      history: [],
+      pipeline_steps: ["clarify_input"],
+    });
+
+    setupLive("task-done");
+    await flush();
+    const afterFirstLoad = getLegacyTaskSnapshot.mock.calls.length;
+
+    await vi.advanceTimersByTimeAsync(15000);
+    await flush();
+    expect(getLegacyTaskSnapshot.mock.calls.length).toBe(afterFirstLoad);
   });
 });

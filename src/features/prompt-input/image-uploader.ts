@@ -1,6 +1,6 @@
 import { httpPost } from "@/shared/api/http";
 import { describeUploadError } from "@/shared/api/endpoints/asset-upload";
-import type { ImageAttachment } from "@/shared/model/project-types";
+import type { ImageAttachment } from "@/entities/project";
 
 const IMAGE_SUFFIXES = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]);
 

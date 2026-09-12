@@ -1,7 +1,7 @@
 import { ApiError, httpGet, httpPost } from "@/shared/api/http";
 import { useI18n } from "@/shared/lib/i18n";
 import { defaultRemoteApiBaseUrl } from "@/shared/lib/use-swarm-defaults";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/shared/model/remote-profile-types";
 
 interface ModelListResponse {
   ok?: boolean;

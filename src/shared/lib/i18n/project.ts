@@ -114,6 +114,10 @@ export const projectEn: Messages = {
   "prompt.attach.rejected.binary": "{name} is not a text file and was not attached.",
   "prompt.attach.rejected.unreadable": "{name} could not be read and was not attached.",
   "prompt.attach.rejected.duplicate": "{name} is already attached.",
+  "prompt.attach.rejected.too_large":
+    "{name} is over the {limit} character limit and was not attached.",
+  "prompt.attach.limitHint": "Text files up to {limit} characters.",
+  "prompt.attach.dropHere": "Drop files to attach",
   "prompt.attach.image.remove": "Remove image attachment",
   "prompt.attach.image.noWorkspace":
     "Set the project's Workspace root before attaching images ({name} not attached).",
@@ -253,6 +257,10 @@ export const projectRu: Messages = {
   "prompt.attach.rejected.binary": "{name} — не текстовый файл, не прикреплён.",
   "prompt.attach.rejected.unreadable": "{name} не удалось прочитать, не прикреплён.",
   "prompt.attach.rejected.duplicate": "{name} уже прикреплён.",
+  "prompt.attach.rejected.too_large":
+    "{name} превышает лимит в {limit} символов и не прикреплён.",
+  "prompt.attach.limitHint": "Текстовые файлы до {limit} символов.",
+  "prompt.attach.dropHere": "Отпустите файлы, чтобы прикрепить",
   "prompt.attach.image.remove": "Удалить вложение-изображение",
   "prompt.attach.image.noWorkspace":
     "Укажите Workspace root проекта, прежде чем прикладывать изображения ({name} не прикреплён).",

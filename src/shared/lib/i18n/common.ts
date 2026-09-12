@@ -12,6 +12,7 @@ export const commonEn: Messages = {
   "directoryPicker.loadFailed": "Could not read this folder.",
   "directoryPicker.select": "Select this folder",
   "directoryPicker.cancel": "Cancel",
+  "common.close": "Close",
   "directoryPicker.close": "Close",
   "promptPicker.placeholder": "— select a prompt —",
   "promptPicker.custom": "Custom…",
@@ -50,6 +51,8 @@ export const commonEn: Messages = {
   "toast.savedMemory": "Saved to memory",
   "toast.saveMemoryFailed": "Could not save note to memory",
   "toast.runError": "Run failed",
+  "toast.authError":
+    "Authentication failed (401). Please check and update your API key in Settings → Models / API Keys.",
   "toast.autoModelAssignmentFailed": "Auto model assignment failed",
   "toast.autoApproved": "Auto-approved: {step}",
   "dialogs.ok": "OK",
@@ -116,6 +119,7 @@ export const commonRu: Messages = {
   "directoryPicker.loadFailed": "Не удалось прочитать эту папку.",
   "directoryPicker.select": "Выбрать эту папку",
   "directoryPicker.cancel": "Отмена",
+  "common.close": "Закрыть",
   "directoryPicker.close": "Закрыть",
   "promptPicker.placeholder": "— выберите промпт —",
   "promptPicker.custom": "Свой путь…",
@@ -154,6 +158,8 @@ export const commonRu: Messages = {
   "toast.savedMemory": "Заметка сохранена в память",
   "toast.saveMemoryFailed": "Не удалось сохранить заметку",
   "toast.runError": "Прогон завершился ошибкой",
+  "toast.authError":
+    "Ошибка авторизации (401). Пожалуйста, проверьте и обновите API ключ в Настройки → Модели / API Keys.",
   "toast.autoModelAssignmentFailed": "Не удалось авто-назначить модели",
   "toast.autoApproved": "Авто-подтверждение: {step}",
   "dialogs.ok": "ОК",

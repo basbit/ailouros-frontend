@@ -42,7 +42,7 @@
       <div class="worktree-badge__actions">
         <button
           type="button"
-          class="worktree-badge__btn worktree-badge__btn--apply"
+          class="worktree-badge__btn worktree-badge__btn--apply btn-primary--success"
           :disabled="isBusy || !status.has_changes"
           @click="onApply"
         >
@@ -50,7 +50,7 @@
         </button>
         <button
           type="button"
-          class="worktree-badge__btn worktree-badge__btn--discard"
+          class="worktree-badge__btn worktree-badge__btn--discard btn-primary--danger"
           :disabled="isBusy"
           @click="onDiscard"
         >
@@ -62,8 +62,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUxStore } from "@/shared/store/ux";
 import {
   applyWorktree,
   discardWorktree,
@@ -82,6 +83,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const ux = useUxStore();
 
 const status = ref<ShadowWorktreeStatus | null>(null);
 const isDetailsOpen = ref(false);
@@ -91,12 +93,19 @@ function toggleDetails(): void {
   isDetailsOpen.value = !isDetailsOpen.value;
 }
 
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 async function refreshStatus(): Promise<void> {
-  if (!props.workspaceRoot || !props.taskId) return;
   try {
     status.value = await getWorktreeStatus(props.workspaceRoot, props.taskId);
-  } catch {
+  } catch (statusError: unknown) {
     status.value = null;
+    ux.notify(
+      t("worktree.statusFailed", { error: describeError(statusError) }),
+      "error",
+    );
   }
 }
 
@@ -108,6 +117,9 @@ async function onApply(): Promise<void> {
     isDetailsOpen.value = false;
     await refreshStatus();
     emit("applied");
+    ux.notify(t("worktree.applySucceeded"), "success");
+  } catch (applyError: unknown) {
+    ux.notify(t("worktree.applyFailed", { error: describeError(applyError) }), "error");
   } finally {
     isBusy.value = false;
   }
@@ -121,10 +133,28 @@ async function onDiscard(): Promise<void> {
     isDetailsOpen.value = false;
     await refreshStatus();
     emit("discarded");
+    ux.notify(t("worktree.discardSucceeded"), "success");
+  } catch (discardError: unknown) {
+    ux.notify(
+      t("worktree.discardFailed", { error: describeError(discardError) }),
+      "error",
+    );
   } finally {
     isBusy.value = false;
   }
 }
+
+// The badge lives in the header, which is not remounted when the operator
+// switches runs, so without this it would show the previous run's branch while
+// Apply/Discard posted the new task id.
+watch(
+  () => [props.workspaceRoot, props.taskId] as const,
+  () => {
+    status.value = null;
+    isDetailsOpen.value = false;
+    void refreshStatus();
+  },
+);
 
 onMounted(() => {
   void refreshStatus();
@@ -142,27 +172,27 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid var(--border-color, #e2e8f0);
-  background: var(--bg-surface, #ffffff);
-  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--line);
+  background: var(--card-soft);
+  color: var(--ink);
   transition: all 0.2s ease;
 }
 
 .worktree-badge__trigger--dirty {
-  border-color: #f59e0b;
-  color: #b45309;
-  background: #fffbeb;
+  border-color: var(--warn);
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
 }
 
 .worktree-badge__trigger--clean {
-  border-color: #10b981;
-  color: #047857;
-  background: #ecfdf5;
+  border-color: var(--ok);
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
 }
 
 .worktree-badge__arrow {
@@ -175,10 +205,10 @@ onMounted(() => {
   top: calc(100% + 4px);
   right: 0;
   width: 280px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
   padding: 8px;
   z-index: 100;
 }
@@ -189,8 +219,9 @@ onMounted(() => {
   align-items: center;
   padding-bottom: 6px;
   margin-bottom: 6px;
-  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  border-bottom: 1px solid var(--line);
   font-size: 11px;
+  color: var(--ink);
 }
 
 .worktree-badge__popover-title {
@@ -198,8 +229,8 @@ onMounted(() => {
 }
 
 .worktree-badge__branch {
-  font-family: monospace;
-  color: var(--text-muted, #64748b);
+  font-family: var(--font-mono);
+  color: var(--ink-3);
   font-size: 10px;
 }
 
@@ -217,7 +248,8 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  font-family: monospace;
+  font-family: var(--font-mono);
+  color: var(--ink-2);
 }
 
 .worktree-badge__file-path {
@@ -232,36 +264,18 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+/* Fill colours come from the shared .btn-primary--success / --danger. */
 .worktree-badge__btn {
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.15s ease;
 }
 
 .worktree-badge__btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.worktree-badge__btn--apply {
-  background: #10b981;
-  color: #ffffff;
-}
-
-.worktree-badge__btn--apply:hover:not(:disabled) {
-  background: #059669;
-}
-
-.worktree-badge__btn--discard {
-  background: #ef4444;
-  color: #ffffff;
-}
-
-.worktree-badge__btn--discard:hover:not(:disabled) {
-  background: #dc2626;
 }
 </style>

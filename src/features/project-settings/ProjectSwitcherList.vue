@@ -32,6 +32,7 @@
         :key="p.id"
         role="option"
         class="project-switcher__item"
+        data-testid="project-switcher-item"
         :class="{
           'project-switcher__item--active': i === activeIndex,
           'project-switcher__item--current': p.id === currentId,
@@ -87,7 +88,12 @@
       </div>
     </div>
 
-    <button type="button" class="project-switcher__new" @click="$emit('new')">
+    <button
+      type="button"
+      class="project-switcher__new"
+      data-testid="project-switcher-new"
+      @click="$emit('new')"
+    >
       <span aria-hidden="true">+</span>
       {{ t("project.new") }}
     </button>

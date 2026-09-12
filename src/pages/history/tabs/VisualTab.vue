@@ -15,18 +15,18 @@
         <button
           type="button"
           class="visual-tab__subtab-btn"
-          :class="{ 'visual-tab__subtab-btn--active': subTab === 'screencast' }"
-          @click="subTab = 'screencast'"
+          :class="{ 'visual-tab__subtab-btn--active': subTab === 'manifest' }"
+          @click="subTab = 'manifest'"
         >
-          {{ t("liveBrowser.title") }}
+          {{ t("visualTab.reportTab") }}
         </button>
         <button
           type="button"
           class="visual-tab__subtab-btn"
-          :class="{ 'visual-tab__subtab-btn--active': subTab === 'manifest' }"
-          @click="subTab = 'manifest'"
+          :class="{ 'visual-tab__subtab-btn--active': subTab === 'screencast' }"
+          @click="subTab = 'screencast'"
         >
-          {{ t("visualTab.title") }}
+          {{ t("liveBrowser.title") }}
         </button>
       </div>
     </header>
@@ -223,6 +223,9 @@ async function load(): Promise<void> {
     const partial = (plan.partial_state as Record<string, unknown> | undefined)
       ?.visual_probe_manifest;
     manifest.value = (direct ?? partial ?? null) as Record<string, unknown> | null;
+    if (manifest.value && Object.keys(manifest.value).length > 0) {
+      subTab.value = "manifest";
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err);
     manifest.value = null;
@@ -368,7 +371,8 @@ watch(
 
 .visual-tab__screencast-wrap {
   width: 100%;
-  height: 520px;
-  min-height: 400px;
+  height: calc(100vh - 240px);
+  min-height: 460px;
+  max-height: 760px;
 }
 </style>

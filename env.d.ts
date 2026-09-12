@@ -8,6 +8,8 @@ declare module "*.html?raw" {
 interface ImportMetaEnv {
   /** Опционально: абсолютный origin API (без завершающего /), если UI открыт не с оркестратора. */
   readonly VITE_API_BASE_URL?: string;
+  /** Опционально: bearer-токен API (SWARM_API_TOKEN), если сборка делается под один деплой. */
+  readonly VITE_API_TOKEN?: string;
 }
 
 export {};

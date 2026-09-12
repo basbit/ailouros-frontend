@@ -1,5 +1,4 @@
-import { apiUrl } from "@/shared/api/base";
-import { ApiError, httpGet, httpPost } from "@/shared/api/http";
+import { ApiError, httpGet, httpPost, httpPostStream } from "@/shared/api/http";
 
 export interface PendingManualShellPayload {
   commands: string[];
@@ -25,22 +24,14 @@ export async function postHumanResumeStream(
 ): Promise<Response> {
   const body: Record<string, unknown> = { feedback, stream: true };
   if (agentConfig) body.agent_config = agentConfig;
-  return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/human-resume`), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return httpPostStream(`/v1/tasks/${encodeURIComponent(taskId)}/human-resume`, body);
 }
 
 export async function postRetryStream(
   taskId: string,
   body: Record<string, unknown>,
 ): Promise<Response> {
-  return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/retry`), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return httpPostStream(`/v1/tasks/${encodeURIComponent(taskId)}/retry`, body);
 }
 
 export interface ContinueProposal {
@@ -73,11 +64,7 @@ export async function postContinueStream(
     confirmed_steps: confirmedSteps,
   };
   if (agentConfig) body.agent_config = agentConfig;
-  return fetch(apiUrl(`/v1/tasks/${encodeURIComponent(taskId)}/continue`), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return httpPostStream(`/v1/tasks/${encodeURIComponent(taskId)}/continue`, body);
 }
 
 export async function postConfirmShell(

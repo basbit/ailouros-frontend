@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import type { AppSettings } from "@/entities/app-settings/contract";
+import type { AppSettings } from "@/app/providers/settingsContext";
 import { useScenarioCatalog } from "@/features/scenario-picker";
 import type { useUiStore } from "@/shared/store/ui";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";

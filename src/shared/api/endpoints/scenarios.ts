@@ -1,4 +1,5 @@
 import { httpGet, httpPost } from "@/shared/api/http";
+import type { paths } from "@/shared/api/openapi-types";
 import type {
   ScenarioArtifactsResponse,
   ScenarioEstimate,
@@ -8,10 +9,12 @@ import type {
   ScenarioSummary,
 } from "@/shared/model/scenario-types";
 
-export interface ScenariosListResponse {
-  version: number;
+type ScenariosListApiResponse =
+  paths["/v1/scenarios"]["get"]["responses"][200]["content"]["application/json"];
+
+export type ScenariosListResponse = Omit<ScenariosListApiResponse, "scenarios"> & {
   scenarios: ScenarioSummary[];
-}
+};
 
 export async function listScenarios(): Promise<ScenariosListResponse> {
   return httpGet<ScenariosListResponse>("/v1/scenarios");
@@ -44,11 +47,15 @@ export async function previewScenario(
   return httpPost<ScenarioPreview>("/v1/scenarios/preview", body);
 }
 
-export interface ScenarioValidateResponse {
-  valid: boolean;
-  id: string;
+type ScenarioValidateApiResponse =
+  paths["/v1/scenarios/validate"]["post"]["responses"][200]["content"]["application/json"];
+
+export type ScenarioValidateResponse = Omit<
+  ScenarioValidateApiResponse,
+  "summary"
+> & {
   summary: ScenarioSummary;
-}
+};
 
 export async function validateScenarioPayload(
   payload: Record<string, unknown>,

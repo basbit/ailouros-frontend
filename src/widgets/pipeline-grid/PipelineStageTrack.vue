@@ -1,5 +1,5 @@
 <template>
-  <div class="pipeline-run-card__track">
+  <div v-if="stages.length > 0" class="pipeline-run-card__track">
     <div
       v-for="(stage, idx) in stages"
       :key="stage.key"
@@ -9,75 +9,73 @@
         'pipeline-run-card__stage--active': stage.state === 'active',
         'pipeline-run-card__stage--waiting': stage.state === 'waiting',
       }"
-      :title="`${stage.label}: ${stage.state}`"
+      :title="`${stage.label}: ${t(`pipelineStage.state.${stage.state}`)}`"
     >
       <span class="pipeline-run-card__stage-pip">{{ idx + 1 }}</span>
       <span class="pipeline-run-card__stage-label">{{ stage.label }}</span>
       <div v-if="idx < stages.length - 1" class="pipeline-run-card__stage-connector" />
     </div>
   </div>
+  <p v-else class="pipeline-run-card__track-empty">
+    {{ t("pipelineStage.unknownPlan") }}
+  </p>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "@/shared/lib/i18n";
 
-export interface StageInfo {
+type StageState = "pending" | "active" | "waiting" | "done";
+
+interface StageInfo {
   key: string;
   label: string;
-  state: "pending" | "active" | "waiting" | "done";
+  state: StageState;
 }
 
 const props = withDefaults(
   defineProps<{
+    /** The run's real pipeline step ids, in execution order. */
+    steps?: string[];
     status?: string | null;
     activeStep?: string | null;
+    completedSteps?: string[];
     isAttentionRequired?: boolean;
   }>(),
   {
+    steps: () => [],
     status: "running",
     activeStep: null,
+    completedSteps: () => [],
     isAttentionRequired: false,
   },
 );
 
+const { t } = useI18n();
+
 const stages = computed<StageInfo[]>(() => {
   const normalizedStatus = (props.status ?? "").toLowerCase();
-  const step = (props.activeStep ?? "").toLowerCase();
+  const isDone =
+    normalizedStatus === "completed" ||
+    normalizedStatus === "done" ||
+    normalizedStatus === "completed_no_writes" ||
+    normalizedStatus === "completed_with_failures" ||
+    normalizedStatus === "success";
 
-  const isDone = normalizedStatus === "completed" || normalizedStatus === "done";
-  const isFailed = normalizedStatus === "failed" || normalizedStatus === "error";
+  const completed = new Set(props.completedSteps);
+  // Only the run's own step list may drive the track. A background run whose
+  // active step is unknown shows its real plan with nothing lit rather than a
+  // guessed stage.
+  const activeIndex = props.activeStep ? props.steps.indexOf(props.activeStep) : -1;
 
-  let activeIndex = 0;
-  if (step.includes("architect") || step.includes("plan")) activeIndex = 1;
-  else if (step.includes("implement") || step.includes("code") || step.includes("dev"))
-    activeIndex = 2;
-  else if (
-    step.includes("test") ||
-    step.includes("qa") ||
-    step.includes("review") ||
-    step.includes("probe")
-  )
-    activeIndex = 3;
-  else if (step.includes("deploy") || step.includes("ci") || step.includes("finish"))
-    activeIndex = 4;
-  else if (isDone) activeIndex = 5;
-
-  const stageDefinitions = [
-    { key: "pm", label: "Spec" },
-    { key: "arch", label: "Arch" },
-    { key: "dev", label: "Dev" },
-    { key: "qa", label: "QA" },
-    { key: "deploy", label: "Ship" },
-  ];
-
-  return stageDefinitions.map((stageDefinition, idx) => {
-    let state: "pending" | "active" | "waiting" | "done" = "pending";
-    if (isDone || idx < activeIndex) {
+  return props.steps.map((stepId, index) => {
+    let state: StageState = "pending";
+    if (isDone || completed.has(stepId) || (activeIndex >= 0 && index < activeIndex)) {
       state = "done";
-    } else if (idx === activeIndex) {
-      state = props.isAttentionRequired ? "waiting" : isFailed ? "pending" : "active";
+    } else if (index === activeIndex) {
+      state = props.isAttentionRequired ? "waiting" : "active";
     }
-    return { ...stageDefinition, state };
+    return { key: `${stepId}-${index}`, label: stepId, state };
   });
 });
 </script>
@@ -109,37 +107,37 @@ const stages = computed<StageInfo[]>(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-2, #333);
-  color: var(--ink-3, #777);
+  background: var(--bg-2);
+  color: var(--ink-3);
   z-index: 1;
 }
 
 .pipeline-run-card__stage--completed .pipeline-run-card__stage-pip {
-  background: var(--ok, #10b981);
+  background: var(--ok);
   color: #fff;
 }
 
 .pipeline-run-card__stage--active .pipeline-run-card__stage-pip {
-  background: var(--accent, #6366f1);
+  background: var(--accent);
   color: #fff;
-  box-shadow: 0 0 6px var(--accent, #6366f1);
+  box-shadow: 0 0 6px var(--accent);
 }
 
 .pipeline-run-card__stage--waiting .pipeline-run-card__stage-pip {
-  background: var(--vermillion-alert, #ff4500);
+  background: var(--error);
   color: #fff;
-  box-shadow: 0 0 6px var(--vermillion-alert, #ff4500);
+  box-shadow: 0 0 6px var(--error);
 }
 
 .pipeline-run-card__stage-label {
   font-size: 9px;
   text-transform: uppercase;
-  color: var(--ink-4, #666);
+  color: var(--ink-4);
 }
 
 .pipeline-run-card__stage--active .pipeline-run-card__stage-label,
 .pipeline-run-card__stage--completed .pipeline-run-card__stage-label {
-  color: var(--ink-2, #bbb);
+  color: var(--ink-2);
   font-weight: 600;
 }
 
@@ -149,11 +147,11 @@ const stages = computed<StageInfo[]>(() => {
   left: 50%;
   width: 100%;
   height: 2px;
-  background: var(--line, #333);
+  background: var(--line);
   z-index: 0;
 }
 
 .pipeline-run-card__stage--completed .pipeline-run-card__stage-connector {
-  background: var(--ok, #10b981);
+  background: var(--ok);
 }
 </style>

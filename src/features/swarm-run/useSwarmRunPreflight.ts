@@ -3,8 +3,8 @@ import { useI18n } from "@/shared/lib/i18n";
 import {
   agentConfigErrorMessage,
   type RunSwarmChatSettings,
-} from "@/shared/lib/agent-config";
-import type { ResolvedScenario } from "@/shared/lib/run-swarm-chat";
+} from "@/entities/agent-config";
+import type { ResolvedScenario } from "@/features/swarm-run/run-swarm-chat";
 import { useScenarioCatalog } from "@/entities/scenario";
 import type { ScenarioSummary } from "@/entities/scenario";
 import type { CustomScenarioSnap } from "@/entities/project";

@@ -54,4 +54,24 @@ describe("PhaseGateCard visibility", () => {
     expect(wrapper.find("section.phase-gate-card").exists()).toBe(true);
     expect(wrapper.text()).toContain("gate lookup exploded");
   });
+
+  it("filters out gates belonging to other tasks when taskId prop is provided", async () => {
+    listMock.mockResolvedValue([
+      {
+        gateId: "gate-1",
+        scenario: "spec_driven_feature",
+        phaseId: "spec",
+        taskId: "task-other",
+        summary: "other task spec",
+        acceptanceCriteria: [],
+        decision: "pending",
+      },
+    ]);
+    resetPhaseGates();
+    const wrapper = mount(PhaseGateCard, {
+      props: { workspaceRoot: "/tmp/work", taskId: "task-my-current" },
+    });
+    await flushPromises();
+    expect(wrapper.find("section.phase-gate-card").exists()).toBe(false);
+  });
 });

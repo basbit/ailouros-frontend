@@ -58,6 +58,8 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUiStore } from "@/shared/store/ui";
+import { runDetailRoute } from "@/shared/lib/run-detail-route";
 import type { TurnPipelineSummary } from "@/entities/pipeline-progress";
 
 const props = defineProps<{
@@ -124,13 +126,12 @@ const progressWidth = computed(() => {
   return pct;
 });
 
+const ui = useUiStore();
 const hasDetailRoute = computed(() => !!props.taskId);
 
 function onOpenDetail(): void {
   if (!props.taskId) return;
-  // The bar is always a link into the pipeline history; the history detail
-  // page renders both live and finished runs from the task snapshot.
-  void router.push(`/history/${encodeURIComponent(props.taskId)}`);
+  void router.push(runDetailRoute(ui.historyList, props.taskId));
 }
 </script>
 

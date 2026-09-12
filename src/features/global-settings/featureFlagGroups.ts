@@ -1,4 +1,9 @@
-import type { GlobalSearchKeysState } from "@/shared/lib/global-search-keys";
+import type {
+  FeatureFlagEnumField,
+  FeatureFlagEnumOption,
+  FeatureFlagField,
+  FeatureFlagGroup,
+} from "./featureFlagFieldTypes";
 import { FLAG_GROUP_MCP } from "./flagGroupMcp";
 import { FLAG_GROUP_MEMORY } from "./flagGroupMemory";
 import { FLAG_GROUP_RETRIEVAL } from "./flagGroupRetrieval";
@@ -9,55 +14,12 @@ import { FLAG_GROUP_UX } from "./flagGroupUx";
 import { FLAG_GROUP_ORCHESTRATION } from "./flagGroupOrchestration";
 import { FLAG_GROUP_WORKSPACE } from "./flagGroupWorkspace";
 
-export type FeatureFlagBooleanKey = {
-  [K in keyof GlobalSearchKeysState]: GlobalSearchKeysState[K] extends boolean
-    ? K
-    : never;
-}[keyof GlobalSearchKeysState];
-
-export type FeatureFlagStringKey = {
-  [K in keyof GlobalSearchKeysState]: GlobalSearchKeysState[K] extends string
-    ? K
-    : never;
-}[keyof GlobalSearchKeysState];
-
-interface FeatureFlagBooleanField {
-  kind: "boolean";
-  field: FeatureFlagBooleanKey;
-  envName: string;
-  wired?: boolean;
-}
-
-interface FeatureFlagStringField {
-  kind: "string";
-  field: FeatureFlagStringKey;
-  envName: string;
-  placeholder?: string;
-  wired?: boolean;
-}
-
-interface FeatureFlagEnumOption {
-  value: string;
-  i18nSuffix: string;
-}
-
-interface FeatureFlagEnumField {
-  kind: "enum";
-  field: FeatureFlagStringKey;
-  envName: string;
-  options: readonly FeatureFlagEnumOption[];
-  wired?: boolean;
-}
-
-type FeatureFlagField =
-  | FeatureFlagBooleanField
-  | FeatureFlagStringField
-  | FeatureFlagEnumField;
-
-export interface FeatureFlagGroup {
-  id: string;
-  fields: readonly FeatureFlagField[];
-}
+export type {
+  FeatureFlagBooleanKey,
+  FeatureFlagStringKey,
+  FeatureFlagField,
+  FeatureFlagGroup,
+} from "./featureFlagFieldTypes";
 
 export function isFieldWired(field: FeatureFlagField): boolean {
   return field.wired !== false;

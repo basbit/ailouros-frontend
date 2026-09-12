@@ -36,7 +36,7 @@
       <span v-if="isAttentionRequired" class="attention-required--badge"></span>
       <span v-else class="dot"></span>
       <button
-        v-if="taskId && isRunning"
+        v-if="taskId"
         type="button"
         class="task-pill__resume"
         :title="t('header.resumeRun')"
@@ -46,7 +46,7 @@
         {{ taskId }}
       </button>
       <span v-else>{{
-        taskId ?? (isRunning ? t("header.starting") : t("header.noTask"))
+        isRunning ? t("header.starting") : t("header.noTask")
       }}</span>
       <button
         v-if="taskId && !isRunning"
@@ -54,13 +54,18 @@
         class="task-pill__close"
         :title="t('header.closeTask')"
         :aria-label="t('header.closeTask')"
-        @click="emit('close-task')"
+        @click.stop="emit('close-task')"
       >
         &#10005;
       </button>
     </div>
 
     <TaskBudgetBadge :task-id="taskId" :is-running="isRunning" />
+    <ShadowWorktreeBadge
+      v-if="taskId && workspaceRoot"
+      :task-id="taskId"
+      :workspace-root="workspaceRoot"
+    />
 
     <div v-if="(activeRunIds ?? []).length > 1" class="active-runs">
       <span v-if="isAttentionRequired" class="attention-required--badge"></span>
@@ -180,6 +185,24 @@
 
     <button
       type="button"
+      class="header-sound-btn"
+      :title="t('terminal.title')"
+      :aria-label="t('terminal.title')"
+      @click="isTerminalOpen = true"
+    >
+      💻
+    </button>
+
+    <InteractiveTerminalModal
+      v-if="isTerminalOpen"
+      :task-id="taskId ?? 'default'"
+      :workspace-root="workspaceRoot"
+      :is-open="isTerminalOpen"
+      @close="isTerminalOpen = false"
+    />
+
+    <button
+      type="button"
       class="report-problem-button"
       :title="t('header.reportProblem')"
       :aria-label="t('header.reportProblem')"
@@ -210,7 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { useI18n } from "@/shared/lib/i18n";
@@ -220,9 +243,14 @@ import AppHeaderLogo from "./AppHeaderLogo.vue";
 import AppHeaderHealthBadge from "./AppHeaderHealthBadge.vue";
 import { useAppHeaderTabs } from "./useAppHeaderTabs";
 import { useSystemHealth } from "@/features/system-health/useSystemHealth";
-import { useCoworking } from "@/features/coworking/useCoworking";
+import { useCoworking } from "@/entities/coworking/useCoworking";
+import { isAttentionRequiredIn } from "@/features/attention-alert/attentionState";
 import CoworkingPeersBadge from "@/features/coworking/CoworkingPeersBadge.vue";
 import TaskBudgetBadge from "@/features/task-budget/TaskBudgetBadge.vue";
+import ShadowWorktreeBadge from "@/features/worktree-status/ShadowWorktreeBadge.vue";
+import InteractiveTerminalModal from "@/features/interactive-terminal/InteractiveTerminalModal.vue";
+
+const isTerminalOpen = ref(false);
 
 const route = useRoute();
 const router = useRouter();
@@ -234,24 +262,11 @@ const isRunRoute = computed(
 const coworking = useCoworking();
 
 const ui = useUiStore();
-const isAttentionRequired = computed(() => {
-  return (
-    ui.humanGateVisible ||
-    ui.shellGateVisible ||
-    ui.manualShellGateVisible ||
-    ui.retryGateVisible ||
-    ui.taskStatus === "awaiting_human" ||
-    ui.historyList.some(
-      (entry) =>
-        entry.status === "awaiting_human" &&
-        Boolean(entry.taskId) &&
-        (ui.activeRunIds ?? []).includes(entry.taskId as string),
-    )
-  );
-});
+const isAttentionRequired = computed(() => isAttentionRequiredIn(ui));
 
 defineProps<{
   taskId: string | null;
+  workspaceRoot: string | null;
   isRunning: boolean;
   activeRunIds?: string[];
   projectName?: string | null;

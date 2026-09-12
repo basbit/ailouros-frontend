@@ -57,7 +57,7 @@ import AgentRoles from "@/features/agent-roles/AgentRoles.vue";
 import DevRoles from "@/features/dev-roles/DevRoles.vue";
 import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
-import type { AppSettings } from "@/entities/app-settings/contract";
+import type { AppSettings } from "@/app/providers/settingsContext";
 
 type SettingsApi = AppSettings;
 

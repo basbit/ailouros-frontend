@@ -1,5 +1,6 @@
 :root {
   --bg: #f3ece0;
+  --bg-1: var(--bg);
   --bg-2: #ece2cf;
   --bg-3: #e2d6bf;
   --card: #f7f1e3;
@@ -50,6 +51,7 @@
 
 [data-theme="dark"] {
   --bg: #15120e;
+  --bg-1: var(--bg);
   --bg-2: #1d1814;
   --bg-3: #25201a;
   --card: #1d1814;

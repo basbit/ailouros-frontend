@@ -5,7 +5,7 @@
       <div
         class="coworking-peers__avatar coworking-peers__avatar--me"
         :style="{ backgroundColor: localUser.color }"
-        :title="`${localUser.name} (You - click to edit)`"
+        :title="t('coworking.editYourProfile', { name: localUser.name })"
         tabindex="0"
         role="button"
         @click.stop="toggleEditPopover"
@@ -29,7 +29,7 @@
       <div
         v-if="peers.length > 4"
         class="coworking-peers__avatar coworking-peers__avatar--more"
-        :title="`${peers.length - 4} more`"
+        :title="t('coworking.morePeers', { count: peers.length - 4 })"
       >
         +{{ peers.length - 4 }}
       </div>
@@ -42,7 +42,7 @@
         <button
           type="button"
           class="coworking-popover__close-btn"
-          aria-label="Close"
+          :aria-label="t('common.close')"
           @click="isPopoverOpen = false"
         >
           ✕
@@ -103,7 +103,11 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
-import { PEER_COLORS, type LocalUserProfile, type RemotePeer } from "./useCoworking";
+import {
+  PEER_COLORS,
+  type LocalUserProfile,
+  type RemotePeer,
+} from "@/entities/coworking/useCoworking";
 
 const props = withDefaults(
   defineProps<{
@@ -176,7 +180,7 @@ function getInitials(name: string): string {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid var(--card, #1c1c24);
+  border: 2px solid var(--card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,13 +201,13 @@ function getInitials(name: string): string {
 }
 
 .coworking-peers__avatar--me {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 1px var(--line-strong);
   cursor: pointer;
 }
 
 .coworking-peers__avatar--more {
-  background: var(--bg-2, #333);
-  color: var(--ink-2, #ccc);
+  background: var(--card-soft);
+  color: var(--ink-2);
 }
 
 /* Edit Profile Popover */
@@ -212,10 +216,10 @@ function getInitials(name: string): string {
   top: calc(100% + 8px);
   left: 0;
   min-width: 220px;
-  background: var(--card, #1e1e26);
-  border: 1px solid var(--line, #333);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
   z-index: 200;
   overflow: hidden;
   display: flex;
@@ -227,27 +231,27 @@ function getInitials(name: string): string {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--bg-2, #262632);
-  border-bottom: 1px solid var(--line, #333);
+  background: var(--card-soft);
+  border-bottom: 1px solid var(--line);
 }
 
 .coworking-popover__title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink, #fff);
+  color: var(--ink);
 }
 
 .coworking-popover__close-btn {
   background: transparent;
   border: none;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
   font-size: 12px;
   cursor: pointer;
   padding: 0 4px;
 }
 
 .coworking-popover__close-btn:hover {
-  color: var(--ink, #fff);
+  color: var(--ink);
 }
 
 .coworking-popover__body {
@@ -265,21 +269,22 @@ function getInitials(name: string): string {
 
 .coworking-popover__label-text {
   font-size: 11px;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
 }
 
 .coworking-popover__input {
-  background: var(--bg-1, #14141a);
-  border: 1px solid var(--line, #333);
-  border-radius: 4px;
-  color: var(--ink, #fff);
-  font-size: 12px;
-  padding: 5px 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 12.5px;
+  padding: 7px 10px;
   outline: none;
 }
 
 .coworking-popover__input:focus {
-  border-color: var(--accent, #6366f1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .coworking-popover__color-section {
@@ -309,7 +314,7 @@ function getInitials(name: string): string {
 }
 
 .coworking-popover__color-swatch--active {
-  border-color: #fff;
+  border-color: var(--ink);
   transform: scale(1.15);
 }
 
@@ -322,8 +327,8 @@ function getInitials(name: string): string {
 
 .coworking-popover__btn {
   padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -331,15 +336,15 @@ function getInitials(name: string): string {
 
 .coworking-popover__btn--cancel {
   background: transparent;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
 }
 
 .coworking-popover__btn--cancel:hover {
-  color: var(--ink, #fff);
+  color: var(--ink);
 }
 
 .coworking-popover__btn--save {
-  background: var(--accent, #6366f1);
-  color: #fff;
+  background: var(--accent);
+  color: #17110c;
 }
 </style>

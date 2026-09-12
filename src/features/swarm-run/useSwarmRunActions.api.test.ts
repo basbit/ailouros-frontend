@@ -49,6 +49,7 @@ const EXPECTED_API = [
   "onConfirmManualShell",
   "onRetry",
   "onContinuePipeline",
+  "onForkStep",
 ] as const;
 
 describe("useSwarmRunActions composed API surface", () => {

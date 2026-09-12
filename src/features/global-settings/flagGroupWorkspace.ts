@@ -1,4 +1,4 @@
-import type { FeatureFlagGroup } from "./featureFlagGroups";
+import type { FeatureFlagGroup } from "./featureFlagFieldTypes";
 
 export const FLAG_GROUP_WORKSPACE: FeatureFlagGroup = {
   id: "workspace",
@@ -45,6 +45,11 @@ export const FLAG_GROUP_WORKSPACE: FeatureFlagGroup = {
       kind: "boolean",
       field: "swarm_dev_shell_use_sandbox_resolver",
       envName: "SWARM_DEV_SHELL_USE_SANDBOX_RESOLVER",
+    },
+    {
+      kind: "boolean",
+      field: "swarm_enable_code_mode",
+      envName: "SWARM_ENABLE_CODE_MODE",
     },
     {
       kind: "boolean",

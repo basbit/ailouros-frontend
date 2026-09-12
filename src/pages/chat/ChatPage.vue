@@ -6,10 +6,18 @@
       <!-- Sidebar / Threads Panel -->
       <aside
         class="chat-sidebar"
+        data-testid="chat-sidebar"
         :class="{ 'chat-sidebar--collapsed': sidebarCollapsed }"
       >
         <div class="chat-sidebar__header">
+          <!--
+            Collapsed, the rail is 48px wide (.chat-sidebar--collapsed). The
+            full-width "new conversation" button used to stay rendered there and
+            pushed the toggle past that edge, where .chat-feed intercepted the
+            click — collapsing the sidebar was a one-way trip until reload.
+          -->
           <button
+            v-if="!sidebarCollapsed"
             type="button"
             class="chat-sidebar__new-btn"
             @click="onNewConversation"
@@ -19,6 +27,7 @@
           <button
             type="button"
             class="chat-sidebar__toggle"
+            data-testid="chat-sidebar-toggle"
             :title="
               sidebarCollapsed ? t('chat.expandSidebar') : t('chat.collapseSidebar')
             "
@@ -40,7 +49,7 @@
             :key="th.id"
             class="chat-thread-item"
             :class="{ 'chat-thread-item--active': activeThread?.id === th.id }"
-            @click="selectThread(th.id)"
+            @click="onSelectThread(th.id)"
           >
             <div class="chat-thread-item__title">
               {{ th.title || t("chat.untitled") }}
@@ -130,11 +139,12 @@
               </div>
             </div>
 
-            <!-- Pipeline progress bar under the user's message (click → pipeline history) -->
             <TurnPipelineBar
               v-if="turn.task_id || turn.id === activeRunningTurnId"
               :summary="turnSummary(turn)"
-              :task-id="turn.task_id ?? null"
+              :task-id="
+                turn.task_id ?? (turn.id === activeRunningTurnId ? ui.taskId : null)
+              "
             />
 
             <!-- Assistant Response Message -->
@@ -235,7 +245,7 @@ import { turnAttachmentUrl } from "@/shared/api/endpoints/conversation";
 import { useTurnPipelineSummary } from "@/pages/chat/useTurnPipelineSummary";
 import type { TurnPipelineSummary } from "@/entities/pipeline-progress";
 import TurnPipelineBar from "@/features/chat/TurnPipelineBar.vue";
-import { useInjectedAppSettings } from "@/entities/app-settings/contract";
+import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useUiStore } from "@/shared/store/ui";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
@@ -305,7 +315,7 @@ function openAttachment(turnId: string, name: string): void {
   if (src) window.open(src, "_blank", "noopener");
 }
 
-// One summary per turn task id; created lazily as turns render. Live turns
+// One summary per turn; created lazily as turns render. Live turns
 // (the turn the page is currently driving) read the shared ui-store; past
 // turns load their snapshot once and cache it inside the composable.
 const summaryCache = new Map<string, TurnPipelineSummary>();
@@ -314,11 +324,12 @@ function turnSummary(turn: {
   id: string;
   task_id?: string | null;
 }): TurnPipelineSummary {
-  const cacheKey = turn.task_id || `turn:${turn.id}`;
+  const cacheKey = turn.id;
   const existing = summaryCache.get(cacheKey);
   if (existing) return existing;
   const summary = useTurnPipelineSummary({
-    taskId: () => turn.task_id ?? null,
+    taskId: () =>
+      turn.task_id ?? (turn.id === activeRunningTurnId.value ? ui.taskId : null),
     isLive: () =>
       turn.id === activeRunningTurnId.value &&
       (!turn.task_id || turn.task_id === ui.taskId),
@@ -337,8 +348,16 @@ function onScenarioPick(scenarioId: string): void {
 }
 
 async function onNewConversation(): Promise<void> {
+  activeRunningTurnId.value = null;
   const th = await startNewThread();
   await selectThread(th.id);
+}
+
+function onSelectThread(threadId: string): void {
+  if (!isRunning.value) {
+    activeRunningTurnId.value = null;
+  }
+  void selectThread(threadId);
 }
 
 // The app bootstrap provides ONE run controller owning the WebSocket. Reusing
@@ -396,6 +415,7 @@ async function onSendPrompt(): Promise<void> {
   if (isRunning.value || isStarting.value) return;
 
   isStarting.value = true;
+  ui.taskId = null;
   try {
     const { turn } = await addTurn(
       promptText,
@@ -458,7 +478,11 @@ watch(
       blockedReason: ui.blockedReason,
       taskError: ui.taskError,
       copy: {
+        doneOk: t("chat.doneOk"),
         doneWithFailures: t("chat.doneWithFailures"),
+        awaitingHuman: t("chat.awaitingHuman"),
+        failed: t("chat.failed"),
+        authFailed: t("chat.authFailed"),
         blockedBubble: (reason) => t("chat.blockedBubble", { reason }),
         blockedTitle: t("chat.blockedTitle"),
       },
@@ -469,6 +493,9 @@ watch(
       assistant_message: update.assistantMessage,
     });
     if (update.scroll) scrollToBottom();
+    if (["completed", "failed", "cancelled"].includes(update.status)) {
+      activeRunningTurnId.value = null;
+    }
   },
 );
 
@@ -536,6 +563,13 @@ watch(
 
 .chat-sidebar--collapsed {
   width: 48px;
+  overflow: hidden;
+}
+
+/* 48px minus 2x6px padding leaves 36px for the toggle — it stays clickable. */
+.chat-sidebar--collapsed .chat-sidebar__header {
+  padding: 12px 6px;
+  justify-content: center;
 }
 
 .chat-sidebar__header {

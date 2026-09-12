@@ -3,7 +3,11 @@ import { findActiveTurn, resolveTurnStatusUpdate } from "./turnStatusEffects";
 import type { ConversationTurnDto } from "@/shared/api/endpoints/conversation";
 
 const COPY = {
+  doneOk: "Pipeline finished.",
   doneWithFailures: "Finished with failures.",
+  awaitingHuman: "Waiting for your answer.",
+  failed: "Pipeline execution failed.",
+  authFailed: "Authentication failed. Update your API key in Settings.",
   blockedBubble: (reason: string) => `Pipeline blocked: ${reason}`,
   blockedTitle: "Pipeline blocked",
 };
@@ -43,8 +47,8 @@ describe("resolveTurnStatusUpdate", () => {
     expect(resolve("completed_with_failures", "running")?.assistantMessage).toBe(
       "Finished with failures.",
     );
-    expect(resolve("completed", "running")?.assistantMessage).toContain(
-      "completed successfully",
+    expect(resolve("completed", "running")?.assistantMessage).toBe(
+      "Pipeline finished.",
     );
   });
 
@@ -52,6 +56,7 @@ describe("resolveTurnStatusUpdate", () => {
     const first = resolve("awaiting_human", "running");
     expect(first).toMatchObject({
       status: "awaiting_human",
+      assistantMessage: "Waiting for your answer.",
       scroll: true,
     });
     expect(resolve("awaiting_human", "awaiting_human")).toBeNull();
@@ -94,6 +99,18 @@ describe("resolveTurnStatusUpdate", () => {
     expect(resolve("cancelled", "running")?.assistantMessage).toBe(
       "Pipeline execution failed.",
     );
+  });
+
+  it("marks the turn failed with actionable auth instructions on 401 error", () => {
+    const res = resolve("failed", "running", {
+      taskError: "Provider rejected request: 401 Unauthorized (invalid API key)",
+    });
+    expect(res).toMatchObject({
+      status: "failed",
+      scroll: true,
+    });
+    expect(res?.assistantMessage).toContain("Authentication failed. Update your API key in Settings.");
+    expect(res?.assistantMessage).toContain("401 Unauthorized");
   });
 
   it("stays silent for unknown or empty statuses", () => {

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { SkillCatalogSnap } from "@/shared/store/projects";
+import type { SkillCatalogSnap } from "@/entities/project";
 
 export type { SkillCatalogSnap };
 

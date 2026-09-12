@@ -1,11 +1,11 @@
 import { reactive } from "vue";
-import { ROLES } from "@/shared/lib/pipeline-schema";
-import { onRolesCatalogUpdate } from "@/shared/api/endpoints/rolesCatalog";
 import {
+  ROLES,
   defaultEnvironmentForRole,
   defaultPromptPathForRole,
   promptChoicesForRole,
-} from "@/shared/lib/use-swarm-defaults";
+} from "@/entities/role";
+import { onRolesCatalogUpdate } from "@/shared/api/endpoints/rolesCatalog";
 
 export type ModelMode = "auto" | "manual";
 

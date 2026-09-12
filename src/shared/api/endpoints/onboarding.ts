@@ -1,5 +1,4 @@
-import { apiUrl } from "@/shared/api/base";
-import { httpGet, httpPost } from "@/shared/api/http";
+import { httpGet, httpPost, httpPostStream } from "@/shared/api/http";
 import type {
   MCPServerSpec,
   ModelAssignment,
@@ -115,9 +114,5 @@ export async function getLiveOnboardingAssignments(
 export async function startSwarmChatStream(
   body: Record<string, unknown>,
 ): Promise<Response> {
-  return fetch(apiUrl("/v1/chat/completions"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return httpPostStream("/v1/chat/completions", body);
 }

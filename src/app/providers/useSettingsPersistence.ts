@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import type { SettingsSnap } from "@/entities/project";
 import {
   getProjectSettings,
@@ -67,7 +67,7 @@ export function useSettingsPersistence(deps: PersistenceDeps) {
     const trimmed = workspaceRoot.trim();
     if (!trimmed) return null;
     try {
-      return await getProjectSettings(trimmed);
+      return await getProjectSettings<SettingsSnap>(trimmed);
     } catch {
       return null;
     }

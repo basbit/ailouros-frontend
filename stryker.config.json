@@ -32,7 +32,7 @@
     "src/shared/lib/hydrate-task.ts",
     "src/shared/lib/local-llm-detect.ts",
     "src/shared/lib/slash-commands.ts",
-    "src/shared/lib/step-order.ts",
+    "src/entities/pipeline/model/step-order.ts",
     "src/shared/lib/step-taxonomy.ts",
     "src/shared/lib/task-status.ts",
     "src/shared/lib/useHeartbeatCollapser.ts"

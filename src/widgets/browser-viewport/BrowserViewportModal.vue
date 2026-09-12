@@ -15,7 +15,7 @@
         <button
           type="button"
           class="browser-viewport-modal__close-btn"
-          aria-label="Close"
+          :aria-label="t('common.close')"
           @click="emit('close')"
         >
           ✕

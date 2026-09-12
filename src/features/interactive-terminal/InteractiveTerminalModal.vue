@@ -1,6 +1,14 @@
 <template>
   <div v-if="isOpen" class="terminal-modal-backdrop" @click="onClose">
-    <div class="terminal-modal" role="dialog" aria-modal="true" @click.stop>
+    <div
+      ref="dialogRef"
+      class="terminal-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="t('terminal.title')"
+      @click.stop
+      @keydown="onDialogKeydown"
+    >
       <div class="terminal-modal__header">
         <div class="terminal-modal__title-group">
           <span
@@ -26,7 +34,7 @@
             type="button"
             class="terminal-modal__btn"
             :disabled="connectionStatus === 'connected'"
-            @click="connect"
+            @click="() => void connect()"
           >
             {{ t("terminal.reconnect") }}
           </button>
@@ -40,6 +48,14 @@
           </button>
         </div>
       </div>
+
+      <p
+        v-if="errorMessage"
+        class="terminal-modal__error chip chip--failed"
+        role="alert"
+      >
+        {{ errorMessage }}
+      </p>
 
       <div ref="outputScreenRef" class="terminal-modal__screen">
         <pre class="terminal-modal__output">{{ terminalOutput }}</pre>
@@ -62,12 +78,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useTerminalWebSocket } from "./useTerminalWebSocket";
 
 const props = defineProps<{
   taskId: string;
+  workspaceRoot: string | null;
   isOpen: boolean;
 }>();
 
@@ -77,12 +94,24 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
+const dialogRef = ref<HTMLDivElement | null>(null);
 const outputScreenRef = ref<HTMLDivElement | null>(null);
 const commandInputRef = ref<HTMLInputElement | null>(null);
 const currentCommand = ref("");
+let focusOrigin: HTMLElement | null = null;
 
-const { terminalOutput, connectionStatus, connect, disconnect, sendInput, clear } =
-  useTerminalWebSocket(props.taskId);
+const {
+  terminalOutput,
+  connectionStatus,
+  lastErrorKey,
+  connect,
+  disconnect,
+  sendInput,
+  clear,
+} = useTerminalWebSocket({
+  taskId: () => props.taskId,
+  workspaceRoot: () => props.workspaceRoot,
+});
 
 const statusLabel = computed(() => {
   if (connectionStatus.value === "connected") return t("terminal.connected");
@@ -90,16 +119,68 @@ const statusLabel = computed(() => {
   return t("terminal.disconnected");
 });
 
+const errorMessage = computed(() => (lastErrorKey.value ? t(lastErrorKey.value) : ""));
+
+function focusableElements(): HTMLElement[] {
+  if (!dialogRef.value) return [];
+  return Array.from(
+    dialogRef.value.querySelectorAll<HTMLElement>(
+      "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])",
+    ),
+  );
+}
+
+function trapTab(event: KeyboardEvent): void {
+  const focusable = focusableElements();
+  if (focusable.length === 0) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement as HTMLElement | null;
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function onDialogKeydown(event: KeyboardEvent): void {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    onClose();
+    return;
+  }
+  if (event.key === "Tab") trapTab(event);
+}
+
+function onWindowKeydown(event: KeyboardEvent): void {
+  if (props.isOpen && event.key === "Escape") {
+    event.preventDefault();
+    onClose();
+  }
+}
+
 watch(
   () => props.isOpen,
   (opened) => {
     if (opened) {
-      connect();
+      focusOrigin = document.activeElement as HTMLElement | null;
+      window.addEventListener("keydown", onWindowKeydown);
+      void connect();
       void nextTick(() => {
-        commandInputRef.value?.focus();
+        // While the socket is still handshaking the input is disabled and
+        // cannot take focus, so fall back to the first enabled control.
+        const input = commandInputRef.value;
+        const target =
+          input && !input.disabled ? input : (focusableElements()[0] ?? null);
+        target?.focus();
       });
     } else {
+      window.removeEventListener("keydown", onWindowKeydown);
       disconnect();
+      focusOrigin?.focus();
+      focusOrigin = null;
     }
   },
   { immediate: true },
@@ -111,6 +192,10 @@ watch(terminalOutput, () => {
       outputScreenRef.value.scrollTop = outputScreenRef.value.scrollHeight;
     }
   });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onWindowKeydown);
 });
 
 function submitCommand(): void {
@@ -139,10 +224,18 @@ function onClose(): void {
 </script>
 
 <style scoped>
+.terminal-modal__error {
+  margin: 0 18px 10px;
+  align-self: flex-start;
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+}
+
 .terminal-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -153,23 +246,23 @@ function onClose(): void {
   width: 90vw;
   max-width: 800px;
   height: 520px;
-  background: #0f172a;
-  color: #e2e8f0;
-  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid #334155;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--line-strong);
 }
 
 .terminal-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
+  padding: 16px 18px;
+  background: var(--card-soft);
+  border-bottom: 1px solid var(--line);
 }
 
 .terminal-modal__title-group {
@@ -187,20 +280,20 @@ function onClose(): void {
 }
 
 .terminal-modal__status-dot--connected {
-  background: #10b981;
+  background: var(--ok);
 }
 
 .terminal-modal__status-dot--connecting {
-  background: #f59e0b;
+  background: var(--warn);
 }
 
 .terminal-modal__status-dot--disconnected {
-  background: #ef4444;
+  background: var(--error);
 }
 
 .terminal-modal__status-text {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-3);
 }
 
 .terminal-modal__controls {
@@ -210,18 +303,18 @@ function onClose(): void {
 }
 
 .terminal-modal__btn {
-  background: #334155;
-  color: #e2e8f0;
-  border: none;
+  background: var(--card-soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
   padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .terminal-modal__btn:hover:not(:disabled) {
-  background: #475569;
+  background: var(--bg-3);
 }
 
 .terminal-modal__btn:disabled {
@@ -231,6 +324,7 @@ function onClose(): void {
 
 .terminal-modal__btn--close {
   background: transparent;
+  border-color: transparent;
   font-size: 14px;
   padding: 2px 6px;
 }
@@ -239,10 +333,10 @@ function onClose(): void {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.4;
-  background: #020617;
+  background: var(--bg);
 }
 
 .terminal-modal__output {
@@ -255,14 +349,14 @@ function onClose(): void {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: #1e293b;
-  border-top: 1px solid #334155;
+  background: var(--card-soft);
+  border-top: 1px solid var(--line);
   gap: 8px;
 }
 
 .terminal-modal__prompt {
-  font-family: monospace;
-  color: #10b981;
+  font-family: var(--font-mono);
+  color: var(--ok);
   font-weight: 600;
 }
 
@@ -270,8 +364,8 @@ function onClose(): void {
   flex: 1;
   background: transparent;
   border: none;
-  color: #f8fafc;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--ink);
+  font-family: var(--font-mono);
   font-size: 12px;
   outline: none;
 }

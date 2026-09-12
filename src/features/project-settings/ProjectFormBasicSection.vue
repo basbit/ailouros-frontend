@@ -7,6 +7,7 @@
       <input
         id="pf-name"
         ref="nameRef"
+        data-testid="project-form-name"
         :value="form.name"
         type="text"
         :placeholder="t('projectForm.namePlaceholder')"

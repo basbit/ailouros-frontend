@@ -74,4 +74,23 @@ describe("PeerReviewReportPanel", () => {
       { path: "app/auth.py", line: 14 },
     ]);
   });
+
+  it("renders the loading branch when a review is being fetched", () => {
+    const wrapper = mount(PeerReviewReportPanel, {
+      props: { report: null, loading: true },
+    });
+    expect(wrapper.find(".peer-review-loading").text()).toContain("peerReview.loading");
+  });
+
+  it("renders a retryable error branch when the fetch failed", async () => {
+    const wrapper = mount(PeerReviewReportPanel, {
+      props: { report: null, loading: false, error: "500 server error" },
+    });
+
+    expect(wrapper.find(".peer-review-error").exists()).toBe(true);
+    expect(wrapper.text()).toContain("500 server error");
+
+    await wrapper.find(".peer-review-error button").trigger("click");
+    expect(wrapper.emitted("retry")).toBeTruthy();
+  });
 });

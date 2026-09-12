@@ -1,5 +1,5 @@
 import { computed, inject } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { useTaskStore } from "@/shared/store/task";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
@@ -14,7 +14,7 @@ export function useAppHeaderBindings() {
       "useAppHeaderBindings requires APP_SETTINGS_KEY and SWARM_RUN_CONTROLLER_KEY",
     );
   }
-  void injectedSettings;
+  const settings = injectedSettings;
   const controller = injectedController;
   const projectForm = useInjectedProjectFormActions();
 
@@ -23,6 +23,7 @@ export function useAppHeaderBindings() {
   const taskStore = useTaskStore();
 
   const taskId = computed(() => ui.taskId);
+  const workspaceRoot = computed(() => settings.form.workspace_root?.trim() || null);
   const isRunning = computed(() => controller.isRunning.value);
   const activeRunIds = computed(() => ui.activeRunIds);
   const currentProjectId = computed(() => projects.currentId);
@@ -42,6 +43,7 @@ export function useAppHeaderBindings() {
 
   return {
     taskId,
+    workspaceRoot,
     isRunning,
     activeRunIds,
     currentProjectId,

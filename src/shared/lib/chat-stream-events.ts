@@ -218,7 +218,7 @@ export function parseChatStreamSiblingExtra(
   return null;
 }
 
-export interface OrchestratorStatusLineStreamEvent {
+interface OrchestratorStatusLineStreamEvent {
   kind: "orchestrator_status_line";
   status: string;
   detail: string;

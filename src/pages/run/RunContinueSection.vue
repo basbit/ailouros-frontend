@@ -86,7 +86,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/api/http";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useTaskStore } from "@/shared/store/task";
 import { useUiStore } from "@/shared/store/ui";
 import {
@@ -94,9 +94,9 @@ import {
   postContinueStream,
   type ContinueProposal,
 } from "@/shared/api/endpoints/task-gates";
-import { drainStream } from "@/shared/lib/task-gate-actions";
-import { buildAgentConfig } from "@/shared/lib/agent-config";
-import { useInjectedAppSettings } from "@/entities/app-settings/contract";
+import { drainStream } from "@/features/swarm-run/task-gate-actions";
+import { buildAgentConfig } from "@/entities/agent-config";
+import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 
 const props = defineProps<{
   runId: string;

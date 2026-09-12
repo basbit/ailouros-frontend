@@ -1,6 +1,5 @@
 import { ref } from "vue";
-import { PIPELINE_OPTIONS_BASE } from "@/shared/lib/pipeline-schema";
-import { defaultPipelineOrder } from "@/shared/lib/use-swarm-defaults";
+import { PIPELINE_OPTIONS_BASE, defaultPipelineOrder } from "@/entities/pipeline";
 import type { PipeStep } from "./model/types";
 import type { CustomRoleSnap } from "@/entities/project";
 

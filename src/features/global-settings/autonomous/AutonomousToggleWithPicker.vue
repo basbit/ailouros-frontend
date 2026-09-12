@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import AutonomousModelPickerField from "./AutonomousModelPickerField.vue";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 
 interface CloudConnection {
   remote_api_provider: string;

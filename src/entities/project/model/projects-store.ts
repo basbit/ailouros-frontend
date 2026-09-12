@@ -1,0 +1,310 @@
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import {
+  LS_PROJECTS,
+  LS_HISTORY,
+  LS_ACTIVE_TASK,
+  LS_EVENTS_VIEW,
+} from "@/shared/lib/swarm-ui-constants";
+import {
+  ROLES,
+  defaultEnvironmentForRole,
+  defaultModelForRole,
+  defaultPromptPathForRole,
+} from "@/entities/role";
+import { defaultPipelineOrder } from "@/entities/pipeline";
+import { defaultRemoteApiProvider } from "@/shared/lib/use-swarm-defaults";
+import {
+  persistenceAdapter,
+  readLegacySettings,
+} from "@/shared/lib/persistence-adapter";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
+
+export type {
+  SkillCatalogSnap,
+  SettingsSnap,
+  ProjectEntry,
+  ProjectsData,
+} from "./types";
+import type { RoleSnapshot, SettingsSnap, ProjectEntry, ProjectsData } from "./types";
+
+function buildEmptyRoleSnapshots(): Record<string, RoleSnapshot> {
+  const roles: Record<string, RoleSnapshot> = {};
+  for (const roleId of ROLES) {
+    const environment = defaultEnvironmentForRole();
+    roles[roleId] = {
+      environment,
+      model: defaultModelForRole(roleId, environment),
+      prompt_path: defaultPromptPathForRole(roleId),
+      skill_ids: "",
+    };
+  }
+  return roles;
+}
+
+import type { BaseSettingsFields } from "./types";
+import { WORKSPACE_CONTEXT_MODE_DEFAULT } from "@/shared/model/workspace-context-mode-types";
+import { CODE_GENERATOR_DEFAULT } from "@/shared/model/code-generator-types";
+
+// Concrete default values for all flat (non-collection) settings keys. Optional
+// snap fields (media_*, swarm_*_api_key, custom_scenario_id) are filled in too
+// so SettingsForm gets non-undefined types.
+export type BaseSettingsDefaults = BaseSettingsFields & {
+  swarm_tavily_api_key: string;
+  swarm_exa_api_key: string;
+  swarm_scrapingdog_api_key: string;
+  media_enabled: boolean;
+  media_image_provider: string;
+  media_image_model: string;
+  media_image_api_key: string;
+  media_audio_provider: string;
+  media_audio_model: string;
+  media_audio_api_key: string;
+  media_audio_voice: string;
+  media_budget_max_cost_usd: string;
+  media_budget_max_attempts: string;
+  media_license_policy: string;
+  scenario_id: string | null;
+  custom_scenario_id: string | null;
+};
+
+export function baseSettingsDefaults(): BaseSettingsDefaults {
+  return {
+    prompt: "",
+    workspace_root: "",
+    project_context_file: "",
+    workspace_write: true,
+    workspace_context_mode: WORKSPACE_CONTEXT_MODE_DEFAULT,
+    dev_code_generator: CODE_GENERATOR_DEFAULT,
+    human_manual_review: false,
+    attachments: [],
+    image_attachments: [],
+    swarm_languages: "",
+    swarm_topology: "",
+    swarm_pattern_memory: false,
+    swarm_pipeline_hooks_module: "",
+    swarm_mcp_auto: true,
+    swarm_skip_mcp_tools: false,
+    swarm_doc_locale: "",
+    swarm_documentation_sources: "",
+    swarm_database_url: "",
+    swarm_database_hint: "",
+    swarm_database_readonly: true,
+    swarm_disable_tree_sitter: false,
+    swarm_visual_probe_enabled: true,
+    swarm_visual_base_url: "",
+    swarm_visual_start_command: "",
+    swarm_visual_start_directory: "",
+    swarm_visual_ready_path: "/",
+    swarm_visual_pages: "/",
+    swarm_visual_capture_har: false,
+    swarm_visual_capture_trace: false,
+    swarm_visual_multimodal_review: false,
+    swarm_visual_max_review_images: "4",
+    mcp_servers_json: "",
+    swarm_tavily_api_key: "",
+    swarm_exa_api_key: "",
+    swarm_scrapingdog_api_key: "",
+    media_enabled: false,
+    media_image_provider: "",
+    media_image_model: "",
+    media_image_api_key: "",
+    media_audio_provider: "",
+    media_audio_model: "",
+    media_audio_api_key: "",
+    media_audio_voice: "",
+    media_budget_max_cost_usd: "",
+    media_budget_max_attempts: "",
+    media_license_policy: "permissive_only",
+    swarm_memory_namespace: "",
+    swarm_pattern_memory_path: "",
+    swarm_force_rerun: false,
+    scenario_id: null,
+    custom_scenario_id: null,
+    remote_api_provider: defaultRemoteApiProvider(),
+    remote_api_key: "",
+    remote_api_base_url: "",
+  };
+}
+
+export function buildEmptySnap(): SettingsSnap {
+  return {
+    ...baseSettingsDefaults(),
+    v: 1,
+    pipeline: defaultPipelineOrder().map((stepId) => ({ id: stepId })),
+    custom_scenarios: [],
+    favorite_scenarios: [],
+    scenario_overrides: {},
+    remote_api_profile_rows: [],
+    custom_roles: [],
+    dev_roles: [],
+    skills_catalog: [],
+    roles: buildEmptyRoleSnapshots(),
+  };
+}
+
+export const useProjectsStore = defineStore("projects", () => {
+  const data = ref<ProjectsData | null>(null);
+
+  const currentId = computed(() => data.value?.current ?? "default");
+  const currentProject = computed<ProjectEntry | null>(
+    () => data.value?.projects[currentId.value] ?? null,
+  );
+  const projectList = computed(() => {
+    if (!data.value) return [];
+    return Object.keys(data.value.projects)
+      .sort()
+      .map((id) => ({ id, name: data.value!.projects[id].name || id }));
+  });
+
+  function _save(d: ProjectsData): void {
+    try {
+      persistenceAdapter.write(LS_PROJECTS, d);
+    } catch (e) {
+      frontendLogger.warn("projects: localStorage quota exceeded when saving", e);
+    }
+  }
+
+  function _load(): ProjectsData | null {
+    try {
+      const d = persistenceAdapter.read(LS_PROJECTS) as ProjectsData | null;
+      if (!d || d.v !== 1 || typeof d.projects !== "object") return null;
+      return d;
+    } catch (e) {
+      frontendLogger.warn("projects: failed to load project data from storage", e);
+      return null;
+    }
+  }
+
+  function _migrateLegacy(): ProjectsData | null {
+    try {
+      const snap = readLegacySettings() as SettingsSnap | null;
+      if (!snap || snap.v !== 1) return null;
+      const id = "default";
+      const pdata: ProjectsData = {
+        v: 1,
+        current: id,
+        projects: { [id]: { name: "Default", snap } },
+      };
+      _save(pdata);
+      return pdata;
+    } catch (e) {
+      frontendLogger.warn("projects: failed to migrate legacy settings", e);
+      return null;
+    }
+  }
+
+  function ensure(): ProjectsData {
+    let pdata = _load();
+    if (pdata && pdata.v === 1 && pdata.projects) {
+      const ids = Object.keys(pdata.projects);
+      if (ids.length) {
+        if (!pdata.current || !pdata.projects[pdata.current]) {
+          pdata.current = ids[0];
+          _save(pdata);
+        }
+        data.value = pdata;
+        return pdata;
+      }
+    }
+    const migrated = _migrateLegacy();
+    if (migrated) {
+      data.value = migrated;
+      return migrated;
+    }
+    const id = "default";
+    pdata = {
+      v: 1,
+      current: id,
+      projects: { [id]: { name: "Default", snap: buildEmptySnap() } },
+    };
+    _save(pdata);
+    data.value = pdata;
+    return pdata;
+  }
+
+  function saveSnap(snap: SettingsSnap): void {
+    if (!data.value) return;
+    const cur = data.value.current;
+    if (cur && data.value.projects[cur]) {
+      data.value.projects[cur].snap = snap;
+    }
+    _save(data.value);
+  }
+
+  function switchTo(id: string): SettingsSnap | null {
+    if (!data.value || !data.value.projects[id]) return null;
+    data.value.current = id;
+    _save(data.value);
+    return data.value.projects[id].snap;
+  }
+
+  function createProject(name: string): string {
+    const id =
+      "p_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+    if (!data.value) ensure();
+    data.value!.projects[id] = { name, snap: buildEmptySnap() };
+    data.value!.current = id;
+    _save(data.value!);
+    return id;
+  }
+
+  function renameProject(id: string, name: string): void {
+    if (!data.value?.projects[id]) return;
+    data.value.projects[id].name = name;
+    _save(data.value);
+  }
+
+  function deleteProject(id: string): string | null {
+    if (!data.value) return null;
+    const ids = Object.keys(data.value.projects);
+    if (ids.length <= 1) return null;
+    try {
+      persistenceAdapter.remove(LS_HISTORY + "_" + id);
+      persistenceAdapter.remove(LS_ACTIVE_TASK + "_" + id);
+      persistenceAdapter.remove(LS_EVENTS_VIEW + "_" + id);
+    } catch (e) {
+      frontendLogger.warn(
+        "projects: failed to remove project-scoped storage keys for",
+        e,
+      );
+    }
+    delete data.value.projects[id];
+    data.value.current = Object.keys(data.value.projects)[0];
+    _save(data.value);
+    return data.value.current;
+  }
+
+  function getCurrentSnap(): SettingsSnap | null {
+    return data.value?.projects[data.value.current]?.snap ?? null;
+  }
+
+  function getSnap(id: string): SettingsSnap | null {
+    return data.value?.projects[id]?.snap ?? null;
+  }
+
+  function patchSnap(id: string, partial: Partial<SettingsSnap>): void {
+    if (!data.value?.projects[id]) return;
+    data.value.projects[id].snap = {
+      ...data.value.projects[id].snap,
+      ...partial,
+    };
+    _save(data.value);
+  }
+
+  return {
+    data,
+    currentId,
+    currentProject,
+    projectList,
+    ensure,
+    saveSnap,
+    switchTo,
+    createProject,
+    renameProject,
+    deleteProject,
+    getCurrentSnap,
+    getSnap,
+    patchSnap,
+  };
+});

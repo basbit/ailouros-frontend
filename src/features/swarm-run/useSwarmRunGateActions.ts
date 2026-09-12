@@ -1,5 +1,5 @@
 import type { useUxStore } from "@/shared/store/ux";
-import type { RunSwarmChatSettings } from "@/shared/lib/agent-config";
+import type { RunSwarmChatSettings } from "@/entities/agent-config";
 import {
   submitHumanResume,
   confirmShell,
@@ -9,7 +9,7 @@ import {
   submitRetry,
   submitContinuePipeline,
   type GateActionResult,
-} from "@/shared/lib/task-gate-actions";
+} from "@/features/swarm-run/task-gate-actions";
 import type { SwarmRunState } from "./useSwarmRunState";
 import type { useSwarmRunTickHandler } from "./useSwarmRunTickHandler";
 

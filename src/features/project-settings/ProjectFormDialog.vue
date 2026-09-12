@@ -4,6 +4,7 @@
       <div
         v-if="open"
         class="project-form__backdrop"
+        data-testid="project-form-dialog"
         role="dialog"
         aria-modal="true"
         :aria-label="title"
@@ -37,7 +38,12 @@
               <button type="button" class="btn-secondary" @click="onCancel">
                 {{ t("dialogs.cancel") }}
               </button>
-              <button type="submit" class="btn-primary" :disabled="!form.name.trim()">
+              <button
+                type="submit"
+                class="btn-primary"
+                data-testid="project-form-submit"
+                :disabled="!form.name.trim()"
+              >
                 {{
                   mode === "create" ? t("projectForm.create") : t("projectForm.save")
                 }}

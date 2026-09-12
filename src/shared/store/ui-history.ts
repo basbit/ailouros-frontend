@@ -4,7 +4,7 @@ import {
   LS_EVENTS_VIEW,
   LS_HISTORY,
   HISTORY_LIMIT,
-} from "@/shared/lib/swarm-constants";
+} from "@/shared/lib/swarm-ui-constants";
 import {
   persistenceAdapter,
   readWithLegacyCopy,
@@ -26,6 +26,10 @@ export interface HistoryEntry {
   startedAt?: number | null;
   finishedAt?: number | null;
   durationMs?: number | null;
+  /** Set when this run is a fork: the run it branched from. */
+  parentTaskId?: string | null;
+  /** Set when this run is a fork: the step it branched at. */
+  forkedFromStep?: string | null;
 }
 
 function historyKey(pid: string): string {

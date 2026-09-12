@@ -220,7 +220,7 @@ import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings"
 import AutonomousToggleWithPicker from "@/features/global-settings/autonomous/AutonomousToggleWithPicker.vue";
 import AutonomousBackgroundAgentForm from "@/features/global-settings/autonomous/AutonomousBackgroundAgentForm.vue";
 import type { GlobalSettingsData } from "./useGlobalSettings";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 
 const { t } = useI18n();
 const { state, setKey } = useGlobalSettings();

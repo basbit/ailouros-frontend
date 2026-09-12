@@ -44,3 +44,33 @@ describe("attachment reader", () => {
     expect(looksBinary("ok\u0000then")).toBe(true);
   });
 });
+
+describe("per-file size limit", () => {
+  it("rejects a file over the limit instead of letting the backend truncate it", async () => {
+    const limit = 100;
+    const big = new File(["x".repeat(limit + 1)], "big.txt", { type: "text/plain" });
+
+    const result = await readAttachments([big], [], limit);
+
+    expect(result.accepted).toHaveLength(0);
+    expect(result.rejected).toEqual([{ name: "big.txt", reason: "too_large" }]);
+  });
+
+  it("accepts a file exactly at the limit", async () => {
+    const limit = 10;
+    const exact = new File(["y".repeat(limit)], "exact.txt", { type: "text/plain" });
+
+    const result = await readAttachments([exact], [], limit);
+
+    expect(result.accepted.map((a) => a.name)).toEqual(["exact.txt"]);
+    expect(result.rejected).toHaveLength(0);
+  });
+
+  it("applies no limit when none is supplied", async () => {
+    const file = new File(["z".repeat(5000)], "unbounded.txt", { type: "text/plain" });
+
+    const result = await readAttachments([file], []);
+
+    expect(result.accepted.map((a) => a.name)).toEqual(["unbounded.txt"]);
+  });
+});

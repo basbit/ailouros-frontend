@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import type { RunAvailability, TaskStatus } from "@/shared/model/task-types";
 import type { PipelinePlanSnapshot } from "@/shared/api/endpoints/pipeline";
-import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-constants";
+import { LS_ACTIVE_TASK } from "@/shared/lib/swarm-ui-constants";
 import {
   persistenceAdapter,
   readWithLegacyCopy,

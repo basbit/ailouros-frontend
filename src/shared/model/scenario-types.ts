@@ -1,3 +1,5 @@
+import type { components } from "@/shared/api/openapi-types";
+
 export type ScenarioCategory =
   | "development"
   | "research"
@@ -50,35 +52,31 @@ export interface ScenarioInputSpec {
   required: boolean;
 }
 
-export interface ScenarioSummary {
-  id: string;
-  title: string;
+/**
+ * Backed by the generated `ScenarioSummaryResponse` (see `GET /v1/scenarios`),
+ * so a backend field rename is a compile error here. Three fields are narrowed
+ * beyond what OpenAPI can express: `category` is a closed union, and
+ * `quality_checks` / `inputs` are typed objects rather than free-form dicts.
+ * `topology` / `auto_project_docs` are optional so existing literals still
+ * satisfy the type.
+ */
+export type ScenarioSummary = Omit<
+  components["schemas"]["ScenarioSummaryResponse"],
+  "category" | "quality_checks" | "inputs" | "topology" | "auto_project_docs"
+> & {
   category: ScenarioCategory;
-  description: string;
-  pipeline_steps: string[];
-  default_gates: string[];
-  expected_artifacts: string[];
-  required_tools: string[];
-  workspace_write_default: boolean;
-  recommended_models: Record<string, string>;
-  tags: string[];
   quality_checks: QualityCheckSpec[];
   inputs: ScenarioInputSpec[];
-}
+  topology?: string;
+  auto_project_docs?: string[];
+};
 
-export interface ScenarioPreview {
+export type ScenarioPreview = Omit<
+  components["schemas"]["ScenarioPreviewResponse"],
+  "scenario"
+> & {
   scenario: ScenarioSummary;
-  pipeline_steps: string[];
-  default_gates: string[];
-  expected_artifacts: string[];
-  required_tools: string[];
-  recommended_models: Record<string, string>;
-  agent_config: Record<string, unknown>;
-  workspace_write: boolean;
-  warnings: string[];
-  skipped_gates: string[];
-  model_profile_applied: Record<string, string>;
-}
+};
 
 export interface ScenarioPreviewOverrides {
   pipeline_steps?: string[];
@@ -117,18 +115,8 @@ export interface ScenarioArtifactsResponse {
   summary: ScenarioArtifactSummary;
 }
 
-interface StepEstimate {
-  step_id: string;
-  estimated_duration_sec: number | null;
-  essential: boolean;
-}
-
-export interface ScenarioEstimate {
-  scenario_id: string;
-  steps: StepEstimate[];
-  total_seconds: number | null;
-  essential_seconds: number | null;
-}
+export type ScenarioEstimate =
+  components["schemas"]["ScenarioEstimateResponse"];
 
 export interface ScenarioQualityChecksResponse {
   task_id: string;

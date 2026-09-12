@@ -2,7 +2,7 @@ import {
   defaultEnvironmentForRole,
   defaultModelForRole,
   defaultPromptPathForRole,
-} from "@/shared/lib/use-swarm-defaults";
+} from "@/entities/role";
 import type { RoleSnapshot } from "@/entities/role";
 import type { RoleState } from "./useRoleState";
 import type { useRoleModelSelector } from "./useRoleModelSelector";

@@ -17,30 +17,51 @@ test.describe("App smoke", () => {
     expect(resp.ok()).toBeTruthy();
   });
 
-  test("sidebar collapse persists and project dialog flow works", async ({ page }) => {
-    await page.goto("/#/legacy");
-    // Wait for app to be ready
+  test("project switcher creates a project, makes it current and switches back", async ({
+    page,
+  }) => {
+    // The create-project flow asks the backend whether this is a desktop build
+    // before it resolves a workspace root; stub it so the scenario exercises the
+    // UI flow itself rather than the presence of a server (the sibling tests in
+    // this file stub their backend calls the same way).
+    await page.route("**/v1/desktop/info", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ is_desktop: false, workspaces_dir: "" }),
+      });
+    });
+
+    await page.goto("/");
     await expect(page.getByRole("main")).toBeVisible({ timeout: 10_000 });
 
-    // Use CSS class — button has no visible text, only title attribute
-    await page.locator(".sidebar-toggle").click();
-    await expect(page.locator(".swarm-vue-host--sidebar-collapsed")).toBeVisible();
+    const trigger = page.getByTestId("project-switcher-trigger");
+    const current = page.getByTestId("project-switcher-current");
+    await expect(current).toHaveText("Default");
 
+    await trigger.click();
+    await page.getByTestId("project-switcher-new").click();
+
+    const dialog = page.getByTestId("project-form-dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId("project-form-name").fill("QA Sandbox");
+    await dialog.getByTestId("project-form-submit").click();
+
+    await expect(dialog).toBeHidden();
+    await expect(current).toHaveText("QA Sandbox");
+
+    // The new project is a real, switchable entry, not just a relabelled header.
+    await trigger.click();
+    const items = page.getByTestId("project-switcher-item");
+    await expect(items).toHaveCount(2);
+    await items.filter({ hasText: "Default" }).click();
+    await expect(current).toHaveText("Default");
+
+    // …and it survives a reload, which is what persistence of the project store means.
     await page.reload();
-    await expect(page.locator(".swarm-vue-host--sidebar-collapsed")).toBeVisible();
-
-    await page.locator(".sidebar-toggle").click();
-    await page.locator(".project-switcher__trigger").click();
-    await page.getByRole("button", { name: /New project|Новый проект/i }).click();
-    const projectFormDialog = page.locator(".project-form__backdrop");
-    await expect(projectFormDialog).toContainText(/New project|Новый проект/i);
-    await projectFormDialog.locator("#pf-name").fill("QA Sandbox");
-    await projectFormDialog
-      .getByRole("button", { name: /Create project|Создать проект/i })
-      .click();
-    await expect(page.locator(".project-switcher__trigger-value")).toContainText(
-      "QA Sandbox",
-    );
+    await expect(page.getByRole("main")).toBeVisible({ timeout: 10_000 });
+    await trigger.click();
+    await expect(page.getByTestId("project-switcher-item")).toHaveCount(2);
   });
 
   test("terminal summary and graph failed-step status are rendered from persisted task state", async ({

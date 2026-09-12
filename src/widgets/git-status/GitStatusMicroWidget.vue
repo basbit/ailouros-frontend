@@ -1,5 +1,10 @@
 <template>
-  <div v-if="status && status.is_git" class="git-status-widget">
+  <div v-if="loadError" class="git-status-widget">
+    <span class="chip chip--failed" :title="loadError">
+      &#9888; {{ t("gitStatus.error") }}
+    </span>
+  </div>
+  <div v-else-if="status && status.is_git" class="git-status-widget">
     <button
       type="button"
       class="git-status-pill"
@@ -47,7 +52,7 @@
       <header class="git-status-popover__header">
         <div class="git-status-popover__title">
           <span
-            >Git: <strong>{{ status.branch }}</strong></span
+            >{{ t("gitStatus.title") }}: <strong>{{ status.branch }}</strong></span
           >
           <code v-if="status.head_sha" class="git-status-popover__sha"
             >@{{ status.head_sha }}</code
@@ -104,9 +109,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { getGitStatus, type GitStatusPayload } from "@/shared/api/endpoints/workspace";
+
+const POLL_INTERVAL_MS = 15000;
 
 const props = defineProps<{
   workspaceRoot?: string | null;
@@ -115,6 +130,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const status = ref<GitStatusPayload | null>(null);
+const loadError = ref<string | null>(null);
 const isLoading = ref(false);
 const isPopoverOpen = ref(false);
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -132,23 +148,30 @@ async function fetchStatus(): Promise<void> {
       workspaceRoot: props.workspaceRoot,
       taskId: props.taskId,
     });
-  } catch {
-    // Non-git or unavailable
-    status.value = null;
+    loadError.value = null;
+  } catch (requestError: unknown) {
+    // A failed lookup is not the same as "not a git repo": keep the previous
+    // snapshot and surface the failure instead of silently blanking the pill.
+    loadError.value =
+      requestError instanceof Error ? requestError.message : String(requestError);
   } finally {
     isLoading.value = false;
   }
 }
 
-function setupPolling(): void {
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
-  }
+function startPolling(): void {
+  stopPolling();
   if (props.taskId || props.workspaceRoot) {
     pollInterval = setInterval(() => {
       void fetchStatus();
-    }, 15000);
+    }, POLL_INTERVAL_MS);
+  }
+}
+
+function stopPolling(): void {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
   }
 }
 
@@ -157,7 +180,7 @@ watch(
   ([workspacePath, currentTaskId]) => {
     if (workspacePath || currentTaskId) {
       void fetchStatus();
-      setupPolling();
+      startPolling();
     }
   },
   { immediate: true },
@@ -165,15 +188,14 @@ watch(
 
 onMounted(() => {
   void fetchStatus();
-  setupPolling();
+  startPolling();
 });
 
-onBeforeUnmount(() => {
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
-  }
-});
+// Every route is cached by <keep-alive>, so leaving the page fires
+// onDeactivated — not onBeforeUnmount. Without this the 15s poll ran forever.
+onDeactivated(stopPolling);
+onActivated(startPolling);
+onBeforeUnmount(stopPolling);
 </script>
 
 <style scoped src="./git-status-micro-widget.css"></style>

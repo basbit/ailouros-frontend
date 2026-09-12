@@ -97,7 +97,7 @@ export async function tryGetWorkspaceFile(
   }
 }
 
-export interface GitCommitDto {
+interface GitCommitDto {
   sha: string;
   message: string;
   author: string;

@@ -111,8 +111,8 @@
 import { computed, ref } from "vue";
 import type { RoleState } from "@/features/agent-roles/useAgentRoles";
 import { useI18n } from "@/shared/lib/i18n";
-import { ROLE_NEEDS_TOOL_CALLING, ROLE_MODEL_HINT } from "@/shared/lib/swarm-constants";
-import type { RoleId } from "@/shared/lib/swarm-constants";
+import { ROLE_NEEDS_TOOL_CALLING, ROLE_MODEL_HINT } from "@/entities/role";
+import type { RoleId } from "@/entities/role";
 import ModelPickerField from "@/shared/components/ModelPickerField.vue";
 import SkillIdsPicker from "@/shared/components/SkillIdsPicker.vue";
 import FilePathPicker from "@/shared/components/FilePathPicker.vue";

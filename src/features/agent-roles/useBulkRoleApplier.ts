@@ -1,4 +1,4 @@
-import { ROLES } from "@/shared/lib/pipeline-schema";
+import { ROLES } from "@/entities/role";
 import type { RoleState } from "./useRoleState";
 
 interface BulkRoleApplierDeps {

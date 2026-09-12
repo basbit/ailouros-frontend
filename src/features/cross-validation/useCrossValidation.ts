@@ -1,7 +1,7 @@
 import { ref, reactive } from "vue";
 import type { CrossValidatorSnap } from "@/entities/project";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
-import { defaultEnvironmentForRole } from "@/shared/lib/use-swarm-defaults";
+import type { RemoteProfileRow } from "@/entities/project";
+import { defaultEnvironmentForRole } from "@/entities/role";
 import {
   ensureModelChoicesForEnv,
   fetchCloudModelsForProfile,

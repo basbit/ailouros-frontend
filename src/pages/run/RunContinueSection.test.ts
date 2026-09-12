@@ -6,7 +6,7 @@ import { reactive } from "vue";
 import RunContinueSection from "./RunContinueSection.vue";
 import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
 import { useUiStore } from "@/shared/store/ui";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 
 const pushSpy = vi.fn();
 const replaceSpy = vi.fn();
@@ -27,11 +27,11 @@ vi.mock("@/shared/api/endpoints/task-gates", () => ({
   }),
 }));
 
-vi.mock("@/shared/lib/task-gate-actions", () => ({
+vi.mock("@/features/swarm-run/task-gate-actions", () => ({
   drainStream: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/shared/lib/agent-config", () => ({
+vi.mock("@/entities/agent-config", () => ({
   buildAgentConfig: () => ({}),
 }));
 

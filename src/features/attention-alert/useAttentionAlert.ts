@@ -1,17 +1,25 @@
 import { computed, getCurrentInstance, onMounted, onUnmounted, watch } from "vue";
+import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import { usePreferencesStore } from "@/shared/store/preferences";
 import { isDesktop } from "@/shared/lib/desktop-bridge";
 import { sendDesktopNotification } from "@/shared/lib/useDesktopNotifications";
+import {
+  findBackgroundTaskAwaitingHuman,
+  isAttentionRequiredIn,
+} from "./attentionState";
 
 export interface AttentionAlertState {
   isAttentionRequired: boolean;
   reason: string | null;
 }
 
+const ATTENTION_ALERT_DEBOUNCE_MS = 3000;
+
 let originalDocumentTitle: string = "";
 let originalFaviconHref: string | null = null;
 let lastChimeTimestamp: number = 0;
+let appliedTitleMarker: string | null = null;
 
 export function playAttentionChime(): void {
   if (typeof window === "undefined") return;
@@ -99,6 +107,7 @@ export function updateFaviconBadge(hasBadge: boolean): void {
 }
 
 export function useAttentionAlert() {
+  const { t } = useI18n();
   const ui = useUiStore();
   const preferences = usePreferencesStore();
   const isMuted = computed<boolean>({
@@ -108,42 +117,21 @@ export function useAttentionAlert() {
     },
   });
 
-  const isAttentionRequired = computed(() => {
-    if (
-      ui.humanGateVisible ||
-      ui.shellGateVisible ||
-      ui.manualShellGateVisible ||
-      ui.retryGateVisible
-    ) {
-      return true;
-    }
-    if (ui.taskStatus === "awaiting_human") {
-      return true;
-    }
-    return ui.historyList.some(
-      (entry) =>
-        entry.status === "awaiting_human" &&
-        Boolean(entry.taskId) &&
-        ui.activeRunIds.includes(entry.taskId as string),
-    );
-  });
+  const isAttentionRequired = computed(() => isAttentionRequiredIn(ui));
 
   const attentionReason = computed<string | null>(() => {
-    if (ui.humanGateVisible) return ui.humanGateTitle || "Human approval required";
-    if (ui.shellGateVisible) return "Shell command approval required";
+    if (ui.humanGateVisible) return ui.humanGateTitle || t("attention.humanApproval");
+    if (ui.shellGateVisible) return t("attention.shellApproval");
     if (ui.manualShellGateVisible)
-      return ui.manualShellReason || "Manual shell action required";
+      return ui.manualShellReason || t("attention.manualShell");
     if (ui.retryGateVisible)
-      return `Retry decision required for step: ${ui.retryFailedStep || "unknown"}`;
-    if (ui.taskStatus === "awaiting_human") return "Pipeline awaiting human review";
-    const backgroundTask = ui.historyList.find(
-      (entry) =>
-        entry.status === "awaiting_human" &&
-        Boolean(entry.taskId) &&
-        ui.activeRunIds.includes(entry.taskId as string),
-    );
-    if (backgroundTask && backgroundTask.taskId)
-      return `Task ${backgroundTask.taskId.slice(0, 8)} awaiting human review`;
+      return t("attention.retryDecision", {
+        step: ui.retryFailedStep || t("attention.unknownStep"),
+      });
+    if (ui.taskStatus === "awaiting_human") return t("attention.awaitingReview");
+    const backgroundTaskId = findBackgroundTaskAwaitingHuman(ui);
+    if (backgroundTaskId)
+      return t("attention.backgroundTask", { taskId: backgroundTaskId.slice(0, 8) });
     return null;
   });
 
@@ -166,38 +154,41 @@ export function useAttentionAlert() {
       if (!originalDocumentTitle) {
         originalDocumentTitle = document.title;
       }
-      if (!document.title.includes("(⚠️ Attention)")) {
-        document.title = `(⚠️ Attention) ${originalDocumentTitle}`;
+      const marker = t("attention.titleMarker");
+      if (!document.title.includes(marker)) {
+        document.title = `${marker} ${originalDocumentTitle}`;
       }
+      appliedTitleMarker = marker;
       updateFaviconBadge(true);
     }
 
     const now = Date.now();
-    // Debounce audible/push alerts to at most once every 3s
-    if (now - lastChimeTimestamp >= 3000) {
-      lastChimeTimestamp = now;
+    if (now - lastChimeTimestamp < ATTENTION_ALERT_DEBOUNCE_MS) return;
+    lastChimeTimestamp = now;
 
-      if (!isMuted.value) {
-        playAttentionChime();
-      }
+    // Muting the bell must silence the desktop notification too — it is the
+    // loudest half of the alert, and the toggle claims alerts are off.
+    if (isMuted.value) return;
 
-      void sendDesktopNotification({
-        title: "Agent Swarm: Attention Required",
-        body: reason,
-        level: "warning",
-      });
+    playAttentionChime();
 
-      void triggerDesktopAttention();
-    }
+    void sendDesktopNotification({
+      title: t("attention.notificationTitle"),
+      body: reason,
+      level: "warning",
+    });
+
+    void triggerDesktopAttention();
   }
 
   function handleAttentionCleared(): void {
     if (typeof document !== "undefined") {
       if (originalDocumentTitle) {
         document.title = originalDocumentTitle;
-      } else {
-        document.title = document.title.replace("(⚠️ Attention) ", "");
+      } else if (appliedTitleMarker) {
+        document.title = document.title.replace(`${appliedTitleMarker} `, "");
       }
+      appliedTitleMarker = null;
       updateFaviconBadge(false);
     }
   }
@@ -206,7 +197,7 @@ export function useAttentionAlert() {
     isAttentionRequired,
     (active, previous) => {
       if (active && !previous) {
-        handleAttentionTriggered(attentionReason.value || "Human review requested");
+        handleAttentionTriggered(attentionReason.value || t("attention.default"));
       } else if (!active && previous) {
         handleAttentionCleared();
       }
@@ -220,7 +211,7 @@ export function useAttentionAlert() {
         originalDocumentTitle = document.title;
       }
       if (isAttentionRequired.value) {
-        handleAttentionTriggered(attentionReason.value || "Human review requested");
+        handleAttentionTriggered(attentionReason.value || t("attention.default"));
       }
     });
 

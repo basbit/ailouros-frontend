@@ -7,6 +7,7 @@
 
     <AppHeader
       :task-id="ui.taskId"
+      :workspace-root="settings.form.workspace_root?.trim() || null"
       :is-running="isRunning"
       :project-name="currentProjectName"
       :current-project-id="projectsStore.currentId"
@@ -158,10 +159,10 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import { useUiStore } from "@/shared/store/ui";
 import { usePreferencesStore } from "@/shared/store/preferences";
-import { APP_SETTINGS_KEY } from "@/entities/app-settings/contract";
+import { APP_SETTINGS_KEY } from "@/app/providers/settingsContext";
 import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { GLOBAL_SETTINGS_KEY } from "@/features/global-settings/globalSettingsContext";
 import { useInjectedProjectFormActions } from "@/entities/project-form";

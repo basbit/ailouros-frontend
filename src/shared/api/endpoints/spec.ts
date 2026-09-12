@@ -1,21 +1,12 @@
 import { httpGet, httpPost } from "@/shared/api/http";
+import type { components, paths } from "@/shared/api/openapi-types";
 
-export interface SpecGraphNodeDto {
-  id: string;
-  kind: string;
-  payload?: Record<string, unknown>;
-}
+export type SpecGraphNodeDto = components["schemas"]["SpecGraphNodeResponse"];
 
-export interface SpecGraphEdgeDto {
-  from: string;
-  to: string;
-  kind: string;
-}
+export type SpecGraphEdgeDto = components["schemas"]["SpecGraphEdgeResponse"];
 
-export interface SpecGraphDto {
-  nodes?: SpecGraphNodeDto[];
-  edges?: SpecGraphEdgeDto[];
-}
+export type SpecGraphDto =
+  paths["/v1/spec/graph"]["get"]["responses"][200]["content"]["application/json"];
 
 export interface SpecDocumentDto {
   spec_id: string;
@@ -158,9 +149,8 @@ export interface SpecInitDto {
   bootstrapped: boolean;
 }
 
-export interface SpecListDto {
-  spec_ids: string[];
-}
+export type SpecListDto =
+  paths["/v1/spec/list"]["get"]["responses"][200]["content"]["application/json"];
 
 /**
  * Bootstraps `.swarm/specs` for a workspace. Local-caller guarded, so it is

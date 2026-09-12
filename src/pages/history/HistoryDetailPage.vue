@@ -58,7 +58,13 @@
               <ToolActivityPanel :task-id="entry.taskId ?? null" />
               <ConversationPanel :task-id="entry.taskId ?? null" />
             </div>
-            <RunArtifactsTab v-else-if="activeTab === 'artifacts'" />
+            <RunArtifactsTab
+              v-else-if="activeTab === 'artifacts'"
+              :task-id="entry?.taskId ?? null"
+              :workspace-root="workspaceRootForRun"
+              :scenario="runScenario"
+              is-history
+            />
             <TokensTab
               v-else-if="activeTab === 'tokens'"
               :task-id="entry.taskId ?? null"
@@ -122,10 +128,11 @@ import { useHistoryDetailTabs } from "./useHistoryDetailTabs";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
 import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useUxStore } from "@/shared/store/ux";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import type { TaskStatus } from "@/shared/model/task-types";
 import { formatDate, formatRelative, promptPreviewOf } from "./historyFormatters";
 import { useI18n } from "@/shared/lib/i18n";
+import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
 
 const props = defineProps<{ runId: string }>();
 
@@ -137,13 +144,65 @@ const { t } = useI18n();
 
 const hintDismissed = ref(false);
 
+const fallbackRemoteEntry = ref<HistoryEntry | null>(null);
+
 const entry = computed<HistoryEntry | null>(() => {
-  return ui.historyList.find((item) => item.id === props.runId) ?? null;
+  const local = ui.historyList.find(
+    (item) => item.id === props.runId || (item.taskId && item.taskId === props.runId),
+  );
+  if (local) return local;
+  return fallbackRemoteEntry.value;
 });
+
+watch(
+  () => props.runId,
+  async (runId) => {
+    fallbackRemoteEntry.value = null;
+    const local = ui.historyList.find(
+      (item) => item.id === runId || (item.taskId && item.taskId === runId),
+    );
+    if (!local && runId) {
+      try {
+        const snapshot = await getLegacyTaskSnapshot(runId);
+        if (snapshot && (snapshot.task_id || snapshot.pipeline_steps)) {
+          const raw = snapshot as Record<string, unknown>;
+          const promptText =
+            typeof raw.user_prompt === "string" && raw.user_prompt.trim()
+              ? raw.user_prompt.trim()
+              : typeof raw.prompt === "string" && raw.prompt.trim()
+                ? raw.prompt.trim()
+                : snapshot.task_id || runId;
+          fallbackRemoteEntry.value = {
+            id: snapshot.task_id || runId,
+            at: Date.now(),
+            prompt: promptText,
+            agent_config: {},
+            pipeline_steps: snapshot.pipeline_steps || [],
+            taskId: snapshot.task_id || runId,
+            status: (snapshot.status as TaskStatus) || null,
+            error: snapshot.error ? String(snapshot.error) : null,
+          };
+        }
+      } catch {
+        fallbackRemoteEntry.value = null;
+      }
+    }
+  },
+  { immediate: true },
+);
 
 const workspaceRootForRun = computed<string>(() =>
   (entry.value?.workspace_root ?? "").trim(),
 );
+
+const runScenario = computed<string | null>(() => {
+  const config = entry.value?.agent_config;
+  if (config && typeof config === "object" && "scenario" in config) {
+    const raw = (config as { scenario?: unknown }).scenario;
+    return typeof raw === "string" ? raw : null;
+  }
+  return null;
+});
 
 const canShowResume = computed<boolean>(() => {
   if (!entry.value?.taskId) return false;

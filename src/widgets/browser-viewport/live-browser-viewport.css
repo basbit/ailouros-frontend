@@ -3,9 +3,9 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: var(--bg-1, #121217);
-  border: 1px solid var(--line, #2c2c35);
-  border-radius: 8px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md, 8px);
   overflow: hidden;
 }
 
@@ -14,24 +14,24 @@
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: var(--card, #1c1c24);
-  border-bottom: 1px solid var(--line, #2c2c35);
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
 }
 
 .live-browser-viewport__icon-btn {
   background: transparent;
   border: none;
-  color: var(--ink-2, #aaa);
+  color: var(--ink-2);
   font-size: 16px;
   cursor: pointer;
   padding: 4px 6px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
 }
 
 .live-browser-viewport__icon-btn:hover {
-  background: var(--bg-2, #292936);
-  color: var(--ink, #fff);
+  background: var(--bg-2);
+  color: var(--ink);
 }
 
 .live-browser-viewport__url-form {
@@ -39,9 +39,9 @@
   align-items: center;
   flex: 1;
   min-width: 220px;
-  background: var(--bg-1, #111115);
-  border: 1px solid var(--line, #333);
-  border-radius: 6px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm, 6px);
   padding: 0 8px;
 }
 
@@ -55,7 +55,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--ink, #fff);
+  color: var(--ink);
   font-family: var(--font-mono, monospace);
   font-size: 12px;
   padding: 6px 0;
@@ -65,34 +65,35 @@
 .live-browser-viewport__go-btn {
   background: transparent;
   border: none;
-  color: var(--accent, #6366f1);
+  color: var(--accent);
   font-weight: 700;
   cursor: pointer;
 }
 
 .live-browser-viewport__modes {
   display: inline-flex;
-  background: var(--bg-2, #23232f);
+  background: var(--bg-2);
   padding: 2px;
-  border-radius: 6px;
+  border-radius: var(--r-sm, 6px);
   gap: 2px;
 }
 
 .live-browser-viewport__mode-btn {
   background: transparent;
   border: none;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
   font-size: 11px;
   font-weight: 600;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .live-browser-viewport__mode-btn--active {
-  background: var(--card, #2c2c3a);
-  color: var(--ink, #fff);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 .live-browser-viewport__status {
@@ -100,30 +101,30 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: var(--ink-3, #888);
+  color: var(--ink-3);
 }
 
 .live-browser-viewport__status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--ink-4, #555);
+  background: var(--ink-4, #94a3b8);
 }
 
 .live-browser-viewport__status-dot--connected {
-  background: var(--ok, #10b981);
+  background: var(--ok);
   animation: pulse-dot 1.5s infinite;
 }
 
 .live-browser-viewport__status-dot--connecting {
-  background: var(--warn, #f59e0b);
+  background: var(--warn);
 }
 
 .live-browser-viewport__reconnect-btn {
-  background: var(--accent, #6366f1);
+  background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 4px 8px;
   font-size: 11px;
   font-weight: 600;
@@ -133,20 +134,26 @@
 .live-browser-viewport__surface {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 16px;
   overflow: auto;
-  background: var(--bg-1, #0f0f13);
+  background: var(--bg-2);
+  min-height: 0;
 }
 
 .live-browser-viewport__frame-wrapper {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  border-radius: 6px;
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.12));
+  border: 1px solid var(--line);
+  border-radius: var(--r-md, 8px);
   overflow: hidden;
-  background: #000;
+  background: var(--card);
   cursor: crosshair;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .live-browser-viewport__image {
@@ -158,6 +165,12 @@
 }
 
 .live-browser-viewport__placeholder {
-  color: var(--ink-3, #777);
+  color: var(--ink-3);
   font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: auto;
 }

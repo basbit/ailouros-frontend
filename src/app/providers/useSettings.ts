@@ -1,6 +1,7 @@
 import { ref } from "vue";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 import type { SettingsSnap } from "@/entities/project";
+import type { AppSettingsContract } from "@/entities/app-settings/contract";
 import { useAgentRoles } from "@/features/agent-roles/useAgentRoles";
 import { useRemoteApiProfiles } from "@/features/remote-api/useRemoteApiProfiles";
 import { usePipeline } from "@/features/pipeline/usePipeline";
@@ -42,6 +43,7 @@ export function useSettings() {
       project_context_file: form.project_context_file,
       workspace_write: form.workspace_write,
       workspace_context_mode: form.workspace_context_mode,
+      dev_code_generator: form.dev_code_generator,
       human_manual_review: form.human_manual_review,
       attachments: JSON.parse(JSON.stringify(form.attachments ?? [])),
       image_attachments: JSON.parse(JSON.stringify(form.image_attachments ?? [])),
@@ -185,7 +187,7 @@ export function useSettings() {
     applyDefaultProviderUrl: applyRemoteProviderDefaultUrl,
   });
 
-  return {
+  const api = {
     form,
     isBooting,
     profilesState,
@@ -205,4 +207,7 @@ export function useSettings() {
     applyRemoteProviderDefaultUrl,
     ...lifecycle,
   };
+  // Compile-time proof that this provider implements the port declared by the
+  // entities layer, while callers in this layer keep the full inferred type.
+  return api satisfies AppSettingsContract;
 }

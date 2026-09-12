@@ -3,7 +3,7 @@ import {
   ensureModelChoicesForEnv,
   fetchCloudModelsForProfile,
 } from "@/shared/lib/use-model-list";
-import type { RemoteProfileRow } from "@/shared/model/project-types";
+import type { RemoteProfileRow } from "@/entities/project";
 
 export interface BulkModelCatalogApi {
   bulkModelChoices: Ref<[string, string][]>;

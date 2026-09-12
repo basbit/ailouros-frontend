@@ -107,6 +107,24 @@
             @apply="handlers.onApplyPatternHint"
             @dismiss="handlers.onDismissPatternHint"
           />
+
+          <div class="run-idle__ecosystem-cards">
+            <IssueImporterCard
+              :workspace-root="settings.form.workspace_root"
+              @imported="handlers.onIssueImported"
+            />
+            <p v-if="playbooksError" class="run-idle__playbooks-error" role="alert">
+              {{ t("playbooks.loadError", { error: playbooksError }) }}
+            </p>
+            <div v-else-if="playbooks.length > 0" class="run-idle__playbooks">
+              <PlaybookCard
+                v-for="playbook in playbooks"
+                :key="playbook.id"
+                :playbook="playbook"
+                @started="handlers.onPlaybookStarted"
+              />
+            </div>
+          </div>
         </div>
       </main>
 
@@ -131,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject, onMounted, ref } from "vue";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ScenarioQuickLaunch from "@/features/scenario-picker/ScenarioQuickLaunch.vue";
@@ -139,11 +157,16 @@ import ScenarioPickerDialog from "@/features/scenario-picker/ScenarioPickerDialo
 import PipelineSpine from "@/widgets/run-idle/PipelineSpine.vue";
 import HistoryGlimpse from "@/widgets/run-idle/HistoryGlimpse.vue";
 import PatternMemoryHint from "@/widgets/pattern-memory-hint/PatternMemoryHint.vue";
+import IssueImporterCard from "@/features/issue-importer/IssueImporterCard.vue";
+import PlaybookCard from "@/features/playbook-runner/PlaybookCard.vue";
+import { fetchPlaybooks } from "@/entities/playbook/api/playbook-api";
+import type { Playbook } from "@/entities/playbook/model/types";
 import { RunUnavailableBanner } from "@/features/run-recovery";
 import { APP_SETTINGS_KEY } from "@/app/providers/settingsContext";
 import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
 import { useRunIdleHandlers } from "./useRunIdleHandlers";
 import { useI18n } from "@/shared/lib/i18n";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 const { t } = useI18n();
 
@@ -153,6 +176,21 @@ if (!injectedSettings || !injectedController) {
   throw new Error("RunIdlePage requires APP_SETTINGS_KEY and SWARM_RUN_CONTROLLER_KEY");
 }
 const settings = injectedSettings;
+
+const playbooks = ref<Playbook[]>([]);
+// A failed load is not an empty catalogue: rendering nothing at all made a 500
+// look like "this deployment ships no playbooks".
+const playbooksError = ref<string | null>(null);
+onMounted(async () => {
+  try {
+    playbooks.value = await fetchPlaybooks();
+    playbooksError.value = null;
+  } catch (error: unknown) {
+    playbooks.value = [];
+    playbooksError.value = error instanceof Error ? error.message : String(error);
+    frontendLogger.error("playbook catalogue load failed", error);
+  }
+});
 
 const handlers = useRunIdleHandlers(settings, injectedController);
 const {
@@ -210,7 +248,6 @@ const slashError = slashRunner.lastError;
 .run-idle__intro {
   text-align: center;
 }
-
 .run-idle__title {
   font-family: var(--font-display);
   font-size: 30px;
@@ -219,7 +256,6 @@ const slashError = slashRunner.lastError;
   color: var(--ink);
   margin-bottom: 6px;
 }
-
 .run-idle__subtitle {
   font-size: 13px;
   color: var(--ink-3);
@@ -243,7 +279,6 @@ const slashError = slashRunner.lastError;
   gap: 10px;
   flex-wrap: wrap;
 }
-
 .run-idle__spacer {
   flex: 1 1 auto;
 }
@@ -258,7 +293,6 @@ const slashError = slashRunner.lastError;
   color: var(--ink-3);
   cursor: pointer;
 }
-
 .run-idle__library-link:hover {
   border-color: var(--line-strong);
   color: var(--ink-2);
@@ -272,14 +306,11 @@ const slashError = slashRunner.lastError;
   border: none;
   border-radius: var(--r-md);
   background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-  color: #fff;
+  color: #17110c;
   cursor: pointer;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 6px 14px -4px var(--accent-glow);
+  box-shadow: 0 6px 14px -4px var(--accent-glow);
   transition: filter 0.15s;
 }
-
 .run-idle__run-btn:hover:not(:disabled) {
   filter: brightness(1.05);
 }
@@ -302,24 +333,21 @@ const slashError = slashRunner.lastError;
   padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  background: var(--bg-elev);
+  background: var(--card-soft);
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-
 .run-idle__slash-kind {
   font-family: var(--font-mono);
   color: var(--accent);
   margin-right: 6px;
 }
-
 .run-idle__slash-error {
   margin: 0;
   font-size: 12px;
   color: var(--error);
 }
-
 .run-idle__slash-result {
   margin: 0;
   font-size: 12px;
@@ -329,49 +357,51 @@ const slashError = slashRunner.lastError;
 .run-idle__gate-banner {
   margin-top: 12px;
   padding: 12px 16px;
-  border: 1px solid var(--warn, #c98a1a);
+  border: 1px solid var(--warn);
   border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--warn, #c98a1a) 12%, transparent);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
   display: flex;
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
 }
-
 .run-idle__gate-banner:hover {
   filter: brightness(1.05);
 }
-
 .run-idle__gate-banner-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-
 .run-idle__gate-banner-status {
   font-size: 12px;
   font-weight: 600;
-  color: var(--warn, #c98a1a);
+  color: var(--warn);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-
 .run-idle__gate-banner-open {
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--accent, #1f5fcf);
+  color: var(--accent);
   font-size: 12px;
   cursor: pointer;
   font-weight: 500;
 }
-
 .run-idle__gate-banner-message {
   margin: 0;
   font-size: 13px;
   color: var(--ink);
   line-height: 1.4;
   white-space: pre-wrap;
+}
+
+.run-idle__ecosystem-cards,
+.run-idle__playbooks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 </style>

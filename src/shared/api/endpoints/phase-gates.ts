@@ -4,6 +4,13 @@ import {
   type PhaseGateDecision,
 } from "@/shared/model/phase-gate-types";
 import { ApiError, httpGet, httpPost } from "@/shared/api/http";
+import type { paths } from "@/shared/api/openapi-types";
+
+type PhaseGateApiResponse =
+  paths["/v1/phase_gates/{gate_id}/decide"]["post"]["responses"][200]["content"]["application/json"];
+
+type PendingPhaseGatesApiResponse =
+  paths["/v1/phase_gates/pending"]["get"]["responses"][200]["content"]["application/json"];
 
 export interface DecidePhaseGateInput {
   workspaceRoot: string;
@@ -22,7 +29,7 @@ export async function decidePhaseGate(
     decided_by: input.decidedBy,
     rationale: input.rationale ?? "",
   };
-  const raw = await httpPost<Record<string, unknown>>(
+  const raw = await httpPost<PhaseGateApiResponse>(
     `/v1/phase_gates/${encodeURIComponent(gateId)}/decide`,
     body,
   );
@@ -41,7 +48,7 @@ export async function listPendingPhaseGates(
   workspaceRoot: string,
 ): Promise<PhaseGate[]> {
   const params = new URLSearchParams({ workspace_root: workspaceRoot });
-  const raw = await httpGet<{ items?: unknown }>(
+  const raw = await httpGet<PendingPhaseGatesApiResponse>(
     `/v1/phase_gates/pending?${params.toString()}`,
   );
   if (!Array.isArray(raw.items)) return [];

@@ -116,7 +116,7 @@ import StepTokensPanel from "@/features/pipeline/StepTokensPanel.vue";
 import ArtifactsPanel from "@/widgets/task-panel/ArtifactsPanel.vue";
 import { useUiStore } from "@/shared/store/ui";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
-import type { AppSettings } from "@/entities/app-settings/contract";
+import type { AppSettings } from "@/app/providers/settingsContext";
 import type { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import type { ModelAssignment } from "@/features/onboarding/onboarding-types";
 

@@ -110,6 +110,7 @@ export const DEFAULTS: GlobalSearchKeysState = {
   swarm_shell_allowlist: "",
   swarm_goal_scheduler_enabled: false,
   swarm_dev_shell_use_sandbox_resolver: false,
+  swarm_enable_code_mode: false,
   swarm_gate_audit_persist: false,
   swarm_block_unjustified_full_rewrite_before_apply: false,
   swarm_computer_control_enabled: true,

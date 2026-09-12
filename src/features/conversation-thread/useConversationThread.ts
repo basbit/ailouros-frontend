@@ -10,7 +10,7 @@ import {
   type ConversationThreadSummaryDto,
   type ConversationTurnDto,
 } from "@/shared/api/endpoints/conversation";
-import { useProjectsStore } from "@/shared/store/projects";
+import { useProjectsStore } from "@/entities/project";
 
 const threadsList = ref<ConversationThreadSummaryDto[]>([]);
 const activeThread = ref<ConversationThreadDto | null>(null);

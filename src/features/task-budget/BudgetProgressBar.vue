@@ -70,8 +70,8 @@ const statusLevel = computed<"normal" | "warning" | "exhausted">(() => {
   justify-content: space-between;
   align-items: center;
   font-size: 11px;
-  font-family: var(--font-mono, monospace);
-  color: var(--text-muted, #aaa);
+  font-family: var(--font-mono);
+  color: var(--ink-3);
 }
 
 .budget-progress__percentage {
@@ -81,14 +81,14 @@ const statusLevel = computed<"normal" | "warning" | "exhausted">(() => {
 .budget-progress-track {
   width: 100%;
   height: 6px;
-  background: var(--bg-surface-elevated, #2a2a36);
+  background: var(--card-soft);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .budget-progress-fill {
   height: 100%;
-  background: #10b981;
+  background: var(--ok);
   border-radius: 3px;
   transition:
     width 0.3s ease,
@@ -96,11 +96,11 @@ const statusLevel = computed<"normal" | "warning" | "exhausted">(() => {
 }
 
 .budget-progress-fill--warning {
-  background: #f59e0b;
+  background: var(--warn);
 }
 
 .budget-progress-fill--exhausted {
-  background: #ef4444;
+  background: var(--error);
   animation: pulse-fill 1.5s infinite;
 }
 

@@ -7,6 +7,10 @@
 
     <p class="models-pane__banner">{{ t("configure.apiKeysBanner") }}</p>
 
+    <div class="models-pane__external-agent">
+      <ExternalAgentPicker v-model="selectedDevAgent" />
+    </div>
+
     <AgentRoles
       flat
       :role-states="settings.rolesState.roleStates"
@@ -87,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, watch } from "vue";
+import { computed, nextTick, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import AgentRoles from "@/features/agent-roles/AgentRoles.vue";
@@ -95,13 +99,26 @@ import DevRoles from "@/features/dev-roles/DevRoles.vue";
 import SkillsCatalog from "@/features/skills-catalog/SkillsCatalog.vue";
 import CustomRoles from "@/features/custom-roles/CustomRoles.vue";
 import CrossValidation from "@/features/cross-validation/CrossValidation.vue";
+import ExternalAgentPicker from "@/features/external-agent-selector/ExternalAgentPicker.vue";
+import {
+  CODE_GENERATOR_DEFAULT,
+  type CodeGeneratorKind,
+} from "@/shared/model/code-generator-types";
 import { useInjectedAppSettings } from "@/app/providers/settingsContext";
 import { useRoleHandlers } from "@/pages/swarm-ui/useRoleHandlers";
 import { useSwarmUiDerived } from "@/pages/swarm-ui/useSwarmUiDerived";
 import { useI18n } from "@/shared/lib/i18n";
-import { ROLES } from "@/shared/lib/pipeline-schema";
+import { ROLES } from "@/entities/role";
 
 const settings = useInjectedAppSettings();
+
+const selectedDevAgent = computed({
+  get: () => settings.form.dev_code_generator ?? CODE_GENERATOR_DEFAULT,
+  set: (value: string) => {
+    settings.form.dev_code_generator = value as CodeGeneratorKind;
+    settings.saveSettingsSoon();
+  },
+});
 const { t } = useI18n();
 const route = useRoute();
 
@@ -234,5 +251,9 @@ function onMediaUpdate(field: string, value: string): void {
   outline-offset: 2px;
   border-radius: var(--r-md, 6px);
   transition: outline-color 0.3s ease-out;
+}
+
+.models-pane__external-agent {
+  margin-bottom: 8px;
 }
 </style>

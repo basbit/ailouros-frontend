@@ -1,13 +1,11 @@
 import { httpGet, httpPost } from "@/shared/api/http";
+import type { paths } from "@/shared/api/openapi-types";
 
-export interface DesktopInfo {
-  is_desktop: boolean;
-  workspaces_dir: string | null;
-}
+export type DesktopInfo =
+  paths["/v1/desktop/info"]["get"]["responses"][200]["content"]["application/json"];
 
-export interface DesktopProjectInit {
-  workspace_root: string;
-}
+export type DesktopProjectInit =
+  paths["/v1/desktop/projects/init"]["post"]["responses"][200]["content"]["application/json"];
 
 export async function getDesktopInfo(signal?: AbortSignal): Promise<DesktopInfo> {
   return httpGet<DesktopInfo>("/v1/desktop/info", { signal });

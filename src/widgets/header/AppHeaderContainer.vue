@@ -1,6 +1,7 @@
 <template>
   <AppHeader
     :task-id="header.taskId.value"
+    :workspace-root="header.workspaceRoot.value"
     :is-running="header.isRunning.value"
     :active-run-ids="header.activeRunIds.value"
     :project-name="header.projectName.value"
@@ -69,6 +70,7 @@ import { useReportProblem } from "@/features/report-a-problem/useReportProblem";
 import SystemHealthPanel from "@/features/system-health/SystemHealthPanel.vue";
 import { useAppHeaderBindings } from "./useAppHeaderBindings";
 import { useUiStore } from "@/shared/store/ui";
+import { runDetailRoute } from "@/shared/lib/run-detail-route";
 import { useI18n } from "@/shared/lib/i18n";
 import { isTaskActive } from "@/shared/lib/task-status";
 
@@ -87,7 +89,12 @@ const systemHealthOpen = ref(false);
 const router = useRouter();
 
 function onResumeRun(): void {
-  void router.push("/run/active");
+  const currentTaskId = header.taskId.value;
+  if (!currentTaskId) {
+    void router.push("/run/active");
+    return;
+  }
+  void router.push(runDetailRoute(ui.historyList, currentTaskId));
 }
 
 function onSwitchRun(taskIdValue: string): void {

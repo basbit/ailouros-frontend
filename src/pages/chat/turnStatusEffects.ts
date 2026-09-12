@@ -1,6 +1,7 @@
 import type { ConversationTurnDto } from "@/shared/api/endpoints/conversation";
+import { isAuthenticationFailure } from "@/shared/lib/auth-failure";
 
-export type TurnPatchStatus =
+type TurnPatchStatus =
   | "pending"
   | "running"
   | "completed"
@@ -21,7 +22,11 @@ interface ResolveTurnStatusUpdateOptions {
   blockedReason: string | null;
   taskError: unknown;
   copy: {
+    doneOk: string;
     doneWithFailures: string;
+    awaitingHuman: string;
+    failed: string;
+    authFailed?: string;
     blockedBubble: (reason: string) => string;
     blockedTitle: string;
   };
@@ -50,9 +55,7 @@ export function resolveTurnStatusUpdate(
     return {
       status: "completed",
       assistantMessage:
-        taskStatus === "completed_with_failures"
-          ? copy.doneWithFailures
-          : "Pipeline completed successfully. Artifacts and code updates are ready.",
+        taskStatus === "completed_with_failures" ? copy.doneWithFailures : copy.doneOk,
       scroll: true,
     };
   }
@@ -61,7 +64,7 @@ export function resolveTurnStatusUpdate(
     if (turnStatus === "awaiting_human") return null;
     return {
       status: "awaiting_human",
-      assistantMessage: "Pipeline is waiting for your answer to continue.",
+      assistantMessage: copy.awaitingHuman,
       scroll: true,
     };
   }
@@ -89,14 +92,30 @@ export function resolveTurnStatusUpdate(
   }
 
   if (taskStatus === "failed" || taskStatus === "cancelled") {
-    return {
-      status: "failed",
-      assistantMessage: String(taskError || "Pipeline execution failed."),
-      scroll: true,
-    };
+    return failedTurnUpdate(taskError, copy);
   }
 
   return null;
+}
+
+function failedTurnUpdate(
+  taskError: ResolveTurnStatusUpdateOptions["taskError"],
+  copy: ResolveTurnStatusUpdateOptions["copy"],
+): TurnStatusUpdate {
+  if (isAuthenticationFailure(taskError)) {
+    return {
+      status: "failed",
+      assistantMessage: copy.authFailed
+        ? `${copy.authFailed}\n\n${taskError}`
+        : String(taskError),
+      scroll: true,
+    };
+  }
+  return {
+    status: "failed",
+    assistantMessage: String(taskError || copy.failed),
+    scroll: true,
+  };
 }
 
 export function findActiveTurn(

@@ -123,6 +123,10 @@ export const settingsEn: Messages = {
   "settings.apiKeys.codeHostingHint":
     "GitHub PAT — only needed to let agents read/write your repo via the GitHub MCP.",
   "settings.apiKeys.githubToken": "GitHub PAT",
+  "settings.apiKeys.backendToken": "Backend access",
+  "settings.apiKeys.backendTokenLabel": "API token",
+  "settings.apiKeys.backendTokenHint":
+    "Only needed when the backend runs with SWARM_API_TOKEN set. Stored in this browser and sent as a Bearer header on every request; WebSockets exchange it for a short-lived ticket. Leave empty for a local backend.",
   "settings.scenarios.title": "Scenarios",
   "settings.scenarios.subtitle":
     "Library of run scenarios. Pinned scenarios appear in the project Configure pane.",
@@ -284,6 +288,10 @@ export const settingsRu: Messages = {
   "settings.apiKeys.codeHostingHint":
     "GitHub PAT — нужен, только чтобы агенты читали/писали ваш репозиторий через MCP-сервер github.",
   "settings.apiKeys.githubToken": "GitHub PAT",
+  "settings.apiKeys.backendToken": "Доступ к бэкенду",
+  "settings.apiKeys.backendTokenLabel": "API-токен",
+  "settings.apiKeys.backendTokenHint":
+    "Нужен, только если бэкенд запущен с заданным SWARM_API_TOKEN. Хранится в этом браузере и уходит заголовком Bearer в каждом запросе; WebSocket-соединения обменивают его на одноразовый краткоживущий тикет. Для локального бэкенда оставьте пустым.",
   "settings.apiKeys.colId": "Id",
   "settings.apiKeys.colProvider": "Провайдер",
   "settings.apiKeys.colKey": "API ключ",

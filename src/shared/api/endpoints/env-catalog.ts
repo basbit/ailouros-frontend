@@ -1,6 +1,6 @@
 import { httpGet, httpPut } from "@/shared/api/http";
 
-export type EnvVariableKind = "boolean" | "integer" | "float" | "string";
+type EnvVariableKind = "boolean" | "integer" | "float" | "string";
 
 export interface EnvVariableDto {
   name: string;

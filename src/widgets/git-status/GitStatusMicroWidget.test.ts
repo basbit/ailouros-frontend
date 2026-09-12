@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { defineComponent } from "vue";
 import GitStatusMicroWidget from "./GitStatusMicroWidget.vue";
 import * as workspaceApi from "@/shared/api/endpoints/workspace";
 
@@ -75,5 +76,41 @@ describe("GitStatusMicroWidget", () => {
     expect(wrapper.find(".git-micro-graph__message").text()).toBe(
       "feat: implement auth",
     );
+  });
+
+  it("shows an error chip when the lookup fails instead of vanishing", async () => {
+    vi.mocked(workspaceApi.getGitStatus).mockRejectedValue(new Error("boom"));
+
+    const wrapper = mount(GitStatusMicroWidget, {
+      props: { workspaceRoot: "/tmp/git-repo" },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(wrapper.find(".chip--failed").exists()).toBe(true);
+    expect(wrapper.text()).toContain("gitStatus.error");
+  });
+
+  it("stops the 15s poll when the cached route is deactivated", async () => {
+    vi.mocked(workspaceApi.getGitStatus).mockResolvedValue({ is_git: false });
+    vi.useFakeTimers();
+
+    // Every route lives inside <keep-alive>: leaving fires onDeactivated, not
+    // onBeforeUnmount, so a poll cleaned up only on unmount ran forever.
+    const KeepAliveHost = defineComponent({
+      components: { GitStatusMicroWidget },
+      props: { visible: { type: Boolean, default: true } },
+      template: `<KeepAlive><GitStatusMicroWidget v-if="visible" workspace-root="/tmp/git-repo" /></KeepAlive>`,
+    });
+
+    const wrapper = mount(KeepAliveHost);
+    const callsAfterMount = vi.mocked(workspaceApi.getGitStatus).mock.calls.length;
+
+    await wrapper.setProps({ visible: false });
+    vi.advanceTimersByTime(60_000);
+
+    expect(vi.mocked(workspaceApi.getGitStatus).mock.calls.length).toBe(
+      callsAfterMount,
+    );
+    vi.useRealTimers();
   });
 });

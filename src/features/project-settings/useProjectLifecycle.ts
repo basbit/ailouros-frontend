@@ -1,6 +1,6 @@
 import type { Ref } from "vue";
-import { useProjectsStore, buildEmptySnap } from "@/shared/store/projects";
-import type { SettingsSnap } from "@/shared/store/projects";
+import { useProjectsStore, buildEmptySnap } from "@/entities/project";
+import type { SettingsSnap } from "@/entities/project";
 
 interface ProjectLifecycleDeps {
   isBooting: Ref<boolean>;
