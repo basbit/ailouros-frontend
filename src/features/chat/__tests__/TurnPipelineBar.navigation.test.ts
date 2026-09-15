@@ -73,3 +73,27 @@ describe("TurnPipelineBar — opening the run", () => {
     expect(routerPush).not.toHaveBeenCalled();
   });
 });
+
+describe("TurnPipelineBar — headline before the run reports running", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it("says the pipeline is starting, not completed, while 0 steps are done and nothing runs yet", () => {
+    const summary = {
+      steps: computed(() => []),
+      completedCount: computed(() => 0),
+      failedCount: computed(() => 0),
+      totalSteps: computed(() => 13),
+      activeStep: computed(() => null),
+      latestLog: computed(() => ""),
+      logLines: computed(() => []),
+      progressPct: computed(() => 0),
+      status: computed(() => "pending"),
+      isRunning: computed(() => false),
+    } as never;
+    const wrapper = mount(TurnPipelineBar, { props: { summary, taskId: null } });
+    expect(wrapper.text()).toContain("chat.pipelineBar.idleTitle");
+    expect(wrapper.text()).not.toContain("chat.pipelineBar.doneTitle");
+  });
+});

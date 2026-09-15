@@ -16,6 +16,8 @@ export interface SwarmStreamHandlerDeps {
   ) => void;
   /** Surfaces the clarify form immediately when the stream pauses on it. */
   onAwaitingClarification: () => void;
+  /** The run's closing summary, shown in place of a fixed status string. */
+  recordRunSummary: (text: string) => void;
 }
 
 function handleMcpStatus(
@@ -59,6 +61,9 @@ export function createSwarmStreamEventHandler(
 ): (event: ChatStreamEvent) => void {
   return (event: ChatStreamEvent): void => {
     switch (event.kind) {
+      case "run_summary":
+        deps.recordRunSummary(event.text);
+        return;
       case "auto_approved":
         deps.notify(
           deps.autoApprovedMessage(event.step || "step", event.rule),

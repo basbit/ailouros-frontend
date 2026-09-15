@@ -114,6 +114,9 @@ const headline = computed(() => {
   }
   if (props.summary.isRunning.value) return t("chat.pipelineBar.runningTitle");
   if (hasFailure.value) return t("chat.pipelineBar.failedTitle");
+  // A turn whose run is accepted but not yet reported as running (the first
+  // seconds after Send) read as "Pipeline completed 0/13" — say "starting".
+  if (statusKind.value === "idle") return t("chat.pipelineBar.idleTitle");
   return t("chat.pipelineBar.doneTitle");
 });
 

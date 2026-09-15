@@ -46,6 +46,8 @@ export function createTaskRefs() {
   const runAvailability = ref<RunAvailability>("unresolved");
   const runAvailabilityError = ref<string | null>(null);
   const taskError = ref<unknown>(null);
+  /** The orchestrator's closing account of the run, streamed at finalise. */
+  const runSummary = ref<string>("");
   // Parallel runs: every task started in this session (running or recently
   // finished) is kept here so the header switcher can jump back to it. The
   // single active task (taskId above) is the one currently rendered.
@@ -127,6 +129,7 @@ export function createTaskRefs() {
     runAvailability,
     runAvailabilityError,
     taskError,
+    runSummary,
     activeRunIds,
     taskHistory,
     taskAgents,

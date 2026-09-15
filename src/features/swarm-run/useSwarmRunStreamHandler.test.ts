@@ -11,6 +11,7 @@ function makeDeps() {
   const applyOrchestratorEvent = vi.fn();
   const recordRetrievalDone = vi.fn();
   const onAwaitingClarification = vi.fn();
+  const recordRunSummary = vi.fn();
   const deps: SwarmStreamHandlerDeps = {
     notify,
     markTaskFailed,
@@ -18,6 +19,7 @@ function makeDeps() {
     applyOrchestratorEvent,
     recordRetrievalDone,
     onAwaitingClarification,
+    recordRunSummary,
   };
   return {
     deps,

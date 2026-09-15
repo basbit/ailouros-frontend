@@ -41,7 +41,7 @@ interface McpStatusEvent {
   timestamp: string;
 }
 
-type PreflightPhase = "session" | "mcp" | "model";
+type PreflightPhase = "session" | "mcp" | "model" | "change_step" | "code_generator";
 
 interface PreflightStreamEvent {
   kind: "preflight";
@@ -64,7 +64,14 @@ interface WorkspaceIndexStatsStreamEvent {
   stats: Record<string, unknown>;
 }
 
+/** The orchestrator's closing account of the run, anchored to workspace_truth. */
+interface RunSummaryStreamEvent {
+  kind: "run_summary";
+  text: string;
+}
+
 export type ChatStreamEvent =
+  | RunSummaryStreamEvent
   | AutoApprovedEvent
   | OrchestratorStreamEvent
   | McpStatusEvent
@@ -126,6 +133,8 @@ const PREFLIGHT_SIBLING_KEYS: ReadonlyArray<readonly [string, PreflightPhase]> =
   ["session_preflight", "session"],
   ["mcp_preflight", "mcp"],
   ["model_preflight", "model"],
+  ["change_step_preflight", "change_step"],
+  ["code_generator_preflight", "code_generator"],
 ];
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -215,6 +224,10 @@ export function parseChatStreamSiblingExtra(
   if (scenarioRaw) return buildScenarioStreamEvent(scenarioRaw);
   const indexStatsRaw = asRecord(payload["workspace_index_stats"]);
   if (indexStatsRaw) return { kind: "workspace_index_stats", stats: indexStatsRaw };
+  const runSummaryRaw = asRecord(payload["run_summary"]);
+  if (runSummaryRaw) {
+    return { kind: "run_summary", text: String(runSummaryRaw["text"] ?? "") };
+  }
   return null;
 }
 

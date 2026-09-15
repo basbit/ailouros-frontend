@@ -116,6 +116,9 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
               `${t("toast.autoApproved", { step })}${rule ? ` (${rule})` : ""}`,
             applyOrchestratorEvent,
             recordRetrievalDone,
+            recordRunSummary: (text) => {
+              ui.runSummary = text;
+            },
             onAwaitingClarification: () => {
               ui.taskStatus = "awaiting_human";
               onAwaitingClarification?.();

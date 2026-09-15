@@ -21,6 +21,8 @@ interface ResolveTurnStatusUpdateOptions {
   turnStatus: string | null;
   blockedReason: string | null;
   taskError: unknown;
+  /** The orchestrator's account of the run; the status strings are the fallback. */
+  runSummary?: string;
   copy: {
     doneOk: string;
     doneWithFailures: string;
@@ -49,13 +51,15 @@ export function resolveTurnStatusUpdate(
   options: ResolveTurnStatusUpdateOptions,
 ): TurnStatusUpdate | null {
   const { taskStatus, turnStatus, blockedReason, taskError, copy } = options;
+  const runSummary = (options.runSummary || "").trim();
   if (!taskStatus) return null;
 
   if (COMPLETED_STATUSES.has(taskStatus)) {
     return {
       status: "completed",
       assistantMessage:
-        taskStatus === "completed_with_failures" ? copy.doneWithFailures : copy.doneOk,
+        runSummary ||
+        (taskStatus === "completed_with_failures" ? copy.doneWithFailures : copy.doneOk),
       scroll: true,
     };
   }

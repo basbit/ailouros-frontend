@@ -28,6 +28,7 @@ export const useUiStore = defineStore("ui", () => {
     runAvailability: taskParts.runAvailability,
     runAvailabilityError: taskParts.runAvailabilityError,
     taskError: taskParts.taskError,
+    runSummary: taskParts.runSummary,
     activeRunIds: taskParts.activeRunIds,
     taskHistory: taskParts.taskHistory,
     taskAgents: taskParts.taskAgents,

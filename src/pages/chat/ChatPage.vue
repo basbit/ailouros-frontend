@@ -171,6 +171,17 @@
           @continue-pipeline="gateActions.onContinuePipeline"
         />
 
+        <!-- Phase-verification gates (SWARM_ORCHESTRATION_PHASE_VERIFICATION_REQUIRED)
+             block the run until a human decides; the card polls and shows itself
+             only while a gate is pending. Runs 52ffc1b7 / 0da55863 sat on one
+             for 24+ minutes because the chat had nowhere to show it. -->
+        <div v-if="settings.form.workspace_root" class="chat-phase-gates">
+          <PhaseGateCard
+            :workspace-root="settings.form.workspace_root"
+            :task-id="ui.taskId ?? null"
+          />
+        </div>
+
         <!-- Sticky Bottom Input Bar -->
         <footer class="chat-input-bar">
           <div class="chat-input-container">
@@ -203,6 +214,15 @@
                 :custom-scenarios="settings.form.custom_scenarios"
                 @update:model-value="onScenarioPick"
               />
+              <button
+                type="button"
+                class="chat-library-link"
+                data-testid="chat-open-scenario-library"
+                :title="t('scenarios.pickerTitle')"
+                @click="onOpenScenarioLibrary"
+              >
+                {{ t("runIdle.openLibrary") }}
+              </button>
               <div class="chat-input-spacer" />
               <button
                 v-if="isRunning"
@@ -232,6 +252,17 @@
         </footer>
       </main>
     </div>
+
+    <ScenarioPickerDialog
+      :open="scenarioPickerOpen"
+      :model-value="settings.form.scenario_id"
+      :favorites="settings.form.favorite_scenarios"
+      :custom-scenarios="settings.form.custom_scenarios"
+      @update:open="scenarioPickerOpen = $event"
+      @update:model-value="onScenarioPick"
+      @toggle-favorite="onScenarioFavoriteToggle"
+      @open-settings="onOpenScenarioSettings"
+    />
   </div>
 </template>
 
@@ -240,6 +271,8 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import PromptInput from "@/features/prompt-input/PromptInput.vue";
 import ScenarioQuickLaunch from "@/features/scenario-picker/ScenarioQuickLaunch.vue";
+import ScenarioPickerDialog from "@/features/scenario-picker/ScenarioPickerDialog.vue";
+import { useRouter } from "vue-router";
 import { useConversationThread } from "@/features/conversation-thread/useConversationThread";
 import { turnAttachmentUrl } from "@/shared/api/endpoints/conversation";
 import { useTurnPipelineSummary } from "@/pages/chat/useTurnPipelineSummary";
@@ -258,6 +291,7 @@ import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useTurnRunLink } from "./useTurnRunLink";
 import { findActiveTurn, resolveTurnStatusUpdate } from "./turnStatusEffects";
 import TaskGatesOverlay from "@/features/task-gate/TaskGatesOverlay.vue";
+import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
 import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
 
 const { t } = useI18n();
@@ -342,9 +376,29 @@ function onApplySuggestion(s: string): void {
   settings.form.prompt = s;
 }
 
-function onScenarioPick(scenarioId: string): void {
-  settings.form.scenario_id = scenarioId;
+const router = useRouter();
+const scenarioPickerOpen = ref(false);
+
+function onOpenScenarioLibrary(): void {
+  scenarioPickerOpen.value = true;
+}
+
+function onScenarioPick(scenarioId: string | null): void {
+  settings.form.scenario_id = scenarioId || null;
   settings.saveSettingsSoon();
+}
+
+function onScenarioFavoriteToggle(scenarioId: string): void {
+  const favorites = new Set(settings.form.favorite_scenarios ?? []);
+  if (favorites.has(scenarioId)) favorites.delete(scenarioId);
+  else favorites.add(scenarioId);
+  settings.form.favorite_scenarios = Array.from(favorites);
+  settings.saveSettingsSoon();
+}
+
+function onOpenScenarioSettings(): void {
+  scenarioPickerOpen.value = false;
+  void router.push("/settings/scenarios");
 }
 
 async function onNewConversation(): Promise<void> {
@@ -477,6 +531,7 @@ watch(
       turnStatus: turn?.status ?? null,
       blockedReason: ui.blockedReason,
       taskError: ui.taskError,
+      runSummary: ui.runSummary,
       copy: {
         doneOk: t("chat.doneOk"),
         doneWithFailures: t("chat.doneWithFailures"),
@@ -535,6 +590,14 @@ watch(
 </script>
 
 <style scoped>
+.chat-phase-gates {
+  padding: 0 16px 8px;
+}
+
+.chat-phase-gates:empty {
+  display: none;
+}
+
 .chat-page {
   display: flex;
   flex-direction: column;
@@ -943,6 +1006,26 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.chat-library-link {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.chat-library-link:hover {
+  border-color: var(--line-strong);
+  color: var(--ink-2);
 }
 
 .chat-input-spacer {
