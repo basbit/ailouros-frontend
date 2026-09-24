@@ -45,7 +45,7 @@
       >
         {{ taskId }}
       </button>
-      <span v-else>{{
+      <span v-else class="task-pill__label">{{
         isRunning ? t("header.starting") : t("header.noTask")
       }}</span>
       <button
@@ -445,11 +445,7 @@ const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
   color: var(--success);
 }
 
-@media (max-width: 900px) {
-  .header-status {
-    display: none;
-  }
-}
+
 
 .header-view-modes {
   display: inline-flex;
@@ -506,5 +502,39 @@ const { topTabs, activeTopTab, navigateToTab } = useAppHeaderTabs(t);
 .header-sound-btn--muted {
   opacity: 0.55;
   filter: grayscale(1);
+}
+
+/* Narrow viewports: the bar is a fixed 44px row and must never wrap or push
+   the page down. Secondary controls collapse; the rest shrinks with ellipsis. */
+@media (max-width: 900px) {
+  .header-status,
+  .header-view-modes,
+  .header-theme,
+  .header-sound-btn,
+  .coworking-peers {
+    display: none;
+  }
+  .task-pill {
+    min-width: 0;
+    max-width: 140px;
+    flex: 0 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* The idle label says what the dot already shows, and reserving room for it
+     pushed the bar into horizontal scroll. A live task id stays, with an
+     ellipsis: min-width:0 lets a flex item shrink past its content, so without
+     one it was cut mid-word ("No ⋮"). */
+  .task-pill__label {
+    display: none;
+  }
+  .task-pill__resume {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hdr-tabs {
+    flex-shrink: 0;
+  }
 }
 </style>

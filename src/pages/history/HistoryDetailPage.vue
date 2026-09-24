@@ -13,7 +13,8 @@
           <template #actions>
             <HistoryDetailHeaderActions
               :family="family"
-              :status="entry.status ?? ''"
+              :status="effectiveStatus"
+              :task-id="entry.taskId ?? ''"
               :can-show-resume="canShowResume"
               :is-resume-busy="isResumeBusy"
               :resume-step-id="resumeStepId"
@@ -25,6 +26,135 @@
             />
           </template>
         </PaneHeader>
+
+        <div
+          v-if="isAwaiting"
+          class="history-detail-page__awaiting-banner"
+          role="region"
+          :aria-label="t('history.questionBadge')"
+        >
+          <div class="history-detail-page__awaiting-header">
+            <span class="history-detail-page__awaiting-badge"
+              ><span aria-hidden="true">❓</span> {{ t("history.questionBadge") }}</span
+            >
+            <strong class="history-detail-page__awaiting-title">{{ awaitingNoticeTitle }}</strong>
+            <code v-if="awaitingStepLabel" class="history-detail-page__awaiting-step">
+              {{ awaitingStepLabel }}
+            </code>
+          </div>
+          <p v-if="awaitingNoticePrompt" class="history-detail-page__awaiting-prompt">
+            {{ awaitingNoticePrompt }}
+          </p>
+
+          <!-- Awaiting human gate controls -->
+          <div v-if="isAwaitingHuman" class="history-detail-page__gate-controls">
+            <textarea
+              v-model="gateFeedback"
+              class="history-detail-page__gate-textarea"
+              :placeholder="t('humanGate.feedbackPlaceholder')"
+              rows="2"
+              :disabled="isGateSubmitting"
+              data-testid="history-gate-feedback"
+            />
+            <div class="history-detail-page__gate-actions">
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--primary"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-approve"
+                @click="onApproveHumanGate"
+              >
+                {{ t("humanGate.approve") }}
+              </button>
+              <button
+                v-if="gateFeedback.trim()"
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--secondary"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-submit-changes"
+                @click="onSubmitHumanChanges"
+              >
+                {{ t("humanGate.submitWithChanges") }}
+              </button>
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--cancel"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-cancel"
+                @click="onCancelCurrentRun"
+              >
+                {{ t("chat.cancelRun") }}
+              </button>
+              <span v-if="isGateSubmitting" class="history-detail-page__gate-submitting">
+                {{ t("humanGate.submitting") }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Awaiting shell confirm controls -->
+          <div
+            v-else-if="effectiveStatus === 'awaiting_shell_confirm'"
+            class="history-detail-page__gate-controls"
+          >
+            <div class="history-detail-page__gate-actions">
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--primary"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-shell-allow"
+                @click="onConfirmShellGate(true)"
+              >
+                {{ t("shellGate.allow") }}
+              </button>
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--cancel"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-shell-reject"
+                @click="onConfirmShellGate(false)"
+              >
+                {{ t("shellGate.reject") }}
+              </button>
+              <span v-if="isGateSubmitting" class="history-detail-page__gate-submitting">
+                {{ t("humanGate.submitting") }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Awaiting manual shell controls -->
+          <div
+            v-else-if="effectiveStatus === 'awaiting_manual_shell'"
+            class="history-detail-page__gate-controls"
+          >
+            <div class="history-detail-page__gate-actions">
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--primary"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-manual-done"
+                @click="onConfirmManualShellGate(true)"
+              >
+                {{ t("manualShellGate.done") }}
+              </button>
+              <button
+                type="button"
+                class="history-detail-page__gate-btn history-detail-page__gate-btn--cancel"
+                :disabled="isGateSubmitting"
+                data-testid="history-gate-manual-cancel"
+                @click="onConfirmManualShellGate(false)"
+              >
+                {{ t("manualShellGate.cancel") }}
+              </button>
+              <span v-if="isGateSubmitting" class="history-detail-page__gate-submitting">
+                {{ t("humanGate.submitting") }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="gateSubmitError" class="history-detail-page__gate-error" role="alert">
+            {{ gateSubmitError }}
+          </div>
+        </div>
 
         <nav
           class="history-detail-page__tabs"
@@ -50,6 +180,7 @@
               :history-events="remoteEvents"
               :history-steps="remoteSteps"
               :history-failed-step="remoteFailedStep"
+              :history-status="effectiveStatus"
             />
             <div
               v-else-if="activeTab === 'activity'"
@@ -107,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
@@ -127,12 +258,25 @@ import { useHistoryDetailLoad } from "./useHistoryDetailLoad";
 import { useHistoryDetailTabs } from "./useHistoryDetailTabs";
 import { usePatternMemoryHint } from "@/features/pattern-memory/usePatternMemoryHint";
 import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
+import {
+  isRunAwaiting,
+  isTaskAwaiting,
+  isTaskResumable,
+  parseTaskStatus,
+} from "@/shared/lib/task-status";
 import { useUxStore } from "@/shared/store/ux";
 import { useProjectsStore } from "@/entities/project";
 import type { TaskStatus } from "@/shared/model/task-types";
 import { formatDate, formatRelative, promptPreviewOf } from "./historyFormatters";
 import { useI18n } from "@/shared/lib/i18n";
 import { getLegacyTaskSnapshot } from "@/shared/api/endpoints/tasks";
+import { SWARM_RUN_CONTROLLER_KEY } from "@/features/swarm-run";
+import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
+import {
+  confirmManualShell,
+  confirmShell,
+  submitHumanResume,
+} from "@/features/swarm-run/task-gate-actions";
 
 const props = defineProps<{ runId: string }>();
 
@@ -140,6 +284,7 @@ const router = useRouter();
 const ui = useUiStore();
 const ux = useUxStore();
 const settings = useInjectedAppSettings();
+const controller = inject(SWARM_RUN_CONTROLLER_KEY, null);
 const { t } = useI18n();
 
 const hintDismissed = ref(false);
@@ -206,17 +351,7 @@ const runScenario = computed<string | null>(() => {
 
 const canShowResume = computed<boolean>(() => {
   if (!entry.value?.taskId) return false;
-  const status = (entry.value.status ?? "").toString().toLowerCase();
-  const finishedStatuses = new Set([
-    "failed",
-    "cancelled",
-    "awaiting_human",
-    "completed_with_failures",
-    "completed_no_writes",
-    "in_progress",
-    "running",
-  ]);
-  return finishedStatuses.has(status);
+  return isTaskResumable(entry.value.status);
 });
 
 const {
@@ -234,8 +369,15 @@ const {
 
 const { activeTab, tabs } = useHistoryDetailTabs(t);
 
-const { remoteEvents, remoteSteps, remoteFailedStep, remoteStatus } =
-  useHistoryDetailLoad({
+const {
+  remoteEvents,
+  remoteSteps,
+  remoteFailedStep,
+  remoteStatus,
+  remotePauseDetail,
+  remoteHumanStep,
+  loadRemoteEvents,
+} = useHistoryDetailLoad({
     entry,
     isResumeAvailable,
     resumeStepId,
@@ -244,30 +386,16 @@ const { remoteEvents, remoteSteps, remoteFailedStep, remoteStatus } =
 
 const projects = useProjectsStore();
 
-const KNOWN_TASK_STATUSES: readonly TaskStatus[] = [
-  "pending",
-  "running",
-  "in_progress",
-  "completed",
-  "completed_no_writes",
-  "completed_with_failures",
-  "failed",
-  "blocked",
-  "awaiting_human",
-  "awaiting_shell_confirm",
-  "awaiting_manual_shell",
-  "cancelled",
-];
-
 // The locally persisted entry status is only updated while the launching tab
 // is open; runs that finish (or fail further) after a reload keep showing the
 // stale badge. The backend snapshot is authoritative — sync it back.
 watch(remoteStatus, (status) => {
   const taskId = entry.value?.taskId;
   if (!status || !taskId) return;
-  if (!KNOWN_TASK_STATUSES.includes(status as TaskStatus)) return;
-  if ((entry.value?.status ?? "") === status) return;
-  ui.updateHistoryResult(taskId, { status: status as TaskStatus }, projects.currentId);
+  const known = parseTaskStatus(status);
+  if (!known) return;
+  if ((entry.value?.status ?? "") === known) return;
+  ui.updateHistoryResult(taskId, { status: known }, projects.currentId);
 });
 
 const promptPreview = computed(() =>
@@ -278,12 +406,197 @@ const overviewSubtitle = computed(() =>
   entry.value ? formatDate(entry.value.startedAt ?? entry.value.at) : "",
 );
 
+const effectiveStatus = computed(() => {
+  return (remoteStatus.value || entry.value?.status || "").trim();
+});
+
+// The `ui` gate text belongs to the run this browser session drives. Read it
+// only for that run: another run's page used to show this run's question.
+const isLiveTask = computed(
+  () => !!entry.value?.taskId && entry.value.taskId === ui.taskId,
+);
+
+const isAwaiting = computed(() =>
+  isRunAwaiting({ taskId: entry.value?.taskId, status: effectiveStatus.value }, ui),
+);
+
+const awaitingNoticeTitle = computed(() => {
+  const s = effectiveStatus.value.toLowerCase();
+  const live = isLiveTask.value;
+  if (s === "awaiting_shell_confirm" || (live && ui.shellGateVisible)) {
+    return t("taskMonitor.awaitingShell");
+  }
+  if (s === "awaiting_manual_shell" || (live && ui.manualShellGateVisible)) {
+    return (live && ui.manualShellReason) || t("taskMonitor.awaitingShell");
+  }
+  return (live && ui.humanGateTitle) || t("chat.gatePromptTitle");
+});
+
+const awaitingNoticePrompt = computed(() => {
+  if (isLiveTask.value && ui.manualShellReason) return ui.manualShellReason;
+  // The run's own record of what it asked. It outlives the browser session the
+  // run was started in, which the `ui` gate text does not.
+  return remotePauseDetail.value;
+});
+
+const awaitingStepLabel = computed(() => remoteHumanStep.value);
+
+const gateFeedback = ref("");
+const isGateSubmitting = ref(false);
+const gateSubmitError = ref<string | null>(null);
+
+const isAwaitingHuman = computed(() => {
+  const s = effectiveStatus.value.toLowerCase();
+  return (
+    s === "awaiting_human" ||
+    (!s.includes("shell") && isAwaiting.value)
+  );
+});
+
+async function onApproveHumanGate(): Promise<void> {
+  const taskId = entry.value?.taskId;
+  if (!taskId || isGateSubmitting.value) return;
+  isGateSubmitting.value = true;
+  gateSubmitError.value = null;
+  const feedback = gateFeedback.value.trim() || "Approved";
+  try {
+    let ok = false;
+    if (controller?.onHumanResume) {
+      ok = await controller.onHumanResume(feedback, taskId);
+    } else {
+      const res = await submitHumanResume(taskId, feedback, () => undefined);
+      ok = res.ok;
+    }
+    if (ok) {
+      gateFeedback.value = "";
+      await loadRemoteEvents(taskId);
+      ui.updateHistoryResult(taskId, { status: "in_progress" }, projects.currentId);
+      if (ui.taskId === taskId) {
+        ui.humanGateVisible = false;
+        ui.taskStatus = "in_progress";
+      }
+    } else {
+      gateSubmitError.value = t("humanGate.resumeFailed", { error: "Submission failed" });
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    gateSubmitError.value = t("humanGate.resumeFailed", { error: msg });
+  } finally {
+    isGateSubmitting.value = false;
+  }
+}
+
+async function onSubmitHumanChanges(): Promise<void> {
+  const taskId = entry.value?.taskId;
+  if (!taskId || isGateSubmitting.value || !gateFeedback.value.trim()) return;
+  isGateSubmitting.value = true;
+  gateSubmitError.value = null;
+  try {
+    let ok = false;
+    if (controller?.onHumanResume) {
+      ok = await controller.onHumanResume(gateFeedback.value.trim(), taskId);
+    } else {
+      const res = await submitHumanResume(taskId, gateFeedback.value.trim(), () => undefined);
+      ok = res.ok;
+    }
+    if (ok) {
+      gateFeedback.value = "";
+      await loadRemoteEvents(taskId);
+      ui.updateHistoryResult(taskId, { status: "in_progress" }, projects.currentId);
+      if (ui.taskId === taskId) {
+        ui.humanGateVisible = false;
+        ui.taskStatus = "in_progress";
+      }
+    } else {
+      gateSubmitError.value = t("humanGate.resumeFailed", { error: "Submission failed" });
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    gateSubmitError.value = t("humanGate.resumeFailed", { error: msg });
+  } finally {
+    isGateSubmitting.value = false;
+  }
+}
+
+async function onConfirmShellGate(approved: boolean): Promise<void> {
+  const taskId = entry.value?.taskId;
+  if (!taskId || isGateSubmitting.value) return;
+  isGateSubmitting.value = true;
+  gateSubmitError.value = null;
+  try {
+    if (controller?.onConfirmShell) {
+      await controller.onConfirmShell(approved, taskId);
+    } else {
+      await confirmShell(taskId, approved);
+    }
+    await loadRemoteEvents(taskId);
+    if (ui.taskId === taskId) {
+      ui.shellGateVisible = false;
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    gateSubmitError.value = msg;
+  } finally {
+    isGateSubmitting.value = false;
+  }
+}
+
+async function onConfirmManualShellGate(done: boolean): Promise<void> {
+  const taskId = entry.value?.taskId;
+  if (!taskId || isGateSubmitting.value) return;
+  isGateSubmitting.value = true;
+  gateSubmitError.value = null;
+  try {
+    if (controller?.onConfirmManualShell) {
+      await controller.onConfirmManualShell(done, taskId);
+    } else {
+      await confirmManualShell(taskId, done);
+    }
+    await loadRemoteEvents(taskId);
+    if (ui.taskId === taskId) {
+      ui.manualShellGateVisible = false;
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    gateSubmitError.value = msg;
+  } finally {
+    isGateSubmitting.value = false;
+  }
+}
+
+async function onCancelCurrentRun(): Promise<void> {
+  const taskId = entry.value?.taskId;
+  if (!taskId || isGateSubmitting.value) return;
+  isGateSubmitting.value = true;
+  try {
+    if (controller?.onStopRun && ui.taskId === taskId) {
+      await controller.onStopRun();
+    } else {
+      await cancelTask(taskId);
+    }
+    await loadRemoteEvents(taskId);
+    ui.updateHistoryResult(taskId, { status: "cancelled" }, projects.currentId);
+    if (ui.taskId === taskId) {
+      ui.taskStatus = "cancelled";
+      ui.humanGateVisible = false;
+      ui.shellGateVisible = false;
+      ui.manualShellGateVisible = false;
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    gateSubmitError.value = msg;
+  } finally {
+    isGateSubmitting.value = false;
+  }
+}
+
 const family = computed<"ok" | "fail" | "warn" | "run" | "pending">(() => {
   if (!entry.value) return "pending";
-  const status = entry.value.status;
+  const status = effectiveStatus.value;
   if (status === "completed" || status === "completed_no_writes") return "ok";
   if (status === "completed_with_failures") return "warn";
   if (status === "failed" || status === "cancelled") return "fail";
+  if (isTaskAwaiting(status)) return "warn";
   if (status === "running" || status === "in_progress") return "run";
   return "pending";
 });
@@ -386,6 +699,140 @@ watch(
 
 .history-detail-page__back:hover {
   color: var(--ink);
+}
+
+.history-detail-page__awaiting-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: var(--warn-bg, rgba(234, 179, 8, 0.12));
+  border: 1px solid var(--warn, #eab308);
+  color: var(--ink);
+}
+
+.history-detail-page__awaiting-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.history-detail-page__awaiting-badge {
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-detail-page__awaiting-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.history-detail-page__awaiting-step {
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.history-detail-page__awaiting-prompt {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.history-detail-page__gate-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.history-detail-page__gate-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--line, #ccc);
+  border-radius: var(--r-sm, 4px);
+  background: var(--card, #fff);
+  color: var(--ink, #000);
+  resize: vertical;
+  min-height: 52px;
+}
+
+.history-detail-page__gate-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.history-detail-page__gate-btn {
+  appearance: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--r-sm, 4px);
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.history-detail-page__gate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.history-detail-page__gate-btn--primary {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  border-color: var(--accent, #6366f1);
+}
+
+.history-detail-page__gate-btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.history-detail-page__gate-btn--secondary {
+  background: var(--card, #fff);
+  color: var(--ink, #111);
+  border-color: var(--line, #ccc);
+}
+
+.history-detail-page__gate-btn--secondary:hover:not(:disabled) {
+  background: var(--bg-1, #f5f5f5);
+}
+
+.history-detail-page__gate-btn--cancel {
+  background: transparent;
+  color: var(--ink-3, #777);
+  border-color: var(--line, #ccc);
+}
+
+.history-detail-page__gate-btn--cancel:hover:not(:disabled) {
+  color: var(--error, #ef4444);
+  border-color: var(--error, #ef4444);
+}
+
+.history-detail-page__gate-submitting {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-3, #777);
+}
+
+.history-detail-page__gate-error {
+  font-size: 12px;
+  color: var(--error, #ef4444);
+  margin-top: 4px;
 }
 
 .history-detail-page__tabs {

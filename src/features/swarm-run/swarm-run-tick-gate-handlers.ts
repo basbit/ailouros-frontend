@@ -2,6 +2,7 @@ import type { Ref } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import { useProjectsStore } from "@/entities/project";
+import { isPhaseGatePause } from "@/entities/phase-gate";
 import {
   fetchPendingShellCommands,
   fetchPendingManualShell,
@@ -41,15 +42,20 @@ export interface GateHandlerDeps {
 function buildHumanGateTitle(taskPayload: TaskRecord, translate: Translator): string {
   const history = (taskPayload.history as HistoryEntry[] | undefined) ?? [];
   const lastEntry = history[history.length - 1];
-  const lastMessage = lastEntry?.message ? String(lastEntry.message) : "";
+  const rawMessage = lastEntry?.message ?? taskPayload.message ?? "";
+  const lastMessage = String(rawMessage).trim();
   if (lastMessage.includes(NEEDS_CLARIFICATION_MARKER)) {
     return translate("humanGate.clarificationRequired");
+  }
+  if (!lastMessage) {
+    return translate("humanGate.awaitingReviewInput");
   }
   return `${translate("humanGate.awaitingReviewInput")} ${lastMessage.slice(
     0,
     HUMAN_GATE_MESSAGE_PREVIEW_LENGTH,
   )}`;
 }
+
 
 export function hideAllGates(ui: UiStore): void {
   ui.humanGateVisible = false;
@@ -68,6 +74,13 @@ export function createGateHandlers(
     taskPayload,
   }: StatusHandlerContext): void {
     if (ui.humanGateSubmitting) {
+      return;
+    }
+    if (isPhaseGatePause(taskPayload.history)) {
+      // The phase-gate card owns this decision: it posts an approve or a
+      // change request to the gate itself. The human gate's own submit goes to
+      // the resume endpoint, which a run still blocked on the gate cannot use.
+      ui.humanGateVisible = false;
       return;
     }
     ui.humanGateVisible = true;

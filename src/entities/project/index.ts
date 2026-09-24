@@ -20,6 +20,7 @@ export {
   buildEmptySnap,
   useProjectsStore,
 } from "./model/projects-store";
+export { readStoredWorkspaceRoot } from "./model/stored-workspace-root";
 export {
   type ProjectFormValues,
   DEFAULT_PROJECT_FORM_VALUES,

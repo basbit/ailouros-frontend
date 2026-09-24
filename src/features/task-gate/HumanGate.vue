@@ -109,6 +109,7 @@
       <textarea
         :value="feedback"
         class="human-gate__feedback"
+        rows="2"
         :placeholder="t('humanGate.feedbackPlaceholder')"
         :disabled="submitting"
         @input="emit('update:feedback', ($event.target as HTMLTextAreaElement).value)"
@@ -286,7 +287,12 @@ watch(clarifyQuestions, (newQuestions, oldQuestions) => {
   margin-top: 8px;
 }
 .human-gate__feedback {
-  height: 100px;
+  /* Most gate answers are a word or a sentence, so the field opens at two
+     lines and grows only if the operator drags it; a fixed 100px box pushed
+     the decision buttons below the fold. */
+  min-height: 44px;
+  max-height: 180px;
+  resize: vertical;
   margin-top: 6px;
 }
 .file-editor {

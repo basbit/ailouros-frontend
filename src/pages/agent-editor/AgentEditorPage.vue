@@ -63,11 +63,13 @@
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "@/shared/lib/i18n";
+import { useUxStore } from "@/shared/store/ux";
 import { useEditorStore } from "@/features/agent-editor/useEditorStore";
 import ScenarioToolbar from "@/features/agent-editor/ScenarioToolbar.vue";
 import AgentEditorWorkspace from "./AgentEditorWorkspace.vue";
 
 const { t } = useI18n();
+const ux = useUxStore();
 const router = useRouter();
 
 function goToAgentModels(): void {
@@ -112,7 +114,11 @@ async function handleLoadPipeline(pipelineId: string): Promise<void> {
 }
 
 async function handleDeletePipeline(pipelineId: string): Promise<void> {
-  if (!window.confirm(t("agentEditor.confirmDelete"))) return;
+  const confirmed = await ux.confirmDialog({
+    title: t("agentEditor.confirmDeleteTitle"),
+    message: t("agentEditor.confirmDelete"),
+  });
+  if (!confirmed) return;
   await deletePipelineById(pipelineId);
 }
 

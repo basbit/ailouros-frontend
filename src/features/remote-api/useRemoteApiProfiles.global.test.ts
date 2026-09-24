@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRemoteApiProfiles } from "./useRemoteApiProfiles";
 import type { RemoteProfileRow } from "@/entities/project";
 import { LS_REMOTE_PROFILES } from "@/shared/lib/swarm-ui-constants";
+import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 function storedRows(): RemoteProfileRow[] {
   return JSON.parse(localStorage.getItem(LS_REMOTE_PROFILES) ?? "[]");
@@ -53,6 +54,29 @@ describe("useRemoteApiProfiles — global persistence", () => {
     expect(storedRows()).toEqual([
       expect.objectContaining({ id: "legacy", provider: "anthropic" }),
     ]);
+  });
+
+  it("starts empty and reports a stored payload that is not a list", () => {
+    const warn = vi.spyOn(frontendLogger, "warn").mockImplementation(() => {});
+    localStorage.setItem(LS_REMOTE_PROFILES, JSON.stringify({ or: { api_key: "k" } }));
+
+    const state = useRemoteApiProfiles(vi.fn());
+    state.loadGlobal();
+
+    expect(state.profiles.value).toEqual([]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it("starts empty without complaining when nothing is stored", () => {
+    const warn = vi.spyOn(frontendLogger, "warn").mockImplementation(() => {});
+
+    const state = useRemoteApiProfiles(vi.fn());
+    state.loadGlobal();
+
+    expect(state.profiles.value).toEqual([]);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("adoptLegacyRows is a no-op once profiles already exist", () => {

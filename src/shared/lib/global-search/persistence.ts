@@ -1,10 +1,10 @@
-import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
+import { readTypedJson, writeTypedJson } from "@/shared/lib/persistence-adapter";
 import { typedGlobalSettings } from "@/shared/lib/storage-keys";
 import type { GlobalSearchKeysState, StateKey } from "./types";
 import { DEFAULTS, isBoolKey } from "./defaults";
 
 export function loadFromStorage(state: GlobalSearchKeysState): void {
-  const parsed = readTyped(typedGlobalSettings<Partial<GlobalSearchKeysState>>());
+  const parsed = readTypedJson(typedGlobalSettings<Partial<GlobalSearchKeysState>>());
   if (!parsed || typeof parsed !== "object") return;
   for (const key of Object.keys(DEFAULTS) as StateKey[]) {
     const value = parsed[key];
@@ -18,5 +18,5 @@ export function loadFromStorage(state: GlobalSearchKeysState): void {
 }
 
 export function saveToStorage(state: GlobalSearchKeysState): void {
-  writeTyped(typedGlobalSettings<GlobalSearchKeysState>(), state);
+  writeTypedJson(typedGlobalSettings<GlobalSearchKeysState>(), state);
 }

@@ -9,6 +9,7 @@ import {
   buildRolesConfig,
 } from "@/entities/agent-config/model/sections/roles";
 import { buildSwarmSection } from "@/entities/agent-config/model/sections/swarm";
+import { usePreferencesStore } from "@/shared/store/preferences";
 
 export { agentConfigErrorMessage } from "@/entities/agent-config/model/errors";
 export type {
@@ -50,8 +51,9 @@ function attachPlannerConfig(config: Record<string, unknown>): void {
 function attachSwarmSection(
   config: Record<string, unknown>,
   form: AgentConfigForm,
+  locale: string,
 ): void {
-  const swarmSection = buildSwarmSection(form);
+  const swarmSection = buildSwarmSection(form, locale);
   if (Object.keys(swarmSection).length) config.swarm = swarmSection;
 }
 
@@ -76,7 +78,7 @@ export function buildAgentConfig(
     ...buildRolesConfig(rolesState, devRolesState, form),
   };
 
-  attachSwarmSection(config, form);
+  attachSwarmSection(config, form, usePreferencesStore().locale);
 
   const mediaSection = buildMediaSection(form);
   if (mediaSection) attachMediaToSwarm(config, mediaSection);

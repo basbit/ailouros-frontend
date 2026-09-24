@@ -103,6 +103,7 @@ const SECTION_KEYS = [
   "ragas_metrics",
   "skill_dispatch",
   "workspace_isolation",
+  "security_rewrite",
   "dev_shell_sandbox",
   "memory",
 ] as const;
@@ -118,6 +119,7 @@ const missingSections = computed(() => {
   if (current.ragasMetrics) populated.add("ragas_metrics");
   if (current.skillDispatch) populated.add("skill_dispatch");
   if (current.workspaceIsolation) populated.add("workspace_isolation");
+  if (current.securityRewrite) populated.add("security_rewrite");
   if (current.devShellSandbox) populated.add("dev_shell_sandbox");
   if (current.memory) populated.add("memory");
   const hints = current.enableHints ?? {};
@@ -151,6 +153,7 @@ const isVisible = computed(() => {
       current.ragasMetrics ||
       current.skillDispatch ||
       current.workspaceIsolation ||
+      current.securityRewrite ||
       current.devShellSandbox ||
       current.memory,
     ) || missingSections.value.length > 0

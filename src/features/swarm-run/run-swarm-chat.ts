@@ -13,6 +13,7 @@ import {
   roleRefForStep,
 } from "@/entities/pipeline";
 import { consumeSseStream } from "@/shared/lib/swarm-chat-stream";
+import { useUxStore } from "@/shared/store/ux";
 import type { ScenarioInputKey, ScenarioSummary } from "@/shared/model/scenario-types";
 
 const CLARIFY_INPUT_STEP_ID = "clarify_input";
@@ -133,20 +134,20 @@ function ensurePipelineRolesHaveModels(
   return false;
 }
 
-function confirmStepOrderOrCancel(
+async function confirmStepOrderOrCancel(
   selection: PipelineSelection,
   translate: Translator,
-): boolean {
+): Promise<boolean> {
   const orderReport = analyzePipelineStepOrder(selection.stepIds);
   if (!orderReport.hasViolations) return true;
-  const message = [
-    translate("pipelineSteps.orderWarningTitle"),
-    "",
-    formatStepOrderSummary(orderReport),
-    "",
-    translate("pipelineSteps.orderWarningPrompt"),
-  ].join("\n");
-  const confirmed = window.confirm(message);
+  const confirmed = await useUxStore().confirmDialog({
+    title: translate("pipelineSteps.orderWarningTitle"),
+    message: [
+      formatStepOrderSummary(orderReport),
+      "",
+      translate("pipelineSteps.orderWarningPrompt"),
+    ].join("\n"),
+  });
   if (!confirmed) {
     agentConfigErrorMessage.value = translate("pipelineSteps.orderWarningCancelled");
     return false;
@@ -318,7 +319,7 @@ export async function runSwarmChat(
 
   if (!ensurePipelineStepsPresent(selection, translate)) return;
   if (!ensurePipelineRolesHaveModels(selection, settings, translate)) return;
-  if (!confirmStepOrderOrCancel(selection, translate)) return;
+  if (!(await confirmStepOrderOrCancel(selection, translate))) return;
 
   warnIfVisualStepsWithoutWorkspace(selection, normalized, handlers);
   warnIfImageAttachmentsWithoutPmStep(form, selection, handlers);

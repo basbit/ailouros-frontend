@@ -54,7 +54,7 @@
       <CheckpointPreview v-if="!isHistoryView" :preview="checkpointPreview" />
 
       <TaskGatesOverlay
-        v-if="!isHistoryView"
+        v-if="!isHistoryView || isCurrentRunAwaiting"
         :current-pipeline-steps="controller.currentPipelineSteps.value"
         @human-resume="onHumanResume"
         @confirm-shell="onConfirmShell"
@@ -120,7 +120,7 @@
       </div>
 
       <PhaseGateCard
-        v-if="!isHistoryView"
+        v-if="!isHistoryView || isCurrentRunAwaiting"
         :workspace-root="currentWorkspaceRoot"
         :task-id="diagnosticsTaskId"
       />
@@ -187,6 +187,8 @@ const props = withDefaults(
     historySteps?: string[] | null;
     /** Step the run failed at (snapshot `failed_step`). */
     historyFailedStep?: string | null;
+    /** Authoritative status of the viewed run, so a running one shows its step. */
+    historyStatus?: string | null;
   }>(),
   {
     hideHeader: false,
@@ -194,6 +196,7 @@ const props = withDefaults(
     historyEvents: () => [],
     historySteps: null,
     historyFailedStep: null,
+    historyStatus: null,
   },
 );
 
@@ -204,6 +207,7 @@ const {
   logFilter,
   logView,
   isHistoryView,
+  isCurrentRunAwaiting,
   isRunning,
   hasActiveTask,
   isRunUnavailable,

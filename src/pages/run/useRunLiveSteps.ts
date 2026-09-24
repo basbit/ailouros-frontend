@@ -44,6 +44,8 @@ export interface HistorySource {
   events: EventRow[];
   /** Step the run failed at (task snapshot `failed_step`), when known. */
   failedStep?: string | null;
+  /** True while the viewed run is still working, so it has a step in progress. */
+  runIsActive?: boolean;
 }
 
 interface RunLiveStepsOptions {
@@ -135,19 +137,27 @@ export function useRunLiveSteps({
 
   // Exactly one step can be running. `ui.activeStep` is the live truth; after a
   // reload it may be absent, so the furthest step that reported progress wins.
-  function resolveActiveStepId(
+  function resolveActiveStepIdFromEvents(
     stepIds: string[],
     runningAgents: Set<string>,
     settled: Set<string>,
   ): string | null {
     const selectable = (id: string): boolean => !settled.has(id);
-    const live = (ui.activeStep ?? "").trim();
-    if (live && stepIds.includes(live) && selectable(live)) return live;
     for (let index = stepIds.length - 1; index >= 0; index -= 1) {
       const id = stepIds[index];
       if (runningAgents.has(id) && selectable(id)) return id;
     }
     return stepIds.find(selectable) ?? null;
+  }
+
+  function resolveActiveStepId(
+    stepIds: string[],
+    runningAgents: Set<string>,
+    settled: Set<string>,
+  ): string | null {
+    const live = (ui.activeStep ?? "").trim();
+    if (live && stepIds.includes(live) && !settled.has(live)) return live;
+    return resolveActiveStepIdFromEvents(stepIds, runningAgents, settled);
   }
 
   const stepRows = computed<StepRow[]>(() => {
@@ -172,10 +182,16 @@ export function useRunLiveSteps({
       failedSet.add(snapshotFailedStep);
     }
     const settled = new Set([...completedSet, ...failedSet]);
-    const activeId =
-      isHistory || !isRunning.value
-        ? null
-        : resolveActiveStepId(stepIds, derived.runningAgents, settled);
+    // A historical entry cannot use the live `ui.activeStep` — that belongs to
+    // whatever the Run page is showing — but its own events still say which
+    // step started and never reported completion.
+    const activeId = isHistory
+      ? (historySource.value?.runIsActive
+          ? resolveActiveStepIdFromEvents(stepIds, derived.runningAgents, settled)
+          : null)
+      : (isRunning.value
+          ? resolveActiveStepId(stepIds, derived.runningAgents, settled)
+          : null);
     const activeIndex = activeId ? stepIds.indexOf(activeId) : -1;
     return stepIds.map((id, index) => {
       if (failedSet.has(id)) return { id, state: "failed" as const };

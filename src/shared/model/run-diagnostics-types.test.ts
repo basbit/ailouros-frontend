@@ -128,6 +128,61 @@ describe("skill dispatch parsing", () => {
   });
 });
 
+describe("security rewrite parsing", () => {
+  it("parses a degraded ingress rewrite with its risk and flags", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      security_rewrite: {
+        status: "degraded",
+        risk_level: "high",
+        flags: ["prompt_injection", "heuristic_fallback"],
+      },
+    });
+    expect(result?.securityRewrite).toEqual({
+      status: "degraded",
+      riskLevel: "high",
+      flags: ["prompt_injection", "heuristic_fallback"],
+    });
+  });
+
+  it("keeps a successful rewrite distinct from a switched-off one", () => {
+    const ok = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      security_rewrite: { status: "ok", risk_level: "none", flags: [] },
+    });
+    const off = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      security_rewrite: { status: "disabled", risk_level: "", flags: [] },
+    });
+    expect(ok?.securityRewrite?.status).toBe("ok");
+    expect(off?.securityRewrite?.status).toBe("disabled");
+  });
+
+  it("returns null when security_rewrite is absent", () => {
+    expect(parseRunDiagnosticsPayload({ task_id: "t1" })?.securityRewrite).toBeNull();
+  });
+
+  it("refuses a status it cannot explain to an operator", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      security_rewrite: { status: "probably-fine", risk_level: "low", flags: [] },
+    });
+    expect(result?.securityRewrite).toBeNull();
+  });
+
+  it("drops blank flags instead of rendering empty pills", () => {
+    const result = parseRunDiagnosticsPayload({
+      task_id: "t1",
+      security_rewrite: {
+        status: "degraded",
+        risk_level: "medium",
+        flags: ["heuristic_fallback", "  ", 7],
+      },
+    });
+    expect(result?.securityRewrite?.flags).toEqual(["heuristic_fallback"]);
+  });
+});
+
 describe("workspace isolation parsing", () => {
   it("parses a populated workspace_isolation field", () => {
     const result = parseRunDiagnosticsPayload({

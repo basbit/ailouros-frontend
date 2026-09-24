@@ -81,6 +81,26 @@ describe("useTurnPipelineSummary", () => {
     expect(summary.isRunning.value).toBe(false);
   });
 
+  it("history path: a run still working shows its running step as active, not pending", async () => {
+    snapshotMock.mockResolvedValue({
+      status: "running",
+      history: [
+        { agent: "pm", message: "spec", status: "completed", timestamp: "t1" },
+        { agent: "dev", message: "writing", status: "progress", timestamp: "t2" },
+      ] as never,
+      pipeline_steps: ["pm", "dev", "qa"],
+      failed_step: "",
+    });
+    const summary = useTurnPipelineSummary({
+      taskId: () => "task-still-running",
+      isLive: () => false,
+    });
+    await flushSnapshot();
+
+    expect(summary.activeStep.value).toBe("dev");
+    expect(summary.isRunning.value).toBe(true);
+  });
+
   it("history path: a failed step keeps the run from reading as 100% green", async () => {
     const summary = makeHistorySummary(
       [

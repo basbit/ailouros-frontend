@@ -109,6 +109,14 @@
     * { scrollbar-width: auto; }
 
     /* ── Header ───────────────────────────────────────────── */
+    /* The bar is a fixed row: whatever does not fit scrolls inside it and
+       never wraps into the page below (see AppHeader.vue for what collapses). */
+    @media (max-width: 900px) {
+      .app-header {
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+    }
     .app-header {
       height: var(--hdr-h);
       background: color-mix(in srgb, var(--surface) 88%, transparent);

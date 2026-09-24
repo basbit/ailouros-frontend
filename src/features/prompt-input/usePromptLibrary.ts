@@ -1,5 +1,5 @@
 import { computed, ref } from "vue";
-import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
+import { readTypedJson, writeTypedJson } from "@/shared/lib/persistence-adapter";
 import { typedPromptLibrary } from "@/shared/lib/storage-keys";
 
 export interface PromptEntry {
@@ -36,12 +36,15 @@ export function usePromptLibrary(currentProjectId: () => string) {
   const entries = computed<PromptEntry[]>(() => cached.value);
 
   function reload(): void {
-    const stored = readTyped(typedPromptLibrary<unknown[]>(currentProjectId(), []));
+    const stored = readTypedJson(typedPromptLibrary<unknown[]>(currentProjectId(), []));
     cached.value = normalizeEntries(stored);
   }
 
   function persist(): void {
-    writeTyped(typedPromptLibrary<PromptEntry[]>(currentProjectId(), []), cached.value);
+    writeTypedJson(
+      typedPromptLibrary<PromptEntry[]>(currentProjectId(), []),
+      cached.value,
+    );
   }
 
   function openPanel(): void {

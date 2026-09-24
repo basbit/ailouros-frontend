@@ -35,16 +35,45 @@
         />
         <select v-model="statusFilter" class="history-list-page__filter">
           <option value="all">{{ t("history.list.filter.all") }}</option>
+          <option value="awaiting">{{ t("history.list.filter.awaiting") }}</option>
+          <option value="running">{{ t("history.list.filter.running") }}</option>
           <option value="completed">{{ t("history.list.filter.completed") }}</option>
           <option value="failed">{{ t("history.list.filter.failed") }}</option>
-          <option value="running">{{ t("history.list.filter.running") }}</option>
         </select>
       </div>
 
-      <p v-if="!filteredEntries.length" class="history-list-page__empty">
-        {{
-          ui.historyList.length ? t("history.list.noMatches") : t("history.list.empty")
-        }}
+      <p
+        v-if="loadError && mergedEntries.length"
+        class="history-list-page__notice"
+        role="status"
+      >
+        {{ t("history.list.serverUnreachableBanner") }}
+        <span class="history-list-page__notice-detail">
+          {{ t("history.list.serverError", { error: loadError }) }}
+        </span>
+        <button type="button" class="history-list-page__retry" @click="reload">
+          {{ t("history.list.retry") }}
+        </button>
+      </p>
+
+      <p v-if="isLoadingFirstPage" class="history-list-page__empty" role="status">
+        {{ t("history.list.loading") }}
+      </p>
+
+      <p v-else-if="!filteredEntries.length" class="history-list-page__empty">
+        <template v-if="mergedEntries.length">{{
+          t("history.list.noMatches")
+        }}</template>
+        <template v-else-if="loadError">
+          {{ t("history.list.serverUnreachableEmpty") }}
+          <span class="history-list-page__notice-detail">
+            {{ t("history.list.serverError", { error: loadError }) }}
+          </span>
+          <button type="button" class="history-list-page__retry" @click="reload">
+            {{ t("history.list.retry") }}
+          </button>
+        </template>
+        <template v-else>{{ t("history.list.empty") }}</template>
       </p>
 
       <HistoryListTable
@@ -61,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import AppHeaderContainer from "@/widgets/header/AppHeaderContainer.vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import { useUiStore } from "@/shared/store/ui";
@@ -75,14 +105,22 @@ const {
   searchQuery,
   statusFilter,
   resumeBusyId,
+  mergedEntries,
   filteredEntries,
+  serverLoading,
+  loadError,
   statusFamily,
   canResume,
+  reload,
   onResumeEntry,
   onClearHistory,
   onOpen,
   onExportCsv,
 } = useHistoryListActions();
+
+const isLoadingFirstPage = computed(
+  () => serverLoading.value && !mergedEntries.value.length,
+);
 </script>
 
 <style scoped>
@@ -188,5 +226,39 @@ const {
   text-align: center;
   color: var(--ink-4);
   font-size: 13px;
+}
+
+.history-list-page__notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.history-list-page__notice-detail {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-4);
+  font-size: 11px;
+  word-break: break-word;
+}
+
+.history-list-page__retry {
+  appearance: none;
+  margin-top: 8px;
+  padding: 4px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.history-list-page__retry:hover {
+  border-color: var(--line-strong);
 }
 </style>

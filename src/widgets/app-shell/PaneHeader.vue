@@ -42,11 +42,29 @@ defineProps<{
   letter-spacing: -0.02em;
   color: var(--ink);
   margin: 0;
+  /* The subtitle gives up space first: the title used to wrap to "API" / "keys"
+     as soon as the pane got narrow. */
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .pane-header__subtitle {
   font-size: 13px;
   color: var(--ink-3);
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .pane-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pane-header__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 }
 
 .pane-header__actions {

@@ -40,8 +40,18 @@
         <span
           class="history-list-table__pill"
           :class="`history-list-table__pill--${statusFamily(entry.status)}`"
+          :title="statusTitle(entry)"
         >
-          {{ entry.status ?? "—" }}
+          <span
+            v-if="isAwaiting(entry)"
+            class="history-list-table__gate-mark"
+            role="img"
+            :title="t('history.questionBadge')"
+            :aria-label="t('history.questionBadge')"
+          >
+            <span aria-hidden="true">❓</span>
+          </span>
+          {{ formatStatus(entry.status) }}
         </span>
       </span>
       <span role="cell" class="history-list-table__cell-mono">
@@ -67,7 +77,8 @@
 </template>
 
 <script setup lang="ts">
-import { type HistoryEntry } from "@/shared/store/ui";
+import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
+import { formatTaskStatus, isRunAwaiting } from "@/shared/lib/task-status";
 import { formatEuropeanDateTime } from "@/shared/lib/format-date";
 import { formatDurationOrDash } from "@/shared/lib/format-relative";
 import { useI18n } from "@/shared/lib/i18n";
@@ -85,6 +96,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const ui = useUiStore();
 
 function promptPreview(prompt: string): string {
   const first = (prompt ?? "").split("\n")[0];
@@ -96,6 +108,20 @@ function formatStartedAt(entry: HistoryEntry): string {
 }
 
 const formatDuration = formatDurationOrDash;
+
+function isAwaiting(entry: HistoryEntry): boolean {
+  return isRunAwaiting(entry, ui);
+}
+
+function formatStatus(status?: HistoryEntry["status"]): string {
+  return formatTaskStatus(t, status);
+}
+
+function statusTitle(entry: HistoryEntry): string {
+  return entry.status === "artifacts_incomplete"
+    ? t("history.list.artifactsIncompleteTitle")
+    : "";
+}
 </script>
 
 <style scoped>
@@ -183,6 +209,10 @@ const formatDuration = formatDurationOrDash;
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.history-list-table__gate-mark {
+  margin-right: 4px;
 }
 
 .history-list-table__pill--ok {

@@ -1,11 +1,6 @@
 import { inject, type InjectionKey } from "vue";
-import {
-  APP_SETTINGS_KEY as APP_SETTINGS_CONTRACT_KEY,
-  type AppSettingsContract,
-} from "@/entities/app-settings/contract";
+import { APP_SETTINGS_KEY as APP_SETTINGS_CONTRACT_KEY } from "@/entities/app-settings/contract";
 import type { useSettings } from "./useSettings";
-
-export type { AppSettingsContract };
 
 /**
  * The full provider surface, for the composition root and the pages that build

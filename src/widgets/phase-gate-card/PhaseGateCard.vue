@@ -32,14 +32,20 @@
           <span class="phase-gate-card__phase">{{ gate.phaseId }}</span>
           <code class="phase-gate-card__gate-id">{{ gate.gateId }}</code>
         </div>
+        <p class="phase-gate-card__question">{{ t("phaseGates.question") }}</p>
         <p v-if="gate.summary" class="phase-gate-card__summary">
           {{ gate.summary }}
         </p>
-        <ul v-if="gate.acceptanceCriteria.length > 0" class="phase-gate-card__criteria">
-          <li v-for="criterion in gate.acceptanceCriteria" :key="criterion">
-            {{ criterion }}
-          </li>
-        </ul>
+        <template v-if="gate.acceptanceCriteria.length > 0">
+          <p class="phase-gate-card__criteria-label">
+            {{ t("phaseGates.optionsLabel") }}
+          </p>
+          <ul class="phase-gate-card__criteria">
+            <li v-for="criterion in gate.acceptanceCriteria" :key="criterion">
+              {{ criterion }}
+            </li>
+          </ul>
+        </template>
         <label class="phase-gate-card__field">
           {{ t("phaseGates.rationaleLabel") }}
           <textarea
@@ -49,42 +55,22 @@
             :placeholder="t('phaseGates.rationalePlaceholder')"
           />
         </label>
-        <div class="phase-gate-card__actions">
-          <button
-            type="button"
-            class="phase-gate-card__btn phase-gate-card__btn--approve"
-            :disabled="!canDecide(gate.gateId)"
-            @click="onDecide(gate, 'approved')"
-          >
-            {{ t("phaseGates.approve") }}
-          </button>
-          <button
-            type="button"
-            class="phase-gate-card__btn phase-gate-card__btn--changes"
-            :disabled="!canDecide(gate.gateId)"
-            @click="onDecide(gate, 'changes_requested')"
-          >
-            {{ t("phaseGates.requestChanges") }}
-          </button>
-        </div>
+        <PhaseGateDecisionActions
+          :disabled="!canDecide(gate.gateId)"
+          @decide="(decision) => onDecide(gate, decision)"
+        />
       </li>
     </ol>
   </section>
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  onActivated,
-  onBeforeUnmount,
-  onDeactivated,
-  reactive,
-  watch,
-} from "vue";
+import { computed, reactive } from "vue";
 
 import type { PhaseGate, PhaseGateDecision } from "@/shared/model/phase-gate-types";
-import { usePhaseGates } from "@/features/phase-gates/usePhaseGates";
+import { usePhaseGatePolling, usePhaseGates } from "@/entities/phase-gate";
 import { useI18n } from "@/shared/lib/i18n";
+import PhaseGateDecisionActions from "./PhaseGateDecisionActions.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -102,13 +88,12 @@ const gates = usePhaseGates();
 const filteredGates = computed(() => {
   const all = gates.pendingGates.value;
   if (!props.taskId) return all;
-  return all.filter((gate) => !gate.taskId || gate.taskId === props.taskId);
+  return all.filter((gate) => gate.taskId === props.taskId);
 });
 
 // Only a human ever decides a gate, so there is nothing to ask for. This used
 // to be a required text field that disabled the approve/reject buttons until
 // it was filled in.
-const DECIDED_BY = "human";
 const rationaleByGate = reactive<Record<string, string>>({});
 
 // Gates only exist for scenarios that run phase_acceptance_gate with phase
@@ -118,45 +103,7 @@ const isVisible = computed(
   () => filteredGates.value.length > 0 || Boolean(gates.lastError.value),
 );
 
-const POLL_INTERVAL_MS = 3000;
-let pollTimer: ReturnType<typeof setInterval> | null = null;
-
-function stopPolling(): void {
-  if (pollTimer !== null) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-}
-
-function startPolling(workspaceRoot: string): void {
-  stopPolling();
-  void gates.refresh(workspaceRoot);
-  pollTimer = setInterval(() => {
-    void gates.refresh(workspaceRoot);
-  }, POLL_INTERVAL_MS);
-}
-
-watch(
-  () => props.workspaceRoot,
-  (workspaceRoot) => {
-    const trimmed = (workspaceRoot ?? "").trim();
-    if (trimmed) {
-      startPolling(trimmed);
-    } else {
-      stopPolling();
-    }
-  },
-  { immediate: true },
-);
-
-onBeforeUnmount(stopPolling);
-
-onDeactivated(stopPolling);
-
-onActivated(() => {
-  const workspaceRoot = (props.workspaceRoot ?? "").trim();
-  if (workspaceRoot) startPolling(workspaceRoot);
-});
+usePhaseGatePolling(() => props.workspaceRoot);
 
 function canDecide(gateId: string): boolean {
   if (gates.decidingGateId.value === gateId) return false;
@@ -174,7 +121,6 @@ async function onDecide(gate: PhaseGate, decision: PhaseGateDecision): Promise<v
   const ok = await gates.decide(gate.gateId, {
     workspaceRoot: props.workspaceRoot,
     decision,
-    decidedBy: DECIDED_BY,
     rationale,
   });
   if (ok) {
@@ -282,6 +228,17 @@ async function onDecide(gate: PhaseGate, decision: PhaseGateDecision): Promise<v
   word-break: break-all;
 }
 
+.phase-gate-card__question {
+  margin: 0;
+  font-weight: 600;
+}
+
+.phase-gate-card__criteria-label {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
 .phase-gate-card__summary {
   margin: 0;
   font-size: 12px;
@@ -319,34 +276,4 @@ async function onDecide(gate: PhaseGate, decision: PhaseGateDecision): Promise<v
   resize: vertical;
 }
 
-.phase-gate-card__actions {
-  display: flex;
-  gap: 8px;
-}
-
-.phase-gate-card__btn {
-  appearance: none;
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  color: var(--ink);
-  border-radius: var(--r-md);
-  padding: 6px 12px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.phase-gate-card__btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.phase-gate-card__btn--approve:not(:disabled) {
-  border-color: color-mix(in srgb, var(--success) 35%, var(--line));
-  color: var(--success);
-}
-
-.phase-gate-card__btn--changes:not(:disabled) {
-  border-color: color-mix(in srgb, var(--warning) 35%, var(--line));
-  color: var(--warning);
-}
 </style>

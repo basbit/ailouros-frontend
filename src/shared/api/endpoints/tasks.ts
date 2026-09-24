@@ -20,6 +20,8 @@ export interface LegacyTaskSnapshot {
   /** Step the run failed at (artifact-sourced). */
   failed_step?: string;
   resume_from_step?: string;
+  /** The step waiting on a human, on a paused run. */
+  human_approval_step?: string;
   /** True when the task store forgot the task and it was rebuilt from artifacts. */
   recovered_from_artifacts?: boolean;
 }

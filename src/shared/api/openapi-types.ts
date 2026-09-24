@@ -1505,6 +1505,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List runs recorded in the artifacts directory
+         * @description Server-side run history, newest first. The browser's own history lives in localStorage and is invisible to another browser, to the desktop app, and to the same browser after its site data is cleared; this route reads the runs that are on disk. A run whose `pipeline.json` never landed is reported as `artifacts_incomplete` rather than completed. `workspace_root` filters on the root a run was launched against and is only ever compared as a string, never joined onto a path.
+         */
+        get: operations["list_runs_v1_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/runtime/capabilities": {
         parameters: {
             query?: never;
@@ -3736,6 +3756,42 @@ export interface components {
              * @default
              */
             workspace_root: string;
+        };
+        /** RunHistoryEntryResponse */
+        RunHistoryEntryResponse: {
+            /** Created At */
+            created_at: string;
+            /** Has Pipeline Snapshot */
+            has_pipeline_snapshot: boolean;
+            /** Pipeline Steps */
+            pipeline_steps: string[];
+            /** Prompt */
+            prompt: string;
+            /** Prompt Truncated */
+            prompt_truncated: boolean;
+            /** Scenario Id */
+            scenario_id: string | null;
+            /** Scenario Title */
+            scenario_title: string | null;
+            /** Status */
+            status: string;
+            /** Task Id */
+            task_id: string;
+            /** Updated At */
+            updated_at: string;
+            /** Workspace Root */
+            workspace_root: string;
+        };
+        /** RunHistoryListResponse */
+        RunHistoryListResponse: {
+            /** Returned */
+            returned: number;
+            /** Runs */
+            runs: components["schemas"]["RunHistoryEntryResponse"][];
+            /** Total */
+            total: number;
+            /** Unreadable */
+            unreadable: number;
         };
         /** RunPlaybookRequest */
         RunPlaybookRequest: {
@@ -7436,6 +7492,38 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_runs_v1_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                workspace_root?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunHistoryListResponse"];
                 };
             };
             /** @description Validation Error */

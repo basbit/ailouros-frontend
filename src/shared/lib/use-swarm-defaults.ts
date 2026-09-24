@@ -2,7 +2,7 @@ import { ref, readonly } from "vue";
 import { initApiBase } from "@/shared/api/base";
 import { httpGet } from "@/shared/api/http";
 import { typedSwarmDefaults } from "@/shared/lib/storage-keys";
-import { readTyped, writeTyped } from "@/shared/lib/storage-utils";
+import { readTypedJson, writeTypedJson } from "@/shared/lib/persistence-adapter";
 
 interface SwarmDefaults {
   roles: string[];
@@ -19,11 +19,11 @@ interface SwarmDefaults {
 }
 
 function _loadFromStorage(): SwarmDefaults | null {
-  return readTyped(typedSwarmDefaults<SwarmDefaults>());
+  return readTypedJson(typedSwarmDefaults<SwarmDefaults>());
 }
 
 function _saveToStorage(data: SwarmDefaults): void {
-  writeTyped(typedSwarmDefaults<SwarmDefaults>(), data);
+  writeTypedJson(typedSwarmDefaults<SwarmDefaults>(), data);
 }
 
 function _emptyDefaults(): SwarmDefaults {

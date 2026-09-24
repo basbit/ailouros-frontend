@@ -9,7 +9,9 @@
       @click="emit('select', entry.key)"
     >
       <span class="sub-nav__label">{{ entry.label }}</span>
-      <span v-if="entry.hint" class="sub-nav__hint">{{ entry.hint }}</span>
+      <!-- The space belongs to the text: without it the button's accessible
+           name reads "Aboutv3" instead of "About v3". -->
+      <span v-if="entry.hint" class="sub-nav__hint">{{ " " + entry.hint }}</span>
     </button>
   </nav>
 </template>
@@ -42,6 +44,26 @@ const emit = defineEmits<{
   border-right: 1px solid var(--line);
   background: var(--card-soft);
   overflow-y: auto;
+}
+
+/* Stacked under the header on narrow viewports: a horizontal, scrollable row
+   of panes instead of a rail that eats the content column. */
+@media (max-width: 760px) {
+  .sub-nav {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 6px;
+    padding: 10px 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .sub-nav__item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 }
 
 .sub-nav__item {

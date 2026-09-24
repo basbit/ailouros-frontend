@@ -71,6 +71,17 @@ export const runDiagnosticsI18nEn: Messages = {
   "runDiagnostics.memoryCrossTaskEphemeral": "cross-task memory is lost after this run",
   "runDiagnostics.memoryPatterns": "approved patterns",
   "runDiagnostics.memoryWiki": "wiki articles",
+  "runDiagnostics.securityRewrite": "Ingress sanitisation",
+  "runDiagnostics.securityRewriteStatus.ok": "rewritten by the model",
+  "runDiagnostics.securityRewriteStatus.degraded": "degraded to the heuristic rewrite",
+  "runDiagnostics.securityRewriteStatus.disabled": "switched off",
+  "runDiagnostics.securityRewriteRisk": "risk {level}",
+  "runDiagnostics.securityRewriteHint.degraded":
+    "The rewrite model was unreachable or answered off-schema, so the prompt was filtered by line patterns only — injected instructions may have reached the agents.",
+  "runDiagnostics.securityRewriteHint.disabled":
+    "SWARM_SECURITY_REWRITE is off, so the untrusted prompt reached the agents exactly as written.",
+  "runDiagnostics.hint.security_rewrite":
+    "SWARM_SECURITY_REWRITE=1 (the default) rewrites the untrusted prompt before any agent sees it and records the verdict here.",
   "runDiagnostics.devShellSandbox": "Dev shell sandbox",
   "runDiagnostics.devShellSandboxRequested": "requested",
   "runDiagnostics.devShellSandboxNotRequested": "not requested",
@@ -159,6 +170,18 @@ export const runDiagnosticsI18nRu: Messages = {
     "межзадачная память теряется после прогона",
   "runDiagnostics.memoryPatterns": "одобренных паттернов",
   "runDiagnostics.memoryWiki": "статей вики",
+  "runDiagnostics.securityRewrite": "Санитизация ввода",
+  "runDiagnostics.securityRewriteStatus.ok": "переписано моделью",
+  "runDiagnostics.securityRewriteStatus.degraded":
+    "деградировала до эвристического перезаписывания",
+  "runDiagnostics.securityRewriteStatus.disabled": "выключена",
+  "runDiagnostics.securityRewriteRisk": "риск {level}",
+  "runDiagnostics.securityRewriteHint.degraded":
+    "Модель перезаписи была недоступна или ответила не по схеме, поэтому промпт отфильтрован только построчными паттернами — внедрённые инструкции могли дойти до агентов.",
+  "runDiagnostics.securityRewriteHint.disabled":
+    "SWARM_SECURITY_REWRITE выключен, недоверенный промпт дошёл до агентов ровно в том виде, в котором его написали.",
+  "runDiagnostics.hint.security_rewrite":
+    "SWARM_SECURITY_REWRITE=1 (по умолчанию) перезаписывает недоверенный промпт до того, как его увидит любой агент, и фиксирует вердикт здесь.",
   "runDiagnostics.devShellSandbox": "Sandbox дев-шелла",
   "runDiagnostics.devShellSandboxRequested": "запрошен",
   "runDiagnostics.devShellSandboxNotRequested": "не запрошен",

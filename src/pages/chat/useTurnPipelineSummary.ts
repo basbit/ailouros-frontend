@@ -82,6 +82,9 @@ export function useTurnPipelineSummary(
       pipelineSteps: historySteps.value,
       events: historyEvents.value,
       failedStep: historyFailedStep.value,
+      // A run still working (viewed from a past turn, or another tab) has a
+      // step in progress; without this its running step read as pending.
+      runIsActive: isTaskActive(historyStatus.value),
     };
   });
 

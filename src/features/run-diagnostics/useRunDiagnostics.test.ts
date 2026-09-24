@@ -19,6 +19,7 @@ function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostic
     ragasMetrics: null,
     skillDispatch: null,
     workspaceIsolation: null,
+    securityRewrite: null,
     devShellSandbox: null,
     memory: null,
     enableHints: {},

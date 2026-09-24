@@ -22,7 +22,7 @@ import {
   type UpdateStatusDto,
 } from "@/shared/api/endpoints/system";
 import { useI18n } from "@/shared/lib/i18n";
-import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { usePersistedString } from "@/shared/lib/use-persisted-flag";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 const { t } = useI18n();
@@ -35,8 +35,9 @@ const status = ref<UpdateStatusDto>({
   remote_ref: "",
   branch: "",
 });
-const dismissedRef = ref<string>(
-  readRawString(STORAGE_KEYS.updateBannerDismissedRef.key) ?? "",
+const dismissedRef = usePersistedString(
+  STORAGE_KEYS.updateBannerDismissedRef.key,
+  "",
 );
 
 const visible = computed(() => {
@@ -56,7 +57,6 @@ async function fetchStatus(): Promise<void> {
 
 function dismiss(): void {
   dismissedRef.value = status.value.remote_ref;
-  writeRawString(STORAGE_KEYS.updateBannerDismissedRef.key, status.value.remote_ref);
 }
 
 onMounted(() => {

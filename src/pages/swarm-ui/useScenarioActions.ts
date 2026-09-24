@@ -1,9 +1,9 @@
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import type { ComputedRef, Ref } from "vue";
 import { useUxStore } from "@/shared/store/ux";
 import { useI18n } from "@/shared/lib/i18n";
 import { CUSTOM_SCENARIO_ID } from "@/shared/lib/swarm-ui-constants";
-import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { usePersistedFlag } from "@/shared/lib/use-persisted-flag";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 import type { useSettings } from "@/app/providers/useSettings";
 
@@ -34,9 +34,18 @@ export function useScenarioActions(
   const ux = useUxStore();
   const { t } = useI18n();
 
-  const firstRunScenarioVisible = ref(
-    readRawString(STORAGE_KEYS.scenarioFirstRunDismissed.key) !== "1",
+  // The dismissal is what is persisted; visibility is its inverse so the
+  // panel has a single source of truth.
+  const firstRunScenarioDismissed = usePersistedFlag(
+    STORAGE_KEYS.scenarioFirstRunDismissed.key,
+    false,
   );
+  const firstRunScenarioVisible = computed<boolean>({
+    get: () => !firstRunScenarioDismissed.value,
+    set: (visible) => {
+      firstRunScenarioDismissed.value = !visible;
+    },
+  });
 
   const scenarioInputValues = computed<Record<string, string | boolean>>(() => ({
     prompt: settings.form.prompt ?? "",
@@ -69,7 +78,6 @@ export function useScenarioActions(
 
   function dismissFirstRunScenarioPanel(): void {
     firstRunScenarioVisible.value = false;
-    writeRawString(STORAGE_KEYS.scenarioFirstRunDismissed.key, "1");
   }
 
   function onFirstRunScenarioPick(scenarioId: string): void {

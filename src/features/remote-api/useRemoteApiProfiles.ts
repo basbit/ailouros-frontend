@@ -6,7 +6,7 @@ import {
   remoteProfileProviderOptions,
 } from "@/shared/lib/use-swarm-defaults";
 import { LS_REMOTE_PROFILES } from "@/shared/lib/swarm-ui-constants";
-import { loadJSON, saveJSON } from "@/shared/lib/storage-utils";
+import { persistenceAdapter } from "@/shared/lib/persistence-adapter";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 
 export function getRemoteProfileProviderOptions(): [string, string][] {
@@ -17,23 +17,22 @@ export function useRemoteApiProfiles(onChangeCb: () => void) {
   const profiles = ref<RemoteProfileRow[]>([]);
 
   function loadGlobal(): void {
-    try {
-      const arr = loadJSON<RemoteProfileRow[] | null>(LS_REMOTE_PROFILES, null);
-      if (Array.isArray(arr)) {
-        profiles.value = arr;
-        return;
-      }
-    } catch (e) {
+    const stored = persistenceAdapter.read(LS_REMOTE_PROFILES);
+    if (Array.isArray(stored)) {
+      profiles.value = stored as RemoteProfileRow[];
+      return;
+    }
+    if (stored != null) {
       frontendLogger.warn(
-        "useRemoteApiProfiles: failed to load profiles from storage",
-        e,
+        "useRemoteApiProfiles: stored profiles are not a list; starting empty",
+        stored,
       );
     }
     profiles.value = [];
   }
 
   function saveGlobal(): void {
-    saveJSON(LS_REMOTE_PROFILES, collectForSnap());
+    persistenceAdapter.write(LS_REMOTE_PROFILES, collectForSnap());
   }
 
   function adoptLegacyRows(rows: RemoteProfileRow[]): void {

@@ -22,6 +22,7 @@ function makeDiagnostics(overrides: Partial<RunDiagnostics> = {}): RunDiagnostic
     ragasMetrics: null,
     skillDispatch: null,
     workspaceIsolation: null,
+    securityRewrite: null,
     devShellSandbox: null,
     memory: null,
     enableHints: {},
@@ -164,6 +165,54 @@ describe("RunDiagnosticsCard", () => {
     );
     expect(wrapper.text()).toContain("backend-engineering");
     expect(wrapper.text()).toContain("keyword match: api");
+  });
+
+  it("names the degradation when ingress sanitisation fell back to the heuristic", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        securityRewrite: {
+          status: "degraded",
+          riskLevel: "high",
+          flags: ["prompt_injection", "heuristic_fallback"],
+        },
+      }),
+    );
+    const text = wrapper.text();
+    expect(text).toContain("Ingress sanitisation");
+    expect(text).toContain("degraded to the heuristic rewrite");
+    expect(text).toContain("injected instructions may have reached the agents");
+    expect(text).toContain("high");
+    expect(text).toContain("prompt_injection");
+  });
+
+  it("does not warn about a rewrite that worked", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        securityRewrite: { status: "ok", riskLevel: "none", flags: [] },
+      }),
+    );
+    const text = wrapper.text();
+    expect(text).toContain("Ingress sanitisation");
+    expect(text).toContain("rewritten by the model");
+    expect(text).not.toContain("degraded to the heuristic rewrite");
+    expect(
+      wrapper.find(".run-diagnostics__pill--reject").exists(),
+      "a healthy run must not grow a red row",
+    ).toBe(false);
+  });
+
+  it("reports a switched-off rewrite as its own state, claiming no risk level", async () => {
+    const wrapper = await mountCard(
+      makeDiagnostics({
+        securityRewrite: { status: "disabled", riskLevel: "", flags: [] },
+      }),
+    );
+    const text = wrapper.text();
+    expect(text).toContain("switched off");
+    expect(text).toContain("reached the agents exactly as written");
+    expect(text).not.toContain("degraded to the heuristic rewrite");
+    expect(text).not.toContain("rewritten by the model");
+    expect(text).not.toContain("risk");
   });
 
   it("shows task selector when history has multiple entries", async () => {

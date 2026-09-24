@@ -10,6 +10,8 @@ import {
   type Ref,
 } from "vue";
 import { getCoworkingWebSocketUrl } from "@/shared/api/endpoints/ws";
+import { persistenceAdapter } from "@/shared/lib/persistence-adapter";
+import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 export interface RemotePeer {
   id: string;
@@ -77,26 +79,17 @@ interface CoworkingWireMessage {
 }
 
 function getOrCreateLocalUser(): LocalUserProfile {
-  try {
-    const saved = localStorage.getItem("swarm_local_user");
-    if (saved) {
-      const parsed = JSON.parse(saved) as LocalUserProfile;
-      if (parsed.id && parsed.name && parsed.color) return parsed;
-    }
-  } catch {
-    /* ignore storage read error */
-  }
+  const saved = persistenceAdapter.read(
+    STORAGE_KEYS.coworkingLocalUser.key,
+  ) as LocalUserProfile | null;
+  if (saved?.id && saved.name && saved.color) return saved;
 
   const id = "u_" + Math.random().toString(36).substring(2, 9);
   const color = PEER_COLORS[Math.floor(Math.random() * PEER_COLORS.length)];
   const name = "Operator " + id.slice(-3).toUpperCase();
   const profile: LocalUserProfile = { id, name, color };
 
-  try {
-    localStorage.setItem("swarm_local_user", JSON.stringify(profile));
-  } catch {
-    /* ignore storage write error */
-  }
+  persistenceAdapter.write(STORAGE_KEYS.coworkingLocalUser.key, profile);
 
   return profile;
 }
@@ -290,11 +283,10 @@ function createCoworkingSession(workspaceId: string): CoworkingSession & {
 
   function updateLocalUserProfile(name: string, color: string): void {
     localUser.value = { ...localUser.value, name, color };
-    try {
-      localStorage.setItem("swarm_local_user", JSON.stringify(localUser.value));
-    } catch {
-      /* ignore storage write error */
-    }
+    persistenceAdapter.write(
+      STORAGE_KEYS.coworkingLocalUser.key,
+      localUser.value,
+    );
     if (isSocketOpen() && socket) {
       sendJoinPacket(socket);
     }

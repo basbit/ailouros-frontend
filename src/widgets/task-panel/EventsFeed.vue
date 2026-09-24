@@ -86,7 +86,7 @@ import { unwrapMarkdownFence } from "@/shared/lib/markdown";
 import SafeHtmlBlock from "@/shared/components/SafeHtmlBlock";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUxStore } from "@/shared/store/ux";
-import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { usePersistedFlag } from "@/shared/lib/use-persisted-flag";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 interface EventRow {
@@ -113,14 +113,10 @@ const saveStates = ref<Record<string, "idle" | "pending" | "success" | "error">>
 const { t } = useI18n();
 const ux = useUxStore();
 const flat = computed(() => props.flat);
-const open = ref<boolean>(
-  props.flat || readRawString(STORAGE_KEYS.eventsFeedOpen.key) !== "0",
-);
+const open = usePersistedFlag(STORAGE_KEYS.eventsFeedOpen.key, true);
 
 function onToggle(event: Event): void {
-  const target = event.target as HTMLDetailsElement;
-  open.value = target.open;
-  writeRawString(STORAGE_KEYS.eventsFeedOpen.key, target.open ? "1" : "0");
+  open.value = (event.target as HTMLDetailsElement).open;
 }
 
 async function saveToMemory(key: string, text: string): Promise<void> {

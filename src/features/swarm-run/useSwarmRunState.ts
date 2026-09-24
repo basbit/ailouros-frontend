@@ -7,6 +7,8 @@ import type { HydrateResult } from "@/shared/lib/hydrate-task";
 
 export type SwarmRunState = ReturnType<typeof useSwarmRunState>;
 
+export const UI_PAINT_FALLBACK_MS = 80;
+
 export function useSwarmRunState() {
   const ui = useUiStore();
   const taskStore = useTaskStore();
@@ -22,6 +24,11 @@ export function useSwarmRunState() {
     return isTaskActive(ui.taskStatus ?? "");
   });
 
+  /**
+   * Give the "starting" state one frame to paint before the stream POST. A
+   * background tab never gets a frame (rAF is paused while hidden), and a run
+   * started from one used to hang here forever, so the timer is the ceiling.
+   */
   function waitForUiPaint(): Promise<void> {
     return new Promise((resolve) => {
       if (
@@ -31,7 +38,15 @@ export function useSwarmRunState() {
         resolve();
         return;
       }
-      window.requestAnimationFrame(() => resolve());
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(fallbackTimer);
+        resolve();
+      };
+      const fallbackTimer = setTimeout(settle, UI_PAINT_FALLBACK_MS);
+      window.requestAnimationFrame(settle);
     });
   }
 

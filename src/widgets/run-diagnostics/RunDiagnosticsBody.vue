@@ -141,6 +141,48 @@
       </p>
     </section>
 
+    <section v-if="diagnostics.securityRewrite" class="run-diagnostics__group">
+      <h4 class="run-diagnostics__subtitle">
+        {{ t("runDiagnostics.securityRewrite") }}
+      </h4>
+      <p class="run-diagnostics__meta">
+        <span
+          class="run-diagnostics__pill"
+          :class="securityRewritePillClass(diagnostics.securityRewrite.status)"
+        >
+          {{
+            t(
+              `runDiagnostics.securityRewriteStatus.${diagnostics.securityRewrite.status}`,
+            )
+          }}
+        </span>
+        <span
+          v-if="diagnostics.securityRewrite.riskLevel"
+          class="run-diagnostics__pill"
+        >
+          {{
+            t("runDiagnostics.securityRewriteRisk", {
+              level: diagnostics.securityRewrite.riskLevel,
+            })
+          }}
+        </span>
+        <code
+          v-for="flag in diagnostics.securityRewrite.flags"
+          :key="flag"
+          class="run-diagnostics__code"
+          >{{ flag }}</code
+        >
+      </p>
+      <p
+        v-if="diagnostics.securityRewrite.status !== 'ok'"
+        class="run-diagnostics__reason"
+      >
+        {{
+          t(`runDiagnostics.securityRewriteHint.${diagnostics.securityRewrite.status}`)
+        }}
+      </p>
+    </section>
+
     <section v-if="diagnostics.memory" class="run-diagnostics__group">
       <h4 class="run-diagnostics__subtitle">{{ t("runDiagnostics.memory") }}</h4>
       <p class="run-diagnostics__meta">
@@ -241,6 +283,16 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
+
+const SECURITY_REWRITE_PILL_CLASS: Record<string, string> = {
+  ok: "run-diagnostics__pill--accept",
+  degraded: "run-diagnostics__pill--reject",
+  disabled: "run-diagnostics__pill--abstain",
+};
+
+function securityRewritePillClass(status: string): string {
+  return SECURITY_REWRITE_PILL_CLASS[status] ?? "";
+}
 
 function localizedHint(entry: { key: string; hint: string }): string {
   const translationKey = `runDiagnostics.hint.${entry.key}`;

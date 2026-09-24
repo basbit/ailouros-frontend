@@ -6,6 +6,7 @@
       :history-events="historyEvents"
       :history-steps="historySteps"
       :history-failed-step="historyFailedStep"
+      :history-status="historyStatus"
     />
   </div>
 </template>
@@ -21,12 +22,14 @@ withDefaults(
     historyEvents?: EventRow[];
     historySteps?: string[] | null;
     historyFailedStep?: string | null;
+    historyStatus?: string | null;
   }>(),
   {
     historyEntry: null,
     historyEvents: () => [],
     historySteps: null,
     historyFailedStep: null,
+    historyStatus: null,
   },
 );
 </script>

@@ -1,4 +1,4 @@
-import type { TypedStorageKey } from "@/shared/lib/storage-utils";
+import type { TypedStorageKey } from "@/shared/lib/persistence-adapter";
 
 export const STORAGE_KEYS = {
   swarmDefaults: {
@@ -34,6 +34,9 @@ export const STORAGE_KEYS = {
   },
   updateBannerDismissedRef: {
     key: "swarm.update-banner-dismissed-ref",
+  },
+  coworkingLocalUser: {
+    key: "swarm_local_user",
   },
   preferenceLocale: {
     key: "ailouros.locale",

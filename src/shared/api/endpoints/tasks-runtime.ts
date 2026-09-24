@@ -9,10 +9,18 @@ export interface TaskMetricRow {
   tool_calls_count: number;
 }
 
-export async function cancelTask(taskId: string): Promise<void> {
-  await httpPost<{ task_id: string; status: string; was_active: boolean }>(
+export interface CancelTaskResult {
+  task_id: string;
+  status: string;
+  /** False when the server had nothing running under this id. */
+  was_active: boolean;
+}
+
+export async function cancelTask(taskId: string): Promise<CancelTaskResult> {
+  const result = await httpPost<CancelTaskResult>(
     `/v1/tasks/${encodeURIComponent(taskId)}/cancel`,
   );
+  return { ...result, was_active: result?.was_active === true };
 }
 
 export async function getTaskMetrics(taskId: string): Promise<TaskMetricRow[]> {

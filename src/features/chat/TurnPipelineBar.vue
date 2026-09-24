@@ -6,9 +6,19 @@
     :title="hasDetailRoute ? t('chat.pipelineBar.openDetail') : undefined"
     @click="onOpenDetail"
   >
-    <span class="turn-pipeline-bar__icon" aria-hidden="true">
+    <span
+      class="turn-pipeline-bar__icon"
+      :aria-label="statusKind === 'gate' ? t('chat.pipelineBar.status.gate') : undefined"
+      :aria-hidden="statusKind === 'gate' ? undefined : 'true'"
+    >
+      <span
+        v-if="statusKind === 'gate'"
+        class="turn-pipeline-bar__mark turn-pipeline-bar__mark--gate"
+        aria-hidden="true"
+        >⏸</span
+      >
       <svg
-        v-if="summary.isRunning.value"
+        v-else-if="summary.isRunning.value"
         class="turn-pipeline-bar__spinner"
         viewBox="0 0 24 24"
       >
@@ -60,7 +70,9 @@ import { useRouter } from "vue-router";
 import { useI18n } from "@/shared/lib/i18n";
 import { useUiStore } from "@/shared/store/ui";
 import { runDetailRoute } from "@/shared/lib/run-detail-route";
+import { isTaskAwaiting } from "@/shared/lib/task-status";
 import type { TurnPipelineSummary } from "@/entities/pipeline-progress";
+import { usePhaseGates } from "@/entities/phase-gate";
 
 const props = defineProps<{
   summary: TurnPipelineSummary;
@@ -69,6 +81,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const { t } = useI18n();
+const { pendingGates } = usePhaseGates();
 
 const TERMINAL_STATUSES = new Set([
   "completed",
@@ -87,12 +100,30 @@ const hasFailure = computed(
 );
 
 const statusKind = computed(() => {
-  if (props.summary.isRunning.value) return "running";
   const status = props.summary.status.value;
+  // Strict: a turn with no run of its own never inherits the live run's gate,
+  // otherwise every unlinked old turn flipped to "gate" whenever any gate opened.
+  const isMatchingActiveTask = !!props.taskId && props.taskId === ui.taskId;
+  const hasPhaseGate =
+    !!props.taskId && pendingGates.value.some((gate) => gate.taskId === props.taskId);
+  if (isTaskAwaiting(status) || hasPhaseGate) {
+    return "gate";
+  }
+  if (props.summary.isRunning.value) return "running";
   if (status === "failed" || status === "cancelled" || hasFailure.value) {
     return "failed";
   }
-  if (status === "awaiting_human") return "gate";
+  // Not running and not terminal — check for UI gate flags (gate opened
+  // but status not yet updated, or stale pendingApprovals).
+  if (
+    isMatchingActiveTask &&
+    (ui.pendingApprovals > 0 ||
+      ui.humanGateVisible ||
+      ui.shellGateVisible ||
+      ui.manualShellGateVisible)
+  ) {
+    return "gate";
+  }
   if (TERMINAL_STATUSES.has(status)) return "completed";
   return "idle";
 });
@@ -112,7 +143,12 @@ const headline = computed(() => {
       step: props.summary.activeStep.value ?? "",
     });
   }
-  if (props.summary.isRunning.value) return t("chat.pipelineBar.runningTitle");
+  if (props.summary.isRunning.value) {
+    const step = props.summary.activeStep.value;
+    return step
+      ? `${t("chat.pipelineBar.runningTitle")} (${step})`
+      : t("chat.pipelineBar.runningTitle");
+  }
   if (hasFailure.value) return t("chat.pipelineBar.failedTitle");
   // A turn whose run is accepted but not yet reported as running (the first
   // seconds after Send) read as "Pipeline completed 0/13" — say "starting".
@@ -179,6 +215,11 @@ function onOpenDetail(): void {
 
 .turn-pipeline-bar__mark--ok {
   color: var(--success);
+}
+
+.turn-pipeline-bar__mark--gate {
+  color: var(--warn, #c98a1a);
+  font-size: 13px;
 }
 
 .turn-pipeline-bar__mark--fail {

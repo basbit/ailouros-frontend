@@ -2,7 +2,7 @@ import { httpPost, httpPostStream } from "@/shared/api/http";
 import type { components, paths } from "@/shared/api/openapi-types";
 
 export type ForkStepRequest = components["schemas"]["ForkStepRequest"];
-export type ForkRunRequest = components["schemas"]["ForkRunRequest"];
+type ForkRunRequest = components["schemas"]["ForkRunRequest"];
 
 export type ForkStepResponse =
   paths["/v1/tasks/{task_id}/fork-step"]["post"]["responses"][200]["content"]["application/json"];

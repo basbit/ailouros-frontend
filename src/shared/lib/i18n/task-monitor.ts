@@ -63,6 +63,10 @@ export const taskMonitorEn: Messages = {
   "humanGate.isEditLoading": "Loading file…",
   "humanGate.editLoadError": "Failed to load file",
   "humanGate.editSaveError": "Failed to save file",
+  "humanGate.resumeFailed": "Could not send the answer: {error}",
+  "humanGate.approve": "Approve",
+  "humanGate.submitWithChanges": "Submit with changes",
+  "humanGate.cancelRun": "Cancel run",
 };
 
 export const taskMonitorRu: Messages = {
@@ -128,4 +132,8 @@ export const taskMonitorRu: Messages = {
   "humanGate.isEditLoading": "Загружаю файл…",
   "humanGate.editLoadError": "Не удалось загрузить файл",
   "humanGate.editSaveError": "Не удалось сохранить файл",
+  "humanGate.resumeFailed": "Не удалось отправить ответ: {error}",
+  "humanGate.approve": "Одобрить",
+  "humanGate.submitWithChanges": "Отправить с замечаниями",
+  "humanGate.cancelRun": "Отменить прогон",
 };

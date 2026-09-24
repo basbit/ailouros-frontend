@@ -15,18 +15,10 @@ import { useI18n } from "@/shared/lib/i18n";
 import { formatDurationShort, formatRelativeShort } from "@/shared/lib/format-relative";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
 import { tryParseDispatchOrQuick } from "@/shared/lib/slash-commands";
-
-const AWAITING_STATUSES = new Set<string>([
-  "awaiting_human",
-  "awaiting_shell_confirm",
-  "awaiting_manual_shell",
-  "blocked",
-]);
+import { AWAITING_TASK_STATUSES, isTaskAwaiting } from "@/shared/lib/task-status";
 
 const ACTIVE_STATUSES = new Set<string>([
-  "awaiting_human",
-  "awaiting_shell_confirm",
-  "awaiting_manual_shell",
+  ...AWAITING_TASK_STATUSES,
   "blocked",
   "running",
   "in_progress",
@@ -123,7 +115,8 @@ export function useRunIdleHandlers(
 
   const isAwaitingGate = computed<boolean>(() => {
     if (!ui.taskId) return false;
-    return AWAITING_STATUSES.has(ui.taskStatus ?? "");
+    const status = ui.taskStatus ?? "";
+    return isTaskAwaiting(status) || status === "blocked";
   });
 
   const latestLogMessage = computed<string>(() => {
@@ -207,9 +200,9 @@ export function useRunIdleHandlers(
   }
 
   function mapHistoryStatus(status: string | null): HistoryGlimpseEntry["status"] {
-    if (status === "completed") return "ok";
+    if (status === "completed" || status === "completed_no_writes") return "ok";
     if (status === "failed" || status === "cancelled") return "fail";
-    if (status === "running") return "run";
+    if (status === "running" || status === "in_progress") return "run";
     return "warn";
   }
 

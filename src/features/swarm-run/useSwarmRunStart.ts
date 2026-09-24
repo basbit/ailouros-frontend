@@ -2,6 +2,10 @@ import { nextTick } from "vue";
 import type { useUxStore } from "@/shared/store/ux";
 import type { useI18n } from "@/shared/lib/i18n";
 import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
+import { ApiError } from "@/shared/api/http";
+import { clearActiveTask } from "@/shared/store/clear-active-task";
+import { hideAllGates } from "./swarm-run-tick-gate-handlers";
+import { isTaskActive } from "@/shared/lib/task-status";
 import {
   agentConfigErrorMessage,
   type RunSwarmChatSettings,
@@ -43,6 +47,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
     runBootstrapPending,
     lastPipelinePlanLoadKey,
     waitForUiPaint,
+    updateRunHistory,
   } = state;
   const { applyOrchestratorEvent } = tickHandler;
   const { resolveScenario, surfacePreflightFailure } = preflight;
@@ -133,6 +138,21 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
     } catch (err: unknown) {
       runBootstrapPending.value = false;
       const msg = err instanceof Error ? err.message : String(err);
+      if (ui.taskId) {
+        try {
+          await tickHandler.syncTaskFromServer(ui.taskId);
+          if (isTaskActive(ui.taskStatus ?? "")) {
+            ux.notify(
+              t("toast.streamDisconnectedTaskContinues"),
+              "warning",
+              5000,
+            );
+            return;
+          }
+        } catch {
+          // fall through to failure handling
+        }
+      }
       ui.taskError = msg;
       ui.taskStatus = "failed";
       if (lastNotifiedError.value !== msg) {
@@ -188,15 +208,38 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
     await httpPost(`/v1/goals/${encodeURIComponent(goalId)}/schedule`, body);
   }
 
-  async function onStopRun(): Promise<void> {
+  /**
+   * Stop the run and forget it as the active task. The persisted pointer and
+   * the task store used to keep the cancelled run "active" across reloads.
+   * A task the server no longer knows (404, or `was_active: false`) is not
+   * cancelled but re-read: the server's own status (or its absence) wins.
+   */
+  async function onStopRun(): Promise<boolean> {
     const taskId = ui.taskId;
-    if (!taskId) return;
+    if (!taskId) return false;
+    let wasActive: boolean;
     try {
-      await cancelTask(taskId);
-    } catch {
-      // ignore network error — task may already be done
+      wasActive = (await cancelTask(taskId)).was_active;
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 404) {
+        wasActive = false;
+      } else {
+        const message = err instanceof Error ? err.message : String(err);
+        ux.notify(t("toast.cancelFailed", { error: message }), "error", 4200);
+        return false;
+      }
+    }
+    if (!wasActive) {
+      await tickHandler.syncTaskFromServer(taskId);
+      clearActiveTask({ ui, taskStore, projectId: projectsStore.currentId });
+      return true;
     }
     ui.taskStatus = "cancelled";
+    ui.pendingApprovals = 0;
+    hideAllGates(ui);
+    updateRunHistory("cancelled", null);
+    clearActiveTask({ ui, taskStore, projectId: projectsStore.currentId });
+    return true;
   }
 
   return { onStartRun, onStopRun };

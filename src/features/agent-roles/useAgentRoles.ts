@@ -1,4 +1,5 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { swarmDefaultsSnapshot } from "@/shared/lib/use-swarm-defaults";
 import { parseSkillIds } from "@/shared/lib/skill-utils";
 import { ROLES, defaultModelForRole } from "@/entities/role";
 import { ensureModelChoicesForEnv } from "@/shared/lib/use-model-list";
@@ -88,6 +89,24 @@ export function useAgentRoles(
   }
 
   function refreshAllProfileSelects(): void {}
+
+  // On a fresh install the role states are created before /v1/defaults has
+  // answered, so every role started with an empty environment and a red
+  // "Unknown env:" until the operator picked one by hand. Adopt the backend
+  // default the moment it is known.
+  watch(
+    () => swarmDefaultsSnapshot().default_role_environment,
+    (defaultEnvironment) => {
+      if (!defaultEnvironment) return;
+      for (const roleId of Object.keys(roleStates)) {
+        const roleState = roleStates[roleId];
+        if (!roleState || roleState.environment) continue;
+        roleState.environment = defaultEnvironment;
+        void onEnvChange(roleId);
+      }
+    },
+    { immediate: true },
+  );
 
   function onModelSelect(roleId: string): void {
     modelApi.onModelSelect(roleId);

@@ -5,9 +5,12 @@ import { useUxStore } from "@/shared/store/ux";
 import { useProjectsStore } from "@/entities/project";
 import { useI18n } from "@/shared/lib/i18n";
 import { httpGet } from "@/shared/api/http";
+import { isTaskAwaiting, isTaskResumable } from "@/shared/lib/task-status";
 import { confirmAndRetryTask } from "./tabs/useHistoryDetailActions";
+import { mergeRunRows } from "./mergeRunRows";
+import { useServerRunHistory } from "./useServerRunHistory";
 
-export type StatusFilter = "all" | "completed" | "failed" | "running";
+export type StatusFilter = "all" | "completed" | "failed" | "running" | "awaiting";
 export type StatusFamily = "ok" | "fail" | "run" | "pending" | "warn";
 
 interface ResumeOptionsResponse {
@@ -15,16 +18,6 @@ interface ResumeOptionsResponse {
   resume_step?: string;
   reason?: string;
 }
-
-const RESUMABLE_STATUSES = new Set([
-  "failed",
-  "cancelled",
-  "awaiting_human",
-  "completed_with_failures",
-  "completed_no_writes",
-  "in_progress",
-  "running",
-]);
 
 export function useHistoryListActions() {
   const router = useRouter();
@@ -36,24 +29,39 @@ export function useHistoryListActions() {
   const searchQuery = ref("");
   const statusFilter = ref<StatusFilter>("all");
   const resumeBusyId = ref<string>("");
+  const {
+    serverRuns,
+    loading: serverLoading,
+    loadError,
+    reload,
+  } = useServerRunHistory();
 
   function statusFamily(status: HistoryEntry["status"]): StatusFamily {
     if (status === "completed" || status === "completed_no_writes") return "ok";
     if (status === "completed_with_failures") return "warn";
     if (status === "failed" || status === "cancelled") return "fail";
+    if (status === "artifacts_incomplete") return "warn";
+    if (isTaskAwaiting(status)) return "warn";
     if (status === "running" || status === "in_progress") return "run";
     return "pending";
   }
 
+  const mergedEntries = computed<HistoryEntry[]>(() =>
+    mergeRunRows(ui.historyList, serverRuns.value),
+  );
+
   const filteredEntries = computed<HistoryEntry[]>(() => {
     const term = searchQuery.value.trim().toLowerCase();
     const filter = statusFilter.value;
-    return ui.historyList.filter((entry) => {
+    return mergedEntries.value.filter((entry) => {
       if (filter !== "all") {
         const family = statusFamily(entry.status);
+        const isAwaiting = isTaskAwaiting(entry.status);
+
         if (filter === "completed" && family !== "ok") return false;
         if (filter === "failed" && family !== "fail") return false;
         if (filter === "running" && family !== "run") return false;
+        if (filter === "awaiting" && !isAwaiting) return false;
       }
       if (term && !(entry.prompt ?? "").toLowerCase().includes(term)) {
         return false;
@@ -65,7 +73,7 @@ export function useHistoryListActions() {
   function canResume(entry: HistoryEntry): boolean {
     if (!entry.taskId) return false;
     const status = (entry.status ?? "").toString().toLowerCase();
-    return RESUMABLE_STATUSES.has(status);
+    return isTaskResumable(status);
   }
 
   async function onResumeEntry(entry: HistoryEntry): Promise<void> {
@@ -151,9 +159,13 @@ export function useHistoryListActions() {
     searchQuery,
     statusFilter,
     resumeBusyId,
+    mergedEntries,
     filteredEntries,
+    serverLoading,
+    loadError,
     statusFamily,
     canResume,
+    reload,
     onResumeEntry,
     onClearHistory,
     onOpen,

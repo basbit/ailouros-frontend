@@ -1,6 +1,5 @@
-import { ref } from "vue";
 import type { Ref } from "vue";
-import { readRawString, writeRawString } from "@/shared/lib/storage-utils";
+import { usePersistedFlag } from "@/shared/lib/use-persisted-flag";
 import { STORAGE_KEYS } from "@/shared/lib/storage-keys";
 
 export interface ArtifactsPanelState {
@@ -11,24 +10,17 @@ export interface ArtifactsPanelState {
 }
 
 export function useArtifactsPanelState(): ArtifactsPanelState {
-  const areArtifactsOpen = ref<boolean>(
-    readRawString(STORAGE_KEYS.artifactsPanelOpen.key) !== "0",
-  );
+  const areArtifactsOpen = usePersistedFlag(STORAGE_KEYS.artifactsPanelOpen.key, true);
   function onArtifactsToggle(event: Event): void {
-    const target = event.target as HTMLDetailsElement;
-    areArtifactsOpen.value = target.open;
-    writeRawString(STORAGE_KEYS.artifactsPanelOpen.key, target.open ? "1" : "0");
+    areArtifactsOpen.value = (event.target as HTMLDetailsElement).open;
   }
 
-  const isAdvancedSidebarOpen = ref<boolean>(
-    readRawString(STORAGE_KEYS.isAdvancedSidebarOpen.key) === "1",
+  const isAdvancedSidebarOpen = usePersistedFlag(
+    STORAGE_KEYS.isAdvancedSidebarOpen.key,
+    false,
   );
   function onToggleAdvancedSidebar(): void {
     isAdvancedSidebarOpen.value = !isAdvancedSidebarOpen.value;
-    writeRawString(
-      STORAGE_KEYS.isAdvancedSidebarOpen.key,
-      isAdvancedSidebarOpen.value ? "1" : "0",
-    );
   }
 
   return {

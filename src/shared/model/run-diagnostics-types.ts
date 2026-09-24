@@ -58,6 +58,14 @@ interface WorkspaceIsolation {
   readonly branch: string;
 }
 
+type SecurityRewriteStatus = "ok" | "degraded" | "disabled";
+
+interface SecurityRewriteDiagnostic {
+  readonly status: SecurityRewriteStatus;
+  readonly riskLevel: string;
+  readonly flags: readonly string[];
+}
+
 interface MemoryDiagnostics {
   readonly crossTaskEnabled: boolean;
   readonly crossTaskDurable: boolean;
@@ -81,6 +89,7 @@ export interface RunDiagnostics {
   readonly ragasMetrics: RagasMetrics | null;
   readonly skillDispatch: SkillDispatchDiagnostic | null;
   readonly workspaceIsolation: WorkspaceIsolation | null;
+  readonly securityRewrite: SecurityRewriteDiagnostic | null;
   readonly devShellSandbox: DevShellSandbox | null;
   readonly memory: MemoryDiagnostics | null;
   readonly enableHints: Readonly<Record<string, string>>;
@@ -138,6 +147,7 @@ interface RawPayload {
   ragas_metrics?: unknown;
   skill_dispatch?: unknown;
   workspace_isolation?: unknown;
+  security_rewrite?: unknown;
   dev_shell_sandbox?: unknown;
   memory?: unknown;
   enable_hints?: unknown;
@@ -251,6 +261,27 @@ function parseWorkspaceIsolation(raw: unknown): WorkspaceIsolation | null {
   return { mode, branch };
 }
 
+const SECURITY_REWRITE_STATUSES: readonly string[] = ["ok", "degraded", "disabled"];
+
+function isSecurityRewriteStatus(value: string): value is SecurityRewriteStatus {
+  return SECURITY_REWRITE_STATUSES.includes(value);
+}
+
+function parseSecurityRewrite(raw: unknown): SecurityRewriteDiagnostic | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Record<string, unknown>;
+  const status = readString(candidate.status).trim();
+  if (!isSecurityRewriteStatus(status)) return null;
+  const rawFlags = Array.isArray(candidate.flags) ? candidate.flags : [];
+  return {
+    status,
+    riskLevel: readString(candidate.risk_level).trim(),
+    flags: rawFlags
+      .map((flag) => readString(flag).trim())
+      .filter((flag) => flag.length > 0),
+  };
+}
+
 function parseDevShellSandbox(raw: unknown): DevShellSandbox | null {
   if (!raw || typeof raw !== "object") return null;
   const candidate = raw as Record<string, unknown>;
@@ -313,6 +344,7 @@ export function parseRunDiagnosticsPayload(raw: unknown): RunDiagnostics | null 
     ragasMetrics: parseRagasMetrics(candidate.ragas_metrics),
     skillDispatch: parseSkillDispatch(candidate.skill_dispatch),
     workspaceIsolation: parseWorkspaceIsolation(candidate.workspace_isolation),
+    securityRewrite: parseSecurityRewrite(candidate.security_rewrite),
     devShellSandbox: parseDevShellSandbox(candidate.dev_shell_sandbox),
     memory: parseMemoryDiagnostics(candidate.memory),
     enableHints: parseEnableHints(candidate.enable_hints),

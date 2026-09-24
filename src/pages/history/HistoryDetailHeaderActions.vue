@@ -3,7 +3,16 @@
     class="history-detail-header__pill"
     :class="`history-detail-header__pill--${family}`"
   >
-    {{ status || "—" }}
+    <span
+      v-if="isAwaiting"
+      class="history-detail-header__gate-mark"
+      role="img"
+      :title="t('history.questionBadge')"
+      :aria-label="t('history.questionBadge')"
+    >
+      <span aria-hidden="true">❓</span>
+    </span>
+    {{ formattedStatus }}
   </span>
   <button
     v-if="canShowResume"
@@ -21,9 +30,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from "vue";
+import { useI18n } from "@/shared/lib/i18n";
+
+import { useUiStore } from "@/shared/store/ui";
+import { formatTaskStatus, isRunAwaiting } from "@/shared/lib/task-status";
+
+const props = defineProps<{
   family: "ok" | "fail" | "warn" | "run" | "pending";
   status: string;
+  taskId: string;
   canShowResume: boolean;
   isResumeBusy: boolean;
   resumeStepId: string;
@@ -32,17 +48,31 @@ defineProps<{
 }>();
 
 defineEmits<{ resume: [] }>();
+
+const { t } = useI18n();
+const ui = useUiStore();
+
+const isAwaiting = computed(() =>
+  isRunAwaiting({ taskId: props.taskId, status: props.status }, ui),
+);
+
+const formattedStatus = computed(() => formatTaskStatus(t, props.status));
 </script>
 
 <style scoped>
 .history-detail-header__pill {
   display: inline-flex;
+  align-items: center;
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 11px;
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.history-detail-header__gate-mark {
+  margin-right: 4px;
 }
 
 .history-detail-header__pill--ok {

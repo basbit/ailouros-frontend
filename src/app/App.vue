@@ -16,8 +16,7 @@
 <script setup lang="ts">
 import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { LS_PROJECTS, LS_SETTINGS } from "@/shared/lib/swarm-ui-constants";
-import { loadJSON } from "@/shared/lib/storage-utils";
+import { readStoredWorkspaceRoot } from "@/entities/project";
 import { AppDialogHost, AppToastStack } from "@/widgets/notifier";
 import UpdateBanner from "@/widgets/update-banner/UpdateBanner.vue";
 import CommandPalette from "@/widgets/command-palette/CommandPalette.vue";
@@ -36,21 +35,6 @@ import {
 useAttentionAlert();
 
 const router = useRouter();
-
-function readStoredWorkspaceRoot(): string {
-  const projects = loadJSON<{
-    current?: string;
-    projects?: Record<string, { snap?: { workspace_root?: string } }>;
-  } | null>(LS_PROJECTS, null);
-  if (projects) {
-    const currentId = projects.current ?? "";
-    const projectRoot =
-      projects.projects?.[currentId]?.snap?.workspace_root?.trim() ?? "";
-    if (projectRoot) return projectRoot;
-  }
-  const settings = loadJSON<{ workspace_root?: string } | null>(LS_SETTINGS, null);
-  return settings?.workspace_root?.trim() ?? "";
-}
 
 const workspaceRoot = ref<string>(readStoredWorkspaceRoot());
 

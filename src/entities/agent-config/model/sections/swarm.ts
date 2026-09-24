@@ -71,6 +71,17 @@ function applySwarmCodeGenerator(
   }
 }
 
+function applySwarmInterfaceLanguage(
+  target: Record<string, unknown>,
+  locale: string,
+): void {
+  // Gate questions are written by the backend and shown to the operator
+  // verbatim, so the run has to carry the language they must be written in.
+  // English is what the backend writes without being told, so saying so would
+  // put a swarm block on every run that otherwise needs none.
+  if (locale && locale !== "en") target.ui_locale = locale;
+}
+
 function applySwarmDocumentationFields(
   target: Record<string, unknown>,
   form: AgentConfigForm,
@@ -217,13 +228,21 @@ function applySwarmMemoryFields(
   if (form.swarm_force_rerun) target.force_rerun = true;
 }
 
-export function buildSwarmSection(form: AgentConfigForm): Record<string, unknown> {
+/**
+ * Pure request builder: `locale` is the interface language the caller read
+ * from the preferences store (no store access in here).
+ */
+export function buildSwarmSection(
+  form: AgentConfigForm,
+  locale: string,
+): Record<string, unknown> {
   const swarm: Record<string, unknown> = {};
   applySwarmLanguageList(swarm, form);
   applySwarmTopologyAndHooks(swarm, form);
   applySwarmMcpFlags(swarm, form);
   applySwarmWorkspaceContextMode(swarm, form);
   applySwarmCodeGenerator(swarm, form);
+  applySwarmInterfaceLanguage(swarm, locale);
   applySwarmDocumentationFields(swarm, form);
   applySwarmDatabaseFields(swarm, form);
   applySwarmVisualProbe(swarm, form);

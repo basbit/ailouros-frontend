@@ -5,7 +5,7 @@ import {
   getProjectSettings,
   saveProjectSettings,
 } from "@/shared/api/endpoints/project-settings";
-import { loadJSON } from "@/shared/lib/storage-utils";
+import { readTypedJson } from "@/shared/lib/persistence-adapter";
 import { typedGlobalSearchKeys } from "@/shared/lib/storage-keys";
 
 interface PersistenceDeps {
@@ -79,16 +79,13 @@ export function useSettingsPersistence(deps: PersistenceDeps) {
       "swarm_tavily_api_key" | "swarm_exa_api_key" | "swarm_scrapingdog_api_key"
     >
   > {
-    const entry = typedGlobalSearchKeys<{
-      tavily?: unknown;
-      exa?: unknown;
-      scrapingdog?: unknown;
-    }>();
-    const parsed = loadJSON<{
-      tavily?: unknown;
-      exa?: unknown;
-      scrapingdog?: unknown;
-    } | null>(entry.key, null);
+    const parsed = readTypedJson(
+      typedGlobalSearchKeys<{
+        tavily?: unknown;
+        exa?: unknown;
+        scrapingdog?: unknown;
+      }>(),
+    );
     if (!parsed) return {};
     return {
       swarm_tavily_api_key: String(parsed.tavily ?? "").trim(),

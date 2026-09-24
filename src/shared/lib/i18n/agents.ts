@@ -111,6 +111,7 @@ export const agentsEn: Messages = {
   "agentEditor.delete": "Delete",
   "agentEditor.goToModels": "Open agent models",
   "agentEditor.loadPipelinePlaceholder": "Load saved pipeline\u2026",
+  "agentEditor.confirmDeleteTitle": "Delete pipeline",
   "agentEditor.confirmDelete": "Delete this pipeline?",
   "agentEditor.pipelineNamePlaceholder": "Pipeline name\u2026",
   "agentEditor.nodeTypes": "Node types",
@@ -252,6 +253,8 @@ export const agentsRu: Messages = {
     "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u043e\u0434\u0435\u043b\u0438 \u0430\u0433\u0435\u043d\u0442\u043e\u0432",
   "agentEditor.loadPipelinePlaceholder":
     "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d\u2026",
+  "agentEditor.confirmDeleteTitle":
+    "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d",
   "agentEditor.confirmDelete":
     "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e\u0442 \u043f\u0430\u0439\u043f\u043b\u0430\u0439\u043d?",
   "agentEditor.pipelineNamePlaceholder":

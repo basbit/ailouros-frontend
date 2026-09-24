@@ -211,8 +211,11 @@ export const miscEn: Messages = {
   "chat.pipelineBar.status.running": "running",
   "chat.pipelineBar.status.completed": "completed",
   "chat.pipelineBar.status.failed": "failed",
-  "chat.pipelineBar.status.gate": "review",
+  "chat.pipelineBar.status.gate": "action needed",
   "chat.pipelineBar.status.idle": "pending",
+  "chat.gatePromptTitle": "Action required",
+  "chat.gatePromptDefault": "The pipeline paused and is waiting for your input or verification.",
+  "chat.gatePromptHint": "Type your answer or decision in the field below and send.",
   "chat.inputPlaceholder": "Describe your task, request changes, or ask questions…",
   "chat.inputPlaceholderGate": "Answer the question to continue the pipeline…",
   "chat.send": "Send",
@@ -230,6 +233,18 @@ export const miscEn: Messages = {
   "chat.failed": "Pipeline execution failed.",
   "chat.authFailed":
     "Authentication failed (401 Unauthorized): invalid or expired API key. Please update your API key in Settings → Models / API Keys.",
+  "chat.swarmAuthor": "AIlourOS Swarm",
+  "chat.cancelRun": "Cancel run",
+  "chat.cancelledByUser": "Run cancelled by user.",
+  "chat.runUnavailableAfterRestart":
+    "This run was lost after a restart: it never reached the backend, or the backend no longer knows it. Send the request again.",
+  "chat.phaseGateHint":
+    "Type an optional rationale below, then choose Approve or Request changes.",
+  "chat.phaseGateChooseDecision":
+    "A phase gate is waiting for a decision — choose Approve or Request changes above; your text is sent as the rationale.",
+  "chat.shellGateUseButtons":
+    "The pipeline is waiting for a decision on shell commands — use the buttons above.",
+  "chat.inputPlaceholderRationale": "Optional rationale for the phase-gate decision…",
 };
 
 export const miscRu: Messages = {
@@ -439,17 +454,20 @@ export const miscRu: Messages = {
     "Задавайте вопросы, создавайте функционал или работайте совместно с роем агентов.",
   "chat.you": "Вы",
   "chat.pipelineBar.openDetail": "Открыть пайплайн подробно",
-  "chat.pipelineBar.runningTitle": "Пайплайн выполняется",
+  "chat.pipelineBar.runningTitle": "Пайплайн в работе",
   "chat.pipelineBar.doneTitle": "Пайплайн завершён",
   "chat.pipelineBar.idleTitle": "Пайплайн запускается",
   "chat.pipelineBar.failedTitle": "Пайплайн упал",
-  "chat.pipelineBar.gateTitle": "Ждёт вашего ревью ({step})",
+  "chat.pipelineBar.gateTitle": "Ждёт вашего ответа / ревью ({step})",
   "chat.pipelineBar.stepCounter": "{done}/{total} шагов",
-  "chat.pipelineBar.status.running": "выполняется",
+  "chat.pipelineBar.status.running": "в работе",
   "chat.pipelineBar.status.completed": "готово",
   "chat.pipelineBar.status.failed": "ошибка",
-  "chat.pipelineBar.status.gate": "ревью",
+  "chat.pipelineBar.status.gate": "есть запрос",
   "chat.pipelineBar.status.idle": "ожидание",
+  "chat.gatePromptTitle": "Требуется ответ",
+  "chat.gatePromptDefault": "Пайплайн приостановлен и ожидает вашего ответа или подтверждения.",
+  "chat.gatePromptHint": "Введите ответ или решение в поле ниже и отправьте.",
   "chat.inputPlaceholder": "Опишите задачу, запросите доработки или задайте вопрос…",
   "chat.inputPlaceholderGate": "Ответьте на вопрос, чтобы пайплайн продолжил работу…",
   "chat.send": "Отправить",
@@ -466,4 +484,16 @@ export const miscRu: Messages = {
   "chat.failed": "Пайплайн завершился с ошибкой.",
   "chat.authFailed":
     "Ошибка авторизации (401 Unauthorized): неверный или истекший API ключ. Пожалуйста, обновите ключ в Настройки → Модели / API Keys.",
+  "chat.swarmAuthor": "AIlourOS Swarm",
+  "chat.cancelRun": "Отменить прогон",
+  "chat.cancelledByUser": "Прогон отменён пользователем.",
+  "chat.runUnavailableAfterRestart":
+    "Этот прогон потерян после перезапуска: он не дошёл до бэкенда или бэкенд его больше не знает. Отправьте запрос заново.",
+  "chat.phaseGateHint":
+    "При желании напишите обоснование ниже, затем выберите «Одобрить» или «Запросить изменения».",
+  "chat.phaseGateChooseDecision":
+    "Гейт фазы ждёт решения — выберите «Одобрить» или «Запросить изменения» выше; ваш текст уйдёт как обоснование.",
+  "chat.shellGateUseButtons":
+    "Пайплайн ждёт решения по shell-командам — используйте кнопки выше.",
+  "chat.inputPlaceholderRationale": "Обоснование решения по гейту (необязательно)…",
 };

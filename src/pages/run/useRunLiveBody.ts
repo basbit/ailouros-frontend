@@ -10,6 +10,7 @@ import { useUiStore, type HistoryEntry } from "@/shared/store/ui";
 import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useRunRecovery } from "@/features/run-recovery";
 import { useI18n } from "@/shared/lib/i18n";
+import { hasVisibleGate, isTaskActive, isTaskAwaiting } from "@/shared/lib/task-status";
 
 export interface RunLiveBodyProps {
   hideHeader: boolean;
@@ -17,6 +18,8 @@ export interface RunLiveBodyProps {
   historyEvents: EventRow[];
   historySteps: string[] | null;
   historyFailedStep: string | null;
+  /** Authoritative status of the viewed run; a running one has a step in progress. */
+  historyStatus: string | null;
 }
 
 export function useRunLiveBody(props: RunLiveBodyProps) {
@@ -36,7 +39,15 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
   // (reconnect, hidden tab) left a paused run with no answer window — re-sync
   // from the server on every visit so the gate is re-surfaced.
   onMounted(() => {
-    if (props.historyEntry !== null) return;
+    const entry = props.historyEntry;
+    if (entry !== null) {
+      const status = props.historyStatus ?? entry.status ?? "";
+      if (!isTaskActive(status)) return;
+      const targetId = entry.taskId ?? ui.taskId;
+      if (!targetId) return;
+      void controller.syncTaskFromServer(targetId);
+      return;
+    }
     if (!ui.taskId) return;
     void controller.syncTaskFromServer(ui.taskId);
   });
@@ -50,6 +61,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
         : (entry.pipeline_steps ?? []),
       events: props.historyEvents,
       failedStep: props.historyFailedStep ?? null,
+      runIsActive: isTaskActive(props.historyStatus ?? entry.status ?? ""),
     };
   });
 
@@ -60,6 +72,20 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
   const isRunning = computed(() =>
     isHistoryView.value ? false : controller.isRunning.value,
   );
+  // The gate overlay answers the live run only. A History page for another
+  // run must not mount it (it would show — and answer — this run's question).
+  const isLiveTask = computed(() => {
+    const entry = props.historyEntry;
+    if (!entry) return true;
+    return !!entry.taskId && entry.taskId === ui.taskId;
+  });
+  const isCurrentRunAwaiting = computed(() => {
+    if (!isLiveTask.value) return false;
+    const status = props.historyEntry
+      ? (props.historyStatus ?? props.historyEntry.status ?? "")
+      : (ui.taskStatus ?? "");
+    return isTaskAwaiting(status) || hasVisibleGate(ui);
+  });
   const hasActiveTask = computed(() => {
     if (isHistoryView.value) return true;
     if (isRunUnavailable.value) return false;
@@ -84,9 +110,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
       status === "failed" ||
       status === "blocked" ||
       status === "completed_with_failures" ||
-      status === "awaiting_human" ||
-      status === "awaiting_shell_confirm" ||
-      status === "awaiting_manual_shell"
+      isTaskAwaiting(status)
     );
   });
 
@@ -171,6 +195,7 @@ export function useRunLiveBody(props: RunLiveBodyProps) {
     logFilter,
     logView,
     isHistoryView,
+    isCurrentRunAwaiting,
     isRunning,
     hasActiveTask,
     isRunUnavailable,

@@ -1,6 +1,6 @@
 type DiffLineType = "added" | "removed" | "unchanged";
 
-export interface DiffLine {
+interface DiffLine {
   type: DiffLineType;
   text: string;
   originalLineNumber: number | null;

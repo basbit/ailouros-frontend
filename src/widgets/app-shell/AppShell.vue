@@ -37,4 +37,18 @@
   overflow: auto;
   padding: 20px 28px 28px;
 }
+
+/* Below this width a 220px pane rail leaves too little for the content column:
+   at 375px every sentence wrapped to one word per line. Stack instead. */
+@media (max-width: 760px) {
+  .app-shell__body {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .app-shell__main {
+    padding: 16px;
+    overflow: visible;
+  }
+}
 </style>

@@ -51,6 +51,12 @@ export function useHistoryDetailLoad({
   /** Authoritative run status from the backend snapshot. The locally stored
    * entry status goes stale when the run finishes while the tab is closed. */
   const remoteStatus = ref<string>("");
+  /** What a paused run is waiting for, as its own pipeline.json recorded it.
+   * The live gate text in the `ui` store belongs to this browser session only,
+   * so History had nothing to show for a run it did not start itself. */
+  const remotePauseDetail = ref<string>("");
+  /** The step that asked. */
+  const remoteHumanStep = ref<string>("");
 
   async function loadRemoteEvents(taskId: string): Promise<void> {
     remoteEventsLoading.value = true;
@@ -63,12 +69,21 @@ export function useHistoryDetailLoad({
         : [];
       remoteFailedStep.value = (snapshot.failed_step ?? "").trim();
       remoteStatus.value = (snapshot.status ?? "").trim();
+      remoteHumanStep.value = (snapshot.human_approval_step ?? "").trim();
+      // `error` carries the pause detail on a paused run and the failure on a
+      // failed one — only the first is a question for the operator to answer.
+      remotePauseDetail.value =
+        remoteStatus.value === "awaiting_human" && typeof snapshot.error === "string"
+          ? snapshot.error.trim()
+          : "";
     } catch (error) {
       remoteEventsError.value = error instanceof Error ? error.message : String(error);
       remoteEvents.value = [];
       remoteSteps.value = [];
       remoteFailedStep.value = "";
       remoteStatus.value = "";
+      remotePauseDetail.value = "";
+      remoteHumanStep.value = "";
     } finally {
       remoteEventsLoading.value = false;
     }
@@ -119,6 +134,8 @@ export function useHistoryDetailLoad({
       remoteSteps.value = [];
       remoteFailedStep.value = "";
       remoteStatus.value = "";
+      remotePauseDetail.value = "";
+      remoteHumanStep.value = "";
       isResumeAvailable.value = false;
       resumeStepId.value = "";
       if (taskId) {
@@ -176,7 +193,10 @@ export function useHistoryDetailLoad({
     remoteSteps,
     remoteFailedStep,
     remoteStatus,
+    remotePauseDetail,
+    remoteHumanStep,
     eventsViewMode,
     stepRows,
+    loadRemoteEvents,
   };
 }

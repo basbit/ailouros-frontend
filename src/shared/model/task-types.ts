@@ -8,9 +8,13 @@ export type TaskStatus =
   | "failed"
   | "blocked"
   | "awaiting_human"
+  | "awaiting_shell"
   | "awaiting_shell_confirm"
   | "awaiting_manual_shell"
-  | "cancelled";
+  | "cancelled"
+  /** The run's `pipeline.json` never landed, so nothing on disk says how it
+   * ended — only the server-side run history reports this. */
+  | "artifacts_incomplete";
 
 export type RunAvailability =
   | "unresolved"

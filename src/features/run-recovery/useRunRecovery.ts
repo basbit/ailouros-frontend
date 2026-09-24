@@ -2,6 +2,7 @@ import { computed } from "vue";
 import { useUiStore } from "@/shared/store/ui";
 import { useProjectsStore } from "@/entities/project";
 import { useTaskStore } from "@/shared/store/task";
+import { clearActiveTask } from "@/shared/store/clear-active-task";
 
 interface RunRecoveryDeps {
   sendWsSubscribe: () => void;
@@ -19,9 +20,8 @@ export function useRunRecovery({ sendWsSubscribe }: RunRecoveryDeps) {
   );
 
   function resetUnavailableRun(): void {
-    ui.persistActiveTask(null, projects.currentId);
+    clearActiveTask({ ui, taskStore, projectId: projects.currentId });
     ui.resetTaskView();
-    taskStore.resetTask();
     sendWsSubscribe();
   }
 

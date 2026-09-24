@@ -47,8 +47,28 @@ describe("HistoryListTable fork lineage", () => {
   });
 
   it("shows no fork badge on an original run", () => {
-    const wrapper = mountTable([entry({})]);
+    const wrapper = mountTable([entry({ id: "e-orig" })]);
 
     expect(wrapper.find(".history-list-table__fork").exists()).toBe(false);
+  });
+
+  it("shows question badge on awaiting_human runs", () => {
+    const wrapper = mountTable([
+      entry({ id: "e-awaiting", taskId: "task-2", status: "awaiting_human" }),
+    ]);
+
+    const mark = wrapper.find(".history-list-table__gate-mark");
+    expect(mark.exists()).toBe(true);
+    expect(mark.text()).toBe("❓");
+    expect(mark.attributes("aria-label")).toBe("history.questionBadge");
+    expect(wrapper.find(".history-list-table__pill").text()).toContain("awaiting_human");
+  });
+
+  it("shows no question badge on completed runs", () => {
+    const wrapper = mountTable([
+      entry({ id: "e-done", taskId: "task-3", status: "completed" }),
+    ]);
+
+    expect(wrapper.find(".history-list-table__gate-mark").exists()).toBe(false);
   });
 });

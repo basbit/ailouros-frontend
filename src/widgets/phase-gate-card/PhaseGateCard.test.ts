@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 
 import PhaseGateCard from "./PhaseGateCard.vue";
-import { resetPhaseGates } from "@/features/phase-gates/usePhaseGates";
+import { resetPhaseGates } from "@/entities/phase-gate";
 
 const listMock = vi.fn();
 

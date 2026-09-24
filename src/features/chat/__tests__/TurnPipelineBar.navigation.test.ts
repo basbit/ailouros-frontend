@@ -4,6 +4,12 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import TurnPipelineBar from "../TurnPipelineBar.vue";
 import { useUiStore } from "@/shared/store/ui";
+import { resetPhaseGates, usePhaseGates } from "@/entities/phase-gate";
+
+vi.mock("@/shared/api/endpoints/phase-gates", () => ({
+  listPendingPhaseGates: vi.fn(),
+  decidePhaseGate: vi.fn(),
+}));
 
 const routerPush = vi.fn();
 
@@ -95,5 +101,119 @@ describe("TurnPipelineBar — headline before the run reports running", () => {
     const wrapper = mount(TurnPipelineBar, { props: { summary, taskId: null } });
     expect(wrapper.text()).toContain("chat.pipelineBar.idleTitle");
     expect(wrapper.text()).not.toContain("chat.pipelineBar.doneTitle");
+  });
+});
+
+describe("TurnPipelineBar — a gate belongs to exactly one run", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    resetPhaseGates();
+  });
+
+  function finishedSummary() {
+    return {
+      steps: computed(() => []),
+      completedCount: computed(() => 4),
+      failedCount: computed(() => 0),
+      totalSteps: computed(() => 4),
+      activeStep: computed(() => null),
+      latestLog: computed(() => ""),
+      logLines: computed(() => []),
+      progressPct: computed(() => 100),
+      status: computed(() => "completed"),
+      isRunning: computed(() => false),
+    } as never;
+  }
+
+  async function withPendingGate(taskId: string) {
+    const { listPendingPhaseGates } = await import("@/shared/api/endpoints/phase-gates");
+    vi.mocked(listPendingPhaseGates).mockResolvedValue([
+      {
+        gateId: "g", scenario: "s", phaseId: "spec", taskId, summary: "", acceptanceCriteria: [],
+        decision: "pending", decidedBy: "", decidedAt: 0, rationale: "", createdAt: 0, ttlSeconds: 0,
+      },
+    ]);
+    await usePhaseGates().refresh("/tmp/w");
+  }
+
+  it("an unlinked old turn does not flip to 'gate' because some run has a gate pending", async () => {
+    const ui = useUiStore();
+    ui.taskId = "task-live";
+    ui.humanGateVisible = true;
+    await withPendingGate("task-live");
+
+    const wrapper = mount(TurnPipelineBar, { props: { summary: finishedSummary(), taskId: null } });
+
+    expect(wrapper.find(".turn-pipeline-bar__status--gate").exists()).toBe(false);
+    expect(wrapper.find(".turn-pipeline-bar__status--completed").exists()).toBe(true);
+  });
+
+  it("a turn of another run does not show the live run's gate", async () => {
+    const ui = useUiStore();
+    ui.taskId = "task-live";
+    await withPendingGate("task-live");
+
+    const wrapper = mount(TurnPipelineBar, {
+      props: { summary: finishedSummary(), taskId: "task-old" },
+    });
+
+    expect(wrapper.find(".turn-pipeline-bar__status--gate").exists()).toBe(false);
+  });
+
+  it("the turn whose run has the pending gate shows it, with an accessible name on the mark", async () => {
+    const ui = useUiStore();
+    ui.taskId = "task-live";
+    await withPendingGate("task-live");
+
+    const wrapper = mount(TurnPipelineBar, {
+      props: { summary: finishedSummary(), taskId: "task-live" },
+    });
+
+    expect(wrapper.find(".turn-pipeline-bar__status--gate").exists()).toBe(true);
+    expect(wrapper.get(".turn-pipeline-bar__icon").attributes("aria-label")).toBe(
+      "chat.pipelineBar.status.gate",
+    );
+  });
+});
+
+describe("TurnPipelineBar — every gate pause reads as a gate", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    resetPhaseGates();
+  });
+
+  function summaryWithStatus(status: string) {
+    return {
+      steps: computed(() => []),
+      completedCount: computed(() => 2),
+      failedCount: computed(() => 0),
+      totalSteps: computed(() => 4),
+      activeStep: computed(() => "dev"),
+      latestLog: computed(() => ""),
+      logLines: computed(() => []),
+      progressPct: computed(() => 50),
+      status: computed(() => status),
+      isRunning: computed(() => false),
+    } as never;
+  }
+
+  it.each(["awaiting_human", "awaiting_shell_confirm", "awaiting_manual_shell"])(
+    "shows %s as a gate, not as pending",
+    (status) => {
+      const wrapper = mount(TurnPipelineBar, {
+        props: { summary: summaryWithStatus(status), taskId: "task-1" },
+      });
+
+      expect(wrapper.find(".turn-pipeline-bar__status--gate").exists()).toBe(true);
+      expect(wrapper.text()).toContain("chat.pipelineBar.gateTitle");
+    },
+  );
+
+  it("a running step is not a gate", () => {
+    const wrapper = mount(TurnPipelineBar, {
+      props: { summary: summaryWithStatus("in_progress"), taskId: "task-1" },
+    });
+
+    expect(wrapper.find(".turn-pipeline-bar__status--gate").exists()).toBe(false);
   });
 });

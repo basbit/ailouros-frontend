@@ -1,6 +1,12 @@
 import { readRawString, removeKey, writeRawString } from "@/shared/lib/storage-utils";
 import { LS_SETTINGS } from "@/shared/lib/swarm-ui-constants";
 
+/** A storage key bundled with the value returned when nothing is stored. */
+export interface TypedStorageKey<T> {
+  key: string;
+  default: T;
+}
+
 export interface PersistenceAdapter {
   read(key: string): unknown | null;
   readString(key: string): string | null;
@@ -73,4 +79,29 @@ export function readWithLegacyCopy(
     }
   }
   return raw;
+}
+
+/**
+ * Read a JSON-encoded value stored under a typed key.
+ *
+ * Absent, empty and malformed payloads all yield `typed.default` — a corrupt
+ * blob must never throw out of a module initialiser and take the whole app
+ * down with it.
+ */
+export function readTypedJson<T>(typed: TypedStorageKey<T>): T {
+  const raw = persistenceAdapter.readString(typed.key);
+  if (raw == null || raw === "") return typed.default;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch {
+    return typed.default;
+  }
+  if (parsed === null || parsed === undefined) return typed.default;
+  return parsed as T;
+}
+
+/** Write a JSON-encoded value under a typed key. */
+export function writeTypedJson<T>(typed: TypedStorageKey<T>, value: T): void {
+  persistenceAdapter.write(typed.key, JSON.stringify(value));
 }

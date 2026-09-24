@@ -95,7 +95,7 @@
 
           <!-- Turns list -->
           <div
-            v-for="turn in activeThread?.turns ?? []"
+            v-for="(turn, turnIndex) in activeThread?.turns ?? []"
             :key="turn.id"
             class="chat-turn"
           >
@@ -147,13 +147,125 @@
               "
             />
 
+            <!-- In-feed Question / Gate prompt -->
+            <div
+              v-if="
+                turnIndex === (activeThread?.turns.length ?? 1) - 1 &&
+                isLiveTurn(turn) &&
+                isGatePending
+              "
+              class="chat-bubble chat-bubble--assistant chat-bubble--gate-prompt"
+              data-testid="chat-gate-prompt"
+            >
+              <div class="chat-bubble__header">
+                <span class="chat-bubble__author">{{ t("chat.swarmAuthor") }}</span>
+                <span class="chat-gate-badge">
+                  {{
+                    isAwaitingHumanAnswer
+                      ? `❓ ${t("chat.gatePromptTitle")}`
+                      : `❓ ${t("chat.pipelineBar.status.gate")}`
+                  }}
+                </span>
+              </div>
+              <div class="chat-bubble__body">
+                <p class="chat-gate-title">{{ gatePromptTitle }}</p>
+
+                <template v-if="livePhaseGate">
+                  <ul
+                    v-if="livePhaseGate.acceptanceCriteria.length > 0"
+                    class="chat-gate-criteria"
+                  >
+                    <li v-for="criterion in livePhaseGate.acceptanceCriteria" :key="criterion">
+                      {{ criterion }}
+                    </li>
+                  </ul>
+                  <p class="chat-gate-hint">{{ t("chat.phaseGateHint") }}</p>
+                  <PhaseGateDecisionActions
+                    :disabled="phaseGateDeciding"
+                    @decide="onDecidePhaseGate"
+                  />
+                </template>
+
+                <div v-else-if="ui.shellGateVisible" class="chat-gate-actions">
+                  <button
+                    type="button"
+                    class="chat-btn chat-btn--send"
+                    data-testid="chat-gate-shell-allow"
+                    @click="gateActions.onConfirmShell(true)"
+                  >
+                    {{ t("shellGate.allow") }}
+                  </button>
+                  <button
+                    type="button"
+                    class="chat-btn chat-btn--stop"
+                    data-testid="chat-gate-shell-reject"
+                    @click="gateActions.onConfirmShell(false)"
+                  >
+                    {{ t("shellGate.reject") }}
+                  </button>
+                </div>
+
+                <div v-else-if="ui.manualShellGateVisible" class="chat-gate-actions">
+                  <button
+                    type="button"
+                    class="chat-btn chat-btn--send"
+                    data-testid="chat-gate-manual-done"
+                    @click="gateActions.onConfirmManualShell(true)"
+                  >
+                    {{ t("manualShellGate.done") }}
+                  </button>
+                  <button
+                    type="button"
+                    class="chat-btn chat-btn--stop"
+                    data-testid="chat-gate-manual-cancel"
+                    @click="gateActions.onConfirmManualShell(false)"
+                  >
+                    {{ t("manualShellGate.cancel") }}
+                  </button>
+                </div>
+
+                <div v-else-if="isAwaitingHumanAnswer" class="chat-gate-actions">
+                  <button
+                    type="button"
+                    class="chat-btn chat-btn--send"
+                    data-testid="chat-gate-human-approve"
+                    :disabled="ui.humanGateSubmitting"
+                    @click="onApproveHumanGateInChat"
+                  >
+                    {{ t("humanGate.approve") }}
+                  </button>
+                  <p class="chat-gate-hint">{{ t("chat.gatePromptHint") }}</p>
+                </div>
+
+                <p v-else class="chat-gate-hint">{{ t("chat.gatePromptHint") }}</p>
+
+                <p
+                  v-if="gateHint"
+                  class="chat-gate-hint chat-gate-hint--inline"
+                  data-testid="chat-gate-inline-hint"
+                  role="status"
+                >
+                  {{ gateHint === "phase" ? t("chat.phaseGateChooseDecision") : t("chat.shellGateUseButtons") }}
+                </p>
+
+                <button
+                  type="button"
+                  class="chat-gate-cancel"
+                  data-testid="chat-gate-cancel-run"
+                  @click="onStop"
+                >
+                  {{ t("chat.cancelRun") }}
+                </button>
+              </div>
+            </div>
+
             <!-- Assistant Response Message -->
             <div
               v-if="turn.assistant_message"
               class="chat-bubble chat-bubble--assistant"
             >
               <div class="chat-bubble__header">
-                <span class="chat-bubble__author">AIlourOS Swarm</span>
+                <span class="chat-bubble__author">{{ t("chat.swarmAuthor") }}</span>
               </div>
               <div class="chat-bubble__body">
                 {{ turn.assistant_message }}
@@ -171,16 +283,13 @@
           @continue-pipeline="gateActions.onContinuePipeline"
         />
 
-        <!-- Phase-verification gates (SWARM_ORCHESTRATION_PHASE_VERIFICATION_REQUIRED)
-             block the run until a human decides; the card polls and shows itself
-             only while a gate is pending. Runs 52ffc1b7 / 0da55863 sat on one
-             for 24+ minutes because the chat had nowhere to show it. -->
-        <div v-if="settings.form.workspace_root" class="chat-phase-gates">
-          <PhaseGateCard
-            :workspace-root="settings.form.workspace_root"
-            :task-id="ui.taskId ?? null"
-          />
-        </div>
+        <RunUnavailableBanner
+          v-if="isRunUnavailable"
+          :availability="ui.runAvailability"
+          :task-id="ui.taskId ?? ''"
+          :lookup-error="ui.runAvailabilityError"
+          @reset="onResetUnavailableRun"
+        />
 
         <!-- Sticky Bottom Input Bar -->
         <footer class="chat-input-bar">
@@ -192,9 +301,11 @@
               :image-attachments="settings.form.image_attachments ?? []"
               :rows="3"
               :placeholder="
-                isAwaitingHuman
+                isAwaitingHumanAnswer
                   ? t('chat.inputPlaceholderGate')
-                  : t('chat.inputPlaceholder')
+                  : livePhaseGate
+                    ? t('chat.inputPlaceholderRationale')
+                    : t('chat.inputPlaceholder')
               "
               @update:attachments="
                 (next) => {
@@ -225,24 +336,26 @@
               </button>
               <div class="chat-input-spacer" />
               <button
-                v-if="isRunning"
+                v-if="showStop"
                 type="button"
                 class="chat-btn chat-btn--stop"
+                data-testid="chat-stop"
                 @click="onStop"
               >
                 {{ t("chat.stop") }}
               </button>
               <button
-                v-else
+                v-if="!isRunning"
                 type="button"
                 class="chat-btn chat-btn--send"
+                data-testid="chat-send"
                 :disabled="!canSend || isStarting"
                 @click="onSendPrompt"
               >
                 {{
                   isStarting
                     ? t("chat.starting")
-                    : isAwaitingHuman
+                    : isAwaitingHumanAnswer
                       ? t("chat.sendAnswer")
                       : t("chat.send")
                 }}
@@ -291,13 +404,36 @@ import { useInjectedSwarmRunController } from "@/features/swarm-run";
 import { useTurnRunLink } from "./useTurnRunLink";
 import { findActiveTurn, resolveTurnStatusUpdate } from "./turnStatusEffects";
 import TaskGatesOverlay from "@/features/task-gate/TaskGatesOverlay.vue";
-import PhaseGateCard from "@/widgets/phase-gate-card/PhaseGateCard.vue";
-import { cancelTask } from "@/shared/api/endpoints/tasks-runtime";
+import PhaseGateDecisionActions from "@/widgets/phase-gate-card/PhaseGateDecisionActions.vue";
+import { RunUnavailableBanner, useRunRecovery } from "@/features/run-recovery";
+import {
+  isPhaseGatePause,
+  usePhaseGatePolling,
+  usePhaseGates,
+} from "@/entities/phase-gate";
+import type { PhaseGateDecision } from "@/shared/model/phase-gate-types";
 
 const { t } = useI18n();
 const ui = useUiStore();
 const ux = useUxStore();
 const settings = useInjectedAppSettings();
+const phaseGates = usePhaseGates();
+usePhaseGatePolling(() => settings.form.workspace_root);
+
+// The gate of the run this page drives — matched on task id, never "any gate
+// in the workspace": with the gate list shared app-wide, a loose match made
+// every old turn flip to "action needed" whenever any run paused.
+const livePhaseGate = computed(() => {
+  const taskId = ui.taskId;
+  if (!taskId) return null;
+  return phaseGates.pendingGates.value.find((gate) => gate.taskId === taskId) ?? null;
+});
+const phaseGateDeciding = computed(() => phaseGates.decidingGateId.value !== null);
+// The pause is a phase gate even before the gate list has been polled: the
+// task's own history says so.
+const isPhaseGatePending = computed(
+  () => livePhaseGate.value !== null || isPhaseGatePause(ui.taskHistory),
+);
 
 const {
   threadsList,
@@ -316,11 +452,53 @@ const feedRef = ref<HTMLDivElement | null>(null);
 const activeRunningTurnId = ref<string | null>(null);
 const isStarting = ref(false);
 
-const isRunning = computed(
-  () => ui.taskStatus === "running" || ui.taskStatus === "in_progress",
+// Only a free-text question goes to the human-resume endpoint. Shell gates are
+// answered with their own buttons and a phase gate with an explicit decision;
+// routing their text through human-resume hit the wrong endpoint.
+const isAwaitingHumanAnswer = computed(
+  () =>
+    !isPhaseGatePending.value &&
+    (ui.humanGateVisible || ui.taskStatus === "awaiting_human"),
+);
+const isShellGatePending = computed(
+  () => ui.shellGateVisible || ui.manualShellGateVisible,
+);
+const isGatePending = computed(
+  () =>
+    isAwaitingHumanAnswer.value ||
+    isPhaseGatePending.value ||
+    isShellGatePending.value ||
+    ui.pendingApprovals > 0,
 );
 
-const isAwaitingHuman = computed(() => ui.taskStatus === "awaiting_human");
+const isRunning = computed(
+  () =>
+    !isGatePending.value &&
+    (ui.taskStatus === "running" || ui.taskStatus === "in_progress"),
+);
+// A gated run is still a run: it can be cancelled from the composer.
+const showStop = computed(() => !!ui.taskId && (isRunning.value || isGatePending.value));
+
+/** "phase" / "shell": the operator typed where a button was expected. */
+const gateHint = ref<"" | "phase" | "shell">("");
+watch(isGatePending, (pending) => {
+  if (!pending) gateHint.value = "";
+});
+
+const gatePromptTitle = computed(() => {
+  const gate = livePhaseGate.value;
+  if (gate) return `${t("phaseGates.headline")}: ${gate.summary || gate.phaseId}`;
+  if (isPhaseGatePending.value) return t("phaseGates.question");
+  if (isAwaitingHumanAnswer.value) return ui.humanGateTitle || t("chat.gatePromptDefault");
+  if (ui.manualShellGateVisible) return ui.manualShellReason || t("manualShellGate.title");
+  if (ui.shellGateVisible) return t("shellGate.title");
+  return t("chat.gatePromptDefault");
+});
+
+function isLiveTurn(turn: { id: string; task_id?: string | null }): boolean {
+  if (turn.task_id && ui.taskId) return turn.task_id === ui.taskId;
+  return turn.id === activeRunningTurnId.value;
+}
 
 const canSend = computed(() => !!settings.form.prompt?.trim());
 
@@ -453,15 +631,35 @@ async function onSendPrompt(): Promise<void> {
   const promptText = settings.form.prompt.trim();
   if (!promptText) return;
 
+  // A phase gate or a shell gate is answered with its buttons; free text alone
+  // must not be turned into a decision.
+  if (isPhaseGatePending.value) {
+    gateHint.value = "phase";
+    return;
+  }
+  if (isShellGatePending.value) {
+    gateHint.value = "shell";
+    return;
+  }
+
   // Gate is open: the same input bar answers it directly in the chat, no need
   // to touch the gate form. The message becomes the human-resume feedback and
   // lands in the thread as the user's own bubble; the status watcher flips
   // the paused turn back to "running" as soon as the run resumes.
-  if (isAwaitingHuman.value) {
-    if (!ui.taskId) return;
+  if (isAwaitingHumanAnswer.value) {
+    const currentTaskId =
+      ui.taskId ??
+      activeThread.value?.turns.find((turn) => turn.id === activeRunningTurnId.value)
+        ?.task_id ??
+      activeThread.value?.turns[activeThread.value.turns.length - 1]?.task_id ??
+      null;
+    if (currentTaskId && !ui.taskId) {
+      ui.taskId = currentTaskId;
+    }
+    const resumed = await gateActions.onHumanResume(promptText);
+    if (!resumed) return;
     settings.form.prompt = "";
     await addTurn(promptText, [], []).catch(() => undefined);
-    await gateActions.onHumanResume(promptText);
     scrollToBottom();
     return;
   }
@@ -494,20 +692,55 @@ async function onSendPrompt(): Promise<void> {
   }
 }
 
-async function onStop(): Promise<void> {
-  if (ui.taskId) {
-    try {
-      await cancelTask(ui.taskId);
-    } catch {
-      /* ignore */
-    }
+async function onApproveHumanGateInChat(): Promise<void> {
+  const promptText = settings.form.prompt.trim() || "Approved";
+  const currentTaskId =
+    ui.taskId ??
+    activeThread.value?.turns.find((turn) => turn.id === activeRunningTurnId.value)?.task_id ??
+    activeThread.value?.turns[activeThread.value.turns.length - 1]?.task_id ??
+    null;
+  if (currentTaskId && !ui.taskId) {
+    ui.taskId = currentTaskId;
   }
-  ui.taskStatus = "cancelled";
+  const resumed = await gateActions.onHumanResume(promptText);
+  if (!resumed) return;
+  settings.form.prompt = "";
+  await addTurn(promptText, [], []).catch(() => undefined);
+  scrollToBottom();
+}
+
+
+/** The typed text (if any) is the rationale; the decision is the button. */
+async function onDecidePhaseGate(decision: PhaseGateDecision): Promise<void> {
+  const gate = livePhaseGate.value;
+  if (!gate) return;
+  gateHint.value = "";
+  const rationale = settings.form.prompt.trim();
+  const ok = await gateActions.onDecidePhaseGate(gate, decision, rationale);
+  if (!ok) return;
+  settings.form.prompt = "";
+  if (rationale) await addTurn(rationale, [], []).catch(() => undefined);
+  scrollToBottom();
+}
+
+const { isRunUnavailable, resetUnavailableRun } = useRunRecovery({
+  sendWsSubscribe: controller.sendWsSubscribe,
+});
+
+function onResetUnavailableRun(): void {
+  resetUnavailableRun();
+  activeRunningTurnId.value = null;
+}
+
+async function onStop(): Promise<void> {
+  const stopped = await runner.onStopRun();
+  if (!stopped) return;
   if (activeRunningTurnId.value) {
     await patchTurn(activeRunningTurnId.value, {
       status: "failed",
-      assistant_message: "Run cancelled by user.",
+      assistant_message: t("chat.cancelledByUser"),
     });
+    activeRunningTurnId.value = null;
   }
 }
 
@@ -573,29 +806,88 @@ onMounted(() => {
 // backend thread still holds the turn↔task link. Re-bind it so the pipeline
 // bar under the user's message survives a page reload.
 watch(
-  () => activeThread.value?.turns.length,
+  () => [activeThread.value?.turns.length, ui.taskId] as const,
   () => {
     if (activeRunningTurnId.value) return;
-    const live = [...(activeThread.value?.turns ?? [])]
+    const candidates = [...(activeThread.value?.turns ?? [])]
       .reverse()
-      .find(
+      .filter(
         (turn) =>
           turn.task_id &&
           (turn.status === "running" || turn.status === "awaiting_human"),
       );
+    // With an active task known, only its own turn is live; a turn of some
+    // other run must not be driven by this task's ticks.
+    const live = ui.taskId
+      ? candidates.find((turn) => turn.task_id === ui.taskId)
+      : candidates[0];
     if (live) activeRunningTurnId.value = live.id;
+  },
+  { immediate: true },
+);
+
+// A turn persisted as running whose run the backend does not have: either the
+// start never reached the backend (reload mid-"Starting…", no task id) or the
+// server no longer knows the task (404 on bootstrap). Left alone, the thread
+// re-bound it as live and the composer was locked behind a run that did not
+// exist.
+watch(
+  () => [activeThread.value?.turns.length, ui.runAvailability, ui.taskId] as const,
+  () => {
+    if (isStarting.value) return;
+    for (const turn of activeThread.value?.turns ?? []) {
+      if (turn.status !== "running" && turn.status !== "awaiting_human") continue;
+      const neverStarted = !turn.task_id && turn.id !== activeRunningTurnId.value;
+      const serverLostIt =
+        !!turn.task_id &&
+        turn.task_id === ui.taskId &&
+        ui.runAvailability === "unavailable";
+      if (!neverStarted && !serverLostIt) continue;
+      if (activeRunningTurnId.value === turn.id) activeRunningTurnId.value = null;
+      void patchTurn(turn.id, {
+        status: "failed",
+        assistant_message: t("chat.runUnavailableAfterRestart"),
+      });
+    }
   },
   { immediate: true },
 );
 </script>
 
 <style scoped>
-.chat-phase-gates {
-  padding: 0 16px 8px;
+.chat-gate-criteria {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--ink-2);
 }
 
-.chat-phase-gates:empty {
-  display: none;
+.chat-gate-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-gate-hint--inline {
+  margin-top: 8px;
+  color: var(--warning);
+}
+
+.chat-gate-cancel {
+  appearance: none;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.chat-gate-cancel:hover {
+  color: var(--error);
+  border-color: var(--error);
 }
 
 .chat-page {
@@ -840,6 +1132,31 @@ watch(
   border: 1px solid var(--line);
   align-self: flex-start;
   max-width: 85%;
+}
+
+.chat-bubble--gate-prompt {
+  border-color: var(--warn, #c98a1a);
+  background: color-mix(in srgb, var(--warn, #c98a1a) 7%, var(--card));
+  box-shadow: 0 0 0 1px rgba(201, 138, 26, 0.25);
+}
+
+.chat-gate-badge {
+  color: var(--warn, #c98a1a);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.chat-gate-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.chat-gate-hint {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 0;
 }
 
 .chat-bubble__header {

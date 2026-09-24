@@ -5,9 +5,9 @@ vi.mock("@/shared/api/endpoints/user-settings", () => ({
   putUserSettings: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/shared/lib/storage-utils", () => ({
-  readTyped: vi.fn().mockReturnValue(null),
-  writeTyped: vi.fn(),
+vi.mock("@/shared/lib/persistence-adapter", () => ({
+  readTypedJson: vi.fn().mockReturnValue(null),
+  writeTypedJson: vi.fn(),
 }));
 
 vi.mock("@/shared/lib/storage-keys", () => ({

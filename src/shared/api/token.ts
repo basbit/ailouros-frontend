@@ -7,6 +7,7 @@
  */
 
 import { SWARM_PUBLIC_API_TOKEN } from "@/shared/config";
+import { persistenceAdapter } from "@/shared/lib/persistence-adapter";
 
 export const API_TOKEN_STORAGE_KEY = "swarm.api_token";
 
@@ -14,12 +15,9 @@ export const API_TOKEN_STORAGE_KEY = "swarm.api_token";
 const BUILD_TIME_API_TOKEN: string = SWARM_PUBLIC_API_TOKEN;
 
 function readStoredToken(): string {
-  try {
-    return (localStorage.getItem(API_TOKEN_STORAGE_KEY) ?? "").trim();
-  } catch {
-    // Private-mode / disabled site data: fall back to the build-time default.
-    return "";
-  }
+  // The adapter absorbs private-mode / disabled-site-data failures, in which
+  // case the build-time default takes over.
+  return (persistenceAdapter.readString(API_TOKEN_STORAGE_KEY) ?? "").trim();
 }
 
 export function getApiToken(): string {
@@ -32,17 +30,9 @@ export function setApiToken(token: string): void {
     clearApiToken();
     return;
   }
-  try {
-    localStorage.setItem(API_TOKEN_STORAGE_KEY, cleaned);
-  } catch {
-    /* storage unavailable — the token simply does not persist */
-  }
+  persistenceAdapter.write(API_TOKEN_STORAGE_KEY, cleaned);
 }
 
 export function clearApiToken(): void {
-  try {
-    localStorage.removeItem(API_TOKEN_STORAGE_KEY);
-  } catch {
-    /* storage unavailable */
-  }
+  persistenceAdapter.remove(API_TOKEN_STORAGE_KEY);
 }
