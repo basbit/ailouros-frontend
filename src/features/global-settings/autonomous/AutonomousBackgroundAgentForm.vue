@@ -58,7 +58,7 @@
       </div>
       <div class="hint">
         {{ t("auto.watchPathsHint") }}
-        <code>SWARM_BACKGROUND_AGENT_WATCH_PATHS</code>
+        <code>SWARM_BACKGROUND_AGENT_WATCH_PATHS</code><SettingSourceNote field="swarm_background_watch_paths" />
       </div>
     </div>
     <AutonomousModelPickerField
@@ -84,6 +84,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
 import { ref } from "vue";
 import AutonomousModelPickerField from "./AutonomousModelPickerField.vue";
 import { useI18n } from "@/shared/lib/i18n";

@@ -82,7 +82,6 @@ export interface GlobalSearchKeysState {
   swarm_retrieval_multi_query_count: string;
   swarm_retrieval_recency_half_life_days: string;
   swarm_retrieval_hyde_model: string;
-  swarm_reflexion: boolean;
   swarm_reasoning_self_consistency_samples: string;
   swarm_reasoning_verifier_model: string;
   swarm_reasoning_prm_model: string;
@@ -129,6 +128,43 @@ export interface GlobalSearchKeysState {
   swarm_research_adversarial: boolean;
   swarm_planning_cache: boolean;
   swarm_telemetry_exporter: string;
+  swarm_telegram_ingress_enabled: boolean;
+  swarm_telegram_ingress_cancel_enabled: boolean;
+  swarm_human_gate_enabled: boolean;
+  swarm_telegram_ingress_bot_token: string;
+  swarm_telegram_ingress_allowed_chat_ids: string;
+  swarm_telegram_ingress_max_per_minute: string;
+  swarm_telegram_ingress_max_per_hour: string;
+  swarm_telegram_ingress_poll_timeout_seconds: string;
+  swarm_telegram_ingress_cancel_link_ttl_seconds: string;
+  swarm_telegram_ingress_public_base_url: string;
+  swarm_telegram_ingress_run_chat_ids: string;
+  swarm_telegram_ingress_run_max_per_hour: string;
+  swarm_telegram_ingress_run_workspace: string;
+  swarm_telegram_ingress_run_scenario: string;
+  swarm_human_gate_notify_ttl_seconds: string;
+  swarm_action_link_secret: string;
+  swarm_action_link_secret_prev: string;
+  swarm_github_webhook_secret: string;
+  swarm_linear_webhook_secret: string;
+  swarm_linear_webhook_tolerance_seconds: string;
+  swarm_issue_autorun_event_log_limit: string;
+  swarm_issue_autorun_delivery_ledger_limit: string;
+  swarm_goal_scheduler_timezone: string;
+  swarm_goal_scheduler_misfire_grace_seconds: string;
+  swarm_workspace_isolation_mode: string;
+  swarm_autoresearch_context_max_chars: string;
+  swarm_dev_past_user_feedback_per_file: string;
+  swarm_orchestration_skill_dispatcher_model: string;
+  swarm_cross_task_inject_steps: string;
 }
 
 export type StateKey = keyof GlobalSearchKeysState;
+
+export type BooleanSettingKey = {
+  [K in StateKey]: GlobalSearchKeysState[K] extends boolean ? K : never;
+}[StateKey];
+
+export type StringSettingKey = {
+  [K in StateKey]: GlobalSearchKeysState[K] extends string ? K : never;
+}[StateKey];

@@ -11,6 +11,7 @@
         @select="onSelect"
       />
     </template>
+    <RestartPendingBanner />
     <component :is="activePaneComponent" />
   </AppShell>
 </template>
@@ -27,6 +28,11 @@ import ModelRegistryPane from "./panes/ModelRegistryPane.vue";
 import AutomationPane from "./panes/AutomationPane.vue";
 import FeatureFlagsPane from "./panes/FeatureFlagsPane.vue";
 import NotificationsPane from "./panes/NotificationsPane.vue";
+import IssueAutopilotPane from "./panes/IssueAutopilotPane.vue";
+import RemoteControlPane from "./panes/RemoteControlPane.vue";
+import AgenticPane from "./panes/AgenticPane.vue";
+import RestartPendingBanner from "@/shared/components/settings-fields/RestartPendingBanner.vue";
+import { useSettingFieldFocus } from "./useSettingFieldFocus";
 import AboutPane from "./panes/AboutPane.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
@@ -42,6 +48,9 @@ const PANES = {
   automation: AutomationPane,
   "feature-flags": FeatureFlagsPane,
   notifications: NotificationsPane,
+  "issue-autopilot": IssueAutopilotPane,
+  "remote-control": RemoteControlPane,
+  agentic: AgenticPane,
   scenarios: ScenariosPane,
   "model-registry": ModelRegistryPane,
   about: AboutPane,
@@ -54,6 +63,9 @@ const PANE_ORDER: PaneKey[] = [
   "automation",
   "feature-flags",
   "notifications",
+  "issue-autopilot",
+  "remote-control",
+  "agentic",
   "scenarios",
   "model-registry",
   "about",
@@ -64,6 +76,9 @@ const SUBNAV_LABELS: Record<PaneKey, string> = {
   automation: "settings.subnav.automation",
   "feature-flags": "settings.subnav.featureFlags",
   notifications: "settings.subnav.notifications",
+  "issue-autopilot": "settings.subnav.issueAutopilot",
+  "remote-control": "settings.subnav.remoteControl",
+  agentic: "settings.subnav.agentic",
   scenarios: "settings.subnav.scenarios",
   "model-registry": "settings.subnav.modelRegistry",
   about: "settings.subnav.about",
@@ -93,6 +108,8 @@ watch(
   },
   { immediate: true },
 );
+
+useSettingFieldFocus();
 
 function onSelect(key: string): void {
   void router.push(`/settings/${key}`);

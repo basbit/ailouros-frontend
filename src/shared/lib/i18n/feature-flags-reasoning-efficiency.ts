@@ -7,9 +7,6 @@ export const featureFlagsReasoningEfficiencyEn: Messages = {
   "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
   "featureFlags.field.swarm_reasoning_verifier.hint":
     "Second-opinion pass that may revise or abstain.",
-  "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
-  "featureFlags.field.swarm_reflexion.hint":
-    "Reflexion — the agent self-critiques and revises its own answer before finalizing (extra LLM pass).",
   "featureFlags.field.swarm_reasoning_self_consistency_samples.label":
     "Self-consistency samples",
   "featureFlags.field.swarm_reasoning_self_consistency_samples.hint":
@@ -51,9 +48,6 @@ export const featureFlagsReasoningEfficiencyRu: Messages = {
   "featureFlags.field.swarm_reasoning_verifier.label": "Verifier model",
   "featureFlags.field.swarm_reasoning_verifier.hint":
     "Second-opinion проход с возможной правкой или абстейном.",
-  "featureFlags.field.swarm_reflexion.label": "Reflexion loop",
-  "featureFlags.field.swarm_reflexion.hint":
-    "Reflexion — агент сам критикует и правит свой ответ перед финализацией (доп. LLM-проход).",
   "featureFlags.field.swarm_reasoning_self_consistency_samples.label":
     "Сэмплы self-consistency",
   "featureFlags.field.swarm_reasoning_self_consistency_samples.hint":

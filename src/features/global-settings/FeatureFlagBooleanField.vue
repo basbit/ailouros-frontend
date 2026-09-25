@@ -21,6 +21,7 @@
   </label>
   <div class="feature-flag-hint">
     {{ hintText }} <code>{{ envName }}</code>
+    <SettingSourceNote :field="field" />
   </div>
   <label v-if="showOverrideToggle" class="feature-flag-override-toggle">
     <input
@@ -34,8 +35,11 @@
 
 <script setup lang="ts">
 import { useI18n } from "@/shared/lib/i18n";
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
+import type { StateKey } from "@/shared/lib/global-search/types";
 
 defineProps<{
+  field: StateKey;
   checked: boolean;
   labelText: string;
   hintText: string;

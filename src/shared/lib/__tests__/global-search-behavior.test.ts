@@ -61,17 +61,18 @@ describe("global-search behavior contract", () => {
     }
   });
 
-  it("buildSyncPayload serialises every state field (defaults shape)", async () => {
+  it("buildSyncPayload carries only the fields edited since the last save", async () => {
     const mod = await freshModule();
-    const payload = mod.buildSyncPayload();
-    // a representative spread across string + boolean concerns
-    expect(payload.tavily_api_key).toBe("");
-    expect(payload.swarm_mcp_auto).toBe(true);
-    expect(payload.swarm_wiki_search_enabled).toBe(true);
-    expect(payload.swarm_self_verify).toBe(false);
-    expect(payload.swarm_orchestration_skill_dispatcher).toBe("off");
-    // full key parity with the typed state surface
-    expect(Object.keys(payload).length).toBeGreaterThan(100);
+    expect(mod.buildSyncPayload()).toEqual({});
+
+    const { setKey } = mod.useGlobalSearchKeys();
+    setKey("swarm_self_verify", true);
+    setKey("swarm_planner_model", "gpt-x");
+
+    expect(mod.buildSyncPayload()).toEqual({
+      swarm_self_verify: true,
+      swarm_planner_model: "gpt-x",
+    });
   });
 
   it("loadFromBackend keeps real secret when backend returns the mask", async () => {

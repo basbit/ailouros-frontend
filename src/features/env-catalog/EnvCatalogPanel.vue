@@ -58,6 +58,18 @@
             >
               {{ t("envCatalog.overridden") }}
             </span>
+            <span
+              v-if="variable.restart_required"
+              class="env-catalog__badge env-catalog__badge--restart"
+              :title="t('settingsField.restart.hint')"
+              :data-test="`env-restart-required-${variable.name}`"
+            >
+              {{
+                variable.restart_pending
+                  ? t("envCatalog.restartPending")
+                  : t("envCatalog.restartRequired")
+              }}
+            </span>
           </label>
 
           <select
@@ -184,5 +196,10 @@ onMounted(() => {
 
 .env-catalog__error {
   color: var(--danger, #c0392b);
+}
+
+.env-catalog__badge--restart {
+  color: var(--c-warning-text, #8a5a00);
+  border-color: var(--c-warning-border, #f0c34a);
 }
 </style>

@@ -4,4 +4,6 @@ export {
   getGlobalAutomationSettings,
   useGlobalSearchKeys,
   buildSyncPayload,
+  flushGlobalSettingsSync,
+  markSecretsSavedOnServer,
 } from "./global-search/store";

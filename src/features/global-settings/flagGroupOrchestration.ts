@@ -21,6 +21,19 @@ export const FLAG_GROUP_ORCHESTRATION: FeatureFlagGroup = {
       wired: true,
     },
     {
+      kind: "string",
+      field: "swarm_orchestration_skill_dispatcher_model",
+      envName: "SWARM_ORCHESTRATION_SKILL_DISPATCHER_MODEL",
+      wired: true,
+    },
+    {
+      kind: "string",
+      field: "swarm_autoresearch_context_max_chars",
+      envName: "SWARM_AUTORESEARCH_CONTEXT_MAX_CHARS",
+      placeholder: "60000",
+      wired: true,
+    },
+    {
       kind: "boolean",
       field: "swarm_orchestration_quick_fix",
       envName: "SWARM_ORCHESTRATION_QUICK_FIX_ENABLED",

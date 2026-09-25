@@ -12,6 +12,10 @@ export interface EnvVariableDto {
   value: string;
   is_set: boolean;
   managed_by_ui_field: string;
+  /** The running server reads it only at startup. */
+  restart_required: boolean;
+  /** Changed since the server started; applies after a restart. */
+  restart_pending: boolean;
 }
 
 export interface EnvOverrideResult {

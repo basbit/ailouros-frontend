@@ -106,7 +106,7 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Comma-separated executable names agents may run in <swarm_shell>. Leave empty to use the server default list shown below (pwd, ls, find, cat, head, tail, wc, file, stat, echo, which, env, npm, npx, yarn, pnpm, corepack, bun, node, pip, pip3, python, python3, uv, make, cargo, rustc, go, composer, php, dotnet, gradle, mvn, pytest, eslint, prettier, tsc, jest, vitest, ruff, flake8).",
   "featureFlags.field.swarm_goal_scheduler_enabled.label": "Goal scheduler",
   "featureFlags.field.swarm_goal_scheduler_enabled.hint":
-    "Run long-running goals (cron-style) in the background.",
+    "Scheduled goals (/goal … schedule: cron …) start a real run in their project on every fire; each run shows up in History. Needs an LLM provider configured on the server.",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.label":
     "Dev shell via sandbox resolver",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.hint":
@@ -132,6 +132,23 @@ export const featureFlagsEvalUxOrchWorkspaceEn: Messages = {
     "Overwrite visual baselines",
   "featureFlags.field.swarm_visual_baselines_update.hint":
     "Replace stored baselines with this run's screenshots instead of comparing. Turn on once after an intentional redesign, then turn it back off.",
+  "featureFlags.field.swarm_workspace_isolation_mode.label": "Workspace isolation",
+  "featureFlags.field.swarm_workspace_isolation_mode.hint":
+    "Where a run writes. 'none' edits the workspace directly; 'worktree' runs each task in its own git worktree and swarm/<task_id> branch (needs a git repo). Goal, Telegram and issue runs always use a worktree.",
+  "featureFlags.field.swarm_workspace_isolation_mode.option.none": "none (edit the workspace directly)",
+  "featureFlags.field.swarm_workspace_isolation_mode.option.worktree": "worktree (branch per run)",
+  "featureFlags.field.swarm_goal_scheduler_timezone.label": "Goal scheduler timezone",
+  "featureFlags.field.swarm_goal_scheduler_timezone.hint":
+    "IANA timezone for cron schedules that do not name one (e.g. Europe/Berlin; default UTC). A change restarts the running scheduler.",
+  "featureFlags.field.swarm_goal_scheduler_misfire_grace_seconds.label": "Goal scheduler misfire grace, s",
+  "featureFlags.field.swarm_goal_scheduler_misfire_grace_seconds.hint":
+    "A scheduled fire missed by at most this many seconds (server busy or asleep) still runs; later ones are skipped (1–86400, default 60).",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_model.label": "Skill dispatcher model",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_model.hint":
+    "Model the 'llm' skill dispatcher routes with; required when the dispatcher mode is 'llm'.",
+  "featureFlags.field.swarm_autoresearch_context_max_chars.label": "Autoresearch context, chars",
+  "featureFlags.field.swarm_autoresearch_context_max_chars.hint":
+    "Most characters of mutable-file contents sent to the researcher model per iteration (1000–2000000, default 60000).",
 };
 
 export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
@@ -244,7 +261,7 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
     "Список разрешённых исполняемых файлов через запятую для <swarm_shell>. Пусто = список сервера по умолчанию, показанный ниже (pwd, ls, find, cat, head, tail, wc, file, stat, echo, which, env, npm, npx, yarn, pnpm, corepack, bun, node, pip, pip3, python, python3, uv, make, cargo, rustc, go, composer, php, dotnet, gradle, mvn, pytest, eslint, prettier, tsc, jest, vitest, ruff, flake8).",
   "featureFlags.field.swarm_goal_scheduler_enabled.label": "Планировщик целей",
   "featureFlags.field.swarm_goal_scheduler_enabled.hint":
-    "Запускать долгоживущие цели (cron-style) в фоне.",
+    "Запланированные цели (/goal … schedule: cron …) при каждом срабатывании запускают настоящий прогон в своём проекте; каждый прогон виден в Истории. Нужен LLM-провайдер, настроенный на сервере.",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.label":
     "Dev shell через sandbox resolver",
   "featureFlags.field.swarm_dev_shell_use_sandbox_resolver.hint":
@@ -269,4 +286,21 @@ export const featureFlagsEvalUxOrchWorkspaceRu: Messages = {
   "featureFlags.field.swarm_visual_baselines_update.label": "Перезаписать эталоны",
   "featureFlags.field.swarm_visual_baselines_update.hint":
     "Заменить сохранённые эталоны скриншотами этого прогона вместо сравнения. Включите один раз после намеренного редизайна и выключите обратно.",
+  "featureFlags.field.swarm_workspace_isolation_mode.label": "Изоляция воркспейса",
+  "featureFlags.field.swarm_workspace_isolation_mode.hint":
+    "Куда пишет прогон. 'none' правит воркспейс напрямую; 'worktree' запускает каждую задачу в отдельном git worktree и ветке swarm/<task_id> (нужен git-репозиторий). Прогоны целей, Telegram и задач всегда идут в worktree.",
+  "featureFlags.field.swarm_workspace_isolation_mode.option.none": "none (править воркспейс напрямую)",
+  "featureFlags.field.swarm_workspace_isolation_mode.option.worktree": "worktree (ветка на прогон)",
+  "featureFlags.field.swarm_goal_scheduler_timezone.label": "Часовой пояс планировщика целей",
+  "featureFlags.field.swarm_goal_scheduler_timezone.hint":
+    "Часовой пояс IANA для cron-расписаний без своего пояса (например Europe/Berlin; по умолчанию UTC). Изменение перезапускает работающий планировщик.",
+  "featureFlags.field.swarm_goal_scheduler_misfire_grace_seconds.label": "Допуск пропуска запуска, с",
+  "featureFlags.field.swarm_goal_scheduler_misfire_grace_seconds.hint":
+    "Запуск по расписанию, пропущенный не более чем на столько секунд (сервер занят или спал), всё равно выполняется; более поздние пропускаются (1–86400, по умолчанию 60).",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_model.label": "Модель диспетчера навыков",
+  "featureFlags.field.swarm_orchestration_skill_dispatcher_model.hint":
+    "Модель, которой маршрутизирует диспетчер навыков в режиме 'llm'; обязательна для этого режима.",
+  "featureFlags.field.swarm_autoresearch_context_max_chars.label": "Контекст autoresearch, символов",
+  "featureFlags.field.swarm_autoresearch_context_max_chars.hint":
+    "Максимум символов содержимого изменяемых файлов, отправляемых модели-исследователю за итерацию (1000–2000000, по умолчанию 60000).",
 };

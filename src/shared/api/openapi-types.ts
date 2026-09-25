@@ -276,6 +276,154 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/autoresearch/presets/improve-role-prompt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Describe Improve Role Prompt Preset
+         * @description Where an "Improve role prompt" session would run and which roles it can score.
+         */
+        get: operations["describe_improve_role_prompt_preset_v1_autoresearch_presets_improve_role_prompt_get"];
+        put?: never;
+        /**
+         * Start Improve Role Prompt
+         * @description Start an autoresearch session that edits one role prompt to raise its golden-case score.
+         */
+        post: operations["start_improve_role_prompt_v1_autoresearch_presets_improve_role_prompt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Research Sessions
+         * @description List autoresearch sessions, newest first; sessions whose event log cannot be replayed come separately.
+         */
+        get: operations["list_research_sessions_v1_autoresearch_sessions_get"];
+        put?: never;
+        /**
+         * Create Research Session
+         * @description Start an autoresearch session in a new worktree.
+         */
+        post: operations["create_research_session_v1_autoresearch_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Research Session
+         * @description Return one autoresearch session with its iterations.
+         */
+        get: operations["get_research_session_v1_autoresearch_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions/{session_id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Research Session
+         * @description Apply the kept changes onto the workspace working tree.
+         */
+        post: operations["apply_research_session_v1_autoresearch_sessions__session_id__apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions/{session_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Research Session
+         * @description Ask a running session to stop after its current step.
+         */
+        post: operations["cancel_research_session_v1_autoresearch_sessions__session_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions/{session_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard Research Session
+         * @description Remove the session worktree and branch.
+         */
+        post: operations["discard_research_session_v1_autoresearch_sessions__session_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autoresearch/sessions/{session_id}/pull-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open Research Pull Request
+         * @description Push the kept commits and open a pull request.
+         */
+        post: operations["open_research_pull_request_v1_autoresearch_sessions__session_id__pull_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/background-agent": {
         parameters: {
             query?: never;
@@ -672,7 +820,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Schedule Goal */
+        /**
+         * Schedule Goal
+         * @description Put a goal on a cron schedule; every fire starts a real pipeline run.
+         *
+         *     Refused (nothing saved) while the scheduler is off or no LLM provider is
+         *     configured server-side: a scheduled run has no browser to supply one.
+         */
         post: operations["schedule_goal_v1_goals__goal_id__schedule_post"];
         delete?: never;
         options?: never;
@@ -731,6 +885,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/integrations/issues/autorun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Autorun Config
+         * @description Autorun rules plus what the webhook endpoints need to work.
+         */
+        get: operations["get_autorun_config_v1_integrations_issues_autorun_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/issues/autorun/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Autorun Events
+         * @description Most recent autorun events, newest first.
+         */
+        get: operations["list_autorun_events_v1_integrations_issues_autorun_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/issues/autorun/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Autorun Rule
+         * @description Add an autorun rule; refused when enabled with no server-side LLM provider.
+         */
+        post: operations["create_autorun_rule_v1_integrations_issues_autorun_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/issues/autorun/rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Autorun Rule
+         * @description Replace an autorun rule.
+         */
+        put: operations["update_autorun_rule_v1_integrations_issues_autorun_rules__rule_id__put"];
+        post?: never;
+        /**
+         * Delete Autorun Rule
+         * @description Remove an autorun rule.
+         */
+        delete: operations["delete_autorun_rule_v1_integrations_issues_autorun_rules__rule_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/integrations/issues/import": {
         parameters: {
             query?: never;
@@ -765,6 +1003,46 @@ export interface paths {
         put?: never;
         /** Create Pull Request Endpoint */
         post: operations["create_pull_request_endpoint_v1_integrations_issues_pull_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/issues/webhook/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Github Issue Webhook
+         * @description GitHub ``issues`` webhook; authenticated by its HMAC signature, not a bearer.
+         */
+        post: operations["github_issue_webhook_v1_integrations_issues_webhook_github_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/issues/webhook/linear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Linear Issue Webhook
+         * @description Linear ``Issue`` webhook; authenticated by its HMAC signature, not a bearer.
+         */
+        post: operations["linear_issue_webhook_v1_integrations_issues_webhook_linear_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -900,6 +1178,23 @@ export interface paths {
         };
         /** Get Memory Quarantine */
         get: operations["get_memory_quarantine_v1_memory_quarantine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/metrics/effect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Measured effect of the swarm over a period of whole UTC days */
+        get: operations["get_effect_metrics_v1_metrics_effect_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1362,6 +1657,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/remote-control/telegram-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the Telegram bot is polling, and why not when it is not */
+        get: operations["get_telegram_ingress_status_v1_remote_control_telegram_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/remote-gate/action": {
         parameters: {
             query?: never;
@@ -1369,8 +1681,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Remote Gate Action */
-        get: operations["get_remote_gate_action_v1_remote_gate_action_get"];
+        /**
+         * Show the confirmation page of a remote-gate link
+         * @description Renders only: link-preview bots GET every URL in a message, so the GET
+         *     must not consume the link or answer the gate. The page's POST does.
+         */
+        get: operations["show_remote_gate_confirm_page_v1_remote_gate_action_get"];
         put?: never;
         /** Execute Remote Gate Action */
         post: operations["execute_remote_gate_action_v1_remote_gate_action_post"];
@@ -2452,6 +2768,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/user/settings/action-link-secret/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a new action-link secret current and keep the old one as previous */
+        post: operations["post_rotate_action_link_secret_v1_user_settings_action_link_secret_rotate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/voice/transcribe": {
         parameters: {
             query?: never;
@@ -2770,6 +3103,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActionLinkSecretRotation */
+        ActionLinkSecretRotation: {
+            /** Secret */
+            secret: string;
+        };
         /** AppendNoteRequest */
         AppendNoteRequest: {
             /**
@@ -2812,6 +3150,147 @@ export interface components {
             task_id: string;
             /** Workspace Root */
             workspace_root: string;
+        };
+        /** AutorunConfigResponse */
+        AutorunConfigResponse: {
+            /** Rules */
+            rules: components["schemas"]["AutorunRuleResponse"][];
+            status: components["schemas"]["AutorunStatusResponse"];
+        };
+        /** AutorunEventResponse */
+        AutorunEventResponse: {
+            /** Delivery Id */
+            delivery_id: string;
+            /** Issue Url */
+            issue_url: string;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string;
+            /** Pull Request Url */
+            pull_request_url: string;
+            /** Recorded At */
+            recorded_at: string;
+            /** Rule Id */
+            rule_id: string;
+            /** Source */
+            source: string;
+            /** Task Id */
+            task_id: string;
+        };
+        /** AutorunEventsResponse */
+        AutorunEventsResponse: {
+            /** Events */
+            events: components["schemas"]["AutorunEventResponse"][];
+        };
+        /** AutorunRuleBody */
+        AutorunRuleBody: {
+            /**
+             * Allow Command Exec
+             * @description Let the run execute shell commands. Off by default: the task text comes from whoever can label the issue, and the run is unattended.
+             * @default false
+             */
+            allow_command_exec: boolean;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Label
+             * @default swarm
+             */
+            label: string;
+            /**
+             * Repository Key
+             * @description 'owner/repo' for GitHub, the team key (e.g. 'ENG') for Linear
+             */
+            repository_key: string;
+            /**
+             * Scenario Id
+             * @default fix_bug
+             */
+            scenario_id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "github" | "linear";
+            /**
+             * Target Branch
+             * @default main
+             */
+            target_branch: string;
+            /** Workspace Root */
+            workspace_root: string;
+        };
+        /** AutorunRuleDeletedResponse */
+        AutorunRuleDeletedResponse: {
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Status
+             * @constant
+             */
+            status: "deleted";
+        };
+        /** AutorunRuleResponse */
+        AutorunRuleResponse: {
+            /**
+             * Allow Command Exec
+             * @description Let the run execute shell commands. Off by default: the task text comes from whoever can label the issue, and the run is unattended.
+             * @default false
+             */
+            allow_command_exec: boolean;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Label
+             * @default swarm
+             */
+            label: string;
+            /**
+             * Repository Key
+             * @description 'owner/repo' for GitHub, the team key (e.g. 'ENG') for Linear
+             */
+            repository_key: string;
+            /** Rule Id */
+            rule_id: string;
+            /**
+             * Scenario Id
+             * @default fix_bug
+             */
+            scenario_id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "github" | "linear";
+            /**
+             * Target Branch
+             * @default main
+             */
+            target_branch: string;
+            /** Workspace Root */
+            workspace_root: string;
+        };
+        /** AutorunStatusResponse */
+        AutorunStatusResponse: {
+            /** Github Secret Configured */
+            github_secret_configured: boolean;
+            /** Github Webhook Path */
+            github_webhook_path: string;
+            /** Linear Secret Configured */
+            linear_secret_configured: boolean;
+            /** Linear Webhook Path */
+            linear_webhook_path: string;
+            /** Not Ready Reason */
+            not_ready_reason: string;
+            /** Ready */
+            ready: boolean;
         };
         /** BackgroundAgentRequest */
         BackgroundAgentRequest: {
@@ -2891,6 +3370,19 @@ export interface components {
             name: string;
             /** Ready */
             ready: boolean;
+        };
+        /** ChangeSummaryResponse */
+        ChangeSummaryResponse: {
+            /** Files Changed */
+            files_changed: number | null;
+            /** Lines Added */
+            lines_added: number | null;
+            /** Lines Removed */
+            lines_removed: number | null;
+            /** Runs With File Counts */
+            runs_with_file_counts: number;
+            /** Runs With Line Counts */
+            runs_with_line_counts: number;
         };
         /** ChatCompletionRequest */
         ChatCompletionRequest: {
@@ -3044,6 +3536,20 @@ export interface components {
              */
             stream: boolean;
         };
+        /** CorruptResearchSessionResponse */
+        CorruptResearchSessionResponse: {
+            /** Id */
+            id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @constant
+             */
+            status: "corrupt";
+            /** Workspace Root */
+            workspace_root: string;
+        };
         /** CreateGoalRequest */
         CreateGoalRequest: {
             /** Depends On Specs */
@@ -3098,6 +3604,64 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** CreateResearchSessionRequest */
+        CreateResearchSessionRequest: {
+            /** Agent Config */
+            agent_config: {
+                [key: string]: unknown;
+            };
+            /** Direction */
+            direction?: ("min" | "max") | null;
+            /** Goal */
+            goal: string;
+            /**
+             * Guard Command
+             * @default
+             */
+            guard_command: string;
+            /**
+             * Iteration Budget
+             * @default 20
+             */
+            iteration_budget: number;
+            /**
+             * Iteration Timeout Sec
+             * @default 600
+             */
+            iteration_timeout_sec: number;
+            /**
+             * Max Consecutive Errors
+             * @default 3
+             */
+            max_consecutive_errors: number;
+            /**
+             * Metric Command
+             * @default
+             */
+            metric_command: string;
+            /**
+             * Metric Parse
+             * @default last_number
+             */
+            metric_parse: string;
+            /**
+             * Min Improvement Pct
+             * @default 0.5
+             */
+            min_improvement_pct: number;
+            /** Mutable Paths */
+            mutable_paths: string[];
+            prompt_eval?: components["schemas"]["PromptEvalMetricSchema"] | null;
+            /**
+             * Repeats
+             * @default 3
+             */
+            repeats: number;
+            /** Target Value */
+            target_value?: number | null;
+            /** Workspace Root */
+            workspace_root: string;
+        };
         /** CreateShadowWorktreeRequest */
         CreateShadowWorktreeRequest: {
             /** Task Id */
@@ -3116,6 +3680,20 @@ export interface components {
             title: string;
             /** Workspace Root */
             workspace_root?: string | null;
+        };
+        /** DayRunCountResponse */
+        DayRunCountResponse: {
+            /** Completed */
+            completed: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Failed */
+            failed: number;
+            /** Total */
+            total: number;
         };
         /** DecideGateBody */
         DecideGateBody: {
@@ -3153,6 +3731,51 @@ export interface components {
             task_id: string;
             /** Workspace Root */
             workspace_root: string;
+        };
+        /** DurationSummaryResponse */
+        DurationSummaryResponse: {
+            /** Median Seconds */
+            median_seconds: number | null;
+            /** P90 Seconds */
+            p90_seconds: number | null;
+            /** Runs With Duration */
+            runs_with_duration: number;
+        };
+        /** EffectMetricsResponse */
+        EffectMetricsResponse: {
+            /** Error */
+            error: string | null;
+            /** Ok */
+            ok: boolean;
+            report: components["schemas"]["EffectReportResponse"] | null;
+        };
+        /** EffectReportResponse */
+        EffectReportResponse: {
+            changes: components["schemas"]["ChangeSummaryResponse"];
+            duration: components["schemas"]["DurationSummaryResponse"];
+            feedback: components["schemas"]["FeedbackSummaryResponse"] | null;
+            /**
+             * First Day
+             * Format: date
+             */
+            first_day: string;
+            /**
+             * Last Day
+             * Format: date
+             */
+            last_day: string;
+            pull_requests: components["schemas"]["PullRequestSummaryResponse"];
+            research: components["schemas"]["ResearchSummaryResponse"] | null;
+            runs: components["schemas"]["RunSummaryResponse"];
+            /** Source Errors */
+            source_errors: {
+                [key: string]: string;
+            };
+            tokens: components["schemas"]["TokenSummaryResponse"];
+            /** Unreadable Runs */
+            unreadable_runs: number;
+            /** Workspace Root */
+            workspace_root: string | null;
         };
         /** EnvOverridesPayload */
         EnvOverridesPayload: {
@@ -3213,6 +3836,8 @@ export interface components {
         FeedbackBody: {
             /** Agent */
             agent: string;
+            /** Memory Namespace */
+            memory_namespace?: string | null;
             /** Reason */
             reason?: string | null;
             /** Spec Id */
@@ -3228,6 +3853,25 @@ export interface components {
             user_edit_diff?: string | null;
             /** Verdict */
             verdict: string;
+            /** Workspace Root */
+            workspace_root: string;
+        };
+        /** FeedbackSummaryResponse */
+        FeedbackSummaryResponse: {
+            /** Accept Rate */
+            accept_rate: number | null;
+            /** Accepted */
+            accepted: number;
+            /** Edit Rate */
+            edit_rate: number | null;
+            /** Edited */
+            edited: number;
+            /** Reject Rate */
+            reject_rate: number | null;
+            /** Rejected */
+            rejected: number;
+            /** Total */
+            total: number;
         };
         /** ForkRunRequest */
         ForkRunRequest: {
@@ -3321,26 +3965,24 @@ export interface components {
         GoalTriggerPayload: {
             /** Cron */
             cron?: string | null;
-            /** Event */
-            event?: string | null;
             /**
              * Kind
              * @default manual
              * @enum {string}
              */
-            kind: "manual" | "cron" | "event";
+            kind: "manual" | "cron";
         };
         /** GoalTriggerResponse */
         GoalTriggerResponse: {
             /** Cron */
             cron: string | null;
-            /** Event */
-            event: string | null;
             /**
              * Kind
              * @enum {string}
              */
-            kind: "manual" | "cron" | "event";
+            kind: "manual" | "cron";
+            /** Timezone */
+            timezone: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -3407,6 +4049,51 @@ export interface components {
             source: string;
             /** Title */
             title: string;
+        };
+        /** ImproveRolePromptPresetResponse */
+        ImproveRolePromptPresetResponse: {
+            /** Problem */
+            problem?: string | null;
+            /** Roles */
+            roles: string[];
+            /** Workspace Root */
+            workspace_root: string | null;
+        };
+        /** ImproveRolePromptRequest */
+        ImproveRolePromptRequest: {
+            /** Agent Config */
+            agent_config: {
+                [key: string]: unknown;
+            };
+            /** Goal */
+            goal: string;
+            /**
+             * Iteration Budget
+             * @default 10
+             */
+            iteration_budget: number;
+            /**
+             * Judge Model
+             * @default
+             */
+            judge_model: string;
+            /**
+             * Min Improvement Pct
+             * @default 0.5
+             */
+            min_improvement_pct: number;
+            /**
+             * Repeats
+             * @default 1
+             */
+            repeats: number;
+            /** Role */
+            role: string;
+            /**
+             * Samples
+             * @default 2
+             */
+            samples: number;
         };
         /** IncreaseBudgetRequest */
         IncreaseBudgetRequest: {
@@ -3557,6 +4244,14 @@ export interface components {
             /** Workspace Root */
             workspace_root: string;
         };
+        /** OpenResearchPullRequestRequest */
+        OpenResearchPullRequestRequest: {
+            /**
+             * Target Branch
+             * @default
+             */
+            target_branch: string;
+        };
         /**
          * PhaseGateDecision
          * @enum {string}
@@ -3671,12 +4366,60 @@ export interface components {
             /** Workspace Root */
             workspace_root: string;
         };
+        /** PromptEvalMetricSchema */
+        PromptEvalMetricSchema: {
+            /**
+             * Cases Dir
+             * @default
+             */
+            cases_dir: string;
+            /**
+             * Judge Model
+             * @default
+             */
+            judge_model: string;
+            /** Role */
+            role: string;
+            /**
+             * Samples
+             * @default 1
+             */
+            samples: number;
+        };
         /** PromptRenderRequest */
         PromptRenderRequest: {
             /** Inputs */
             inputs?: {
                 [key: string]: string;
             };
+        };
+        /** PullRequestItemResponse */
+        PullRequestItemResponse: {
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Reference */
+            reference: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "autoresearch" | "issue_autorun";
+            /** Url */
+            url: string;
+        };
+        /** PullRequestSummaryResponse */
+        PullRequestSummaryResponse: {
+            /** Items */
+            items: components["schemas"]["PullRequestItemResponse"][];
+            /** Source Counts */
+            source_counts: {
+                [key: string]: number;
+            };
+            /** Total */
+            total: number | null;
         };
         /** QuickFixEvaluateRequest */
         QuickFixEvaluateRequest: {
@@ -3713,6 +4456,173 @@ export interface components {
             message: string;
             /** Task Id */
             task_id: string;
+        };
+        /** ResearchActionResponse */
+        ResearchActionResponse: {
+            /** Error */
+            error?: string | null;
+            /** Ok */
+            ok: boolean;
+            session?: components["schemas"]["ResearchSessionResponse"] | null;
+        };
+        /** ResearchIterationResponse */
+        ResearchIterationResponse: {
+            /** Changed Files */
+            changed_files: string[];
+            /** Commit */
+            commit: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "kept" | "reverted" | "error";
+            /** Hypothesis */
+            hypothesis: string;
+            /** Improvement Pct */
+            improvement_pct: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Metric Output Tail */
+            metric_output_tail: string;
+            /** Number */
+            number: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Reason */
+            reason: string;
+            /** Reference Value */
+            reference_value: number;
+            /** Value */
+            value: number | null;
+        };
+        /** ResearchSessionConfigResponse */
+        ResearchSessionConfigResponse: {
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "min" | "max";
+            /** Goal */
+            goal: string;
+            /** Guard Command */
+            guard_command: string;
+            /** Iteration Budget */
+            iteration_budget: number;
+            /** Iteration Timeout Sec */
+            iteration_timeout_sec: number;
+            /** Max Consecutive Errors */
+            max_consecutive_errors: number;
+            /** Metric Command */
+            metric_command: string;
+            /** Metric Parse */
+            metric_parse: string;
+            /**
+             * Metric Source
+             * @enum {string}
+             */
+            metric_source: "command" | "prompt_eval";
+            /** Min Improvement Pct */
+            min_improvement_pct: number;
+            /** Mutable Paths */
+            mutable_paths: string[];
+            prompt_eval: components["schemas"]["PromptEvalMetricSchema"] | null;
+            /** Repeats */
+            repeats: number;
+            /** Target Value */
+            target_value: number | null;
+            /** Workspace Root */
+            workspace_root: string;
+        };
+        /** ResearchSessionListResponse */
+        ResearchSessionListResponse: {
+            /** Corrupt Sessions */
+            corrupt_sessions: components["schemas"]["CorruptResearchSessionResponse"][];
+            /** Sessions */
+            sessions: components["schemas"]["ResearchSessionResponse"][];
+        };
+        /** ResearchSessionResponse */
+        ResearchSessionResponse: {
+            /** Applied Files */
+            applied_files: string[];
+            /** Base Branch */
+            base_branch: string;
+            /** Base Commit */
+            base_commit: string;
+            /** Baseline */
+            baseline: number | null;
+            /** Baseline Samples */
+            baseline_samples: number[];
+            /** Best Commit */
+            best_commit: string;
+            /** Best Iteration */
+            best_iteration: number;
+            /** Best Value */
+            best_value: number | null;
+            /** Branch */
+            branch: string;
+            config: components["schemas"]["ResearchSessionConfigResponse"];
+            /** Created At */
+            created_at: string;
+            /** Discarded */
+            discarded: boolean;
+            /** Id */
+            id: string;
+            /** Iterations */
+            iterations: components["schemas"]["ResearchIterationResponse"][];
+            /** Kept Count */
+            kept_count: number;
+            /** Last Output Tail */
+            last_output_tail: string;
+            /** Pull Request Url */
+            pull_request_url: string;
+            /** Researcher Model */
+            researcher_model: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "starting" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
+            /** Stop Reason */
+            stop_reason: string;
+            /** Total Input Tokens */
+            total_input_tokens: number;
+            /** Total Output Tokens */
+            total_output_tokens: number;
+            /** Updated At */
+            updated_at: string;
+            /** Worktree Path */
+            worktree_path: string;
+        };
+        /** ResearchSessionSummaryResponse */
+        ResearchSessionSummaryResponse: {
+            /** Best Improvement Pct */
+            best_improvement_pct: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Goal */
+            goal: string;
+            /** Kept Count */
+            kept_count: number;
+            /** Pull Request Url */
+            pull_request_url: string;
+            /** Session Id */
+            session_id: string;
+            /** Status */
+            status: string;
+        };
+        /** ResearchSummaryResponse */
+        ResearchSummaryResponse: {
+            /** Items */
+            items: components["schemas"]["ResearchSessionSummaryResponse"][];
+            /** Kept Improvements */
+            kept_improvements: number;
+            /** Sessions */
+            sessions: number;
+            /** Sessions With Improvement */
+            sessions_with_improvement: number;
         };
         /** ResumeOptionsResponse */
         ResumeOptionsResponse: {
@@ -3817,6 +4727,35 @@ export interface components {
             prompt: string;
             /** Scenario Id */
             scenario_id: string;
+        };
+        /** RunSummaryResponse */
+        RunSummaryResponse: {
+            /** Awaiting Human */
+            awaiting_human: number;
+            /** Cancelled */
+            cancelled: number;
+            /** Completed */
+            completed: number;
+            /** Failed */
+            failed: number;
+            /** Finished */
+            finished: number;
+            /** In Progress */
+            in_progress: number;
+            /** Per Day */
+            per_day: components["schemas"]["DayRunCountResponse"][];
+            /** Status Counts */
+            status_counts: {
+                [key: string]: number;
+            };
+            /** Success Rate */
+            success_rate: number | null;
+            /** Total */
+            total: number;
+            /** Trigger Counts */
+            trigger_counts: {
+                [key: string]: number;
+            };
         };
         /** RuntimeCapabilitiesResponse */
         RuntimeCapabilitiesResponse: {
@@ -4199,12 +5138,35 @@ export interface components {
              */
             workspace_root: string;
         };
+        /** TelegramIngressStatusResponse */
+        TelegramIngressStatusResponse: {
+            /** Reason */
+            reason: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "running" | "stopped" | "stopping" | "error";
+        };
         /** TextAttachment */
         TextAttachment: {
             /** Content */
             content: string;
             /** Name */
             name: string;
+        };
+        /** TokenSummaryResponse */
+        TokenSummaryResponse: {
+            /** Runs With Tokens */
+            runs_with_tokens: number;
+            /** Successful Runs With Tokens */
+            successful_runs_with_tokens: number;
+            /** Tokens Per Run */
+            tokens_per_run: number | null;
+            /** Tokens Per Successful Run */
+            tokens_per_successful_run: number | null;
+            /** Total Tokens */
+            total_tokens: number | null;
         };
         /** UiProviderBalanceRequest */
         UiProviderBalanceRequest: {
@@ -4274,6 +5236,16 @@ export interface components {
              */
             scrapingdog_api_key: string;
             /**
+             * Swarm Action Link Secret
+             * @default
+             */
+            swarm_action_link_secret: string;
+            /**
+             * Swarm Action Link Secret Prev
+             * @default
+             */
+            swarm_action_link_secret_prev: string;
+            /**
              * Swarm Auto Approve
              * @default
              */
@@ -4293,6 +5265,11 @@ export interface components {
              * @default false
              */
             swarm_auto_retry: boolean;
+            /**
+             * Swarm Autoresearch Context Max Chars
+             * @default
+             */
+            swarm_autoresearch_context_max_chars: string;
             /**
              * Swarm Background Agent
              * @default false
@@ -4319,6 +5296,11 @@ export interface components {
              */
             swarm_background_watch_paths: string;
             /**
+             * Swarm Cross Task Inject Steps
+             * @default
+             */
+            swarm_cross_task_inject_steps: string;
+            /**
              * Swarm Deep Planning
              * @default false
              */
@@ -4339,6 +5321,11 @@ export interface components {
              */
             swarm_deep_planning_remote_profile: string;
             /**
+             * Swarm Dev Past User Feedback Per File
+             * @default
+             */
+            swarm_dev_past_user_feedback_per_file: string;
+            /**
              * Swarm Dev Qa Task Count
              * @default
              */
@@ -4358,6 +5345,51 @@ export interface components {
              * @default false
              */
             swarm_force_sequential: boolean;
+            /**
+             * Swarm Github Webhook Secret
+             * @default
+             */
+            swarm_github_webhook_secret: string;
+            /**
+             * Swarm Goal Scheduler Misfire Grace Seconds
+             * @default
+             */
+            swarm_goal_scheduler_misfire_grace_seconds: string;
+            /**
+             * Swarm Goal Scheduler Timezone
+             * @default
+             */
+            swarm_goal_scheduler_timezone: string;
+            /**
+             * Swarm Human Gate Enabled
+             * @default false
+             */
+            swarm_human_gate_enabled: boolean;
+            /**
+             * Swarm Human Gate Notify Ttl Seconds
+             * @default
+             */
+            swarm_human_gate_notify_ttl_seconds: string;
+            /**
+             * Swarm Issue Autorun Delivery Ledger Limit
+             * @default
+             */
+            swarm_issue_autorun_delivery_ledger_limit: string;
+            /**
+             * Swarm Issue Autorun Event Log Limit
+             * @default
+             */
+            swarm_issue_autorun_event_log_limit: string;
+            /**
+             * Swarm Linear Webhook Secret
+             * @default
+             */
+            swarm_linear_webhook_secret: string;
+            /**
+             * Swarm Linear Webhook Tolerance Seconds
+             * @default
+             */
+            swarm_linear_webhook_tolerance_seconds: string;
             /**
              * Swarm Max Parallel Tasks
              * @default
@@ -4449,6 +5481,11 @@ export interface components {
              */
             swarm_notify_webhook_url: string;
             /**
+             * Swarm Orchestration Skill Dispatcher Model
+             * @default
+             */
+            swarm_orchestration_skill_dispatcher_model: string;
+            /**
              * Swarm Parallel Safe Auto
              * @default false
              */
@@ -4494,6 +5531,71 @@ export interface components {
              */
             swarm_self_verify_remote_profile: string;
             /**
+             * Swarm Telegram Ingress Allowed Chat Ids
+             * @default
+             */
+            swarm_telegram_ingress_allowed_chat_ids: string;
+            /**
+             * Swarm Telegram Ingress Bot Token
+             * @default
+             */
+            swarm_telegram_ingress_bot_token: string;
+            /**
+             * Swarm Telegram Ingress Cancel Enabled
+             * @default false
+             */
+            swarm_telegram_ingress_cancel_enabled: boolean;
+            /**
+             * Swarm Telegram Ingress Cancel Link Ttl Seconds
+             * @default
+             */
+            swarm_telegram_ingress_cancel_link_ttl_seconds: string;
+            /**
+             * Swarm Telegram Ingress Enabled
+             * @default false
+             */
+            swarm_telegram_ingress_enabled: boolean;
+            /**
+             * Swarm Telegram Ingress Max Per Hour
+             * @default
+             */
+            swarm_telegram_ingress_max_per_hour: string;
+            /**
+             * Swarm Telegram Ingress Max Per Minute
+             * @default
+             */
+            swarm_telegram_ingress_max_per_minute: string;
+            /**
+             * Swarm Telegram Ingress Poll Timeout Seconds
+             * @default
+             */
+            swarm_telegram_ingress_poll_timeout_seconds: string;
+            /**
+             * Swarm Telegram Ingress Public Base Url
+             * @default
+             */
+            swarm_telegram_ingress_public_base_url: string;
+            /**
+             * Swarm Telegram Ingress Run Chat Ids
+             * @default
+             */
+            swarm_telegram_ingress_run_chat_ids: string;
+            /**
+             * Swarm Telegram Ingress Run Max Per Hour
+             * @default
+             */
+            swarm_telegram_ingress_run_max_per_hour: string;
+            /**
+             * Swarm Telegram Ingress Run Scenario
+             * @default
+             */
+            swarm_telegram_ingress_run_scenario: string;
+            /**
+             * Swarm Telegram Ingress Run Workspace
+             * @default
+             */
+            swarm_telegram_ingress_run_workspace: string;
+            /**
              * Swarm Tracer Bullet Enabled
              * @default true
              */
@@ -4503,6 +5605,11 @@ export interface components {
              * @default false
              */
             swarm_tracer_revision_gate: boolean;
+            /**
+             * Swarm Workspace Isolation Mode
+             * @default
+             */
+            swarm_workspace_isolation_mode: string;
             /**
              * Tavily Api Key
              * @default
@@ -4538,6 +5645,21 @@ export interface components {
         WebSocketTicketRequest: {
             /** Surface */
             surface: string;
+        };
+        /** WebhookAcceptedResponse */
+        WebhookAcceptedResponse: {
+            /** Reason */
+            reason: string;
+            /**
+             * Rule Id
+             * @default
+             */
+            rule_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "accepted" | "ignored" | "duplicate";
         };
         /** WikiIndexStatusResponse */
         WikiIndexStatusResponse: {
@@ -5034,6 +6156,271 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    describe_improve_role_prompt_preset_v1_autoresearch_presets_improve_role_prompt_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImproveRolePromptPresetResponse"];
+                };
+            };
+        };
+    };
+    start_improve_role_prompt_v1_autoresearch_presets_improve_role_prompt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImproveRolePromptRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_research_sessions_v1_autoresearch_sessions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchSessionListResponse"];
+                };
+            };
+        };
+    };
+    create_research_session_v1_autoresearch_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateResearchSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_research_session_v1_autoresearch_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchSessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_research_session_v1_autoresearch_sessions__session_id__apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_research_session_v1_autoresearch_sessions__session_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_research_session_v1_autoresearch_sessions__session_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_research_pull_request_v1_autoresearch_sessions__session_id__pull_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenResearchPullRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchActionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -5995,6 +7382,156 @@ export interface operations {
             };
         };
     };
+    get_autorun_config_v1_integrations_issues_autorun_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutorunConfigResponse"];
+                };
+            };
+        };
+    };
+    list_autorun_events_v1_integrations_issues_autorun_events_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutorunEventsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_autorun_rule_v1_integrations_issues_autorun_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutorunRuleBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutorunRuleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_autorun_rule_v1_integrations_issues_autorun_rules__rule_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutorunRuleBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutorunRuleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_autorun_rule_v1_integrations_issues_autorun_rules__rule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutorunRuleDeletedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     import_issue_v1_integrations_issues_import_post: {
         parameters: {
             query?: never;
@@ -6057,6 +7594,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    github_issue_webhook_v1_integrations_issues_webhook_github_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookAcceptedResponse"];
+                };
+            };
+        };
+    };
+    linear_issue_webhook_v1_integrations_issues_webhook_linear_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookAcceptedResponse"];
                 };
             };
         };
@@ -6320,6 +7897,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_effect_metrics_v1_metrics_effect_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                workspace_root?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EffectMetricsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -7226,7 +8836,27 @@ export interface operations {
             };
         };
     };
-    get_remote_gate_action_v1_remote_gate_action_get: {
+    get_telegram_ingress_status_v1_remote_control_telegram_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TelegramIngressStatusResponse"];
+                };
+            };
+        };
+    };
+    show_remote_gate_confirm_page_v1_remote_gate_action_get: {
         parameters: {
             query: {
                 token: string;
@@ -7246,7 +8876,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/html": string;
                 };
             };
             /** @description Validation Error */
@@ -9329,6 +10959,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UserSettingsPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSettingsUpdateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_rotate_action_link_secret_v1_user_settings_action_link_secret_rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionLinkSecretRotation"];
             };
         };
         responses: {

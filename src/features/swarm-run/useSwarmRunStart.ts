@@ -175,6 +175,7 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
       ux.notify(t("slashCommand.goal.needsWorkspace"), "warning", 4000);
       return;
     }
+    let createdId: string;
     try {
       const payload: CreateGoalPayload = {
         title: command.title,
@@ -184,27 +185,43 @@ export function useSwarmRunStart(deps: SwarmRunStartDeps) {
           : [command.title],
         workspace_root: workspaceRoot,
       };
-      const created = await httpPost<{ id: string }>("/v1/goals", payload);
-      if (command.schedule && created?.id) {
-        await applyGoalSchedule(created.id, command.schedule);
-      }
-      ux.notify(t("slashCommand.goal.created", { title: command.title }), "info", 3500);
-      settings.form.prompt = "";
+      createdId = (await httpPost<{ id: string }>("/v1/goals", payload)).id;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       ux.notify(t("slashCommand.goal.failed", { error: message }), "error", 5000);
+      return;
+    }
+    settings.form.prompt = "";
+    if (!command.schedule) {
+      ux.notify(t("slashCommand.goal.created", { title: command.title }), "info", 3500);
+      return;
+    }
+    try {
+      await applyGoalSchedule(createdId, command.schedule, workspaceRoot);
+      ux.notify(t("slashCommand.goal.scheduled", { title: command.title }), "info", 3500);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      ux.notify(
+        t("slashCommand.goal.scheduleFailed", { title: command.title, error: message }),
+        "error",
+        8000,
+      );
     }
   }
 
   async function applyGoalSchedule(
     goalId: string,
-    schedule: NonNullable<ReturnType<typeof tryParseGoalCommand>>["schedule"],
+    schedule: NonNullable<NonNullable<ReturnType<typeof tryParseGoalCommand>>["schedule"]>,
+    workspaceRoot: string,
   ): Promise<void> {
-    if (!schedule) return;
     const body =
       schedule.mode === "cron"
-        ? { cron: schedule.cron }
-        : { natural_language: schedule.naturalLanguage };
+        ? {
+            cron: schedule.cron,
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            workspace_root: workspaceRoot,
+          }
+        : { natural_language: schedule.naturalLanguage, workspace_root: workspaceRoot };
     await httpPost(`/v1/goals/${encodeURIComponent(goalId)}/schedule`, body);
   }
 

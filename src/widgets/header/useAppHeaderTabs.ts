@@ -8,7 +8,13 @@ interface TranslatorLike {
   (key: string, args?: TranslatorArgs): string;
 }
 
-export type TopTabKey = "run" | "configure" | "history" | "settings";
+export type TopTabKey =
+  | "run"
+  | "configure"
+  | "history"
+  | "research"
+  | "effect"
+  | "settings";
 
 export interface TopTabEntry {
   key: TopTabKey;
@@ -38,6 +44,8 @@ export function useAppHeaderTabs(t: TranslatorLike) {
       { key: "run", label: t("header.tabs.run"), target: runTarget },
       { key: "configure", label: t("header.tabs.configure"), target: "/configure" },
       { key: "history", label: t("header.tabs.history"), target: "/history" },
+      { key: "research", label: t("header.tabs.research"), target: "/autoresearch" },
+      { key: "effect", label: t("header.tabs.effect"), target: "/effect" },
       {
         key: "settings",
         label: t("header.tabs.settings"),
@@ -51,6 +59,8 @@ export function useAppHeaderTabs(t: TranslatorLike) {
     if (path.startsWith("/run")) return "run";
     if (path.startsWith("/configure")) return "configure";
     if (path.startsWith("/history")) return "history";
+    if (path.startsWith("/autoresearch")) return "research";
+    if (path.startsWith("/effect")) return "effect";
     if (path.startsWith("/settings")) return "settings";
     return null;
   });

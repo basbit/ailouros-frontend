@@ -124,6 +124,16 @@ const SETTINGS_ITEMS: Array<{ id: string; titleKey: string; target: string }> = 
     target: "/settings/notifications",
   },
   {
+    id: "set-remote-control",
+    titleKey: "settings.subnav.remoteControl",
+    target: "/settings/remote-control",
+  },
+  {
+    id: "set-agentic",
+    titleKey: "settings.subnav.agentic",
+    target: "/settings/agentic",
+  },
+  {
     id: "set-scenarios",
     titleKey: "settings.subnav.scenarios",
     target: "/settings/scenarios",

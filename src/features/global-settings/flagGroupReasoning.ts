@@ -4,11 +4,6 @@ export const FLAG_GROUP_REASONING: FeatureFlagGroup = {
   id: "reasoning",
   fields: [
     {
-      kind: "boolean",
-      field: "swarm_reflexion",
-      envName: "SWARM_REFLEXION_ENABLED",
-    },
-    {
       kind: "string",
       field: "swarm_reasoning_self_consistency_samples",
       envName: "SWARM_REASONING_SELF_CONSISTENCY_SAMPLES",

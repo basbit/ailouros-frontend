@@ -29,6 +29,14 @@
           </button>
         </div>
 
+        <div v-if="taskId" class="diff-block__feedback">
+          <FileFeedbackControls
+            :task-id="taskId"
+            :file-path="block.filename"
+            :user-edit-diff="editDiffFor(block.filename)"
+          />
+        </div>
+
         <div v-if="editMode[bi]" class="diff-block__editor">
           <textarea
             class="diff-block__textarea"
@@ -71,6 +79,13 @@
     <div v-else class="diff-viewer__file-list">
       <div v-for="f in files" :key="f" class="diff-viewer__file-item">
         <span class="diff-viewer__file-icon">&#128196;</span> {{ f }}
+        <FileFeedbackControls
+          v-if="taskId"
+          class="diff-viewer__file-feedback"
+          :task-id="taskId"
+          :file-path="f"
+          :user-edit-diff="editDiffFor(f)"
+        />
       </div>
     </div>
   </div>
@@ -79,6 +94,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
+import FileFeedbackControls from "./FileFeedbackControls.vue";
 import { useDiffViewerState, type DiffLine } from "./useDiffViewerState";
 
 interface DiffStats {
@@ -93,6 +109,7 @@ const props = defineProps<{
   stats: DiffStats;
   source: "git" | "file_list" | "none";
   taskId?: string;
+  editDiffs?: Record<string, string>;
 }>();
 
 const { t } = useI18n();
@@ -105,6 +122,7 @@ const {
   saveError,
   saveOk,
   parsedBlocks,
+  userEditDiffs,
   toggleCollapse,
   toggleEdit,
   closeEdit,
@@ -113,6 +131,10 @@ const {
   diffText: computed(() => props.diffText),
   taskId: computed(() => props.taskId),
 });
+
+function editDiffFor(path: string): string | undefined {
+  return userEditDiffs[path] ?? props.editDiffs?.[path];
+}
 
 function gutterFor(type: DiffLine["type"]): string {
   if (type === "added") return "+";
@@ -212,6 +234,14 @@ function gutterFor(type: DiffLine["type"]): string {
   background: var(--accent, #3b5bdb);
   color: #fff;
   border-color: var(--accent, #3b5bdb);
+}
+.diff-block__feedback {
+  padding: 4px 10px;
+  background: var(--bg2, #1e2230);
+  border-bottom: 1px solid var(--border, #2a2f3e);
+}
+.diff-viewer__file-feedback {
+  margin-left: auto;
 }
 .diff-block__editor {
   padding: 8px;

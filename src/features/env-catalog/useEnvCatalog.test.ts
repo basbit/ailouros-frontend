@@ -8,6 +8,7 @@ vi.mock("@/shared/api/endpoints/env-catalog", () => ({
   saveEnvOverrides: (...args: unknown[]) => saveEnvOverrides(...args),
 }));
 
+import { restartStatus } from "@/shared/lib/global-search/restart-status";
 import { useEnvCatalog } from "./useEnvCatalog";
 
 function variable(overrides: Record<string, unknown> = {}) {
@@ -21,6 +22,8 @@ function variable(overrides: Record<string, unknown> = {}) {
     value: "",
     is_set: false,
     managed_by_ui_field: "",
+    restart_required: false,
+    restart_pending: false,
     ...overrides,
   };
 }
@@ -90,5 +93,18 @@ describe("useEnvCatalog", () => {
     await catalog.save();
 
     expect(catalog.error.value).toContain("SWARM_WORKSPACE_ROOT");
+  });
+
+  it("publishes the restart-only variables changed since the server started", async () => {
+    fetchEnvCatalog.mockResolvedValue([
+      variable({ name: "SWARM_CORS_ALLOWED_ORIGINS", restart_required: true, restart_pending: true }),
+      variable({ name: "REDIS_URL", restart_required: true, restart_pending: false }),
+      variable(),
+    ]);
+    const catalog = useEnvCatalog();
+
+    await catalog.load();
+
+    expect(restartStatus.pending).toEqual(["SWARM_CORS_ALLOWED_ORIGINS"]);
   });
 });

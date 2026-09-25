@@ -25,6 +25,7 @@
       >
         <template v-if="field.kind === 'boolean'">
           <FeatureFlagBooleanField
+            :field="field.field"
             :checked="readBooleanFieldValue(field)"
             :label-text="t(fieldLabelKey(field))"
             :hint-text="t(fieldHintKey(field))"
@@ -64,6 +65,7 @@
           </select>
           <div class="feature-flag-hint">
             {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
+            <SettingSourceNote :field="field.field" />
           </div>
           <FeatureFlagOverrideToggle
             :visible="Boolean(props.workspaceRoot)"
@@ -94,6 +96,7 @@
           />
           <div class="feature-flag-hint">
             {{ t(fieldHintKey(field)) }} <code>{{ field.envName }}</code>
+            <SettingSourceNote :field="field.field" />
           </div>
           <FeatureFlagOverrideToggle
             :visible="Boolean(props.workspaceRoot)"
@@ -122,6 +125,7 @@ import type { Ref } from "vue";
 import FeatureFlagLabel from "@/features/global-settings/FeatureFlagLabel.vue";
 import FeatureFlagOverrideToggle from "@/features/global-settings/FeatureFlagOverrideToggle.vue";
 import FeatureFlagBooleanField from "@/features/global-settings/FeatureFlagBooleanField.vue";
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
 import {
   FEATURE_FLAG_GROUPS,
   enumOptionLabelKey,

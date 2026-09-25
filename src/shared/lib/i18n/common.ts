@@ -21,6 +21,10 @@ export const commonEn: Messages = {
     "Open a project first — goals require a workspace root.",
   "slashCommand.goal.created": "Goal created: {title}",
   "slashCommand.goal.failed": "Failed to create goal: {error}",
+  "slashCommand.goal.scheduled":
+    "Goal scheduled: {title}. Each run appears in History.",
+  "slashCommand.goal.scheduleFailed":
+    "Goal \"{title}\" was created but NOT scheduled: {error}",
   "patternMemory.lead": "Pattern Memory",
   "patternMemory.suggestPipeline":
     "A similar run used a {count}-step pipeline and finished cleanly — apply the same step order?",
@@ -131,6 +135,10 @@ export const commonRu: Messages = {
     "Сначала откройте проект — целям нужен рабочий каталог.",
   "slashCommand.goal.created": "Цель создана: {title}",
   "slashCommand.goal.failed": "Не удалось создать цель: {error}",
+  "slashCommand.goal.scheduled":
+    "Цель запланирована: {title}. Каждый запуск появится в Истории.",
+  "slashCommand.goal.scheduleFailed":
+    "Цель «{title}» создана, но НЕ запланирована: {error}",
   "patternMemory.lead": "Pattern Memory",
   "patternMemory.suggestPipeline":
     "Похожий прогон использовал пайплайн из {count} шагов и завершился чисто — применить тот же порядок?",

@@ -9,6 +9,7 @@
       :stats="diffData.stats"
       :source="diffData.source"
       :task-id="props.taskId"
+      :edit-diffs="savedEditDiffs"
     />
 
     <div v-if="diffData && diffData.files.length > 0" class="file-editor">
@@ -161,6 +162,7 @@ const {
   isEditLoading,
   isEditSaving,
   editError,
+  savedEditDiffs,
   onEditPathChange,
   saveEditedFile,
   resetEditState,

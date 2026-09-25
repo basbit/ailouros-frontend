@@ -11,6 +11,7 @@
       :placeholder="t('featureFlags.filter.placeholder')"
       :aria-label="t('featureFlags.filter.placeholder')"
     />
+    <SettingsSyncError />
     <div class="feature-flags-pane__card">
       <GlobalFeatureFlagsSettings
         :workspace-root="settings.form.workspace_root"
@@ -40,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingsSyncError from "@/shared/components/settings-fields/SettingsSyncError.vue";
 import { ref } from "vue";
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import GlobalFeatureFlagsSettings from "@/features/global-settings/GlobalFeatureFlagsSettings.vue";

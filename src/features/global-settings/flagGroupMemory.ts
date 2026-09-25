@@ -20,6 +20,18 @@ export const FLAG_GROUP_MEMORY: FeatureFlagGroup = {
       envName: "SWARM_CROSS_TASK_MEMORY",
     },
     {
+      kind: "string",
+      field: "swarm_cross_task_inject_steps",
+      envName: "SWARM_CROSS_TASK_INJECT_STEPS",
+      placeholder: "pm,ba,architect,clarify_input,qa",
+    },
+    {
+      kind: "string",
+      field: "swarm_dev_past_user_feedback_per_file",
+      envName: "SWARM_DEV_PAST_USER_FEEDBACK_PER_FILE",
+      placeholder: "3",
+    },
+    {
       kind: "boolean",
       field: "swarm_retrieval_traces_enabled",
       envName: "SWARM_RETRIEVAL_TRACES_ENABLED",

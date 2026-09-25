@@ -23,7 +23,7 @@
     >
       <template #hint>
         {{ t("auto.selfVerifyHint") }}
-        <code>SWARM_SELF_VERIFY</code>.
+        <code>SWARM_SELF_VERIFY</code>.<SettingSourceNote field="swarm_self_verify" />
       </template>
     </AutonomousToggleWithPicker>
 
@@ -43,7 +43,7 @@
         <option value="policy">{{ t("auto.autoApprove.policy") }}</option>
         <option value="1">{{ t("auto.autoApprove.on") }}</option>
       </select>
-      <div class="hint">Env: <code>SWARM_AUTO_APPROVE</code></div>
+      <div class="hint">Env: <code>SWARM_AUTO_APPROVE</code><SettingSourceNote field="swarm_auto_approve" /></div>
     </div>
     <div class="field">
       <label class="field-label" for="global_swarm_auto_approve_timeout">{{
@@ -64,7 +64,7 @@
       />
       <div class="hint">
         {{ t("auto.autoApproveTimeoutHint") }}
-        <code>SWARM_AUTO_APPROVE_TIMEOUT_SECONDS</code>
+        <code>SWARM_AUTO_APPROVE_TIMEOUT_SECONDS</code><SettingSourceNote field="swarm_auto_approve_timeout" />
       </div>
     </div>
 
@@ -85,7 +85,7 @@
       </label>
       <div class="hint">
         {{ t("auto.autoRetryHint") }}
-        <code>SWARM_AUTO_RETRY_ON_NEEDS_WORK</code>
+        <code>SWARM_AUTO_RETRY_ON_NEEDS_WORK</code><SettingSourceNote field="swarm_auto_retry" />
       </div>
     </div>
     <div class="field">
@@ -103,7 +103,7 @@
           onUpdate('swarm_max_step_retries', ($event.target as HTMLInputElement).value)
         "
       />
-      <div class="hint">Env: <code>SWARM_MAX_STEP_RETRIES</code></div>
+      <div class="hint">Env: <code>SWARM_MAX_STEP_RETRIES</code><SettingSourceNote field="swarm_max_step_retries" /></div>
     </div>
 
     <AutonomousToggleWithPicker
@@ -129,7 +129,7 @@
     >
       <template #hint>
         {{ t("auto.deepPlanningHint") }}
-        Env: <code>SWARM_DEEP_PLANNING</code>
+        Env: <code>SWARM_DEEP_PLANNING</code><SettingSourceNote field="swarm_deep_planning" />
       </template>
     </AutonomousToggleWithPicker>
 
@@ -185,7 +185,7 @@
       </label>
       <div class="hint">
         {{ t("auto.qualityGateHint") }}
-        <code>SWARM_QUALITY_GATE</code>.
+        <code>SWARM_QUALITY_GATE</code>.<SettingSourceNote field="swarm_quality_gate" />
       </div>
     </div>
 
@@ -214,6 +214,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
 import { computed } from "vue";
 import { useI18n } from "@/shared/lib/i18n";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";

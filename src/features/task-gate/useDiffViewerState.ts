@@ -4,6 +4,7 @@ import {
   patchWorkspaceFile,
   tryGetWorkspaceFile,
 } from "@/shared/api/endpoints/workspace";
+import { formatUserEditDiff } from "./useFileFeedback";
 
 export interface DiffLine {
   type: "added" | "removed" | "hunk" | "context" | "meta";
@@ -68,6 +69,8 @@ export function useDiffViewerState({ diffText, taskId }: DiffViewerStateOptions)
   const saving = reactive<Record<number, boolean>>({});
   const saveError = reactive<Record<number, string>>({});
   const saveOk = reactive<Record<number, boolean>>({});
+  const loadedContent = reactive<Record<number, string>>({});
+  const userEditDiffs = reactive<Record<string, string>>({});
 
   const parsedBlocks = computed<DiffBlock[]>(() =>
     diffText.value ? parseDiff(diffText.value) : [],
@@ -115,6 +118,7 @@ export function useDiffViewerState({ diffText, taskId }: DiffViewerStateOptions)
       editContent[bi] = reconstructFromDiff(bi);
     }
 
+    loadedContent[bi] = editContent[bi] ?? "";
     editMode[bi] = true;
   }
 
@@ -125,6 +129,10 @@ export function useDiffViewerState({ diffText, taskId }: DiffViewerStateOptions)
     saveOk[bi] = false;
     try {
       await patchWorkspaceFile(taskId.value, filename, editContent[bi] ?? "");
+      userEditDiffs[filename] = formatUserEditDiff(
+        loadedContent[bi] ?? "",
+        editContent[bi] ?? "",
+      );
       saveOk[bi] = true;
       setTimeout(() => {
         closeEdit(bi);
@@ -149,6 +157,7 @@ export function useDiffViewerState({ diffText, taskId }: DiffViewerStateOptions)
     saveError,
     saveOk,
     parsedBlocks,
+    userEditDiffs,
     toggleCollapse,
     toggleEdit,
     closeEdit,

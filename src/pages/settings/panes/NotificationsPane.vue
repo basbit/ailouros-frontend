@@ -7,12 +7,16 @@
     <div class="notifications-pane__card">
       <GlobalNotificationSettings />
     </div>
+    <div class="notifications-pane__card">
+      <PauseNoticesSection />
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import PaneHeader from "@/widgets/app-shell/PaneHeader.vue";
 import GlobalNotificationSettings from "@/features/global-settings/GlobalNotificationSettings.vue";
+import PauseNoticesSection from "@/features/global-settings/PauseNoticesSection.vue";
 import { useI18n } from "@/shared/lib/i18n";
 
 const { t } = useI18n();

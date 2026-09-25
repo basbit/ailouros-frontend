@@ -4,6 +4,7 @@ import {
   fetchEnvCatalog,
   saveEnvOverrides,
 } from "@/shared/api/endpoints/env-catalog";
+import { applyRestartStatus } from "@/shared/lib/global-search/restart-status";
 
 export interface EnvGroup {
   name: string;
@@ -26,6 +27,11 @@ export function useEnvCatalog() {
     error.value = null;
     try {
       variables.value = await fetchEnvCatalog();
+      applyRestartStatus({
+        restart_pending: variables.value
+          .filter((variable) => variable.restart_pending)
+          .map((variable) => variable.name),
+      });
       drafts.value = {};
       loaded.value = true;
     } catch (err: unknown) {

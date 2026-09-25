@@ -8,6 +8,7 @@ import {
 } from "@/shared/api/endpoints/workspace";
 import { useI18n } from "@/shared/lib/i18n";
 import { frontendLogger } from "@/shared/lib/frontend-logger";
+import { formatUserEditDiff } from "./useFileFeedback";
 
 export interface ClarifyQuestion {
   index: number;
@@ -35,6 +36,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
   const isEditLoading = ref<boolean>(false);
   const isEditSaving = ref<boolean>(false);
   const editError = ref<string | null>(null);
+  const savedEditDiffs = ref<Record<string, string>>({});
 
   async function loadEditFile(path: string): Promise<void> {
     const taskId = taskIdRef.value;
@@ -70,6 +72,13 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
     editError.value = null;
     try {
       await patchWorkspaceFile(taskId, selectedEditPath.value, editContent.value);
+      savedEditDiffs.value = {
+        ...savedEditDiffs.value,
+        [selectedEditPath.value]: formatUserEditDiff(
+          editOriginal.value,
+          editContent.value,
+        ),
+      };
       editOriginal.value = editContent.value;
       void fetchWorkspaceDiff();
     } catch (e) {
@@ -86,6 +95,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
 
   function resetEditState(): void {
     selectedEditPath.value = "";
+    savedEditDiffs.value = {};
     editContent.value = "";
     editOriginal.value = "";
     editError.value = null;
@@ -153,6 +163,7 @@ export function useHumanGateWorkspace(taskIdRef: Ref<string | undefined>) {
     isEditLoading,
     isEditSaving,
     editError,
+    savedEditDiffs,
     loadEditFile,
     onEditPathChange,
     saveEditedFile,

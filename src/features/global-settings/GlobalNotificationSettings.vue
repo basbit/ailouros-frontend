@@ -14,7 +14,7 @@
       </label>
       <div class="hint">
         {{ t("notify.enabled.hint") }}
-        <code>SWARM_NOTIFY_ENABLED</code>
+        <code>SWARM_NOTIFY_ENABLED</code><SettingSourceNote field="swarm_notify_enabled" />
       </div>
     </div>
 
@@ -39,7 +39,7 @@
           <option value="critical">critical</option>
         </select>
         <div class="hint">
-          <code>SWARM_NOTIFY_MIN_SEVERITY</code>
+          <code>SWARM_NOTIFY_MIN_SEVERITY</code><SettingSourceNote field="swarm_notify_min_severity" />
         </div>
       </div>
       <div class="field">
@@ -60,7 +60,7 @@
           "
         />
         <div class="hint">
-          <code>SWARM_NOTIFY_RATE_LIMIT_PER_MIN</code>
+          <code>SWARM_NOTIFY_RATE_LIMIT_PER_MIN</code><SettingSourceNote field="swarm_notify_rate_limit_per_min" />
         </div>
       </div>
     </div>
@@ -83,7 +83,7 @@
             )
           "
         />
-        <div class="hint"><code>SWARM_NOTIFY_WEBHOOK_URL</code></div>
+        <div class="hint"><code>SWARM_NOTIFY_WEBHOOK_URL</code><SettingSourceNote field="swarm_notify_webhook_url" /></div>
       </div>
       <div class="field">
         <label for="global_swarm_notify_webhook_token">{{
@@ -101,7 +101,7 @@
             )
           "
         />
-        <div class="hint"><code>SWARM_NOTIFY_WEBHOOK_TOKEN</code></div>
+        <div class="hint"><code>SWARM_NOTIFY_WEBHOOK_TOKEN</code><SettingSourceNote field="swarm_notify_webhook_token" /></div>
       </div>
     </fieldset>
 
@@ -127,7 +127,7 @@
             "
           />
           <div class="hint">
-            <code>SWARM_NOTIFY_TELEGRAM_BOT_TOKEN</code>
+            <code>SWARM_NOTIFY_TELEGRAM_BOT_TOKEN</code><SettingSourceNote field="swarm_notify_telegram_bot_token" />
           </div>
         </div>
         <div class="field">
@@ -146,7 +146,7 @@
             "
           />
           <div class="hint">
-            <code>SWARM_NOTIFY_TELEGRAM_CHAT_ID</code>
+            <code>SWARM_NOTIFY_TELEGRAM_CHAT_ID</code><SettingSourceNote field="swarm_notify_telegram_chat_id" />
           </div>
         </div>
       </div>
@@ -171,7 +171,7 @@
           "
         />
         <div class="hint">
-          <code>SWARM_NOTIFY_SLACK_WEBHOOK_URL</code>
+          <code>SWARM_NOTIFY_SLACK_WEBHOOK_URL</code><SettingSourceNote field="swarm_notify_slack_webhook_url" />
         </div>
       </div>
     </fieldset>
@@ -195,7 +195,7 @@
           "
         />
         <div class="hint">
-          <code>SWARM_NOTIFY_DISCORD_WEBHOOK_URL</code>
+          <code>SWARM_NOTIFY_DISCORD_WEBHOOK_URL</code><SettingSourceNote field="swarm_notify_discord_webhook_url" />
         </div>
       </div>
     </fieldset>
@@ -203,6 +203,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useI18n } from "@/shared/lib/i18n";
 import GlobalNotificationEmailSection from "./GlobalNotificationEmailSection.vue";

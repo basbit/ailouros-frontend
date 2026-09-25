@@ -54,6 +54,22 @@ const routes: RouteRecordRaw[] = [
     props: true,
     meta: { topTab: "history" },
   },
+  {
+    path: "/autoresearch",
+    component: () => import("@/pages/autoresearch/AutoresearchPage.vue"),
+    meta: { topTab: "research" },
+  },
+  {
+    path: "/autoresearch/:sessionId",
+    component: () => import("@/pages/autoresearch/AutoresearchPage.vue"),
+    props: true,
+    meta: { topTab: "research" },
+  },
+  {
+    path: "/effect",
+    component: () => import("@/pages/effect/EffectPage.vue"),
+    meta: { topTab: "effect" },
+  },
   { path: "/settings", redirect: "/settings/api-keys" },
   {
     path: "/settings/:pane",

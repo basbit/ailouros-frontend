@@ -17,6 +17,11 @@ import { runDiagnosticsI18nEn, runDiagnosticsI18nRu } from "./run-diagnostics-i1
 import { miscEn, miscRu } from "./misc";
 import { scenariosEn, scenariosRu } from "./scenarios";
 import { featureFlagsEn, featureFlagsRu } from "./feature-flags";
+import { autoresearchEn, autoresearchRu } from "./autoresearch";
+import { effectMetricsEn, effectMetricsRu } from "./effect-metrics";
+import { codegenFeedbackEn, codegenFeedbackRu } from "./codegen-feedback";
+import { remoteControlEn, remoteControlRu } from "./remote-control";
+import { settingsLiveEn, settingsLiveRu } from "./settings-live";
 
 const messages: Record<Locale, Messages> = {
   en: {
@@ -36,6 +41,11 @@ const messages: Record<Locale, Messages> = {
     ...miscEn,
     ...scenariosEn,
     ...featureFlagsEn,
+    ...codegenFeedbackEn,
+    ...autoresearchEn,
+    ...effectMetricsEn,
+    ...remoteControlEn,
+    ...settingsLiveEn,
   },
   ru: {
     ...commonRu,
@@ -54,6 +64,11 @@ const messages: Record<Locale, Messages> = {
     ...miscRu,
     ...scenariosRu,
     ...featureFlagsRu,
+    ...codegenFeedbackRu,
+    ...autoresearchRu,
+    ...effectMetricsRu,
+    ...remoteControlRu,
+    ...settingsLiveRu,
   },
 };
 

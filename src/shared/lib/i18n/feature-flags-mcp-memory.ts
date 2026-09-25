@@ -55,6 +55,12 @@ export const featureFlagsMcpMemoryEn: Messages = {
   "featureFlags.field.swarm_code_rag_repomap.label": "Code RAG: repo map",
   "featureFlags.field.swarm_code_rag_repomap.hint":
     "Also include a token-budgeted tree-sitter repo map (key symbols ranked by PageRank). Requires tree-sitter language packs.",
+  "featureFlags.field.swarm_cross_task_inject_steps.label": "Steps that get cross-task memory",
+  "featureFlags.field.swarm_cross_task_inject_steps.hint":
+    "Comma-separated step ids whose prompt gets memories of earlier tasks (default pm,ba,architect,clarify_input,qa). Applies to the next step that starts.",
+  "featureFlags.field.swarm_dev_past_user_feedback_per_file.label": "Past feedback per file",
+  "featureFlags.field.swarm_dev_past_user_feedback_per_file.hint":
+    "How many of your latest accept / reject / edit verdicts per expected file go into the dev prompt (0–50, default 3; 0 = none).",
 };
 
 export const featureFlagsMcpMemoryRu: Messages = {
@@ -112,4 +118,10 @@ export const featureFlagsMcpMemoryRu: Messages = {
   "featureFlags.field.swarm_code_rag_repomap.label": "Code RAG: карта репозитория",
   "featureFlags.field.swarm_code_rag_repomap.hint":
     "Дополнительно включить token-budgeted карту репозитория (ключевые символы по PageRank, tree-sitter). Требует tree-sitter language packs.",
+  "featureFlags.field.swarm_cross_task_inject_steps.label": "Шаги с cross-task памятью",
+  "featureFlags.field.swarm_cross_task_inject_steps.hint":
+    "ID шагов через запятую, в промпт которых добавляется память о прошлых задачах (по умолчанию pm,ba,architect,clarify_input,qa). Действует со следующего запущенного шага.",
+  "featureFlags.field.swarm_dev_past_user_feedback_per_file.label": "Прошлых оценок на файл",
+  "featureFlags.field.swarm_dev_past_user_feedback_per_file.hint":
+    "Сколько ваших последних вердиктов «принять / отклонить / исправить» на ожидаемый файл попадает в промпт dev (0–50, по умолчанию 3; 0 — ни одного).",
 };

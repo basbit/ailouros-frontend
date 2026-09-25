@@ -199,6 +199,12 @@ export const scenariosEn: Messages = {
   "scenarios.catalog.fix_bug.title": "Fix Bug",
   "scenarios.catalog.fix_bug.description":
     "Diagnoses and fixes a defect with the smallest change radius: clarifies the symptom, analyzes the code, plans a small patch, implements and verifies through QA before a manual gate.",
+  "scenarios.catalog.incident_followup.title": "Incident Follow-up",
+  "scenarios.catalog.incident_followup.description":
+    "Follows up a production incident: finds the root cause from the logs and the code, fixes it with a regression test that reproduces the incident, verifies through QA before a manual gate and writes a blameless postmortem into docs/.",
+  "scenarios.catalog.migration_refactor.title": "Migration / Large Refactor",
+  "scenarios.catalog.migration_refactor.description":
+    "Carries out a large mechanical change (framework or API migration, rename, dependency upgrade): inventories affected sites, plans reviewable batches with a rollback note, implements them, runs the full test suite in QA and writes migration notes into docs/.",
   "scenarios.catalog.product_prd.title": "Product PRD",
   "scenarios.catalog.product_prd.description":
     "Turns an idea into a PRD: clarifies the goal, describes users and personas, sets requirements and acceptance criteria, sketches a roadmap and records risks.",
@@ -248,6 +254,12 @@ export const scenariosRu: Messages = {
   "scenarios.catalog.fix_bug.title": "Исправление бага",
   "scenarios.catalog.fix_bug.description":
     "Диагностирует и исправляет дефект с минимальным радиусом изменений: уточняет симптом, анализирует код, планирует малый патч, реализует и проверяет через QA перед ручным контролем.",
+  "scenarios.catalog.incident_followup.title": "Разбор инцидента",
+  "scenarios.catalog.incident_followup.description":
+    "Разбирает продакшен-инцидент: находит первопричину по логам и коду, исправляет ее вместе с регрессионным тестом, воспроизводящим инцидент, проверяет через QA перед ручным контролем и пишет blameless-постмортем в docs/.",
+  "scenarios.catalog.migration_refactor.title": "Миграция / крупный рефакторинг",
+  "scenarios.catalog.migration_refactor.description":
+    "Выполняет крупное механическое изменение (миграция фреймворка или API, переименование, последствия обновления зависимости): находит все затронутые места, планирует проверяемые батчи с планом отката, реализует их, прогоняет полный набор тестов в QA и пишет заметки о миграции в docs/.",
   "scenarios.catalog.product_prd.title": "Product PRD",
   "scenarios.catalog.product_prd.description":
     "Превращает идею в PRD: уточняет цель, описывает пользователей и персоны, задает требования и критерии приемки, чертит roadmap и фиксирует риски.",

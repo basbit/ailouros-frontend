@@ -7,19 +7,14 @@
  * a type-only import cycle (nine of the eleven `no-circular` hits that kept
  * `tsPreCompilationDeps` off in the main dependency-cruiser config).
  */
-import type { GlobalSearchKeysState } from "@/shared/lib/global-search/types";
+import type {
+  BooleanSettingKey,
+  StringSettingKey,
+} from "@/shared/lib/global-search/types";
 
-export type FeatureFlagBooleanKey = {
-  [K in keyof GlobalSearchKeysState]: GlobalSearchKeysState[K] extends boolean
-    ? K
-    : never;
-}[keyof GlobalSearchKeysState];
+export type FeatureFlagBooleanKey = BooleanSettingKey;
 
-export type FeatureFlagStringKey = {
-  [K in keyof GlobalSearchKeysState]: GlobalSearchKeysState[K] extends string
-    ? K
-    : never;
-}[keyof GlobalSearchKeysState];
+export type FeatureFlagStringKey = StringSettingKey;
 
 interface FeatureFlagBooleanField {
   kind: "boolean";

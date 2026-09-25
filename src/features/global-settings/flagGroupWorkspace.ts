@@ -20,6 +20,15 @@ export const FLAG_GROUP_WORKSPACE: FeatureFlagGroup = {
     },
     {
       kind: "enum",
+      field: "swarm_workspace_isolation_mode",
+      envName: "SWARM_WORKSPACE_ISOLATION_MODE",
+      options: [
+        { value: "none", i18nSuffix: "none" },
+        { value: "worktree", i18nSuffix: "worktree" },
+      ],
+    },
+    {
+      kind: "enum",
       field: "swarm_exec_backend",
       envName: "SWARM_EXEC_BACKEND",
       options: [
@@ -40,6 +49,18 @@ export const FLAG_GROUP_WORKSPACE: FeatureFlagGroup = {
       kind: "boolean",
       field: "swarm_goal_scheduler_enabled",
       envName: "SWARM_GOAL_SCHEDULER_ENABLED",
+    },
+    {
+      kind: "string",
+      field: "swarm_goal_scheduler_timezone",
+      envName: "SWARM_GOAL_SCHEDULER_TIMEZONE",
+      placeholder: "UTC",
+    },
+    {
+      kind: "string",
+      field: "swarm_goal_scheduler_misfire_grace_seconds",
+      envName: "SWARM_GOAL_SCHEDULER_MISFIRE_GRACE_SECONDS",
+      placeholder: "60",
     },
     {
       kind: "boolean",

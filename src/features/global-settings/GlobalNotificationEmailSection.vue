@@ -15,7 +15,7 @@
             setKey('swarm_notify_smtp_host', ($event.target as HTMLInputElement).value)
           "
         />
-        <div class="hint"><code>SWARM_NOTIFY_SMTP_HOST</code></div>
+        <div class="hint"><code>SWARM_NOTIFY_SMTP_HOST</code><SettingSourceNote field="swarm_notify_smtp_host" /></div>
       </div>
       <div class="field">
         <label for="global_swarm_notify_smtp_port">{{
@@ -31,7 +31,7 @@
             setKey('swarm_notify_smtp_port', ($event.target as HTMLInputElement).value)
           "
         />
-        <div class="hint"><code>SWARM_NOTIFY_SMTP_PORT</code></div>
+        <div class="hint"><code>SWARM_NOTIFY_SMTP_PORT</code><SettingSourceNote field="swarm_notify_smtp_port" /></div>
       </div>
     </div>
     <div class="field">
@@ -46,7 +46,7 @@
         />
         <span class="check-label">{{ t("notify.email.tlsLabel") }}</span>
       </label>
-      <div class="hint"><code>SWARM_NOTIFY_SMTP_TLS</code></div>
+      <div class="hint"><code>SWARM_NOTIFY_SMTP_TLS</code><SettingSourceNote field="swarm_notify_smtp_tls" /></div>
     </div>
     <div class="field">
       <label for="global_swarm_notify_email_sender">{{
@@ -61,7 +61,7 @@
           setKey('swarm_notify_email_sender', ($event.target as HTMLInputElement).value)
         "
       />
-      <div class="hint"><code>SWARM_NOTIFY_EMAIL_SENDER</code></div>
+      <div class="hint"><code>SWARM_NOTIFY_EMAIL_SENDER</code><SettingSourceNote field="swarm_notify_email_sender" /></div>
     </div>
     <div class="field">
       <label for="global_swarm_notify_email_recipients">{{
@@ -80,7 +80,7 @@
         "
       />
       <div class="hint">
-        <code>SWARM_NOTIFY_EMAIL_RECIPIENTS</code>
+        <code>SWARM_NOTIFY_EMAIL_RECIPIENTS</code><SettingSourceNote field="swarm_notify_email_recipients" />
       </div>
     </div>
     <div class="notify-row">
@@ -97,7 +97,7 @@
             setKey('swarm_notify_smtp_user', ($event.target as HTMLInputElement).value)
           "
         />
-        <div class="hint"><code>SWARM_NOTIFY_SMTP_USER</code></div>
+        <div class="hint"><code>SWARM_NOTIFY_SMTP_USER</code><SettingSourceNote field="swarm_notify_smtp_user" /></div>
       </div>
       <div class="field">
         <label for="global_swarm_notify_smtp_password">{{
@@ -116,7 +116,7 @@
           "
         />
         <div class="hint">
-          <code>SWARM_NOTIFY_SMTP_PASSWORD</code>
+          <code>SWARM_NOTIFY_SMTP_PASSWORD</code><SettingSourceNote field="swarm_notify_smtp_password" />
         </div>
       </div>
     </div>
@@ -124,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingSourceNote from "@/shared/components/settings-fields/SettingSourceNote.vue";
 import { useGlobalSettings } from "@/features/global-settings/useGlobalSettings";
 import { useI18n } from "@/shared/lib/i18n";
 
